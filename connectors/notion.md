@@ -76,3 +76,8 @@ them.** If one reads wrong, the fix is the formula or the inputs — flag it.
 - Mentions beat plaintext: inside body sections (5 Whys tags, decision
   rationale), reference other rows as inline page mentions, not prose
   paraphrases or bare titles — plaintext references escape relation audits.
+- A `Type`-equality filter matches neither branch when `Type` is unset — a
+  row with no `Type` is invisible to a `Type = Decision` or `Type =
+  Terminology` fetch. Fetch unfiltered first and flag empty `Type`
+  (`ontology.yaml`'s `untyped-record` rule) before filtering into either
+  kind.

@@ -271,3 +271,8 @@ confirm relation targets are still wired to the correct databases.
   reads wrong, fix the formula or the inputs.
 - Never fall back to searching for a database by name; always use the configured
   IDs.
+- **A `Type`-equality filter drops rows where `Type` is unset — it doesn't
+  match either branch.** Never treat a `Type = Decision` or `Type =
+  Terminology` filtered fetch as if it were the full register: fetch
+  unfiltered first and check for empty `Type` (`ontology.yaml`'s
+  `untyped-record` rule) before filtering into either kind.
