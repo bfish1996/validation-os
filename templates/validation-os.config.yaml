@@ -62,9 +62,10 @@ vocabulary:
 # self_review:
 #   review_dir: self-review
 
-# Evidence sources available to /find-evidence and /meeting-prep.
+# Evidence sources available to /find-evidence, /meeting-prep, and
+# /assumptions bootstrap mode.
 # Skills only sweep what is listed here; with nothing listed they still work
 # via web/desk research and by asking you to paste notes or transcripts.
-# Known sources: web, fireflies, slack, gmail, attio
+# Known sources: web, fireflies, slack, gmail, attio, mixpanel
 evidence_sources:
   - web

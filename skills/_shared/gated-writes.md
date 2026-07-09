@@ -42,3 +42,30 @@ Batch modes that are allowed to write without per-row gates (e.g.
 every mutation recorded as `{record, field, before, after, kind}` and read
 back at the end. The writes each mode may make autonomously are listed in
 that mode's reference — anything not listed stays gated.
+
+## Batch gate
+
+A third pattern, for modes that sweep a large amount of source material in
+one sitting (e.g. `/assumptions` bootstrap) where a per-record card would be
+too slow and silent autonomy would be too risky. Unlike the run-log (writes
+already happened, logged for rollback), a batch gate writes **nothing**
+until the one confirmation lands:
+
+1. **Accumulate, don't write.** As the sweep runs, hold every proposed
+   mutation in memory — new records, edits, close-outs — instead of
+   rendering a card or writing per item.
+2. **Render one consolidated proposal** at the end, grouped by kind (e.g.
+   new assumption stubs / new evidence records / `Running` records closed
+   out / material considered and dropped), each line as terse as the
+   per-record card's `payload` — enough to judge, not the full body. Include
+   before → after `Confidence` for every touched assumption.
+3. **One confirmation gates the whole batch**: `y` writes everything shown;
+   `n` writes nothing; `edit <item>` or `drop <item>` removes or amends one
+   line, then the proposal re-renders for another confirm. There is no
+   partial-apply without an explicit edit/drop first — silence is not
+   approval, same as the per-record card.
+4. **Write, then report** exactly like a run-log: every mutation that
+   actually landed, so the batch is auditable after the fact too.
+
+Irreversible items inside a batch still carry the per-record
+`⚠ IRREVERSIBLE` line so they aren't lost in the aggregate view.

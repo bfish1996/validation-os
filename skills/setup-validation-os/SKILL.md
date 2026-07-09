@@ -78,8 +78,12 @@ Worked example: `../../examples/01-setup.md`.
 5. **Declare evidence sources.** Ask which of these the user's agent can
    actually reach, and list only those under `evidence_sources:`:
    `web` (default — desk research), `fireflies` (call transcripts), `slack`,
-   `gmail`, `attio` (CRM). An empty list is fine — `/find-evidence` and
-   `/meeting-prep` fall back to web research and pasted notes.
+   `gmail`, `attio` (CRM), `mixpanel` (product telemetry/usage analytics).
+   An empty list is fine — `/find-evidence` and `/meeting-prep` fall back to
+   web research and pasted notes. If `attio` (or any CRM) is declared, ask
+   whether it has lost/churned-deal records with a lost-reason field
+   populated — that's what `/assumptions` bootstrap mode (step 8) needs to
+   mine churn as evidence, not just won deals.
 
 6. **Set the vocabulary.** The schema leaves two lists to the user
    (`skills/_shared/registry-schema.md`):
@@ -99,9 +103,19 @@ Worked example: `../../examples/01-setup.md`.
    `templates/validation-os.config.yaml` with the answers above, show it in
    full, and write it only on the user's confirmation.
 
-8. **Prove the loop.** Offer to run `/assumptions` now to capture the user's
-   first real assumption — setup is complete when one genuine record exists,
-   not when the config file does.
+8. **Prove the loop.** Ask whether this workspace is a brand-new idea or an
+   existing business with real history in the sources just declared:
+   - **Brand-new idea** — offer to run `/assumptions` now to capture the
+     user's first real assumption by hand. Setup is complete when one
+     genuine record exists, not when the config file does.
+   - **Existing business** — offer `/assumptions` **bootstrap mode**
+     instead: a sweep across every declared source (years of calls, email,
+     CRM wins *and* losses, telemetry) that proposes new assumption stubs
+     already carrying evidence, reviewed as one batch confirmation
+     (`skills/assumptions/references/bootstrap.md`). Only offer this when
+     at least one declared source actually has history to mine — an
+     existing business with nothing recorded yet still takes the
+     brand-new-idea path here.
 
 ## Scope boundary
 

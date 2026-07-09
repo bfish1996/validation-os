@@ -75,7 +75,7 @@ Update later with `npx skills update`.
 
 | Skill | What it does | Invoke it when |
 |---|---|---|
-| `/assumptions` | Build, grill, audit the Assumption Registry. Five modes: single (default, gated), seed, audit, loop (autonomous, explicit opt-in), triage. | "grill this assumption", "map assumptions from this call", "audit the register" |
+| `/assumptions` | Build, grill, audit the Assumption Registry. Six modes: single (default, gated), seed, bootstrap (batch-gated sweep of an existing business's whole history), audit, loop (autonomous, explicit opt-in), triage. | "grill this assumption", "map assumptions from this call", "onboard our existing business", "audit the register" |
 | `/experiment-design` | Turn the riskiest assumption into a falsifiable, pre-registered test; prep the instrument (interview guide, survey, prototype brief, fake-door spec). | "how do I test this", "design an experiment", "interview guide for X" |
 | `/find-evidence` | Sweep what you *already* know — internal record (calls, chat, email, CRM) and rigorous desk research — and log it as conclusive evidence. | "what do we already know about X", "desk research this" |
 | `/meeting-prep` | Person-first: research whoever you're meeting, then work backward to the high-Risk assumptions they're uniquely qualified to test. | "I'm speaking to X tomorrow", "what should I ask X" |
@@ -271,8 +271,8 @@ vocabulary:
   lens: [Commercial, Consumer, Investor]   # your audiences
   area: [Product, Go-to-market, ...]       # your domains
   audiences: [End user, Investor, Partner, Internal]
-evidence_sources: [web]       # + fireflies, slack, gmail, attio — whatever
-                              #   your harness actually has connected
+evidence_sources: [web]       # + fireflies, slack, gmail, attio, mixpanel —
+                              #   whatever your harness actually has connected
 ```
 
 No config at all still works: local files, web-only evidence. Skills

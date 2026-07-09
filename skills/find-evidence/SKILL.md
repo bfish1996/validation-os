@@ -63,6 +63,12 @@ Worked example (desk flavour): `../../examples/04-find-evidence.md`.
   `Desk research` tests that this skill later **closes out** once they've
   actually been run.
 - **`/assumptions` (loop mode)** — the whole register, autonomously.
+- **`/assumptions` (bootstrap mode)** — a whole-business, multi-source
+  historical sweep ("mine years of our calls/CRM/telemetry to build the
+  register") that creates new assumption stubs **and** attaches evidence to
+  them in one batch-gated pass. This skill stays one-assumption-at-a-time by
+  design — route a whole-business ask there instead of trying to force it
+  through repeated single-assumption calls.
 
 ## Procedure
 

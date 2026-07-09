@@ -26,6 +26,14 @@ Not shown: the maintenance entry points (assumptions audit / loop / triage,
 decision sweep / audit, terminology) — each skill's SKILL.md mode table
 covers them.
 
+One more scene sits outside the Ledgerly thread — it needs a different
+starting condition (a business with real history) rather than a fresh
+pilot call:
+
+| # | Scene | Skill (entry point) |
+|---|---|---|
+| [08](08-bootstrap-existing-business.md) | Bootstrap an existing business's history | `/assumptions` (bootstrap) |
+
 The thread here is product-flavoured, but the method isn't product-only —
 how the same loop runs on sales outreach, pricing, fundraising, and
 partnerships: [docs/domains.md](../docs/domains.md).
