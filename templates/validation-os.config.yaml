@@ -1,0 +1,38 @@
+# Validation-OS configuration
+#
+# Copy this file to the root of your workspace (the directory you run your
+# agent from, or any parent of it — skills walk up from the working directory
+# to find it). If no config file exists, skills fall back to the local-files
+# connector with a ./registry directory and web-only evidence.
+
+# Where your registry lives. One of: local-files | notion
+# Each connector is documented in connectors/<name>.md.
+connector: local-files
+
+# local-files connector: path to the registry directory (relative to this file).
+local_files:
+  registry_dir: registry
+
+# notion connector: your own database IDs (see connectors/notion.md for how
+# to create the databases and find these IDs).
+# notion:
+#   assumptions_db: ""
+#   experiments_db: ""
+#   decisions_db: ""
+#   terminology_db: ""
+
+# Your vocabulary (see skills/_shared/registry-schema.md). Lens = the
+# audiences whose decisions assumptions drive; Area = the product/domain
+# areas that tag decisions and terminology.
+vocabulary:
+  lens: [Commercial, Consumer, Investor]
+  area: [Product, Go-to-market, Business model, Technology]
+  # Audiences your outputs are written for — used by the terminology check.
+  audiences: [End user, Investor, Partner, Internal]
+
+# Evidence sources available to /find-evidence and /meeting-prep.
+# Skills only sweep what is listed here; with nothing listed they still work
+# via web/desk research and by asking you to paste notes or transcripts.
+# Known sources: web, fireflies, slack, gmail, attio
+evidence_sources:
+  - web
