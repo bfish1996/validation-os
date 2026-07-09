@@ -46,7 +46,8 @@ Assumption → grill & score → Experiment (pre-registered pass/kill bars)
 Theory, ladder, cadence, and goals: [docs/method.md](docs/method.md) ·
 [docs/evidence-ladder.md](docs/evidence-ladder.md) ·
 [docs/weekly-ritual.md](docs/weekly-ritual.md) ·
-[docs/goals.md](docs/goals.md).
+[docs/goals.md](docs/goals.md). Not just product — sales outreach,
+pricing, fundraising, partnerships: [docs/domains.md](docs/domains.md).
 
 ## Quickstart
 
@@ -139,7 +140,8 @@ skills/               the five skills + setup, one dir per skill
 connectors/           storage contract + reference implementations
 examples/             one assumption followed end-to-end, a scene per skill
 templates/            config + starter registry files
-docs/                 the method, the evidence ladder, the weekly ritual
+docs/                 the method, the evidence ladder, the weekly ritual,
+                      where it applies by function
 ```
 
 ## Credits & lineage

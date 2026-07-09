@@ -3,7 +3,9 @@
 Validation-OS operationalises one idea: **a startup is a stack of untested
 beliefs, and the fastest way to not die is to find the riskiest belief and
 buy it down with evidence — before you build on top of it.** The method is
-three habits, each backed by a register and a set of skills.
+three habits, each backed by a register and a set of skills. Nothing in it
+is product-specific — the same loop prices go-to-market, pricing,
+fundraising, and partnership beliefs (`domains.md`).
 
 ## Habit 1 — Write the bets down
 
