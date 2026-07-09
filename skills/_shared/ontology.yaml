@@ -310,6 +310,10 @@ integrity_rules:
     severity: error
     surfaced_by: ["/assumptions audit", "/decisions audit"]
     check: A symmetric or inverse relation written on one end only, on a backend that doesn't auto-sync.
+  - id: untyped-record
+    severity: error
+    surfaced_by: ["/decisions audit", validate_backend]
+    check: A decisions_terminology row with no Type value. Invisible to every Type-filtered fetch (Terminology Lookup/Build dedup, Decision Audit/Sweep) — only an unfiltered full-register pass catches it. Back-fill Type immediately; until fixed, treat as neither Decision nor Terminology for any other rule.
 
   # Derived-field discipline
   - id: derived-field-stale
