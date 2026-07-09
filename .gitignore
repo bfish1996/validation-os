@@ -1,6 +1,3 @@
-# Local sync configuration (private Drive paths)
-.sync-env
-
 # OS noise
 .DS_Store
 
