@@ -215,7 +215,8 @@ the dependency graph (e.g. a load-bearing root scored Impact 10) is a flag.
     not the grill, decides.
 - **Enforcement (mandatory, not optional).** Before creating a record, search
   the register and surface the nearest 2–3 — every new stub sets the
-  `Duplicate` gap regardless of suspicion (`references/seed.md`), so this
+  `Duplicate` gap regardless of suspicion
+  (`../assumptions/references/seed.md`), so this
   check always runs through single mode's dedup phase rather than being
   skipped when nothing looks like a duplicate. The outcome must be recorded
   in the body's `## Provenance & notes`: either merge (naming the redundant
