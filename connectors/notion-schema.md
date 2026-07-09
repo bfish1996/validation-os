@@ -91,12 +91,28 @@ matters. Never hand-edit the rollup.
 
 ### Derived values
 
-- **Strength** formula:
+- **Strength** formula — implements the canonical computation in
+  `experiment-guardrails.md` §2 (rung base × source-quality modifier, capped at
+  99, 0 unless the Result is conclusive):
   ```
-  /* Rung band × source-quality modifier */
-  if(prop("Result") != "Validated" and prop("Result") != "Invalidated", 0, ...)
+  if(and(prop("Result") != "Validated", prop("Result") != "Invalidated"), 0,
+    min(99, round(
+      if(prop("Type") == "Opinion", 5,
+      if(prop("Type") == "Pitch-deck reaction", 10,
+      if(prop("Type") == "Anecdotal", 15,
+      if(prop("Type") == "Desk research", 25,
+      if(prop("Type") == "Survey at scale", 40,
+      if(prop("Type") == "Signed intent", 60,
+      if(prop("Type") == "Prototype usage", 80,
+      if(prop("Type") == "Paying users", 99, 0))))))))
+      *
+      if(prop("Source quality") == "High", 1.15,
+      if(prop("Source quality") == "Low", 0.85, 1))
+    ))
+  )
   ```
-  See `experiment-guardrails.md` §2 for the exact band/modifier table.
+  If Notion's formula editor rejects this exact shape, preserve the semantics —
+  the rung bases, modifiers, cap, and conclusive-Result gate are canonical.
 
 ## Field mapping — Decisions & Terminology
 

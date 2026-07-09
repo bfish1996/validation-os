@@ -46,8 +46,13 @@ sql:
 - Primary key: `id TEXT` (e.g., `ASM-001`, `EXP-001`, `DEC-001`).
 - Soft-delete: none; decisions are recorded as new rows or status changes.
 - Timestamps: `created_at TIMESTAMP`, `updated_at TIMESTAMP`.
-- Body: long-form content stored as `body TEXT` (Markdown) or `body JSONB` if
-  the database supports it.
+- Body: long-form content stored as `body TEXT` holding Markdown with the
+  canonical `##` section headings.
+- Multi-value scalar fields (themes, gaps, agreed_by) are JSON arrays in a
+  `JSON` column (`TEXT` holding JSON where the engine has no JSON type).
+- Relations between records live in junction tables, never in array columns —
+  the one exception is `experiments.assumption_id`, a plain FK because the
+  schema caps an experiment at exactly one assumption.
 - Derived columns should have a `COMMENT` (or inline docs) indicating they are
   computed.
 
@@ -58,19 +63,19 @@ sql:
 | Title | `title` | TEXT | no |
 | Description | `description` | TEXT | no |
 | Lens | `lens` | TEXT | no |
-| Theme | `themes` | TEXT[] or JSON | no |
+| Theme | `themes` | JSON (array of strings) | no |
 | Impact | `impact` | INTEGER (0–100) | no |
 | Risk | `risk` | NUMERIC | yes |
 | Confidence | `confidence` | NUMERIC | yes |
 | Corroboration count | `corroboration_count` | INTEGER | no |
 | Status | `status` | TEXT | no |
 | Owner | `owner` | TEXT | no |
-| Gaps | `gaps` | TEXT[] or JSON | no |
-| Depends on / Enables | `depends_on`, `enables` | TEXT[] or junction table | no |
-| Contradicts | `contradicts` | TEXT[] or junction table | no |
-| Goals | `goals` | TEXT[] or junction table | no |
-| Experiments | `experiments` | TEXT[] or junction table | no |
-| Body | `body` | TEXT / JSONB | no |
+| Gaps | `gaps` | JSON (array of strings) | no |
+| Depends on / Enables | junction `assumption_dependencies` | — (see Relations) | no |
+| Contradicts | junction `assumption_contradictions` | — (see Relations) | no |
+| Goals | junction `assumption_goals` | — (see Relations) | no |
+| Experiments | inverse of `experiments.assumption_id` | — (queried, not stored) | no |
+| Body | `body` | TEXT (Markdown) | no |
 
 ### Derived values
 
@@ -93,7 +98,7 @@ corroboration bump.
 | Date | `start_date`, `outcome_date` | DATE | no |
 | Owner | `owner` | TEXT | no |
 | Interviewee | `interviewee` | TEXT | no |
-| Body | `body` | TEXT / JSONB | no |
+| Body | `body` | TEXT (Markdown) | no |
 
 ### Derived values
 
@@ -112,21 +117,21 @@ One table, split by `type`.
 | Type | `type` | TEXT | no |
 | Status | `status` | TEXT | no |
 | Area | `area` | TEXT | no |
-| Related tension | `related_tension` | TEXT[] or junction table | no |
-| Body | `body` | TEXT / JSONB | no |
+| Related tension | junction `decision_tensions` | — (see Relations) | no |
+| Body | `body` | TEXT (Markdown) | no |
 
 ### Decision-only columns
 
 | Canonical field | SQL column | Type | Derived |
 |---|---|---|---|
 | Owner | `owner` | TEXT | no |
-| Agreed by | `agreed_by` | TEXT[] or JSON | no |
+| Agreed by | `agreed_by` | JSON (array of strings) | no |
 | Unanimity score | `unanimity_score` | INTEGER (0–100) | no |
 | Source | `source` | TEXT | no |
 | Decided date | `decided_date` | DATE | no |
-| Supersedes / Superseded by | `supersedes`, `superseded_by` | TEXT[] or junction table | no |
-| Based on assumption | `based_on_assumption` | TEXT[] or junction table | no |
-| Resolves assumption | `resolves_assumption` | TEXT[] or junction table | no |
+| Supersedes / Superseded by | junction `decision_supersedes` | — (see Relations) | no |
+| Based on assumption | junction `decision_based_on` | — (see Relations) | no |
+| Resolves assumption | junction `decision_resolves` | — (see Relations) | no |
 
 ## Vocabulary-driven columns
 
@@ -144,7 +149,7 @@ a default set and writes them into the config.
 
 | Canonical relation | Implementation | Target | Cardinality |
 |---|---|---|---|
-| Assumption ↔ Experiments | `experiments.assumption_id` FK or `assumption_experiments` junction table | assumptions ↔ experiments | many |
+| Assumption ↔ Experiments | `experiments.assumption_id` FK (one assumption per experiment); the assumption's Experiments list is queried from it | assumptions ↔ experiments | one per experiment |
 | Depends on / Enables | junction table `assumption_dependencies` with `kind` column | assumptions | many |
 | Contradicts | junction table `assumption_contradictions` | assumptions | many |
 | Related tension | junction table `decision_tensions` | decisions | many |

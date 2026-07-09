@@ -35,13 +35,15 @@ records.
 - **Create** — `INSERT` a row; return the generated `id`.
 - **Update** — `UPDATE` named columns for one row by `id`; untouched columns
   stay intact.
-- **Link** — update foreign-key / junction columns on both ends of two-way
-  relations. For self-relations, update both rows.
+- **Link** — insert/delete junction-table rows (or set
+  `experiments.assumption_id`). Two-way relations get both junction rows in one
+  transaction.
 
 ## Derived fields — the skill computes them here
 
-SQL has no opinion on the derived formulas, so the skill recomputes and
-rewrites them on every touching edit:
+SQL has no native formulas, so the skill recomputes and rewrites them on every
+touching edit, using the canonical computation in
+`skills/_shared/experiment-guardrails.md` §2:
 
 - Logging or concluding an experiment → recompute that row's `Strength`, then
   every linked assumption's `Confidence` and `Risk`.

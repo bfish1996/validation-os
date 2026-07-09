@@ -43,12 +43,15 @@ nosql:
 
 ## Shared conventions
 
-- Primary key: `_id` or `id` (e.g., `ASM-001`, `EXP-001`, `DEC-001`).
-- Timestamps: `createdAt`, `updatedAt` (ISO 8601 strings or native dates).
-- Body: long-form content stored as `body` (Markdown string) or `bodySections`
-  (JSON object keyed by section heading).
-- Derived fields live in a `derived` sub-object or use a `_` prefix so humans
-  know not to edit them directly.
+- Primary key: an `id` field carrying the registry ID (`ASM-001`, `EXP-001`,
+  `DEC-001`), indexed unique; the store's native key (`_id`, partition key) is
+  backend-managed and never referenced by skills.
+- Timestamps: `createdAt`, `updatedAt` as ISO 8601 strings.
+- Body: long-form content stored as `body` — one Markdown string with the
+  canonical `##` section headings.
+- Derived fields live in a `derived` sub-object (`derived.risk`,
+  `derived.confidence`, `derived.strength`) so humans know not to edit them
+  directly.
 
 ## Field mapping — Assumptions
 
@@ -59,8 +62,8 @@ nosql:
 | Lens | `lens` | string | no |
 | Theme | `themes` | string[] | no |
 | Impact | `impact` | number (0–100) | no |
-| Risk | `derived.risk` or `_risk` | number | yes |
-| Confidence | `derived.confidence` or `_confidence` | number | yes |
+| Risk | `derived.risk` | number | yes |
+| Confidence | `derived.confidence` | number | yes |
 | Corroboration count | `corroborationCount` | number | no |
 | Status | `status` | string | no |
 | Owner | `owner` | string | no |
@@ -69,7 +72,7 @@ nosql:
 | Contradicts | `contradicts` | string[] (IDs) | no |
 | Goals | `goals` | string[] (IDs) | no |
 | Experiments | `experiments` | string[] (IDs) | no |
-| Body | `body` or `bodySections` | string / object | no |
+| Body | `body` | string (Markdown) | no |
 
 ### Derived values
 
@@ -88,11 +91,11 @@ corroboration bump.
 | Feasibility | `feasibility` | string | no |
 | We're right if | `successCriteria` | string | no |
 | Result | `result` | string | no |
-| Strength | `derived.strength` or `_strength` | number | yes |
-| Date | `startDate`, `outcomeDate` | date / string | no |
+| Strength | `derived.strength` | number | yes |
+| Date | `startDate`, `outcomeDate` | string (ISO 8601) | no |
 | Owner | `owner` | string | no |
 | Interviewee | `interviewee` | string | no |
-| Body | `body` or `bodySections` | string / object | no |
+| Body | `body` | string (Markdown) | no |
 
 ### Derived values
 
@@ -112,7 +115,7 @@ One collection, split by `type`.
 | Status | `status` | string | no |
 | Area | `area` | string | no |
 | Related tension | `relatedTension` | string[] (IDs) | no |
-| Body | `body` or `bodySections` | string / object | no |
+| Body | `body` | string (Markdown) | no |
 
 ### Decision-only fields
 
@@ -122,7 +125,7 @@ One collection, split by `type`.
 | Agreed by | `agreedBy` | string[] | no |
 | Unanimity score | `unanimityScore` | number (0–100) | no |
 | Source | `source` | string | no |
-| Decided date | `decidedDate` | date / string | no |
+| Decided date | `decidedDate` | string (ISO 8601) | no |
 | Supersedes / Superseded by | `supersedes`, `supersededBy` | string[] (IDs) | no |
 | Based on assumption | `basedOnAssumption` | string[] (IDs) | no |
 | Resolves assumption | `resolvesAssumption` | string[] (IDs) | no |

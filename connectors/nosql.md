@@ -30,7 +30,7 @@ starter records.
 
 - **Query all** — fetch every document from the collection. Never a filtered
   view.
-- **Fetch one** — fetch by `_id` / primary key.
+- **Fetch one** — fetch by the `id` field (the registry ID).
 - **Search** — native full-text search if available, otherwise read-all and
   judge similarity.
 - **Create** — insert a document; return the generated key.
@@ -39,15 +39,17 @@ starter records.
 
 ## Derived fields — the skill computes them here
 
-NoSQL has no opinion on the derived formulas, so the skill recomputes and
-rewrites them on every touching edit:
+NoSQL has no native formulas, so the skill recomputes and rewrites them on
+every touching edit, using the canonical computation in
+`skills/_shared/experiment-guardrails.md` §2:
 
 - Logging or concluding an experiment → recompute that document's `Strength`,
   then every linked assumption's `Confidence` and `Risk`.
 - Re-scoring Impact → recompute that assumption's `Risk`.
 
-Derived fields are kept in a `derived` sub-object or marked with a leading
-underscore (e.g., `_risk`) to signal that humans should not hand-edit them.
+Derived fields live in a `derived` sub-object (`derived.risk`,
+`derived.confidence`, `derived.strength`) to signal that humans should not
+hand-edit them.
 
 ## Cautions
 

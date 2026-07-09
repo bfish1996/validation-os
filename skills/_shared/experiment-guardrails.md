@@ -152,6 +152,21 @@ feed `Confidence`. Neither can lift a record past the next rung's floor.
   next rung's floor, so 100 corroborating weak records still can't beat one
   stronger record.
 
+**Strength computation (canonical — every backend implements exactly this).**
+`Strength = rung base × source-quality modifier`, rounded, capped at 99, and
+gated to a conclusive `Result` (0 while `Running` or `Inconclusive`):
+
+- Rung base = the indicative percentage above: `Opinion` 5 ·
+  `Pitch-deck reaction` 10 · `Anecdotal` 15 · `Desk research` 25 ·
+  `Survey at scale` 40 · `Signed intent` 60 · `Prototype usage` 80 ·
+  `Paying users` 99.
+- Source-quality modifier: `High` ×1.15 · `Medium` ×1.0 · `Low` ×0.85.
+
+The modifiers are sized so no rung's `High` reaches the next rung's floor —
+ladder integrity holds by construction. Backends with native formulas (Notion)
+encode this in the `Strength` formula; formula-less backends have the skill
+compute it on every touching write.
+
 **Volume lives in rung choice, not in a record count.** More records do
 **not** stack: `Confidence` is a `max`, so 100 `Anecdotal` records roll up
 exactly like one. If you have volume, it should change the *rung* — a
