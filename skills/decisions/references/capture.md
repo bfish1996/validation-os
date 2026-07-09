@@ -39,6 +39,9 @@ memory with no source, ask for one — `Source` is required
      the body's `## Rationale`.
    - **Area** — topic tag from the config's `vocabulary.area`.
    - **Decided date**, **Source** (link or dated reference).
+   - **Reversibility** — ask: *"if this turns out wrong, can we get back to
+     today's position at a cost we'd happily pay?"* Yes → `Two-way door`;
+     no or unclear → `One-way door` (`decision-guardrails.md §8`).
    - **Status** — default `Active` unless the decision is explicitly
      tentative (`Provisional`).
 4. **Draft the body** from the 4-heading template (verbatim headings,
@@ -54,6 +57,12 @@ memory with no source, ask for one — `Source` is required
      linking the record(s), **and** the paired write flipping the
      assumption's `Status` to `Resolved by decision`. If the user is unsure
      or says no, leave this unset — an open assumption stays open.
+   - **One-way door check** (`decision-guardrails.md §8`): if Reversibility
+     is `One-way door` and any `Based on` link points at an untested
+     assumption, require either an explicit risk-acceptance line in
+     `## Rationale` (naming the assumption and why deciding now beats
+     testing first), or propose `/experiment-design` and keep the record
+     `Provisional` until the evidence lands.
 6. **Terminology check.** Run `../../_shared/ubiquitous-language.md` over the
    final Decision statement + body, audience = Internal. Walk any
    must-fix/should-fix findings with the user; add any missing glossary term

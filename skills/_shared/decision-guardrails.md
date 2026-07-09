@@ -155,7 +155,39 @@ Areas, pick the primary one; don't widen the sweep to compensate.
 
 ---
 
-## 8. Guardrail summary (reject a Capture/Sweep write that fails any)
+## 8. Reversibility — one-way vs two-way doors
+
+Every Decision record is classified `Two-way door` or `One-way door`
+(`Reversibility` field, `registry-schema.md`). The test: *"if this turns out
+wrong, can we return to today's position at a cost we'd happily pay?"* Yes →
+two-way. No, or unclear → one-way (default conservative; unclear is a flag,
+not a guess).
+
+The guardrail is **not** "only make two-way decisions" — some one-way doors
+are unavoidable. It's a bar-setter:
+
+- **Two-way door** — decide fast. It may freely be `Based on` untested,
+  low-confidence assumptions: reversing is cheap, so the decision itself
+  functions like an experiment. No extra gate.
+- **One-way door** — the strict gate. Every `Based on assumption` link should
+  point at a `Validated` or `Resolved by decision` record. If any linked
+  assumption is untested, Capture must either (a) record an explicit
+  **risk-acceptance line** in `## Rationale` naming the untested
+  assumption(s) and why deciding now beats testing first, or (b) propose
+  routing to `/experiment-design` and leaving the decision `Provisional`
+  until the evidence lands. A one-way door silently resting on a high-Risk
+  untested assumption is a reject.
+
+**Mootness dies with the decision.** When a Decision carrying `Resolves
+assumption` links flips to `Reversed` or `Superseded` (and the superseding
+decision doesn't re-resolve the same records), each linked assumption's
+`Resolved by decision` status is stale — the question it retired is open
+again. Audit flags these; a human reopens each in a gated session
+(`registry-schema.md §Status flow`).
+
+---
+
+## 9. Guardrail summary (reject a Capture/Sweep write that fails any)
 
 Decided-date + Source + at least one Owner present · Unanimity score banded
 with a one-line justification · Attribution confidence noted
@@ -163,4 +195,6 @@ with a one-line justification · Attribution confidence noted
 severity field · `Supersedes` wired only for a genuine intentional override,
 never in place of an unresolved `Related tension` · `Based on` and `Resolves`
 assumption relations set independently, never one inferred from the other ·
-Sweep's conflict search never crosses `Area`.
+Sweep's conflict search never crosses `Area` · Reversibility classified
+(unclear = one-way) · One-way door with untested `Based on` links carries a
+risk-acceptance line or stays `Provisional` pending a test.

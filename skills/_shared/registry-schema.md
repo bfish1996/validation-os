@@ -84,7 +84,11 @@ Not Started ──(grill close-out: Gaps empties)──▶ Experiment Needed ─
   `/decisions`' gated Resolves-assumption action; `/assumptions` never sets it.
   Behaves like a conclusive verdict for queue purposes. A decision merely
   *citing* an assumption as rationale never triggers this —
-  `decision-guardrails.md §6`.
+  `decision-guardrails.md §6`. Terminal only while the resolving decision
+  stands: if that decision is later `Reversed`/`Superseded` (and not
+  re-resolved by the successor), the assumption reopens in a gated session —
+  back to `Experiment Needed` if Gaps are empty, else `Not Started`
+  (`decision-guardrails.md §8`).
 
 ## Field map — Experiments
 
@@ -124,6 +128,7 @@ Decision rows (the decision log). Terminology enforcement rules live in
 | Unanimity score | number 0–100 | Decision only | Anchored bands — `decision-guardrails.md §2`. The only hand-scored number on a Decision row. |
 | Source | text/URL | Decision only | Link to the transcript / thread / doc the decision came from. |
 | Decided date | date | Decision only | When it was decided; may differ from row creation. |
+| Reversibility | select | Decision only | `Two-way door` / `One-way door`. Unclear = one-way. Sets the evidence bar for `Based on` links — `decision-guardrails.md §8`. |
 | Supersedes / Superseded by | self-relation, two-way | Decision only | Resolved, intentional override — distinct from `Related tension` (unresolved). |
 | Based on assumption | relation → Assumptions | Decision only | Rationale-only. **Never** touches the assumption's Status. |
 | Resolves assumption | relation → Assumptions | Decision only | **Separate** relation from `Based on assumption` — never reuse one for the other. Setting it (gated) flips the linked assumption's Status to `Resolved by decision`. `decision-guardrails.md §6`. |

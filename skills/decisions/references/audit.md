@@ -10,7 +10,7 @@ time, gated, through Capture mode.
    `../../_shared/registry-schema.md`). Rules:
    `../../_shared/decision-guardrails.md`.
 2. **Check each record against the guardrail summary**
-   (`decision-guardrails.md §8`) and flag:
+   (`decision-guardrails.md §9`) and flag:
    - Missing **Owner**.
    - Missing **Agreed by**.
    - `Active` records with no **Decided date** or no **Source** — incomplete
@@ -23,6 +23,14 @@ time, gated, through Capture mode.
      decision nobody has revisited.
    - Records whose attribution was flagged uncertain and never re-reviewed —
      flag for a human to re-check against a corroborating source.
+   - Missing **Reversibility** classification
+     (`decision-guardrails.md §8`).
+   - `One-way door` records with a `Based on` link to an untested assumption
+     and no risk-acceptance line in `## Rationale`.
+   - **Stale resolutions**: `Reversed`/`Superseded` decisions whose
+     `Resolves assumption` links point at assumptions still marked
+     `Resolved by decision` (and not re-resolved by the successor) — the
+     retired question is open again; flag each for a gated reopen.
 3. **Synthesise one ranked findings report** — by record, with the specific
    gap(s) and a suggested fix. Read it back to the user.
 4. When the user picks findings to fix, walk them one at a time through
