@@ -57,7 +57,12 @@ ever works one Type at a time. Sweep is always invoked on demand, never
 scheduled.
 
 Every fetch must filter/confirm `Type` before treating a record as either
-kind — the two Types share a title and little else.
+kind — the two Types share a title and little else. **Filtering itself is
+the danger**: a `Type = Decision` or `Type = Terminology` query matches
+neither branch when `Type` is unset, silently hiding untyped rows from
+Lookup, Build's dedup search, and Audit alike (`untyped-record`,
+`../_shared/ontology.yaml`). Fetch the full register unfiltered and check for
+empty `Type` before splitting by it.
 
 ## Terminology modes
 

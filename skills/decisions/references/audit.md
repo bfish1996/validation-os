@@ -6,7 +6,13 @@ time, gated, through Capture mode.
 
 ## What it does
 
-1. **Load every Decision record** from the register (never a filtered view —
+1. **Load the full register unfiltered first, then split by `Type`.** A
+   `Type = Decision` fetch matches neither branch when `Type` is unset, so
+   fetching pre-filtered would make untyped rows permanently invisible —
+   they'd never surface as Decisions *or* Terminology, on any subsequent
+   audit. Flag every row with no `Type` (`untyped-record`,
+   `../../_shared/ontology.yaml`) before proceeding. Then work the Decision
+   subset (never a filtered *view* either —
    `../../_shared/registry-schema.md`). Rules:
    `../../_shared/decision-guardrails.md`.
 2. **Check each record against the guardrail summary**
@@ -55,7 +61,7 @@ time, gated, through Capture mode.
        rows are untyped by design).
    These checks are the `/decisions audit` rules in
    `../../_shared/ontology.yaml §integrity_rules` — cite each finding by its
-   rule `id` (`stale-resolution`, `stale-rationale`,
+   rule `id` (`untyped-record`, `stale-resolution`, `stale-rationale`,
    `one-way-door-untested-basis`, `unresolved-tension`,
    `supersedes-tension-overlap`, `resolved-without-resolver`,
    `overdue-risk-acceptance`, `unclosed-goal`, `ungated-outcome`,
