@@ -3,3 +3,7 @@
 
 # Scratch
 *.bak
+
+# Local-only git hooks (consumer-side automation)
+.git/hooks/*
+!.git/hooks/*.sample
