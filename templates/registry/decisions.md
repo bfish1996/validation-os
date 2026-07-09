@@ -14,6 +14,7 @@ below is safe to delete.
 - **Unanimity score**: 90
 - **Source**: 2026-01-05 strategy call notes
 - **Decided date**: 2026-01-05
+- **Reversibility**: Two-way door
 - **Related tension**: (none)
 - **Supersedes**: (none)
 - **Superseded by**: (none)

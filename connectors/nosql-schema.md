@@ -63,6 +63,7 @@ registers:
       - {canonical: Unanimity score, backend: unanimityScore, type: number, derived: false}
       - {canonical: Source, backend: source, type: string, derived: false}
       - {canonical: Decided date, backend: decidedDate, type: string, derived: false}
+      - {canonical: Reversibility, backend: reversibility, type: string, derived: false, options_source: registry-schema}
     relations:
       - {canonical: Related tension, backend: relatedTension, target: decisions_terminology, cardinality: many, self: true}
       - {canonical: Supersedes / Superseded by, backend: "supersedes, supersededBy", target: decisions_terminology, cardinality: many, self: true}
@@ -181,6 +182,7 @@ One collection, split by `type`.
 | Unanimity score | `unanimityScore` | number (0–100) | no |
 | Source | `source` | string | no |
 | Decided date | `decidedDate` | string (ISO 8601) | no |
+| Reversibility | `reversibility` | string | no |
 | Supersedes / Superseded by | `supersedes`, `supersededBy` | string[] (IDs) | no |
 | Based on assumption | `basedOnAssumption` | string[] (IDs) | no |
 | Resolves assumption | `resolvesAssumption` | string[] (IDs) | no |

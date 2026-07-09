@@ -65,6 +65,7 @@ registers:
       - {canonical: Unanimity score, backend: Unanimity score, type: number, derived: false}
       - {canonical: Source, backend: Source, type: text, derived: false}
       - {canonical: Decided date, backend: Decided date, type: text, derived: false}
+      - {canonical: Reversibility, backend: Reversibility, type: text, derived: false, options_source: registry-schema}
     relations:
       - {canonical: Related tension, backend: Related tension, target: decisions_terminology, cardinality: many, self: true}
       - {canonical: Supersedes / Superseded by, backend: "Supersedes / Superseded by bullets", target: decisions_terminology, cardinality: many, self: true}
@@ -184,6 +185,7 @@ One file (`decisions.md` / `terminology.md`) split by `Type`.
 | Unanimity score | `- **Unanimity score**: ...` | number 0–100 | no |
 | Source | `- **Source**: ...` | text/URL | no |
 | Decided date | `- **Decided date**: ...` | text (date) | no |
+| Reversibility | `- **Reversibility**: ...` | text | no |
 | Supersedes / Superseded by | `- **Supersedes**: ...` / `- **Superseded by**: ...` | text (IDs) | no |
 | Based on assumption | `- **Based on assumption**: ...` | text (IDs) | no |
 | Resolves assumption | `- **Resolves assumption**: ...` | text (IDs) | no |
