@@ -55,6 +55,13 @@ vocabulary:
 # asks once if it's needed and unset.
 # prototype_home: ""
 
+# Optional: /self-review — PRIVATE self-evaluations of how you communicate
+# on recorded calls. Local-only directory (relative to this file); never
+# synced through the connector. Keep it out of shared version control — the
+# skill offers to gitignore it on first run.
+# self_review:
+#   review_dir: self-review
+
 # Evidence sources available to /find-evidence and /meeting-prep.
 # Skills only sweep what is listed here; with nothing listed they still work
 # via web/desk research and by asking you to paste notes or transcripts.

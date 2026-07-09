@@ -1,7 +1,7 @@
 # Validation-OS
 
 **An operating system for de-risking your startup — one falsifiable
-assumption at a time.** Five agent skills that turn the beliefs your
+assumption at a time.** Six agent skills that turn the beliefs your
 business depends on into a scored, evidence-ranked register, and every
 meeting, transcript, and research hour into Confidence against it.
 
@@ -80,9 +80,12 @@ Update later with `npx skills update`.
 | `/find-evidence` | Sweep what you *already* know — internal record (calls, chat, email, CRM) and rigorous desk research — and log it as conclusive evidence. | "what do we already know about X", "desk research this" |
 | `/meeting-prep` | Person-first: research whoever you're meeting, then work backward to the high-Risk assumptions they're uniquely qualified to test. | "I'm speaking to X tomorrow", "what should I ask X" |
 | `/decisions` | The shared glossary + the decision log — capture, sweep, audit; retire assumptions by explicit decision, never by accident. Goal commitments live here: evidence-gated in, closed out into evidence. | "log this decision", "commit to this goal", "close out the goal", "what's the canonical term for X" |
+| `/self-review` | A private coach: sweep your own recorded calls for pitches and load-bearing claims, score yourself against the registers (decision fidelity, assumption transparency, experiment-first, concreteness), track trends, get improve-next actions. Writes only to a local gitignored directory — never through the connector. | "review my calls", "how did I pitch", "am I still reopening settled decisions" |
 
-All five read the same config, write through the same connector, and
-enforce the same shared rulesets (`skills/_shared/`). Writes are **gated**
+All six read the same config and enforce the same shared rulesets
+(`skills/_shared/`); the first five write through the same connector, while
+`/self-review` reads the registers but writes only to its private local
+directory. Writes are **gated**
 by default — every mutation is shown and confirmed before it lands; the
 autonomous bulk modes are opt-in by explicit phrasing and leave an
 auditable run-log plus a `Human review` gap a human must clear.
@@ -288,7 +291,7 @@ or build the backend for you — validate-first, every change gated.
 ## Repo map
 
 ```
-skills/               the five skills + setup, one dir per skill
+skills/               the six skills + setup, one dir per skill
   _shared/            the rulesets every skill cites (guardrails, schema +
                       machine-readable ontology, evidence procedures, gate
                       discipline)

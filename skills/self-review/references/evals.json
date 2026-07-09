@@ -1,0 +1,89 @@
+{
+  "version": 1,
+  "subject": "the person running the skill, in their own recorded conversations",
+  "scale": {
+    "min": 0,
+    "max": 4,
+    "na": "n/a — insufficient signal. Used whenever nothing quotable supports a score; never guess a number."
+  },
+  "rules": {
+    "evidence": "Every score cites >=1 verbatim transcript quote with timestamp. Scores of 3-4 on decision fidelity may rest on the moment's framing quotes plus a register check showing no relevant Active decision was contradicted.",
+    "fairness_pass": "Before finalizing, run a skeptic over every 0-1: was the decision Active in the register at the moment's date? Is the 'claim asserted as fact' actually a Validated assumption? Does the quote carry the reading? A refutation that stands raises the score.",
+    "attribution": "Diarization check per _shared/decision-guardrails.md section 3. Uncertain attribution is noted on every finding from that transcript and softens verdict language.",
+    "scope": "Internal team conversations only. External calls (evidence interviews, customers, investors, prospects) are never scored under this rubric."
+  },
+  "dimensions": [
+    {
+      "id": "decision-fidelity",
+      "name": "Decision fidelity",
+      "question": "Do you honor settled decisions, or re-litigate them without new evidence?",
+      "reads": [
+        "decisions register: fetch unfiltered, check Type (untyped-record rule), then Type=Decision, Status=Active, scoped to the moment's Area (decision-guardrails section 7)",
+        "per matched decision: Reversibility (section 8), Agreed by, Decided date"
+      ],
+      "scored_when": "always",
+      "anchors": {
+        "0": "Evidence-free re-litigation of an Active one-way door; being in that decision's Agreed by keeps it at 0 even with hedges.",
+        "1": "Evidence-free re-litigation of an Active decision (two-way door, or you were not a party to it).",
+        "2": "The moment overlaps a settled decision's ground and ignores it — not contradicted, just unacknowledged.",
+        "3": "Respects settled decisions and acknowledges the directly relevant Active ones — including reopening a one-way door with genuine new evidence, the DEC id named and the irreversibility acknowledged.",
+        "4": "No directly relevant settled decision is touched, or you explicitly reopen a two-way door citing the DEC id and the new evidence that changes it. Reopening well scores top, by design."
+      }
+    },
+    {
+      "id": "assumption-transparency",
+      "name": "Assumption transparency",
+      "question": "Are your load-bearing claims named as assumptions, or asserted as facts?",
+      "reads": [
+        "assumptions register: Title, Description, Status, Confidence"
+      ],
+      "scored_when": "always",
+      "anchors": {
+        "0": "Load-bearing untested claims asserted as facts.",
+        "1": "Claims hedged ('I think', 'probably') but never named as assumptions.",
+        "2": "Some claims flagged as assumptions; none mapped to the register or proposed as new records.",
+        "3": "Load-bearing claims explicitly flagged; the key ones mapped to ASM ids or proposed as new.",
+        "4": "Every load-bearing claim either evidence-backed (says what evidence) or named as an assumption with an honest confidence read, mapped or proposed for the register."
+      }
+    },
+    {
+      "id": "experiment-first",
+      "name": "Experiment-first thinking",
+      "question": "Do you propose the cheapest honest test before asking for commitment?",
+      "reads": [
+        "evidence ladder: _shared/ontology.yaml vocabularies.experiment_type",
+        "cheapest-falsifying-test discipline: _shared/experiment-guardrails.md"
+      ],
+      "scored_when": "pitch moments (there is an ask). Claims-only moments default to n/a; a voluntarily proposed test in a claims moment is recorded as a credit note alongside the n/a.",
+      "anchors": {
+        "0": "Asks for full commitment with no test; opinion treated as sufficient.",
+        "1": "Gestures at 'we should validate' with no concrete test or bar.",
+        "2": "Proposes a test, but an expensive high-rung one where a cheaper rung could honestly falsify.",
+        "3": "Proposes a concrete falsifiable test at a sensible rung before the ask.",
+        "4": "Proposes the cheapest rung that can honestly move the belief, states a pass/kill bar, and stakes the ask on the outcome."
+      }
+    },
+    {
+      "id": "language-concreteness",
+      "name": "Language concreteness",
+      "question": "Concrete and canonical, or abstract and undefined?",
+      "reads": [
+        "terminology check: _shared/ubiquitous-language.md, audience Internal — a hit counts only when the usage actually conflicts with the Avoid bullet's rationale, not on any occurrence of the banned string",
+        "abstraction scan: load-bearing nouns with no glossary record and no in-moment definition, weighed by the weight they carry"
+      ],
+      "scored_when": "always",
+      "anchors": {
+        "0": "Built on undefined abstractions ('platform play', 'synergy') and/or genuine banned-phrasing misuse.",
+        "1": "Mostly abstract; few numbers or named specifics; term misuse.",
+        "2": "Core claim concrete, supporting argument abstract, or several load-bearing unknown terms.",
+        "3": "Concrete (numbers, named customers, specific behaviours); canonical terms used correctly.",
+        "4": "Concrete throughout; every abstraction glossary-backed or defined in the moment itself."
+      }
+    }
+  ],
+  "report": {
+    "per_moment": ["scores table with basis", "quotes (timestamped)", "the Read — verdict first, evidence after", "register recommendations (never written)"],
+    "improve_next": "For every dimension scored <=2 this run: one concrete, checkable action for the next conversation (e.g. 'name the DEC id before proposing anything near it', 'state the kill bar out loud'). Max 3 actions per run — pick the highest-leverage.",
+    "trends": "Dimension score sequences across runs (n/a kept in place), the re-litigation ledger (repeated DEC-id citations), standing patterns once seen in >=2 runs."
+  }
+}
