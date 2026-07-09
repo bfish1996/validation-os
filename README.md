@@ -123,8 +123,9 @@ or build the backend for you — validate-first, every change gated.
 
 ```
 skills/               the five skills + setup, one dir per skill
-  _shared/            the rulesets every skill cites (guardrails, schema,
-                      evidence procedures, gate discipline)
+  _shared/            the rulesets every skill cites (guardrails, schema +
+                      machine-readable ontology, evidence procedures, gate
+                      discipline)
 connectors/           storage contract + reference implementations
 templates/            config + starter registry files
 docs/                 the method, the evidence ladder, the weekly ritual
