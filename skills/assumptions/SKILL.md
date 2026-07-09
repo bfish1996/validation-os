@@ -11,7 +11,8 @@ description: >-
   ask: single (default) — grill ONE record to guardrail-complete, gated
   ("grill this assumption", "flesh out ASM-4", "work the Gaps queue"); seed —
   turn a transcript or blank topic into new guardrail-clean records ("map
-  assumptions", "pull assumptions from this call"); audit — read-only
+  assumptions", "pull assumptions from this call", "pressure-test this
+  idea"); audit — read-only
   whole-register health report ("audit the assumption register", "what's
   wrong across all assumptions"); loop — autonomous write-through completion
   with a run-log, opt-in by explicit phrasing ONLY ("grill the whole register
@@ -54,7 +55,7 @@ register) and **gate** (gated vs. autonomous) — plus seeding, which is just
 | Mode | Scope | Gate | Use when | Reference |
 |---|---|---|---|---|
 | **single** (default) | one record | gated, one question at a time | "grill this assumption", "flesh out ASM-4", working a Gaps queue | `references/single.md` |
-| **seed** | new record(s) from raw input | gated (grills each stub via single) | "map assumptions", "pull assumptions from this call", a blank topic | `references/seed.md` |
+| **seed** | new record(s) from raw input | gated (grills each stub via single) | "map assumptions", "pull assumptions from this call", "pressure-test this idea", a blank topic | `references/seed.md` |
 | **audit** | whole register | **read-only** report; fixes gated after | "audit the register", "what's wrong across all assumptions" | `references/audit.md` |
 | **loop** | whole register | **autonomous** write-through + run-log | "grill the whole register without me", "auto-fill every assumption" | `references/loop.md` |
 | **triage** | discovered subset (open comments / tagged Gaps) | gated, one thread/gap at a time | "resolve the comments", "check what got flagged" | `references/triage.md` |

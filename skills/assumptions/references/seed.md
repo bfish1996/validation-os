@@ -9,9 +9,13 @@ and stub them; the actual build runs through **single mode**
 
 ## Detect the seed
 
-- **Blank topic** — the user names an area with nothing written yet. Stub
-  one or more records from the interview; each starts with **all** `Gaps`
-  set, so single mode grills every phase from scratch.
+- **Blank topic** — the user names an area with nothing written yet, or asks
+  to pressure-test a raw idea. Run the interview first
+  (`blank-topic-interview.md` — six forcing questions, one at a time, push
+  back once on vague answers), then stub one or more records from what
+  survives. Each stub starts with **all** `Gaps` set, so single mode grills
+  every phase from scratch — the interview sharpens the Description and
+  Owner, it never pre-fills Confidence or clears a guardrail.
 - **Call transcript / notes** — extract the candidate assumptions stated or
   implied in the material. Pre-fill what's actually stated (Description,
   Lens if clear), leave the rest as `Gaps`. One record per distinct
