@@ -13,6 +13,63 @@ setup_operations:
   migrate_schema:
     status: manual
     tool_namespace: file-system
+registers:
+  assumptions:
+    source: file
+    file: assumptions.md
+    properties:
+      - {canonical: Title, backend: "## <ID>: <Title> heading", type: heading, derived: false}
+      - {canonical: Description, backend: Description, type: text, derived: false}
+      - {canonical: Lens, backend: Lens, type: text, derived: false, options_source: vocabulary.lens}
+      - {canonical: Theme, backend: Themes, type: text, derived: false, options_source: registry-schema}
+      - {canonical: Impact, backend: Impact, type: number, derived: false}
+      - {canonical: Risk, backend: Risk, type: number, derived: true, formula: "Impact * (1 - Confidence / 100); skill-computed, bullet marked <!-- derived -->"}
+      - {canonical: Confidence, backend: Confidence, type: number, derived: true, formula: "max proven Strength + capped corroboration bump (experiment-guardrails.md §2); skill-computed, bullet marked <!-- derived -->"}
+      - {canonical: Corroboration count, backend: Corroboration count, type: number, derived: false}
+      - {canonical: Status, backend: Status, type: text, derived: false, options_source: registry-schema}
+      - {canonical: Owner, backend: Owner, type: text, derived: false}
+      - {canonical: Gaps, backend: Gaps, type: text, derived: false, options_source: registry-schema}
+    relations:
+      - {canonical: Depends on / Enables, backend: "Depends on / Enables bullets", target: assumptions, cardinality: many, self: true}
+      - {canonical: Contradicts, backend: Contradicts, target: assumptions, cardinality: many, self: true}
+      - {canonical: Goals, backend: Goals, target: goals, cardinality: many, required: false}
+      - {canonical: Experiments, backend: Experiments, target: experiments, cardinality: many, inverse: Assumption}
+  experiments:
+    source: file
+    file: experiments.md
+    properties:
+      - {canonical: Title, backend: "## <ID>: <Title> heading", type: heading, derived: false}
+      - {canonical: Type, backend: Type, type: text, derived: false, options_source: registry-schema}
+      - {canonical: Source quality, backend: Source quality, type: text, derived: false, options_source: registry-schema}
+      - {canonical: Feasibility, backend: Feasibility, type: text, derived: false, options_source: registry-schema}
+      - {canonical: We're right if, backend: We're right if, type: text, derived: false}
+      - {canonical: Result, backend: Result, type: text, derived: false, options_source: registry-schema}
+      - {canonical: Strength, backend: Strength, type: number, derived: true, formula: "rung base × source-quality modifier (experiment-guardrails.md §2); skill-computed, bullet marked <!-- derived -->"}
+      - {canonical: Date, backend: Date, type: text, derived: false}
+      - {canonical: Owner, backend: Owner, type: text, derived: false}
+      - {canonical: Interviewee, backend: Interviewee, type: text, derived: false, required: false}
+    relations:
+      - {canonical: Assumption, backend: Assumption, target: assumptions, cardinality: one, inverse: Experiments}
+  decisions_terminology:
+    source: file
+    files:
+      Decision: decisions.md
+      Terminology: terminology.md
+    properties:
+      - {canonical: Title, backend: "## <ID>: <Title> heading", type: heading, derived: false}
+      - {canonical: Type, backend: Type, type: text, derived: false, options_source: registry-schema}
+      - {canonical: Status, backend: Status, type: text, derived: false, options_source: registry-schema}
+      - {canonical: Area, backend: Area, type: text, derived: false, options_source: vocabulary.area}
+      - {canonical: Owner, backend: Owner, type: text, derived: false}
+      - {canonical: Agreed by, backend: Agreed by, type: text, derived: false}
+      - {canonical: Unanimity score, backend: Unanimity score, type: number, derived: false}
+      - {canonical: Source, backend: Source, type: text, derived: false}
+      - {canonical: Decided date, backend: Decided date, type: text, derived: false}
+    relations:
+      - {canonical: Related tension, backend: Related tension, target: decisions_terminology, cardinality: many, self: true}
+      - {canonical: Supersedes / Superseded by, backend: "Supersedes / Superseded by bullets", target: decisions_terminology, cardinality: many, self: true}
+      - {canonical: Based on assumption, backend: Based on assumption, target: assumptions, cardinality: many}
+      - {canonical: Resolves assumption, backend: Resolves assumption, target: assumptions, cardinality: many}
 ---
 
 # Schema guide — local files

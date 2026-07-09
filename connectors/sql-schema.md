@@ -13,6 +13,61 @@ setup_operations:
   migrate_schema:
     status: supported
     tool_namespace: sql-mcp
+registers:
+  assumptions:
+    source: table
+    config_key: sql.assumptions_table
+    properties:
+      - {canonical: Title, backend: title, type: TEXT, derived: false}
+      - {canonical: Description, backend: description, type: TEXT, derived: false}
+      - {canonical: Lens, backend: lens, type: TEXT, derived: false, options_source: vocabulary.lens}
+      - {canonical: Theme, backend: themes, type: JSON, derived: false, options_source: registry-schema}
+      - {canonical: Impact, backend: impact, type: INTEGER, derived: false}
+      - {canonical: Risk, backend: risk, type: NUMERIC, derived: true, formula: "impact * (1 - confidence / 100); skill-computed"}
+      - {canonical: Confidence, backend: confidence, type: NUMERIC, derived: true, formula: "max proven strength + capped corroboration bump (experiment-guardrails.md §2); skill-computed"}
+      - {canonical: Corroboration count, backend: corroboration_count, type: INTEGER, derived: false}
+      - {canonical: Status, backend: status, type: TEXT, derived: false, options_source: registry-schema}
+      - {canonical: Owner, backend: owner, type: TEXT, derived: false}
+      - {canonical: Gaps, backend: gaps, type: JSON, derived: false, options_source: registry-schema}
+    relations:
+      - {canonical: Depends on / Enables, backend: assumption_dependencies, target: assumptions, cardinality: many, self: true}
+      - {canonical: Contradicts, backend: assumption_contradictions, target: assumptions, cardinality: many, self: true}
+      - {canonical: Goals, backend: assumption_goals, target: goals, cardinality: many, required: false}
+      - {canonical: Experiments, backend: "experiments.assumption_id (inverse; queried, not stored)", target: experiments, cardinality: many, inverse: Assumption}
+  experiments:
+    source: table
+    config_key: sql.experiments_table
+    properties:
+      - {canonical: Title, backend: title, type: TEXT, derived: false}
+      - {canonical: Type, backend: type, type: TEXT, derived: false, options_source: registry-schema}
+      - {canonical: Source quality, backend: source_quality, type: TEXT, derived: false, options_source: registry-schema}
+      - {canonical: Feasibility, backend: feasibility, type: TEXT, derived: false, options_source: registry-schema}
+      - {canonical: We're right if, backend: success_criteria, type: TEXT, derived: false}
+      - {canonical: Result, backend: result, type: TEXT, derived: false, options_source: registry-schema}
+      - {canonical: Strength, backend: strength, type: NUMERIC, derived: true, formula: "rung base × source-quality modifier (experiment-guardrails.md §2); skill-computed"}
+      - {canonical: Date, backend: "start_date, outcome_date", type: DATE, derived: false}
+      - {canonical: Owner, backend: owner, type: TEXT, derived: false}
+      - {canonical: Interviewee, backend: interviewee, type: TEXT, derived: false, required: false}
+    relations:
+      - {canonical: Assumption, backend: assumption_id, target: assumptions, cardinality: one, inverse: Experiments}
+  decisions_terminology:
+    source: table
+    config_key: sql.decisions_table
+    properties:
+      - {canonical: Title, backend: title, type: TEXT, derived: false}
+      - {canonical: Type, backend: type, type: TEXT, derived: false, options_source: registry-schema}
+      - {canonical: Status, backend: status, type: TEXT, derived: false, options_source: registry-schema}
+      - {canonical: Area, backend: area, type: TEXT, derived: false, options_source: vocabulary.area}
+      - {canonical: Owner, backend: owner, type: TEXT, derived: false}
+      - {canonical: Agreed by, backend: agreed_by, type: JSON, derived: false}
+      - {canonical: Unanimity score, backend: unanimity_score, type: INTEGER, derived: false}
+      - {canonical: Source, backend: source, type: TEXT, derived: false}
+      - {canonical: Decided date, backend: decided_date, type: DATE, derived: false}
+    relations:
+      - {canonical: Related tension, backend: decision_tensions, target: decisions_terminology, cardinality: many, self: true}
+      - {canonical: Supersedes / Superseded by, backend: decision_supersedes, target: decisions_terminology, cardinality: many, self: true}
+      - {canonical: Based on assumption, backend: decision_based_on, target: assumptions, cardinality: many}
+      - {canonical: Resolves assumption, backend: decision_resolves, target: assumptions, cardinality: many}
 ---
 
 # Schema guide — SQL

@@ -13,6 +13,61 @@ setup_operations:
   migrate_schema:
     status: supported
     tool_namespace: notion-mcp
+registers:
+  assumptions:
+    source: database
+    config_key: notion.assumptions_db
+    properties:
+      - {canonical: Title, backend: Title, type: title, derived: false}
+      - {canonical: Description, backend: Description, type: rich_text, derived: false}
+      - {canonical: Lens, backend: Lens, type: select, derived: false, options_source: vocabulary.lens}
+      - {canonical: Theme, backend: Theme, type: multi_select, derived: false, options_source: registry-schema}
+      - {canonical: Impact, backend: Impact, type: number, derived: false}
+      - {canonical: Risk, backend: Risk, type: formula, derived: true, formula: "Impact * (1 - Confidence / 100)"}
+      - {canonical: Confidence, backend: Confidence, type: rollup, derived: true, formula: "max of linked Experiments' Strength; capped corroboration bump per experiment-guardrails.md §2"}
+      - {canonical: Corroboration count, backend: Corroboration count, type: number, derived: false}
+      - {canonical: Status, backend: Status, type: status, derived: false, options_source: registry-schema}
+      - {canonical: Owner, backend: Owner, type: person, derived: false}
+      - {canonical: Gaps, backend: Gaps, type: multi_select, derived: false, options_source: registry-schema}
+    relations:
+      - {canonical: Depends on / Enables, backend: Depends on / Enables, target: assumptions, cardinality: many, self: true}
+      - {canonical: Contradicts, backend: Contradicts, target: assumptions, cardinality: many, self: true}
+      - {canonical: Goals, backend: Goals, target: goals, cardinality: many, required: false}
+      - {canonical: Experiments, backend: Experiments, target: experiments, cardinality: many, inverse: Assumption}
+  experiments:
+    source: database
+    config_key: notion.experiments_db
+    properties:
+      - {canonical: Title, backend: Title, type: title, derived: false}
+      - {canonical: Type, backend: Type, type: select, derived: false, options_source: registry-schema}
+      - {canonical: Source quality, backend: Source quality, type: select, derived: false, options_source: registry-schema}
+      - {canonical: Feasibility, backend: Feasibility, type: select, derived: false, options_source: registry-schema}
+      - {canonical: We're right if, backend: We're right if, type: rich_text, derived: false}
+      - {canonical: Result, backend: Result, type: select, derived: false, options_source: registry-schema}
+      - {canonical: Strength, backend: Strength, type: formula, derived: true, formula: "canonical computation, experiment-guardrails.md §2 — full Notion formula in Derived values below"}
+      - {canonical: Date, backend: Date, type: date, derived: false}
+      - {canonical: Owner, backend: Owner, type: person, derived: false}
+      - {canonical: Interviewee, backend: Interviewee, type: rich_text, derived: false, required: false}
+    relations:
+      - {canonical: Assumption, backend: Assumption, target: assumptions, cardinality: one, inverse: Experiments}
+  decisions_terminology:
+    source: database
+    config_key: notion.decisions_db
+    properties:
+      - {canonical: Title, backend: Title, type: title, derived: false}
+      - {canonical: Type, backend: Type, type: select, derived: false, options_source: registry-schema}
+      - {canonical: Status, backend: Status, type: select, derived: false, options_source: registry-schema}
+      - {canonical: Area, backend: Area, type: select, derived: false, options_source: vocabulary.area}
+      - {canonical: Owner, backend: Owner, type: person, derived: false}
+      - {canonical: Agreed by, backend: Agreed by, type: people, derived: false}
+      - {canonical: Unanimity score, backend: Unanimity score, type: number, derived: false}
+      - {canonical: Source, backend: Source, type: rich_text, derived: false}
+      - {canonical: Decided date, backend: Decided date, type: date, derived: false}
+    relations:
+      - {canonical: Related tension, backend: Related tension, target: decisions_terminology, cardinality: many, self: true}
+      - {canonical: Supersedes / Superseded by, backend: Supersedes / Superseded by, target: decisions_terminology, cardinality: many, self: true}
+      - {canonical: Based on assumption, backend: Based on assumption, target: assumptions, cardinality: many}
+      - {canonical: Resolves assumption, backend: Resolves assumption, target: assumptions, cardinality: many}
 ---
 
 # Schema guide — Notion

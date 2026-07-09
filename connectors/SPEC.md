@@ -71,9 +71,32 @@ of it — link to `registry-schema.md`.
 
 Copy the structure of `local-files-schema.md`: **Config**, **Source containers**,
 **Field mapping** tables per register, **Vocabulary-driven fields**,
-**Relations**, **Setup operations**, and **Cautions**. Frontmatter should declare
-the connector name, the canonical setup operations it supports, and the harness
-tool namespace.
+**Relations**, **Setup operations**, and **Cautions**.
+
+The frontmatter is the machine-readable contract — `validate_backend` compares
+the live backend against it, never against the prose. Required blocks:
+
+- `connector:` — the connector name (must match the filename).
+- `setup_operations:` — each of the four canonical operations
+  (`validate_backend`, `create_backend`, `seed_starter_records`,
+  `migrate_schema`) with `status: supported | manual` and `tool_namespace:`
+  (the harness tool family setup needs, e.g. `notion-mcp`, `file-system`).
+- `registers:` — `assumptions`, `experiments`, `decisions_terminology`, each
+  with a `source:` (backend container type) and connector-specific container
+  keys (`config_key`, `file`, …). Every canonical field from
+  `registry-schema.md` must appear:
+  - `properties:` entries carry mandatory `canonical`, `backend`, `type`,
+    `derived`. `formula` is required when `derived: true`. `options_source`
+    names where select options come from — a config key (`vocabulary.lens`,
+    `vocabulary.area`) or `registry-schema` for the canonical fixed lists
+    (never restate the options; that would fork the semantics). `required`
+    defaults to true; only inherently optional canonical fields (Goals,
+    Interviewee) set it false.
+  - `relations:` entries carry mandatory `canonical`, `backend`, `target`,
+    `cardinality`; `inverse` and `self` where they apply.
+
+A schema guide missing any canonical field is incomplete — `/setup-validation-os`
+refuses automated setup and reports the gap.
 
 ## Shipping a connector
 

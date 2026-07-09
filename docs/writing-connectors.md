@@ -42,7 +42,10 @@ Read, in order:
   called in your backend?
 - **Field mapping.** For every canonical field in `registry-schema.md`, what
   is the backend property/column/document-path name and type? Which are
-  derived?
+  derived? This mapping lives twice: human-readable tables in the prose, and
+  the machine-readable `registers:` frontmatter block that `validate_backend`
+  checks against (required keys: `connectors/SPEC.md` §Writing a new schema
+  guide).
 - **Vocabulary-driven fields.** Which fields (Lens, Area) get their options from
   `validation-os.config.yaml`?
 - **Relations.** How are relations expressed, and which are two-way?
@@ -70,8 +73,9 @@ A connector PR needs:
 2. `connectors/<name>-schema.md` if `/setup-validation-os` should automate
    setup for this backend. Follow the section structure of
    `local-files-schema.md` (Config · Source containers · Field mappings ·
-   Vocabulary-driven fields · Relations · Setup operations · Cautions). Frontmatter
-   declares supported setup operations and the harness tool namespace.
+   Vocabulary-driven fields · Relations · Setup operations · Cautions), with the
+   full frontmatter contract from `connectors/SPEC.md` — setup operations, tool
+   namespace, and the complete `registers:` field/relation mapping.
 3. A worked end-to-end test, documented in the PR: create an assumption →
    design an experiment → log a piece of evidence → record a decision, all
    through your connector on a scratch workspace, including setup via

@@ -13,6 +13,61 @@ setup_operations:
   migrate_schema:
     status: supported
     tool_namespace: nosql-mcp
+registers:
+  assumptions:
+    source: collection
+    config_key: nosql.assumptions_collection
+    properties:
+      - {canonical: Title, backend: title, type: string, derived: false}
+      - {canonical: Description, backend: description, type: string, derived: false}
+      - {canonical: Lens, backend: lens, type: string, derived: false, options_source: vocabulary.lens}
+      - {canonical: Theme, backend: themes, type: "string[]", derived: false, options_source: registry-schema}
+      - {canonical: Impact, backend: impact, type: number, derived: false}
+      - {canonical: Risk, backend: derived.risk, type: number, derived: true, formula: "impact * (1 - derived.confidence / 100); skill-computed"}
+      - {canonical: Confidence, backend: derived.confidence, type: number, derived: true, formula: "max proven strength + capped corroboration bump (experiment-guardrails.md §2); skill-computed"}
+      - {canonical: Corroboration count, backend: corroborationCount, type: number, derived: false}
+      - {canonical: Status, backend: status, type: string, derived: false, options_source: registry-schema}
+      - {canonical: Owner, backend: owner, type: string, derived: false}
+      - {canonical: Gaps, backend: gaps, type: "string[]", derived: false, options_source: registry-schema}
+    relations:
+      - {canonical: Depends on / Enables, backend: "dependsOn, enables", target: assumptions, cardinality: many, self: true}
+      - {canonical: Contradicts, backend: contradicts, target: assumptions, cardinality: many, self: true}
+      - {canonical: Goals, backend: goals, target: goals, cardinality: many, required: false}
+      - {canonical: Experiments, backend: experiments, target: experiments, cardinality: many, inverse: Assumption}
+  experiments:
+    source: collection
+    config_key: nosql.experiments_collection
+    properties:
+      - {canonical: Title, backend: title, type: string, derived: false}
+      - {canonical: Type, backend: type, type: string, derived: false, options_source: registry-schema}
+      - {canonical: Source quality, backend: sourceQuality, type: string, derived: false, options_source: registry-schema}
+      - {canonical: Feasibility, backend: feasibility, type: string, derived: false, options_source: registry-schema}
+      - {canonical: We're right if, backend: successCriteria, type: string, derived: false}
+      - {canonical: Result, backend: result, type: string, derived: false, options_source: registry-schema}
+      - {canonical: Strength, backend: derived.strength, type: number, derived: true, formula: "rung base × source-quality modifier (experiment-guardrails.md §2); skill-computed"}
+      - {canonical: Date, backend: "startDate, outcomeDate", type: string, derived: false}
+      - {canonical: Owner, backend: owner, type: string, derived: false}
+      - {canonical: Interviewee, backend: interviewee, type: string, derived: false, required: false}
+    relations:
+      - {canonical: Assumption, backend: assumptionId, target: assumptions, cardinality: one, inverse: Experiments}
+  decisions_terminology:
+    source: collection
+    config_key: nosql.decisions_collection
+    properties:
+      - {canonical: Title, backend: title, type: string, derived: false}
+      - {canonical: Type, backend: type, type: string, derived: false, options_source: registry-schema}
+      - {canonical: Status, backend: status, type: string, derived: false, options_source: registry-schema}
+      - {canonical: Area, backend: area, type: string, derived: false, options_source: vocabulary.area}
+      - {canonical: Owner, backend: owner, type: string, derived: false}
+      - {canonical: Agreed by, backend: agreedBy, type: "string[]", derived: false}
+      - {canonical: Unanimity score, backend: unanimityScore, type: number, derived: false}
+      - {canonical: Source, backend: source, type: string, derived: false}
+      - {canonical: Decided date, backend: decidedDate, type: string, derived: false}
+    relations:
+      - {canonical: Related tension, backend: relatedTension, target: decisions_terminology, cardinality: many, self: true}
+      - {canonical: Supersedes / Superseded by, backend: "supersedes, supersededBy", target: decisions_terminology, cardinality: many, self: true}
+      - {canonical: Based on assumption, backend: basedOnAssumption, target: assumptions, cardinality: many}
+      - {canonical: Resolves assumption, backend: resolvesAssumption, target: assumptions, cardinality: many}
 ---
 
 # Schema guide — NoSQL
