@@ -100,6 +100,161 @@ both stop before *running* anything — verdicts stay human.
 fictional startup from first call to logged decision — one short scene per
 skill.
 
+## How it fits together
+
+One assumption travels left to right through four stages. Follow the
+numbered arrows 1→7 — that's the whole journey. Dashed arrows are the
+feedback loops that make it a system rather than a pipeline. Colour says
+who acts: **blue** = a skill, **green** = a human moment, **grey** = the
+register itself.
+
+```mermaid
+flowchart LR
+  classDef skill fill:#d7e3f7,stroke:#2456a6,color:#12294d
+  classDef human fill:#dcefe2,stroke:#2e7d4f,color:#143722
+  classDef record fill:#eceef1,stroke:#77808c,color:#272d35
+
+  subgraph cap["① Capture"]
+    A["/assumptions<br>a call, transcript, or hunch becomes one<br>falsifiable sentence — Impact scored, 5-Whys<br>traced; Gaps tags list what's still missing"]:::skill
+  end
+
+  subgraph gate["② Two gates"]
+    D["/decisions<br>the team commits to a goal; its rationale<br>names the beliefs the goal rests on"]:::skill
+    Q["test-next queue<br>a record enters only after BOTH gates<br>fire, in either order; riskiest on top"]:::record
+  end
+
+  subgraph test["③ Test"]
+    E["/experiment-design<br>cheapest honest test for the top record;<br>pass and kill bars locked before it runs"]:::skill
+    M["/meeting-prep<br>'I'm meeting X tomorrow' — the booked call<br>becomes that test's interview guide"]:::skill
+    RUN["you run it<br>interviews · survey · prototype · fake door"]:::human
+  end
+
+  subgraph conclude["④ Conclude"]
+    F["/find-evidence<br>logs what the test showed — and anything<br>you already knew from calls, email, CRM, desk"]:::skill
+    V["human verdict against the locked bar<br>Validated · Invalidated · Inconclusive"]:::human
+  end
+
+  A -->|"1 · quality gate:<br>grill until Gaps is empty"| Q
+  D -->|"2 · priority gate: the goal<br>cites the belief → Goal Linked"| Q
+  D -.->|"a goal's 'because' with no<br>record yet → new assumption"| A
+  Q -->|"3 · riskiest first"| E
+  E -->|"4 · Running experiment"| RUN
+  M -->|"guide for that call"| RUN
+  RUN -->|"5 · what happened"| F
+  F -->|"6 · evidence linked<br>to the record"| V
+  V -->|"7 · Confidence ↑ → Risk ↓<br>→ the queue reorders itself"| Q
+  V -.->|"a goal rested on this<br>belief → review the goal"| D
+  D -.->|"goal closes → its result is<br>decomposed back into evidence"| F
+```
+
+After step 7 the loop closes: the next-riskiest belief is already sitting
+on top of the queue. [examples/](examples/) walks this exact journey with
+one concrete assumption, one scene per skill.
+
+The goal in gate ② has a lifecycle of its own — drafting it is what opens
+the gate, and its verdict at the end flows back in as evidence. Same
+colours:
+
+```mermaid
+flowchart LR
+  classDef skill fill:#d7e3f7,stroke:#2456a6,color:#12294d
+  classDef human fill:#dcefe2,stroke:#2e7d4f,color:#143722
+  classDef record fill:#eceef1,stroke:#77808c,color:#272d35
+
+  subgraph g1["① Draft"]
+    P["Provisional goal — a /decisions row,<br>Kind: Goal commitment; SMART bar with a named<br>instrument, rationale names the beliefs it rests on"]:::record
+  end
+  subgraph g2["② De-risk"]
+    T["its beliefs run the main loop above —<br>linking already flipped them to Goal Linked,<br>so a draft's beliefs queue for testing<br>before anyone commits"]:::record
+  end
+  subgraph g3["③ Commit"]
+    C["human commits: Provisional → Active<br>(good evidence on its beliefs is the trigger)"]:::human
+  end
+  subgraph g4["④ Stand — the tripwire"]
+    W["a conclusive verdict lands on a linked<br>belief while the goal stands"]:::record
+    REV["human reviews the goal —<br>never a silent edit of the bar"]:::human
+    RA["re-accept the bet<br>new dated risk-acceptance line"]:::record
+    RC["re-cut<br>a new goal Supersedes it; the successor<br>re-links the beliefs it keeps"]:::record
+    DP["drop<br>the goal flips Reversed"]:::record
+    X["any belief still sitting in Goal Linked with no<br>surviving goal reopens to Not Started;<br>beliefs past the gate don't move"]:::record
+  end
+  subgraph g5["⑤ Close out"]
+    O["target date → human verdict in ## Outcome,<br>read from the named instrument"]:::human
+    AM["Achieved / Missed — can't be written with zero<br>evidence links: the result is decomposed into<br>per-belief evidence via /find-evidence"]:::record
+    DR["Dropped — exempt from evidence, but must<br>link the superseding / reversing decision"]:::record
+  end
+
+  P -->|"1 · beliefs enter the main<br>loop while still a draft"| T
+  T -->|"2 · evidence lands<br>in its favour"| C
+  P -.->|"no cheap test? dated risk-acceptance line,<br>revisit-by date — audit chases overdue ones"| C
+  C -->|"3 · the cycle runs"| O
+  T -.-> W
+  W --> REV
+  REV -->|"the bet still holds"| RA
+  REV -->|"the bar is now wrong"| RC
+  REV -->|"the goal is dead"| DP
+  REV -.->|"still a draft and the evidence<br>is good → commit it"| C
+  RC -.-> X
+  DP -.-> X
+  O -->|"hit or miss"| AM
+  O -->|"abandoned"| DR
+```
+
+A hit becomes top-rung evidence on the beliefs it proved; a miss usually
+invalidates one specific belief — either way the loop's next lap starts
+better informed.
+
+Underneath the flow, an assumption's `Status` is a state machine. The three
+boxes tell you what a state *means*: left of the queue, in play, done.
+
+```mermaid
+stateDiagram-v2
+  direction LR
+  state "Before the queue" as Pre {
+    NS: Not Started — being built, or grilled clean but unclaimed by any goal
+    GL: Goal Linked — a standing goal cites it
+  }
+  state "In play" as Play {
+    EN: Experiment Needed — sits in the test-next queue
+    TE: Testing — an experiment is running against it
+  }
+  state "Concluded" as Done {
+    V: Validated
+    I: Invalidated
+    IC: Inconclusive — signal too weak to call
+    CD: Closed by decision — retired by explicit judgment, no test
+  }
+
+  [*] --> NS
+  NS --> GL: /decisions — a standing goal cites it
+  GL --> NS: gated reopen — its last linking goal died
+  GL --> EN: /assumptions — grill close-out, Gaps empty
+  EN --> TE: /experiment-design — creates the Running experiment
+  TE --> V: human verdict
+  TE --> I: human verdict
+  TE --> IC: human verdict
+  IC --> EN: /experiment-design — a better test is worth it
+  NS --> CD: /decisions — Resolves assumption (reachable from any state)
+```
+
+Every transition has exactly one owner — no other skill may make that move,
+and each one is a gated write a human confirms:
+
+| Move | Only mover | Trigger |
+|---|---|---|
+| Not Started → Goal Linked | `/decisions` | a standing (Provisional/Active) goal commitment cites the belief in its rationale |
+| Goal Linked → Experiment Needed | `/assumptions` | grill close-out — the last `Gaps` tag clears |
+| Experiment Needed → Testing | `/experiment-design` | a `Running` experiment is created against it |
+| Testing → Validated / Invalidated / Inconclusive | a human | verdict against the pre-registered bar, at `/find-evidence` close-out |
+| any → Closed by decision | `/decisions` | explicit `Resolves assumption` — never inferred from a mere citation |
+| reopens (→ Not Started / Experiment Needed) | a human, gated | the linking goal or resolving decision was reversed/superseded |
+
+Two things never move `Status`: logging evidence (that moves `Confidence`,
+which moves `Risk`, which moves the queue) and the autonomous bulk modes
+(`/assumptions` loop, `/decisions` sweep) — those tag `Human review` and
+leave a run-log, and only a gated session with the record's owner promotes
+their work.
+
 ## Configuration
 
 One file, `validation-os.config.yaml`, at your workspace root (template:
