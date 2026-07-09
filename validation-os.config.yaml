@@ -1,0 +1,23 @@
+# Validation-OS configuration — this repo's own registry.
+#
+# validation-os run on itself: the real beliefs behind "will anyone install
+# and use this," tracked with the same method the tool ships. See
+# registry/ for the live records and examples/ for the walkthrough of how
+# they got there.
+
+connector: local-files
+
+local_files:
+  registry_dir: registry
+
+# Adopter = whoever decides whether to install and use validation-os.
+# Contributor = whoever decides whether to send a PR / fork it.
+# Distributor = whoever decides whether to feature/recommend it (skills.sh,
+# harness maintainers, etc.).
+vocabulary:
+  lens: [Adopter, Contributor, Distributor]
+  area: [Positioning, Distribution, Docs & DX, Product, Community]
+  audiences: [End user, Contributor, Internal]
+
+evidence_sources:
+  - web

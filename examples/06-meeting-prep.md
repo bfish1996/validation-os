@@ -1,32 +1,30 @@
-# 06 · Prep a meeting — `/meeting-prep`
+# 06 · Prep the friend DMs — `/meeting-prep`
 
-**You type:** "I'm meeting Priya Shah tomorrow — she runs a three-site
-café group"
+**You type:** "I'm messaging a few friends tonight to get reactions on the
+repo"
 
-The skill resolves the person first, then researches:
+The skill checks for internal history first, then works backward into the
+register:
 
-▎ Found her: Priya Shah, Shah Coffee Ltd (14 staff), in Attio — last touch
-▎ an intro email in May — and one Fireflies appearance: 20 minutes of the
-▎ June ops round-table, where she said "my bookkeeper bills me for cleanup
-▎ every quarter." No Experiment record has her as interviewee — this is
-▎ the first structured conversation.
+▎ No Attio or Fireflies connected, so no prior-contact history to check —
+▎ every one of these is a fresh conversation. That's fine; it also means
+▎ there's no risk of re-asking something already answered.
 
-Then it works backward into the register:
+▎ Best use of these DMs: ASM-001 (Risk 85, Testing) — EXP-001's interview
+▎ guide is exactly built for this. One honest caveat before you send
+▎ anything: ASM-005 ("friends are a valid proxy for the Adopter
+▎ population") is itself still ungrilled — friends are a convenience
+▎ sample, not a screened one. Worth naming out loud in how you read the
+▎ results, not worth blocking on.
 
-▎ Best use of the hour: ASM-004 (Risk 75, Testing) — she's the budget
-▎ owner of an ICP business, uniquely placed on the spend question.
-▎ Secondary: ASM-005 (bank-feed trust, Risk 54) — one question, not the
-▎ spotlight. EXP-003's interview guide fits; I'd add two Priya-specific
-▎ probes: the quarterly cleanup bill (size, trigger) and multi-site
-▎ reconciliation overhead.
+The brief that comes back is EXP-001's guide, unchanged — screener,
+question arc, the non-leading rules, the pass/kill bar — plus one line
+per friend to fill in as `Interviewee` once each call happens. Nothing new
+gets written to the register yet; this is prep, not a new record.
 
-The additions append to EXP-003's body and Priya is set as Interviewee —
-one gated write. The brief closes with who she is, what we already know,
-and what not to re-ask.
-
-**What this shows:** the person→assumption direction (start from who you're
-meeting, find the highest-Risk beliefs they can settle), internal history
-checked before anything is asked twice, and prep landing as a register
-record, not a loose document.
+**What this shows:** meeting-prep works even with zero CRM connected —
+it degrades to "this is a fresh contact, ask everything" instead of
+failing — and it surfaces the population-validity caveat (ASM-005)
+honestly instead of treating six friends as a clean sample by default.
 
 Next: [07 — log the decision](07-log-the-decision.md).

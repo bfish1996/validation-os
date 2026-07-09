@@ -99,9 +99,10 @@ trigger phrases, so "I'm meeting the CFO of X tomorrow" reaches
 boundaries: `/assumptions` stops where `/experiment-design` starts, and
 both stop before *running* anything — verdicts stay human.
 
-**Worked examples:** [examples/](examples/) follows one assumption at a
-fictional startup from first call to logged decision — one short scene per
-skill.
+**Worked examples:** [examples/](examples/) follows one real assumption —
+validation-os run on itself, on its own launch day — from first mention to
+logged decision — one short scene per skill. The register it produces is
+real too: [registry/](registry/).
 
 ## How it fits together
 

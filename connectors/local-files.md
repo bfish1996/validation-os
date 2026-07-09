@@ -34,19 +34,20 @@ directly under the heading; body sections as `###` subheadings. Relations are
 ID references (`ASM-002`), comma-separated. Example:
 
 ```markdown
-## ASM-001: SMB owners reconcile manually
-- **Description**: We assume small-business owners will pay for automated
-  reconciliation because they currently lose hours to manual spreadsheets.
-- **Lens**: Consumer
-- **Themes**: Product, Business model
+## ASM-002: Agent-native founders install via `npx skills add`
+- **Description**: We assume founders who already use an AI coding agent
+  daily will install validation-os via `npx skills add` because it adds
+  zero new surface area to their existing workflow.
+- **Lens**: Adopter
+- **Themes**: Distribution
 - **Impact**: 70
 - **Confidence**: 25        <!-- derived -->
 - **Risk**: 52.5            <!-- derived -->
 - **Corroboration count**: 0
 - **Status**: Experiment Needed
-- **Owner**: jane
+- **Owner**: you
 - **Gaps**: (none)
-- **Depends on**: ASM-004
+- **Depends on**: ASM-001
 - **Enables**: (none)
 - **Contradicts**: (none)
 - **Experiments**: EXP-001

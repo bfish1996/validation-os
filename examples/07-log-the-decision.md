@@ -1,35 +1,44 @@
 # 07 · Log the decision — `/decisions` (capture)
 
-Three weeks later the interviews concluded: 7 of 10 owners cleared the
-pass bar. EXP-003 is Validated, ASM-004 sits at Confidence 15
-(Anecdotal-rung evidence, honestly weak), Risk 64. On today's call the
-founders picked a launch price.
+Same day. Before the interviews in EXP-001 even conclude, one decision is
+already made and worth logging on its own: replacing this exact
+walkthrough.
 
-**You type:** "log this: we're launching at £40/mo flat, agreed on today's
-call"
+**You type:** "log this: we're replacing the fictional Ledgerly examples
+with real ones from our own registry, decided today"
 
-▎ Type = Decision, mode = capture. What was decided, from the transcript:
-▎ flat £40/mo, revisit after 20 paying customers. Owner: Alex. Agreed by:
-▎ Alex, Sam — but Sam argued usage-based pricing for ten minutes and
-▎ closed with "fine, ship flat, I still think we'll be back." Recommend
-▎ Unanimity 70, not 90 — explicit assent with recorded dissent.
+▎ Type = Decision, Kind = Direction, mode = capture. What was decided:
+▎ replace the 7-scene `examples/` walkthrough and the 4
+▎ `templates/registry/` seed rows with real content from validation-os's
+▎ own register. Owner: Benji. Agreed by: Benji. Recommend Unanimity 100 —
+▎ solo call, no recorded dissent to weigh against.
 
-▎ One more check: this decision cites ASM-004 as rationale — a `Based on
-▎ assumption` link. It does NOT resolve it: the belief stays live and
-▎ keeps accumulating evidence. `Resolves assumption` is a separate gated
-▎ action for retiring a belief by explicit decision — not this.
+▎ One more check: this decision cites ASM-003 ("real examples build more
+▎ trust than fictional ones") as rationale — a `Based on assumption`
+▎ link. It does NOT resolve it: the belief stays live, ungrilled, and can
+▎ still accumulate evidence later. `Resolves assumption` is a separate
+▎ gated action for retiring a belief by explicit decision — not this.
 
 One gated write:
 
 ```markdown
-## DEC-002: Launch pricing — £40/mo flat
-- **Type**: Decision · **Status**: Active · **Area**: Pricing
-- **Owner**: Alex · **Agreed by**: Alex, Sam · **Unanimity score**: 70
-- **Reversibility**: Two-way door · **Decided date**: 2026-08-04
-- **Based on assumption**: ASM-004 · **Resolves assumption**: (none)
+## DEC-002: Replace the fictional Ledgerly walkthrough with real examples
+- **Type**: Decision · **Kind**: Direction · **Status**: Active
+- **Area**: Docs & DX · **Owner**: Benji · **Agreed by**: Benji
+- **Unanimity score**: 100 · **Reversibility**: Two-way door
+- **Decided date**: 2026-07-09
+- **Based on assumption**: ASM-003 · **Resolves assumption**: (none)
 ```
 
-**What this shows:** unanimity is scored from what the record actually
-shows rather than politeness, and citing an assumption as rationale is kept
-strictly apart from retiring it — the register stays honest about what is
-decided versus what is known.
+**What this shows:** a decision doesn't have to wait for an experiment to
+conclude — this one only needed a cited rationale, not a verdict — and
+citing an assumption as rationale is kept strictly apart from retiring
+it, so the register stays honest about what's decided versus what's still
+just believed.
+
+That closes this thread — but not the loop. DEC-001's goal (≥4 of 6
+friends demonstrate cold comprehension by 2026-07-23) is still open, and
+EXP-001's interviews are still running. When they conclude, `/find-evidence`
+closes EXP-001 out against its pre-registered bar, Confidence on ASM-001
+moves for the first time, and the test-next queue reorders itself — same
+loop, next lap.
