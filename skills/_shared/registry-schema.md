@@ -146,6 +146,12 @@ automated checks:
 
 ### Terminology row body template
 
-- `## Definition` — the canonical meaning, one plain paragraph.
-- `## Use / don't use` — the approved phrasing and the near-misses to avoid.
-- `## Examples` — a correct usage in a real sentence.
+The three verbatim headings the terminology check keys off — full rules and
+per-audience bullet format: `ubiquitous-language.md`.
+
+- `## Definition` — one bullet per applicable audience (a single bullet if
+  uniform). Context, not enforced.
+- `## Avoid / don't say` — the must-fix source: per-audience banned phrasings
+  + the fix.
+- `## How it differs` — 2–5 `- **vs <neighbour>:**` bullets against
+  confusable neighbours (pairs with `Related tension`).

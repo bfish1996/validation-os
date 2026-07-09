@@ -191,18 +191,18 @@ One file (`decisions.md` / `terminology.md`) split by `Type`.
 ### Decision body subheadings
 
 ```markdown
-## Decision
-## Rationale
-## Alternatives considered
-## Source
+### Decision
+### Rationale
+### Alternatives considered
+### Source
 ```
 
 ### Terminology body subheadings
 
 ```markdown
-## Definition
-## Use / don't use
-## Examples
+### Definition
+### Avoid / don't say
+### How it differs
 ```
 
 ## Vocabulary-driven selects
