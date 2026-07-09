@@ -1,0 +1,414 @@
+# Canonical machine-readable ontology for the Validation-OS registry.
+#
+# This is the checkable shadow of `registry-schema.md` (field semantics) and
+# the `*-guardrails.md` files (operational rules). Prose stays the human
+# source of meaning; this file is the single machine source for:
+# entity/property/relation completeness, select-option legality, status
+# transitions, derivation formulas, and cross-register integrity rules.
+#
+# Who reads it:
+# - Connector schema guides (`connectors/*-schema.md`) must map every entity,
+#   property, and relation listed here onto their backend — a guide missing
+#   any is incomplete (`connectors/SPEC.md`). `options_source: registry-schema`
+#   in guide frontmatter resolves to `vocabularies:` here.
+# - `/setup-validation-os` checks schema-guide completeness against this file
+#   before automated setup.
+# - `/assumptions` (audit + loop, via `register-audit.md`) and `/decisions`
+#   (Audit) run the `integrity_rules:` whose `surfaced_by` names them.
+#
+# Changing this file is a schema change: update `registry-schema.md` prose and
+# every connector schema guide in the same commit — they must never disagree.
+
+version: 1
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Vocabularies — every select option that is legal to write.
+# ─────────────────────────────────────────────────────────────────────────────
+vocabularies:
+  # Workspace-defined lists — set by /setup-validation-os, read from
+  # validation-os.config.yaml. Never enumerated here.
+  lens: { source: config, key: vocabulary.lens }
+  area: { source: config, key: vocabulary.area }
+  audiences: { source: config, key: vocabulary.audiences }
+
+  # Canonical fixed lists. Values are exact strings; writing a value not
+  # listed is illegal (integrity rule `illegal-select-value`). Adding a value
+  # is a gated schema change.
+  record_type: [Decision, Terminology]
+  assumption_status:
+    [Not Started, Experiment Needed, Testing, Validated, Invalidated,
+     Inconclusive, Resolved by decision]
+  gaps:
+    [5 Whys, Metric for truth, Scoring justification, Non-atomic,
+     Unfalsifiable, Hyperbole, Lens check, Duplicate, Contradiction,
+     Human review]
+  experiment_result: [Running, Validated, Invalidated, Inconclusive]
+  source_quality: [High, Medium, Low]
+  feasibility: [High, Medium, Low]
+  decision_terminology_status: [Active, Provisional, Superseded, Reversed]
+  reversibility: [Two-way door, One-way door]
+  # Optional on Decision rows; absent = untyped legacy (nudge, never a block).
+  decision_kind: [Goal commitment, Direction, Operating]
+
+  # The 8-rung activity-and-strength ladder (experiment-guardrails.md §2).
+  # Order = strength, weakest first. `base` feeds the Strength derivation.
+  experiment_type:
+    - { value: Opinion,             tier: Stated,     base: 5 }
+    - { value: Pitch-deck reaction, tier: Stated,     base: 10 }
+    - { value: Anecdotal,           tier: Stated,     base: 15 }
+    - { value: Desk research,       tier: Researched, base: 25 }
+    - { value: Survey at scale,     tier: Researched, base: 40 }
+    - { value: Signed intent,       tier: Revealed,   base: 60 }
+    - { value: Prototype usage,     tier: Revealed,   base: 80 }
+    - { value: Paying users,        tier: Revealed,   base: 99 }
+
+  # Theme is an example set, not fixed — workspaces may extend it.
+  theme:
+    fixed: false
+    example:
+      [Go-to-market, Product, UX, Business model, Technology, Regulatory,
+       Market & competition, Trust & data]
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Derivations — computed fields. Never hand-written, in any backend
+# (connectors/SPEC.md). Backends without native formulas have the skill
+# recompute these on every touching write.
+# ─────────────────────────────────────────────────────────────────────────────
+derivations:
+  risk:
+    field: assumptions.Risk
+    formula: "Impact * (1 - Confidence / 100)"
+    range: [0, 100]
+  confidence:
+    field: assumptions.Confidence
+    formula: >-
+      max(Strength of linked Experiments with a conclusive Result) plus a
+      capped corroboration bump held below the next rung's floor
+      (experiment-guardrails.md §2)
+    range: [0, 100]
+  strength:
+    field: experiments.Strength
+    formula: >-
+      round(rung base × source-quality modifier), capped at 99; 0 unless
+      Result is Validated or Invalidated
+    rung_base: vocabularies.experiment_type[].base
+    source_quality_modifier: { High: 1.15, Medium: 1.0, Low: 0.85 }
+    range: [0, 99]
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Entities — the record types and their properties. `hand_scored: true` marks
+# the only numbers a human types. `applies_to` scopes a property to one
+# record_type in the merged register. Body headings are verbatim names; the
+# heading *level* is connector-specific (local files nest them one level under
+# the record heading).
+# ─────────────────────────────────────────────────────────────────────────────
+entities:
+  assumptions:
+    description: Every belief the business depends on, as a falsifiable sentence, ranked by Risk.
+    properties:
+      - { name: Title, type: title, required: true }
+      - { name: Description, type: text, required: true }
+      - { name: Lens, type: select, options: vocabularies.lens, required: true }
+      - { name: Theme, type: multi_select, options: vocabularies.theme }
+      - { name: Impact, type: number, range: [0, 100], hand_scored: true }
+      - { name: Risk, type: number, derived: derivations.risk }
+      - { name: Confidence, type: number, derived: derivations.confidence }
+      - { name: Corroboration count, type: number }
+      - { name: Status, type: select, options: vocabularies.assumption_status,
+          machine: status_machines.assumption_status }
+      - { name: Owner, type: person }
+      - { name: Gaps, type: multi_select, options: vocabularies.gaps }
+    body_headings: [5 Whys, Metric for truth, Scoring justification, Provenance & notes]
+
+  experiments:
+    description: One row per test designed against an assumption; evidence rows and experiment rows are the same thing.
+    properties:
+      - { name: Title, type: title, required: true }
+      - { name: Type, type: select, options: vocabularies.experiment_type, required: true }
+      - { name: Source quality, type: select, options: vocabularies.source_quality }
+      - { name: Feasibility, type: select, options: vocabularies.feasibility }
+      - { name: We're right if, type: text, required: true }
+      - { name: Result, type: select, options: vocabularies.experiment_result,
+          machine: status_machines.experiment_result }
+      - { name: Strength, type: number, derived: derivations.strength }
+      - { name: Date, type: date }
+      - { name: Owner, type: person }
+      - { name: Interviewee, type: text, required: false }
+    body_headings: [Method protocol, We're wrong if, Results notes]
+
+  decisions_terminology:
+    description: One register split by Type — the decision log and the shared glossary.
+    split_by: Type
+    properties:
+      - { name: Title, type: title, required: true }
+      - { name: Type, type: select, options: vocabularies.record_type, required: true }
+      - { name: Kind, type: select, options: vocabularies.decision_kind,
+          applies_to: Decision, required: false }
+      - { name: Status, type: select, options: vocabularies.decision_terminology_status,
+          machine: status_machines.decision_terminology_status }
+      - { name: Area, type: select, options: vocabularies.area }
+      - { name: Owner, type: person, applies_to: Decision }
+      - { name: Agreed by, type: people, applies_to: Decision }
+      - { name: Unanimity score, type: number, range: [0, 100], hand_scored: true,
+          applies_to: Decision }
+      - { name: Source, type: text, applies_to: Decision }
+      - { name: Decided date, type: date, applies_to: Decision }
+      - { name: Reversibility, type: select, options: vocabularies.reversibility,
+          applies_to: Decision }
+    body_headings:
+      # Kind: Goal commitment rows additionally carry an Outcome heading,
+      # empty until close-out (decision-guardrails.md §9f).
+      Decision: [Decision, Rationale, Alternatives considered, Source]
+      # Verbatim names the terminology check keys off (ubiquitous-language.md).
+      Terminology: [Definition, Avoid / don't say, How it differs]
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Relations — the edges between records. `kind: symmetric` means one relation
+# set identically on both rows; `kind: directed` has a forward name and an
+# inverse. On backends that don't auto-sync, both ends are written explicitly
+# (integrity rule `two-way-relation-one-ended`).
+# ─────────────────────────────────────────────────────────────────────────────
+relations:
+  - name: Depends on / Enables
+    kind: directed
+    forward: Depends on
+    inverse: Enables
+    source: assumptions
+    target: assumptions
+    cardinality: many-to-many
+    meaning: The dependency DAG built by 5-Whys closure. Cycles are forbidden — A→…→A means the two nodes are the same assumption; merge.
+
+  - name: Contradicts
+    kind: symmetric
+    source: assumptions
+    target: assumptions
+    cardinality: many-to-many
+    meaning: Two distinct claims in tension that can't both hold. Pairs with the Contradiction gap and a provenance note naming the resolving experiment. Never for negation-duplicates — those merge (assumption-guardrails.md §4).
+
+  - name: Assumption / Experiments
+    kind: directed
+    forward: Assumption          # on the experiment row
+    inverse: Experiments         # on the assumption row
+    source: experiments
+    target: assumptions
+    cardinality: many-to-one     # exactly one assumption per experiment
+    meaning: The tests designed against a belief. One assumption per experiment, always.
+
+  - name: Related tension
+    kind: symmetric
+    source: decisions_terminology
+    target: decisions_terminology
+    cardinality: many-to-many
+    meaning: "Terminology↔Terminology: confusable-neighbour pairing (informational). Decision↔Decision: unresolved contradiction — actionability inferred from each row's Status (decision-guardrails.md §4)."
+
+  - name: Supersedes / Superseded by
+    kind: directed
+    forward: Supersedes
+    inverse: Superseded by
+    source: decisions_terminology
+    target: decisions_terminology
+    cardinality: many-to-many
+    applies_to: Decision
+    meaning: Resolved, intentional override; the superseded row's Status flips to Superseded. Distinct from Related tension (unresolved) — never both for the same counterpart at once.
+
+  - name: Based on assumption
+    kind: directed
+    forward: Based on assumption
+    source: decisions_terminology
+    target: assumptions
+    cardinality: many-to-many
+    applies_to: Decision
+    side_effects: none           # rationale only; NEVER touches the assumption's Status
+    meaning: >-
+      Why we decided this (decision-guardrails.md §6). Read backwards from an
+      Active Kind: Goal commitment decision, this edge IS the goal linkage —
+      the assumption gates that goal (Impact anchor + queue lens, never a
+      Confidence input; decision-guardrails.md §9). There is no separate
+      Goals relation.
+
+  - name: Resolves assumption
+    kind: directed
+    forward: Resolves assumption
+    source: decisions_terminology
+    target: assumptions
+    cardinality: many-to-many
+    applies_to: Decision
+    side_effects: flips target Status → Resolved by decision (gated, human-affirmed)
+    meaning: This decision settles the open question without a test. Separate relation from Based on assumption — never inferred from it (decision-guardrails.md §6).
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Status machines — every legal transition, who may perform it, and the gate.
+# Anything not listed is an illegal write. Prose flow: registry-schema.md.
+# ─────────────────────────────────────────────────────────────────────────────
+status_machines:
+  assumption_status:
+    initial: Not Started
+    transitions:
+      - { from: Not Started, to: Experiment Needed,
+          by: "/assumptions (single|seed)", gate: gated,
+          trigger: "grill close-out: Gaps empties, no running experiment, no conclusive verdict" }
+      - { from: Experiment Needed, to: Testing,
+          by: "/experiment-design", gate: gated,
+          trigger: "creates an experiment with Result = Running" }
+      - { from: Testing, to: [Validated, Invalidated, Inconclusive],
+          by: "evidence skills + human verdict", gate: gated,
+          trigger: "a linked experiment concludes against its pre-registered bar" }
+      - { from: Inconclusive, to: Experiment Needed,
+          by: "/experiment-design", gate: gated,
+          trigger: "a better test is worth designing" }
+      - { from: "*", to: Resolved by decision,
+          by: "/decisions (Resolves-assumption action only)", gate: gated }
+      - { from: Resolved by decision, to: [Experiment Needed, Not Started],
+          by: "gated reopen session", gate: gated,
+          trigger: "the resolving decision flips to Reversed/Superseded and the successor doesn't re-resolve (decision-guardrails.md §8)" }
+    forbidden:
+      - Batch/loop modes never flip Status — they tag the Human review gap instead.
+      - Logging evidence never flips Status (Confidence-only).
+
+  experiment_result:
+    initial: "Running (forward design) | conclusive at creation (retrospective evidence)"
+    transitions:
+      - { from: Running, to: [Validated, Invalidated, Inconclusive],
+          by: "/find-evidence close-out or human conclusion", gate: gated,
+          trigger: "judged against the pre-registered We're right if / We're wrong if bar" }
+    forbidden:
+      - Never auto-flip on a threshold; the verdict is human-gated.
+      - A conclusive record is never reverted to Running.
+
+  decision_terminology_status:
+    initial: "Active (agreed) | Provisional (still forming)"
+    transitions:
+      - { from: Provisional, to: Active, by: "/decisions", gate: gated }
+      - { from: [Active, Provisional], to: Superseded,
+          by: "/decisions", gate: gated,
+          trigger: "a later decision overrides it — always paired with a Supersedes edge" }
+      - { from: [Active, Provisional], to: Reversed,
+          by: "/decisions", gate: gated,
+          trigger: "abandoned outright, no successor" }
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Integrity rules — derivable defects no single-record grill can see. Each is
+# a named check: audits detect (read-only), fixes stay gated. `surfaced_by`
+# names the workflow that owns detection. severity: error = always a finding;
+# warn = flag for human judgment.
+# ─────────────────────────────────────────────────────────────────────────────
+integrity_rules:
+  # Structural (any register)
+  - id: dangling-reference
+    severity: error
+    surfaced_by: ["/assumptions audit", "/decisions audit"]
+    check: A relation value resolves to no record.
+  - id: illegal-select-value
+    severity: error
+    surfaced_by: ["/assumptions audit", "/decisions audit", validate_backend]
+    check: A select field carries a value not in its vocabulary (fixed lists above; config lists for Lens/Area).
+  - id: body-template-missing-heading
+    severity: warn
+    surfaced_by: ["/assumptions audit", "/decisions audit"]
+    check: A record is missing one of its type's verbatim body_headings. A Terminology row without "Avoid / don't say" silently escapes the terminology check — always flag it.
+  - id: two-way-relation-one-ended
+    severity: error
+    surfaced_by: ["/assumptions audit", "/decisions audit"]
+    check: A symmetric or inverse relation written on one end only, on a backend that doesn't auto-sync.
+
+  # Derived-field discipline
+  - id: derived-field-stale
+    severity: error
+    surfaced_by: ["/assumptions audit"]
+    check: Stored Risk/Confidence/Strength differs from recomputing its derivation (formula-less backends).
+  - id: strength-not-gated
+    severity: error
+    surfaced_by: ["/assumptions audit"]
+    check: Strength ≠ 0 while Result is Running or Inconclusive.
+  - id: corroboration-count-mismatch
+    severity: warn
+    surfaced_by: ["/assumptions audit"]
+    check: Corroboration count ≠ the number of independent proven experiments agreeing at the assumption's top proven rung.
+
+  # Graph health (assumptions)
+  - id: dependency-cycle
+    severity: error
+    surfaced_by: ["/assumptions audit"]
+    check: A Depends on cycle (A→…→A) — the nodes are the same assumption; merge (assumption-guardrails.md §2).
+  - id: orphan-assumption
+    severity: warn
+    surfaced_by: ["/assumptions audit"]
+    check: No Depends on and no Enables — does this connect to the thesis at all? (assumption-guardrails.md §5)
+  - id: contradiction-unwired
+    severity: warn
+    surfaced_by: ["/assumptions audit"]
+    check: Contradiction gap without a Contradicts edge, or an edge without the gap + a provenance note naming the resolving experiment.
+  - id: direct-contradiction-unmerged
+    severity: error
+    surfaced_by: ["/assumptions audit"]
+    check: Two records asserting opposite truth values of the same proposition — a negation-duplicate; merge (assumption-guardrails.md §4a).
+
+  # Status coherence (assumptions × experiments)
+  - id: queue-state-mismatch
+    severity: error
+    surfaced_by: ["/assumptions audit"]
+    check: Status = Experiment Needed while Gaps is non-empty, a linked experiment is Running, or a conclusive verdict exists — the test-next queue is lying.
+  - id: testing-without-running
+    severity: warn
+    surfaced_by: ["/assumptions audit"]
+    check: Status = Testing with no linked Running experiment (or vice versa).
+  - id: unrolled-verdict
+    severity: warn
+    surfaced_by: ["/assumptions audit"]
+    check: A linked experiment concluded but the assumption still sits in Testing — the verdict was never rolled up; flag for a gated close-out.
+  - id: resolved-without-resolver
+    severity: error
+    surfaced_by: ["/assumptions audit", "/decisions audit"]
+    check: Status = Resolved by decision but no standing (Active/Provisional) decision carries a Resolves assumption link to it — reopen per decision-guardrails.md §8.
+
+  # Propagation (cross-register — a verdict in one place invalidates state in another)
+  - id: invalidated-dependency
+    severity: warn
+    surfaced_by: ["/assumptions audit"]
+    check: An assumption whose Depends on target is Invalidated while it is itself Validated or carries high Confidence — its validation rests on a broken foundation; propose the Human review gap.
+  - id: contradicts-both-validated
+    severity: error
+    surfaced_by: ["/assumptions audit"]
+    check: Both ends of a Contradicts edge are Validated — the tension the edge marks was never real, or one verdict is wrong.
+  - id: stale-rationale
+    severity: warn                # error when the decision is a One-way door
+    surfaced_by: ["/decisions audit"]
+    check: A standing (Active) decision whose Based on assumption link points at a now-Invalidated assumption — the rationale is stale; re-affirm or revisit.
+  - id: stale-resolution
+    severity: error
+    surfaced_by: ["/decisions audit"]
+    check: A Reversed/Superseded decision whose Resolves assumption targets still sit in Resolved by decision (and the successor doesn't re-resolve them) — decision-guardrails.md §8.
+  - id: one-way-door-untested-basis
+    severity: error
+    surfaced_by: ["/decisions audit"]
+    check: A One-way door decision Based on an untested assumption with no risk-acceptance line in ## Rationale — decision-guardrails.md §8.
+  - id: unresolved-tension
+    severity: warn
+    surfaced_by: ["/decisions audit"]
+    check: A Decision↔Decision Related tension pair with both sides still Active — a human must resolve or confirm coexistence (decision-guardrails.md §4).
+  - id: supersedes-tension-overlap
+    severity: error
+    surfaced_by: ["/decisions audit"]
+    check: The same counterpart wired in both Related tension and Supersedes — once Supersedes is set, the tension is resolved (decision-guardrails.md §5).
+
+  # Goal commitments (Kind: Goal commitment — decision-guardrails.md §9)
+  - id: overdue-risk-acceptance
+    severity: error
+    surfaced_by: ["/decisions audit"]
+    check: An Active Goal commitment with a risk-acceptance line past its "revisit by" date whose assumption is still untested (decision-guardrails.md §9d).
+  - id: unclosed-goal
+    severity: warn
+    surfaced_by: ["/decisions audit"]
+    check: An Active Goal commitment past its target date with an empty ## Outcome section.
+  - id: ungated-outcome
+    severity: error
+    surfaced_by: ["/decisions audit"]
+    check: An ## Outcome filled as Achieved/Missed with zero linked Experiment/Evidence records, or as Dropped without a superseding/reversing decision link (decision-guardrails.md §9f).
+  - id: stale-goal-anchor
+    severity: warn
+    surfaced_by: ["/assumptions audit", "/decisions audit"]
+    check: An assumption whose Impact scoring justification cites a goal that is no longer Active — the anchor is stale; re-justify or re-score (assumption-guardrails.md §3).
+  - id: anchor-dilution
+    severity: warn                # informational — there is no cap
+    surfaced_by: ["/decisions audit"]
+    check: Report the count of Active Goal commitments; when most open assumptions gate some goal, the "gates a committed goal" Impact anchor has stopped discriminating.

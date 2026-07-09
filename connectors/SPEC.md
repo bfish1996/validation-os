@@ -5,8 +5,11 @@ storage backend. Skills never contain backend specifics; they say *what* to do
 ("create an assumption record", "query the test-next queue") and the active
 connector's doc says *how*.
 
-Field semantics are owned by `skills/_shared/registry-schema.md` — a connector
-maps those fields onto its backend; it never redefines them.
+Field semantics are owned by `skills/_shared/registry-schema.md`, with
+`skills/_shared/ontology.yaml` as its machine-readable form (canonical select
+options, relation direction/cardinality, status transitions, derivation
+formulas). A connector maps those fields onto its backend; it never redefines
+them.
 
 Each connector may also ship a **schema guide** at
 `connectors/<name>-schema.md`. This is the setup contract: how to build or
@@ -38,7 +41,7 @@ in `connectors/<name>-schema.md`.
 | **Search** | Find records semantically related to a phrase (dedupe checks, convergence checks). Best effort per backend; document what "search" means here. |
 | **Create** | Add a record with the given fields and body. Return its identifier so the skill can link it. |
 | **Update** | Change named fields and/or body sections of one record. Untouched fields stay intact. |
-| **Link** | Wire a relation between two records (Depends on, Contradicts, Assumption↔Experiment, Based on / Resolves assumption). Two-way relations are set on **both** ends. |
+| **Link** | Wire a relation between two records — the full relation list, with direction and cardinality, is `skills/_shared/ontology.yaml §relations`. Two-way relations are set on **both** ends. |
 
 ## Rules that bind every connector
 
@@ -83,15 +86,15 @@ the live backend against it, never against the prose. Required blocks:
   (the harness tool family setup needs, e.g. `notion-mcp`, `file-system`).
 - `registers:` — `assumptions`, `experiments`, `decisions_terminology`, each
   with a `source:` (backend container type) and connector-specific container
-  keys (`config_key`, `file`, …). Every canonical field from
-  `registry-schema.md` must appear:
+  keys (`config_key`, `file`, …). Every canonical property and relation in
+  `skills/_shared/ontology.yaml §entities/§relations` must appear:
   - `properties:` entries carry mandatory `canonical`, `backend`, `type`,
     `derived`. `formula` is required when `derived: true`. `options_source`
     names where select options come from — a config key (`vocabulary.lens`,
-    `vocabulary.area`) or `registry-schema` for the canonical fixed lists
-    (never restate the options; that would fork the semantics). `required`
-    defaults to true; only inherently optional canonical fields (Kind,
-    Interviewee) set it false.
+    `vocabulary.area`) or `registry-schema`, which resolves to the canonical
+    fixed lists in `ontology.yaml §vocabularies` (never restate the options;
+    that would fork the semantics). `required` defaults to true; only
+    inherently optional canonical fields (Kind, Interviewee) set it false.
   - `relations:` entries carry mandatory `canonical`, `backend`, `target`,
     `cardinality`; `inverse` and `self` where they apply.
 

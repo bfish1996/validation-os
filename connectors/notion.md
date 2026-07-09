@@ -38,7 +38,8 @@ it) with properties matching the schema's field maps:
 - **Decisions & Terminology** (one DB) — title, Type (select:
   Terminology/Decision), Status (select), Area (select — your list), Related
   tension (self-relation), Owner, Agreed by (person multi), Unanimity score
-  (number), Source (text), Decided date (date), Supersedes/Superseded by
+  (number), Source (text), Decided date (date), Reversibility (select),
+  Supersedes/Superseded by
   (self-relation), Based on assumption (relation → Assumptions), Resolves
   assumption (relation → Assumptions, **a second, separate relation**).
 

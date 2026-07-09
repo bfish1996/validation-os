@@ -5,6 +5,13 @@ every mode of `/assumptions` and by `/experiment-design`, `/find-evidence`,
 `/meeting-prep`, and `/decisions`. When a field rule changes, change it here —
 not in a skill body.
 
+**Machine-readable companion: `ontology.yaml`** (same directory) — the
+checkable form of this file: canonical select-option lists, relation
+direction/cardinality, status-transition tables, derivation formulas, and the
+cross-register integrity rules the audit modes run. Prose here explains
+meaning; validators and audits check against the YAML. The two must never
+disagree — change them in the same commit.
+
 **Where the registry lives** is the connector's job, not this file's. Read
 `validation-os.config.yaml` (walk up from the working directory; absent =
 local-files defaults) and follow the matching doc in `connectors/` for how to
@@ -160,6 +167,12 @@ automated checks:
 
 ### Terminology row body template
 
-- `## Definition` — the canonical meaning, one plain paragraph.
-- `## Use / don't use` — the approved phrasing and the near-misses to avoid.
-- `## Examples` — a correct usage in a real sentence.
+The three verbatim headings the terminology check keys off — full rules and
+per-audience bullet format: `ubiquitous-language.md`.
+
+- `## Definition` — one bullet per applicable audience (a single bullet if
+  uniform). Context, not enforced.
+- `## Avoid / don't say` — the must-fix source: per-audience banned phrasings
+  + the fix.
+- `## How it differs` — 2–5 `- **vs <neighbour>:**` bullets against
+  confusable neighbours (pairs with `Related tension`).

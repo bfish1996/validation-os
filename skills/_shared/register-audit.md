@@ -60,10 +60,23 @@ Apply `§5`. Resolve `Depends on` references first. Return orphans (no in/out
 edges), roots (depended-on foundations), dangling edges, cycles, and a
 health note with the orphan share and which families float free.
 
+## Phase D — Integrity rules (barrier, needs the resolved graph + experiments)
+
+Run every check in `ontology.yaml §integrity_rules` whose `surfaced_by`
+includes `/assumptions audit`, citing each finding by rule `id`. Phase A/B/C
+already cover the per-record and graph-shape rules; what only this phase
+catches is status coherence and propagation — `queue-state-mismatch`,
+`testing-without-running`, `unrolled-verdict`, `resolved-without-resolver`,
+`invalidated-dependency`, `contradicts-both-validated`,
+`derived-field-stale`, `strength-not-gated`, `corroboration-count-mismatch`.
+These need the assumptions **and** their linked experiments loaded — pull
+both registers before fanning out.
+
 ## Synthesis
 
 One ranked report: violations by record (with proposed fixes),
-merge/contradiction clusters, graph gaps.
+merge/contradiction clusters, graph gaps, and integrity-rule findings (by
+rule `id`).
 
 - **Audit mode:** read it back to the user; then walk fixes one at a time,
   gated, through the single-record grill. This harness itself mutates

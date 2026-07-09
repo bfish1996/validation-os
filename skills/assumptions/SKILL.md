@@ -71,7 +71,8 @@ norm.
 
 1. **Read the shared sources your mode needs.** All modes:
    `registry-schema.md` (field map) + `assumption-guardrails.md` (rules).
-   Audit/loop also: `register-audit.md`. The evidence step (single/loop/seed):
+   Audit/loop also: `register-audit.md` + the `/assumptions audit` checks in
+   `ontology.yaml §integrity_rules`. The evidence step (single/loop/seed):
    `historic-evidence.md`.
 2. **Classify the ask** into a mode via the table above; state which mode
    you're in and why in one line before acting.

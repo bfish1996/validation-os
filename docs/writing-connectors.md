@@ -13,8 +13,10 @@ Read, in order:
 1. `connectors/SPEC.md` — the contract: the six runtime operations, the rules
    that bind every connector (derived fields, gated writes, IDs-in-config,
    fail-loudly), and the schema-guide convention.
-2. `skills/_shared/registry-schema.md` — the fields your backend must carry.
-   You map these; you never redefine them.
+2. `skills/_shared/registry-schema.md` — the fields your backend must carry —
+   and `skills/_shared/ontology.yaml`, its machine-readable form: the
+   canonical property/relation list your schema guide's `registers:` block is
+   checked against. You map these; you never redefine them.
 3. `connectors/local-files.md` and `connectors/notion.md` — the runtime
    reference implementations, one formula-less, one with native formulas.
 4. `connectors/local-files-schema.md` and `connectors/notion-schema.md` — the

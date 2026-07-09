@@ -31,6 +31,10 @@ time, gated, through Capture mode.
      `Resolves assumption` links point at assumptions still marked
      `Resolved by decision` (and not re-resolved by the successor) — the
      retired question is open again; flag each for a gated reopen.
+   - **Stale rationale**: `Active` decisions whose `Based on assumption`
+     link points at a now-`Invalidated` assumption — the reason the decision
+     rested on has been disproved; flag for re-affirm or revisit (highest
+     severity when the decision is a `One-way door`).
    - **Goal health** (`Kind: Goal commitment`, `decision-guardrails.md §9`):
      - **Overdue risk-acceptances** — `Active` goal commitments with a
        risk-acceptance line past its `revisit by` date whose assumption is
@@ -49,6 +53,13 @@ time, gated, through Capture mode.
        there is no cap.
      - Missing `Kind` on Decision rows — a nudge, never a block (legacy
        rows are untyped by design).
+   These checks are the `/decisions audit` rules in
+   `../../_shared/ontology.yaml §integrity_rules` — cite each finding by its
+   rule `id` (`stale-resolution`, `stale-rationale`,
+   `one-way-door-untested-basis`, `unresolved-tension`,
+   `supersedes-tension-overlap`, `resolved-without-resolver`,
+   `overdue-risk-acceptance`, `unclosed-goal`, `ungated-outcome`,
+   `stale-goal-anchor`, plus the structural rules).
 3. **Synthesise one ranked findings report** — by record, with the specific
    gap(s) and a suggested fix. Read it back to the user.
 4. When the user picks findings to fix, walk them one at a time through

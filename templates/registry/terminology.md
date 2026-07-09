@@ -12,13 +12,15 @@ example below is safe to delete.
 - **Related tension**: (none)
 
 ### Definition
-Matching every bank transaction to its ledger entry until no unexplained
-difference remains.
+- **All:** Matching every bank transaction to its ledger entry until no
+unexplained difference remains.
 
-### Use / don't use
-Use "reconciliation" for the whole matching process. Don't use "sync" (that's
-data transfer, not matching) or "bookkeeping" (the superset).
+### Avoid / don't say
+- **All:** 'sync' → say 'reconciliation' (sync is data transfer, not matching)
+- **All:** 'bookkeeping' → say 'reconciliation' (bookkeeping is the superset)
 
-### Examples
-"Automated reconciliation cut month-end close from four hours to twenty
-minutes."
+### How it differs
+- **vs sync:** sync moves data between systems; reconciliation matches and
+explains it.
+- **vs bookkeeping:** bookkeeping is the whole ledger practice; reconciliation
+is one step in it.

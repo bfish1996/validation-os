@@ -40,10 +40,12 @@ the user asks.
    guide's frontmatter is the setup contract: which of the four canonical
    operations it supports (`validate_backend`, `create_backend`,
    `seed_starter_records`, `migrate_schema`), the harness `tool_namespace`
-   they need, and the full `registers:` field/relation mapping. If the schema
-   guide is missing or its `registers:` block is incomplete, say so and fall
-   back to the manual instructions in the runtime doc — never improvise a
-   mapping.
+   they need, and the full `registers:` field/relation mapping. Check the
+   guide's completeness against the canonical ontology
+   (`skills/_shared/ontology.yaml §entities/§relations`) — every canonical
+   property and relation must be mapped. If the schema guide is missing or its
+   `registers:` block is incomplete, say so and fall back to the manual
+   instructions in the runtime doc — never improvise a mapping.
 
 3. **Probe the harness.** Check that a tool matching the schema guide's
    `tool_namespace` is actually connected (Notion MCP server, database

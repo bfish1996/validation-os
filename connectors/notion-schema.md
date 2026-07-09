@@ -63,6 +63,7 @@ registers:
       - {canonical: Unanimity score, backend: Unanimity score, type: number, derived: false}
       - {canonical: Source, backend: Source, type: rich_text, derived: false}
       - {canonical: Decided date, backend: Decided date, type: date, derived: false}
+      - {canonical: Reversibility, backend: Reversibility, type: select, derived: false, options_source: registry-schema}
     relations:
       - {canonical: Related tension, backend: Related tension, target: decisions_terminology, cardinality: many, self: true}
       - {canonical: Supersedes / Superseded by, backend: Supersedes / Superseded by, target: decisions_terminology, cardinality: many, self: true}
@@ -192,6 +193,7 @@ One database, split by `Type`.
 | Unanimity score | Unanimity score | number 0–100 | no |
 | Source | Source | text / URL | no |
 | Decided date | Decided date | date | no |
+| Reversibility | Reversibility | select | no |
 | Supersedes / Superseded by | Supersedes / Superseded by | self-relation | no |
 | Based on assumption | Based on assumption | relation → Assumptions | no |
 | Resolves assumption | Resolves assumption | relation → Assumptions (separate relation) | no |
