@@ -47,6 +47,8 @@ work the register through the active connector (`connectors/SPEC.md`).
 > Field map: `../_shared/registry-schema.md`. Gate discipline:
 > `../_shared/gated-writes.md`.
 
+Worked example: `../../examples/05-design-the-experiment.md`.
+
 ## The two registers this touches
 
 - **Experiments** — work here. One assumption per experiment; evidence is

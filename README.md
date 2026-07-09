@@ -95,6 +95,10 @@ trigger phrases, so "I'm meeting the CFO of X tomorrow" reaches
 boundaries: `/assumptions` stops where `/experiment-design` starts, and
 both stop before *running* anything — verdicts stay human.
 
+**Worked examples:** [examples/](examples/) follows one assumption at a
+fictional startup from first call to logged decision — one short scene per
+skill.
+
 ## Configuration
 
 One file, `validation-os.config.yaml`, at your workspace root (template:
@@ -133,6 +137,7 @@ skills/               the five skills + setup, one dir per skill
                       machine-readable ontology, evidence procedures, gate
                       discipline)
 connectors/           storage contract + reference implementations
+examples/             one assumption followed end-to-end, a scene per skill
 templates/            config + starter registry files
 docs/                 the method, the evidence ladder, the weekly ritual
 ```

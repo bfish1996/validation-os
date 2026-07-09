@@ -41,6 +41,9 @@ work the register through the active connector (`connectors/SPEC.md`).
 > `../_shared/gated-writes.md`. These are the single sources of truth, cited
 > by every mode — read the ones your mode needs.
 
+Worked examples: `../../examples/02-seed-from-a-call.md` (seed) ·
+`../../examples/03-grill-an-assumption.md` (single).
+
 ## Pick the mode (scope × gate)
 
 Four of the five modes are two knobs — **scope** (one record vs. whole
