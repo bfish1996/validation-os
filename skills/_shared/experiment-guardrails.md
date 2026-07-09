@@ -277,10 +277,11 @@ skill's).
   assumption often needs **several** experiments (e.g. desk research then a
   pitch) — that's fine; they accrue as separate records.
 - **Two separate axes, do not conflate:**
-  - **Assumption `Status`** = `Not Started` → `Experiment Needed` (grill
-    close-out) → **Testing** → Validated/Invalidated/Inconclusive.
-    `/experiment-design` only ever moves it `Experiment Needed` →
-    **Testing** (gated). Canonical flow: `registry-schema.md §Status flow`.
+  - **Assumption `Status`** = `Not Started` → `Goal Linked` (goal-linkage
+    gate) → `Experiment Needed` (grill close-out) → **Testing** →
+    Validated/Invalidated/Inconclusive. `/experiment-design` only ever moves
+    it `Experiment Needed` → **Testing** (gated). Canonical flow:
+    `registry-schema.md §Status flow`.
   - **Experiment `Result`** = **Running** →
     Validated/Invalidated/Inconclusive. `/experiment-design` only ever sets
     **Running**. Rolling `Result` back into the assumption `Status` is the

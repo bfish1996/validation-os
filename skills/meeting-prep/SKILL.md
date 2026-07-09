@@ -138,18 +138,20 @@ don't plan for Confidence a chat can't deliver.
 ### 4. Match assumptions
 
 Query the register: candidates are records whose `Lens` matches the person,
-`Status` not yet conclusive (`Not Started` / `Experiment Needed` /
-`Testing`), sorted by Risk descending. Then apply two filters, in order:
+`Status` not yet conclusive (`Not Started` / `Goal Linked` / `Experiment
+Needed` / `Testing`), sorted by Risk descending. Then apply two filters, in
+order:
 
 - **Goal intersection** — start from what the person is trying to achieve
   (step 2's motivations layer) and find the register records that live
   inside it. A question aligned with their own aims gets real, considered
   answers; a high-Risk record outside their aims gets polite speculation,
-  whatever their role. A candidate that gates a committed goal (linked via
-  `Based on assumption` from an `Active` `Kind: Goal commitment` decision —
-  `../_shared/decision-guardrails.md §9`) *this person owns or influences*
-  is a strong match (absence of a goal link isn't disqualifying — most
-  records have none).
+  whatever their role. A candidate that gates a goal (linked via `Based on
+  assumption` from a standing `Provisional`/`Active` `Kind: Goal commitment`
+  decision — `../_shared/decision-guardrails.md §9`) *this person owns or
+  influences* is a strong match (absence of a goal link isn't disqualifying
+  for a `Not Started` candidate that hasn't been claimed by any goal yet —
+  it just can't queue for testing until one does).
 - **Unique qualification** — what can *this* person answer that a generic
   participant couldn't (their role, access, lived experience, their
   company's situation)? Drop high-Risk records they'd only speculate on.

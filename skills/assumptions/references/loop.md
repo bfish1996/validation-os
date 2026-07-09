@@ -118,7 +118,7 @@ Gates were waived, so these are built in instead:
 - **Read-only fields.** Never write `Risk`, `Confidence`, or `Strength`
   (derived — on the local-files connector, recompute them per
   `connectors/local-files.md`, never invent them). **Never flip `Status`** —
-  even the `Not Started` → `Experiment Needed` flip belongs to the gated
+  even the `Goal Linked` → `Experiment Needed` flip belongs to the gated
   human-review session, because loop leaves the `Human review` gap set.
 - **Human review hand-off.** Tag the `Human review` gap on every record
   grilled this run; never clear it. The run-log doubles as the review
