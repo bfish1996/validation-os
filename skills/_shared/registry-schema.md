@@ -90,15 +90,17 @@ Not Started ──(grill close-out: Gaps empties)──▶ Experiment Needed ─
 
 | Field | Type | Rule |
 |---|---|---|
-| Title | title | Short handle for the test. |
-| Assumption | relation | Every assumption this single test would resolve (many-to-many). One primary belief in focus. |
+| Title | title | The specific question being tested — a question, not a topic. |
+| Assumption | relation | **One** assumption per experiment. A test that would also inform another belief → a second experiment record, never two beliefs blurred into one. |
 | Type | select | The single 8-rung activity-and-strength ladder — `experiment-guardrails.md §2`. 🔴 Stated: Opinion · Pitch-deck reaction · Anecdotal. 🟡 Researched: Desk research · Survey at scale. 🟢 Revealed: Prototype usage · Signed intent · Paying users. |
 | Source quality | select High/Medium/Low | How much *this* source's word is worth (seniority, authority, ICP-fit). Modulates Strength **within** the rung's band, never across. |
 | Feasibility | select High/Medium/Low | How hard the test is to actually run (access, cost, time). Set at design time. |
 | We're right if | text | The pre-registered pass bar. Concrete and countable. |
 | Result | select | `Running` → `Validated` / `Invalidated` / `Inconclusive`. Design sets Running; conclusion is human-gated. |
 | Strength | derived | **Never hand-write.** Rung band × source-quality modifier, **gated to a conclusive Result** — 0 while Running or Inconclusive. The assumption's Confidence reads this. |
-| Owner | person | Who runs the test. |
+| Date | date | Start date on creation; outcome date at conclusion. |
+| Owner | person | Who runs the test. Optional at design time. |
+| Interviewee | relation/text (optional) | Who was spoken to — useful for spotting repeat conversations. Set when known. |
 
 Record **body** holds the protocol: the per-method template
 (`experiment-guardrails.md §3`), `We're wrong if` (the kill bar), and results

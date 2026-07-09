@@ -30,6 +30,11 @@ vocabulary:
   # Audiences your outputs are written for — used by the terminology check.
   audiences: [End user, Investor, Partner, Internal]
 
+# Optional: where prototype briefs and fake-door specs land — a repo
+# ("github.com/you/prototypes") or a local directory. /experiment-design
+# asks once if it's needed and unset.
+# prototype_home: ""
+
 # Evidence sources available to /find-evidence and /meeting-prep.
 # Skills only sweep what is listed here; with nothing listed they still work
 # via web/desk research and by asking you to paste notes or transcripts.
