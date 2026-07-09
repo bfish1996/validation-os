@@ -147,6 +147,15 @@ before opening the next; the write is gated at the end.
      prototype already exists in the config's `prototype_home`, and if
      absent produce a prototype brief. Then also build the interview guide
      for the usage sessions.
+   - `Prototype usage` / `Signed intent` / `Paying users` **measured live**
+     (telemetry or a platform-native A/B or feature flag) rather than by a
+     hand-run session → ask once, gated: "measured live in the connected
+     analytics platform, or hand-run?" If live →
+     **`references/analytics-instrumentation.md`** (may combine with the
+     playbook above when a build is also needed) — pre-registers the exact
+     query/metric definition, segment, and window as the pass/kill bar, and
+     optionally creates a native experiment/feature-flag object via the
+     platform's own tools.
    - `Opinion` / `Anecdotal` → **`references/interview-guide.md`** — the
      standard guide skeleton into the Experiment body. **Stimulus override**
      (one gated question): "will you show a prototype in the interview?" —

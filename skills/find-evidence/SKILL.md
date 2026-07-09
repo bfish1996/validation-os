@@ -98,11 +98,14 @@ thread. Call transcripts are the primary internal source when available.
   research can set a *base rate* but can't validate it, and there may be no
   internal signal yet → say so and point to `/experiment-design`. Log a
   base rate as context only (`Inconclusive`), never as validation.
-- **Your own product metrics** — the raw dashboards live in your analytics
-  tool, not this skill. **But** a *measured* metric value that bears on an
-  assumption's Metric for truth is real behaviour → revealed-tier evidence:
-  log it as an Experiment record (`Prototype usage` / `Paying users` rung,
-  source = the analytics view).
+- **Your own product metrics** — a *measured* metric value that bears on an
+  assumption's Metric for truth is real behaviour → revealed-tier evidence.
+  When `analytics` ∈ the config's `evidence_sources`, this is a full
+  flavour like internal/desk: `references/product-analytics.md` resolves
+  the right event/metric live (never assumed) via the connected platform's
+  own tools and queries it under `../_shared/quant-analytics-rubric.md`.
+  Not configured → the raw dashboards live in your analytics tool, not this
+  skill.
 
 You may run **both** flavours for one assumption when both bear on it —
 each qualifying piece becomes its own record.

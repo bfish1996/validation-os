@@ -196,7 +196,10 @@ The checklists below are the **minimum bar**; the full prep skeletons live
 in `/experiment-design`'s `references/` — `interview-guide.md` (guide
 skeleton + how-to-ask rules, also the question discipline `survey.md`
 inherits), `prototype-brief.md` (prototype-needed rule table §3b + brief
-template), `fake-door.md` (stimulus / costly ask / instrumentation spec).
+template), `fake-door.md` (stimulus / costly ask / instrumentation spec),
+`analytics-instrumentation.md` (live-telemetry / native A-B pre-
+registration — a mechanism fork of the Revealed-tier rungs, not a new rung;
+rigor rubric: `quant-analytics-rubric.md`).
 
 ### 🔵 Desk research (🟡 `Desk research` rung)
 

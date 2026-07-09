@@ -271,8 +271,8 @@ vocabulary:
   lens: [Commercial, Consumer, Investor]   # your audiences
   area: [Product, Go-to-market, ...]       # your domains
   audiences: [End user, Investor, Partner, Internal]
-evidence_sources: [web]       # + fireflies, slack, gmail, attio — whatever
-                              #   your harness actually has connected
+evidence_sources: [web]       # + fireflies, slack, gmail, attio, analytics
+                              #   — whatever your harness actually has connected
 ```
 
 No config at all still works: local files, web-only evidence. Skills

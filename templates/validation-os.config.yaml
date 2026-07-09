@@ -65,6 +65,20 @@ vocabulary:
 # Evidence sources available to /find-evidence and /meeting-prep.
 # Skills only sweep what is listed here; with nothing listed they still work
 # via web/desk research and by asking you to paste notes or transcripts.
-# Known sources: web, fireflies, slack, gmail, attio
+# Known sources: web, fireflies, slack, gmail, attio, analytics
 evidence_sources:
   - web
+
+# Optional: product-analytics evidence + instrumentation (PostHog, Mixpanel,
+# BigQuery, warehouse SQL, or any platform with its own agent skill/MCP
+# tools). Active when `analytics` is in evidence_sources above. The platform
+# skill/MCP tools are a harness-side prerequisite you install separately
+# (e.g. via skills.sh) — this config doesn't wire them up, and no field
+# mapping is stored here: schemas are workspace-defined and discovered live
+# by the platform skill (skills/_shared/analytics-metric-resolution.md).
+# `platform` is a free-text label used only in prose and the glossary, never
+# to select code paths. `glossary_file` caches human-confirmed event/metric
+# mappings so the same ambiguity isn't re-resolved every sweep.
+# analytics:
+#   platform: ""                          # e.g. "mixpanel", "posthog", "bigquery"
+#   glossary_file: analytics-glossary.md  # relative to this config file

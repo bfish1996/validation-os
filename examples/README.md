@@ -21,6 +21,8 @@ behaviour the scene demonstrates.
 | [05](05-design-the-experiment.md) | Design the test | `/experiment-design` |
 | [06](06-meeting-prep.md) | Prep the interview | `/meeting-prep` |
 | [07](07-log-the-decision.md) | Log the decision | `/decisions` (capture) |
+| [08](08-query-the-metrics.md) | Query live telemetry for evidence | `/find-evidence` (analytics) |
+| [09](09-instrument-the-experiment.md) | Pre-register a live A/B | `/experiment-design` (analytics instrumentation) |
 
 Not shown: the maintenance entry points (assumptions audit / loop / triage,
 decision sweep / audit, terminology) — each skill's SKILL.md mode table

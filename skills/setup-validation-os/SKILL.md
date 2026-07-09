@@ -78,8 +78,15 @@ Worked example: `../../examples/01-setup.md`.
 5. **Declare evidence sources.** Ask which of these the user's agent can
    actually reach, and list only those under `evidence_sources:`:
    `web` (default — desk research), `fireflies` (call transcripts), `slack`,
-   `gmail`, `attio` (CRM). An empty list is fine — `/find-evidence` and
-   `/meeting-prep` fall back to web research and pasted notes.
+   `gmail`, `attio` (CRM), `analytics` (product analytics — PostHog,
+   Mixpanel, BigQuery, warehouse SQL). An empty list is fine —
+   `/find-evidence` and `/meeting-prep` fall back to web research and
+   pasted notes. For `analytics`: if no matching platform skill/MCP tools
+   are connected yet, say so and point at installing one (PostHog's
+   `ai-plugin`, Mixpanel's `ai-plugins`, or search skills.sh for the
+   platform) rather than declaring the source without it — same
+   fail-loudly rule as a missing MCP server for any other source; this
+   skill doesn't install it for you.
 
 6. **Set the vocabulary.** The schema leaves two lists to the user
    (`skills/_shared/registry-schema.md`):

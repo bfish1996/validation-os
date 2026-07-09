@@ -50,7 +50,11 @@ sources:    <list>              # WHICH flavour(s) to sweep — see below
 **`sources` is the flavour switch.** Internal values (call transcripts,
 chat, email, notes, CRM — whatever the config's `evidence_sources` declares;
 per-source search guidance lives in `/find-evidence`'s `references/`) sweep
-your own record; `web` sweeps published secondary sources (desk research).
+your own record; `web` sweeps published secondary sources (desk research);
+`analytics` — when configured — searches by discover-then-query against a
+connected product-analytics platform
+(`../find-evidence/references/product-analytics.md`) rather than keyword
+search across text.
 **Default when a caller omits `sources`: the configured internal sources**,
 so desk research is strictly opt-in. **When `web` is in `sources`, the
 search + verification must follow `desk-research-rubric.md`** — source
@@ -117,7 +121,9 @@ its work.
   `Desk research`; unpaid real use → 🟢 `Prototype usage`; payment / signed
   commitment observed → 🟢 `Signed intent` / `Paying users`. A *measured*
   product metric that bears on the Metric for truth is real behaviour —
-  revealed-tier, with the analytics view as the source.
+  revealed-tier, discovered and queried per
+  `../find-evidence/references/product-analytics.md`, verified against
+  `quant-analytics-rubric.md` before writing.
 - **`Source quality`** = High / Medium / Low for the source's seniority /
   decision authority / ICP-fit. Modulates Strength **within** the rung,
   never across it.
