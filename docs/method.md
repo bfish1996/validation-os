@@ -71,6 +71,26 @@ business call as if it validated an untested belief).
   (rationale; never touches the assumption) and one that **resolves** it (a
   deliberate human judgment that retires the open question without a test).
 
+**Decisions are the focus mechanism.** Every open assumption is a question
+you're paying to keep open. A decision prunes and re-ranks the register in
+one move: questions that only mattered on the paths it forecloses go moot
+(**resolves** — retired honestly, without pretending they were tested),
+while the beliefs the chosen path leans on (**based on**) stay open and
+gain dependents — which pushes their Impact, and so their Risk, up the
+test-next queue. Each decision also surfaces beliefs hiding in its own
+rationale: every "because" is either a ground truth or an assumption that
+belongs in the register. Net effect: fewer open questions, ranked by what
+you've actually committed to.
+
+The bar a decision must clear scales with its **reversibility**. Every
+decision is classified a **two-way door** (reversible at a cost you'd
+happily pay — decide fast; it may rest on untested beliefs, because the
+decision itself functions as an experiment) or a **one-way door** (hard to
+undo — every assumption it rests on must be validated first, or the record
+carries an explicit risk-acceptance naming the untested bet). Reversing a
+decision reopens the assumptions it resolved — mootness dies with the
+decision.
+
 Skills: `/decisions`. Rules: `skills/_shared/decision-guardrails.md`,
 `skills/_shared/ubiquitous-language.md`.
 
@@ -96,3 +116,5 @@ reinvented:
   about the past, not hypotheticals; never pitch.
 - **Domain-Driven Design's "ubiquitous language"** (Eric Evans) — the
   glossary habit.
+- **Bezos's Type 1 / Type 2 decisions** (one-way vs two-way doors) — the
+  reversibility classification that sets each decision's evidence bar.
