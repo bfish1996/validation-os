@@ -95,7 +95,7 @@ One file, `validation-os.config.yaml`, at your workspace root (template:
 [templates/validation-os.config.yaml](templates/validation-os.config.yaml)):
 
 ```yaml
-connector: local-files        # or: notion
+connector: local-files        # or: notion | sql | nosql
 local_files:
   registry_dir: registry
 vocabulary:
@@ -113,8 +113,11 @@ paste-your-notes.
 
 **Storage backends** are pluggable connectors:
 [local-files](connectors/local-files.md) (default) ·
-[notion](connectors/notion.md) · [write your own](docs/writing-connectors.md)
-against [the spec](connectors/SPEC.md).
+[notion](connectors/notion.md) · [sql](connectors/sql.md) ·
+[nosql](connectors/nosql.md) · [write your own](docs/writing-connectors.md)
+against [the spec](connectors/SPEC.md). Each ships with a schema guide
+(`connectors/<name>-schema.md`) that `/setup-validation-os` uses to validate
+or build the backend for you — validate-first, every change gated.
 
 ## Repo map
 

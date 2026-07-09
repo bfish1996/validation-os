@@ -5,8 +5,10 @@
 # to find it). If no config file exists, skills fall back to the local-files
 # connector with a ./registry directory and web-only evidence.
 
-# Where your registry lives. One of: local-files | notion
-# Each connector is documented in connectors/<name>.md.
+# Where your registry lives. One of: local-files | notion | sql | nosql
+# Each connector is documented in connectors/<name>.md, with a schema guide
+# in connectors/<name>-schema.md that /setup-validation-os builds and
+# validates against.
 connector: local-files
 
 # local-files connector: path to the registry directory (relative to this file).
@@ -14,12 +16,30 @@ local_files:
   registry_dir: registry
 
 # notion connector: your own database IDs (see connectors/notion.md for how
-# to create the databases and find these IDs).
+# to create the databases and find these IDs). Decisions & Terminology share
+# one database, split by a Type select.
 # notion:
 #   assumptions_db: ""
 #   experiments_db: ""
 #   decisions_db: ""
-#   terminology_db: ""
+
+# sql connector: a harness-provided database connection (credentials live in
+# the harness, never here) plus schema and table names.
+# sql:
+#   connection_name: ""
+#   schema: validation_os
+#   assumptions_table: assumptions
+#   experiments_table: experiments
+#   decisions_table: decisions
+
+# nosql connector: a harness-provided document-store connection plus database
+# and collection names.
+# nosql:
+#   connection_name: ""
+#   database: validation_os
+#   assumptions_collection: assumptions
+#   experiments_collection: experiments
+#   decisions_collection: decisions
 
 # Your vocabulary (see skills/_shared/registry-schema.md). Lens = the
 # audiences whose decisions assumptions drive; Area = the product/domain
