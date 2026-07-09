@@ -133,12 +133,16 @@ damage-if-false, not likelihood.
 - **30–50** — a major branch needs rework, recoverable.
 - **10–20** — minor, adjust & move on.
 
-**Goal anchor.** If the assumption *directly gates a committed goal* (wire
-the optional `Goals` relation, `registry-schema.md`), score `Impact` toward
-the top of its band: a belief a company target depends on matters more. This
-is a **prompt to the human scorer, not a formula** — Impact stays the one
+**Goal anchor.** If the assumption *directly gates a committed goal* — an
+`Active` Decision with `Kind: Goal commitment` links it via `Based on
+assumption` (`decision-guardrails.md §9`) — score `Impact` toward the top of
+its band: a belief a company target depends on matters more. This is a
+**prompt to the human scorer, not a formula** — Impact stays the one
 hand-scored number, and a goal link **never** touches Confidence. Cite the
-goal in the *Scoring justification*.
+goal in the *Scoring justification*. The check runs **both ways**: a
+goal-gating record scored low needs a justification, and a top-band score
+justified *only* by a goal that is no longer Active is stale — audit flags
+both.
 
 **Dependency anchor.** Before finalizing the score, glance at the record's
 `Enables` relation — the set of other records that name *this* one in their

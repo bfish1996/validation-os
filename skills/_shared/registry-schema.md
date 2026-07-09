@@ -18,8 +18,9 @@ whatever the backend.
 - **Experiments** — one row per test designed against an assumption; evidence
   rows and experiment rows are the same thing. Created by `/experiment-design`,
   concluded by `/find-evidence` and the humans running the test.
-- **Decisions & Terminology** — the decision log and the shared glossary.
-  Owned by `/decisions`.
+- **Decisions & Terminology** — the decision log (including goal
+  commitments — a goal lives as a Decision row, `decision-guardrails.md §9`)
+  and the shared glossary. Owned by `/decisions`.
 
 > ⚠️ **Always query the full register, never a filtered view or subset.**
 > Auditing or looping a filtered slice silently skips rows.
@@ -41,8 +42,14 @@ whatever the backend.
 | Gaps | multi-select | What's missing/wrong: `5 Whys`, `Metric for truth`, `Scoring justification`, `Non-atomic`, `Unfalsifiable`, `Hyperbole`, `Lens check`, `Duplicate`, `Contradiction`, `Human review`. **Drives the grill queues.** Empty Gaps = guardrail-complete. `Human review` is the machine-grill sign-off gap: batch modes set it on every row they auto-grill and never clear it; only a gated session with the row's Owner clears it. |
 | Depends on / Enables | self-relation | The dependency graph. Relationships live HERE, not in the body. |
 | Contradicts | self-relation | Links two rows in **tension** (distinct claims that can't both hold). Set it on **both** rows; pairs with the `Contradiction` gap and a provenance note. Not for negation-duplicates — those merge (`assumption-guardrails.md §4`). |
-| Goals | relation (optional) | If you keep a goals/OKR list: the committed goal(s) this belief directly gates. Link selectively — an Impact anchor for the human scorer, **never** a Confidence input. |
 | Experiments | relation | The tests designed against this belief. Inverse of the Experiment's `Assumption` relation. |
+
+There is **no Goals field**: an assumption *gates a committed goal* when an
+`Active` Decision with `Kind: Goal commitment` links it via `Based on
+assumption` — the goal linkage is that relation read backwards
+(`decision-guardrails.md §9`). Gating a committed goal is an Impact anchor
+for the human scorer and a lens on the test-next queue, **never** a
+Confidence input.
 
 Record **body** holds the long-form the fields can't: `## 5 Whys`,
 `## Metric for truth`, `## Scoring justification`, `## Provenance & notes`
@@ -120,6 +127,7 @@ Decision rows (the decision log). Terminology enforcement rules live in
 |---|---|---|---|
 | Title | title | shared | The term, or a short handle for the decision. |
 | Type | select | shared | `Terminology` / `Decision`. Determines which fields apply. |
+| Kind | select (optional) | Decision only | `Goal commitment` / `Direction` / `Operating`. Goal commitment = adopting a goal (the decision row IS the goal record — `decision-guardrails.md §9`); Direction = strategy/scope/path calls; Operating = process/tooling/how-we-work. Optional: absent on legacy rows = untyped; Audit nudges, never blocks. |
 | Status | select | shared, different meaning per Type | `Active` / `Provisional` / `Superseded` / `Reversed`. Terminology: Active = hard-enforce, Provisional = advisory, Superseded/Reversed = flag-if-used. Decision: Active = in force, Provisional = tentative, Superseded = replaced (paired with `Supersedes`), Reversed = abandoned outright. |
 | Area | select | both (Terminology docs may call it "Bounded context") | Which domain of your product the row belongs to — define your own list in setup. Scopes the sweep-mode conflict search to same-Area pairs. |
 | Related tension | self-relation, two-way | shared | Terminology: confusable-neighbour pairing. Decision: unresolved contradiction flag, resolved via `Supersedes`. |
@@ -138,11 +146,17 @@ Decision rows (the decision log). Terminology enforcement rules live in
 Verbatim-parsed headings — a row that breaks the template silently escapes
 automated checks:
 
-- `## Decision` — one-line statement of what was decided.
+- `## Decision` — one-line statement of what was decided. For `Kind: Goal
+  commitment`: the objective plus the measurable bar and its instrument
+  ("3 signed paid pilots by Sep 30; measured in Attio, stage 'Pilot signed'").
 - `## Rationale` — why; cites `Based on assumption` rows; carries the Unanimity
-  scoring justification.
+  scoring justification and any risk-acceptance lines (dated format:
+  `decision-guardrails.md §9`).
 - `## Alternatives considered` — options on the table and why they lost.
 - `## Source` — the actual quote/link (mirrors the Source field).
+- `## Outcome` — **`Kind: Goal commitment` rows only.** Empty until the goal
+  closes; then the human verdict (`Achieved` / `Missed` / `Dropped`) with
+  links per the close-out gate (`decision-guardrails.md §9`).
 
 ### Terminology row body template
 
