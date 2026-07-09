@@ -309,9 +309,8 @@ Strategyzer's ***Testing Business Ideas***, Rob Fitzpatrick's ***The Mom
 Test***, and Eric Evans' **ubiquitous language** (DDD). Repo conventions
 follow the [Agent Skills](https://skills.sh) ecosystem; structural
 inspiration from [mattpocock/skills](https://github.com/mattpocock/skills)
-and [garrytan/gstack](https://github.com/garrytan/gstack) — whose
-`/office-hours` six forcing questions are adapted as the blank-topic
-interview in `/assumptions` seed mode
-([skills/assumptions/references/blank-topic-interview.md](skills/assumptions/references/blank-topic-interview.md)).
+and [garrytan/gstack](https://github.com/garrytan/gstack) — `/assumptions`
+seed mode hands off to its `/office-hours` skill for the blank-topic case,
+when installed ([skills/assumptions/references/seed.md](skills/assumptions/references/seed.md)).
 
 MIT — see [LICENSE](LICENSE).
