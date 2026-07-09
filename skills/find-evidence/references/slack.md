@@ -1,0 +1,22 @@
+# Evidence source — Slack (team chat)
+
+Active when `slack` ∈ the config's `evidence_sources`. Requires the Slack
+MCP server connected in the harness.
+
+**What it holds:** shared customer reactions, forwarded quotes, screenshots
+of feedback, internal debate. Mostly second-hand — treat accordingly.
+
+**How to search:** keyword search across channels (public, and private if
+the connection allows) for the assumption's subject terms; open promising
+threads in full — the evidential detail is usually in replies, not the
+matched message.
+
+**Qualifies as evidence when:** the thread relays something a real
+user/customer/prospect said or did (quote, screenshot, forwarded message).
+The rung follows what was relayed: a described past behaviour →
+`Anecdotal`; a teammate's own take → `Opinion` (rarely worth a record).
+
+**Caveats:**
+- Second-hand relay drifts — prefer linking to the original artifact
+  (recording, email) when the thread points at one.
+- Date = the thread's date; source link = the message permalink.
