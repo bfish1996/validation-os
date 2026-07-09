@@ -7,6 +7,7 @@ below is safe to delete.
 
 ## DEC-001: Target SMBs before mid-market (example)
 - **Type**: Decision
+- **Kind**: Direction
 - **Status**: Active
 - **Area**: Go-to-market
 - **Owner**: you
@@ -32,3 +33,7 @@ Mid-market first (rejected: longer sales cycles before any validation signal).
 
 ### Source
 "Let's prove it with the smallest owners first" — strategy call, 2026-01-05.
+
+<!-- Kind: Goal commitment rows additionally carry an `### Outcome` section
+     (empty until close-out) and dated risk-acceptance lines in Rationale —
+     skills/_shared/decision-guardrails.md §9. -->

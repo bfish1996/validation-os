@@ -90,7 +90,7 @@ the live backend against it, never against the prose. Required blocks:
     names where select options come from — a config key (`vocabulary.lens`,
     `vocabulary.area`) or `registry-schema` for the canonical fixed lists
     (never restate the options; that would fork the semantics). `required`
-    defaults to true; only inherently optional canonical fields (Goals,
+    defaults to true; only inherently optional canonical fields (Kind,
     Interviewee) set it false.
   - `relations:` entries carry mandatory `canonical`, `backend`, `target`,
     `cardinality`; `inverse` and `self` where they apply.

@@ -32,7 +32,6 @@ registers:
     relations:
       - {canonical: Depends on / Enables, backend: assumption_dependencies, target: assumptions, cardinality: many, self: true}
       - {canonical: Contradicts, backend: assumption_contradictions, target: assumptions, cardinality: many, self: true}
-      - {canonical: Goals, backend: assumption_goals, target: goals, cardinality: many, required: false}
       - {canonical: Experiments, backend: "experiments.assumption_id (inverse; queried, not stored)", target: experiments, cardinality: many, inverse: Assumption}
   experiments:
     source: table
@@ -56,6 +55,7 @@ registers:
     properties:
       - {canonical: Title, backend: title, type: TEXT, derived: false}
       - {canonical: Type, backend: type, type: TEXT, derived: false, options_source: registry-schema}
+      - {canonical: Kind, backend: kind, type: TEXT, derived: false, options_source: registry-schema, required: false}
       - {canonical: Status, backend: status, type: TEXT, derived: false, options_source: registry-schema}
       - {canonical: Area, backend: area, type: TEXT, derived: false, options_source: vocabulary.area}
       - {canonical: Owner, backend: owner, type: TEXT, derived: false}
@@ -128,7 +128,6 @@ sql:
 | Gaps | `gaps` | JSON (array of strings) | no |
 | Depends on / Enables | junction `assumption_dependencies` | — (see Relations) | no |
 | Contradicts | junction `assumption_contradictions` | — (see Relations) | no |
-| Goals | junction `assumption_goals` | — (see Relations) | no |
 | Experiments | inverse of `experiments.assumption_id` | — (queried, not stored) | no |
 | Body | `body` | TEXT (Markdown) | no |
 
@@ -179,6 +178,7 @@ One table, split by `type`.
 
 | Canonical field | SQL column | Type | Derived |
 |---|---|---|---|
+| Kind | `kind` | TEXT (optional) | no |
 | Owner | `owner` | TEXT | no |
 | Agreed by | `agreed_by` | JSON (array of strings) | no |
 | Unanimity score | `unanimity_score` | INTEGER (0–100) | no |
@@ -211,7 +211,6 @@ a default set and writes them into the config.
 | Supersedes / Superseded by | junction table `decision_supersedes` with `kind` column | decisions | many |
 | Based on assumption | junction table `decision_based_on` | assumptions | many |
 | Resolves assumption | junction table `decision_resolves` | assumptions | many |
-| Goals | junction table `assumption_goals` | goals (optional) | many |
 
 For two-way relations, both junction rows are inserted/deleted together inside a
 transaction.

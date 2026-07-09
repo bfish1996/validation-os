@@ -32,7 +32,6 @@ registers:
     relations:
       - {canonical: Depends on / Enables, backend: "dependsOn, enables", target: assumptions, cardinality: many, self: true}
       - {canonical: Contradicts, backend: contradicts, target: assumptions, cardinality: many, self: true}
-      - {canonical: Goals, backend: goals, target: goals, cardinality: many, required: false}
       - {canonical: Experiments, backend: experiments, target: experiments, cardinality: many, inverse: Assumption}
   experiments:
     source: collection
@@ -56,6 +55,7 @@ registers:
     properties:
       - {canonical: Title, backend: title, type: string, derived: false}
       - {canonical: Type, backend: type, type: string, derived: false, options_source: registry-schema}
+      - {canonical: Kind, backend: kind, type: string, derived: false, options_source: registry-schema, required: false}
       - {canonical: Status, backend: status, type: string, derived: false, options_source: registry-schema}
       - {canonical: Area, backend: area, type: string, derived: false, options_source: vocabulary.area}
       - {canonical: Owner, backend: owner, type: string, derived: false}
@@ -125,7 +125,6 @@ nosql:
 | Gaps | `gaps` | string[] | no |
 | Depends on / Enables | `dependsOn`, `enables` | string[] (IDs) | no |
 | Contradicts | `contradicts` | string[] (IDs) | no |
-| Goals | `goals` | string[] (IDs) | no |
 | Experiments | `experiments` | string[] (IDs) | no |
 | Body | `body` | string (Markdown) | no |
 
@@ -176,6 +175,7 @@ One collection, split by `type`.
 
 | Canonical field | Document path | Type | Derived |
 |---|---|---|---|
+| Kind | `kind` | string (optional) | no |
 | Owner | `owner` | string | no |
 | Agreed by | `agreedBy` | string[] | no |
 | Unanimity score | `unanimityScore` | number (0–100) | no |
@@ -208,7 +208,6 @@ proposes a default set and writes them into the config.
 | Supersedes / Superseded by | `supersedes` / `supersededBy` arrays | decisions | many |
 | Based on assumption | `basedOnAssumption` array | assumptions | many |
 | Resolves assumption | `resolvesAssumption` array | assumptions | many |
-| Goals | `goals` array | goals (optional) | many |
 
 For two-way relations, both documents are patched inside the same write batch
 or transaction.

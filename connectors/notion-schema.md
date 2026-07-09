@@ -32,7 +32,6 @@ registers:
     relations:
       - {canonical: Depends on / Enables, backend: Depends on / Enables, target: assumptions, cardinality: many, self: true}
       - {canonical: Contradicts, backend: Contradicts, target: assumptions, cardinality: many, self: true}
-      - {canonical: Goals, backend: Goals, target: goals, cardinality: many, required: false}
       - {canonical: Experiments, backend: Experiments, target: experiments, cardinality: many, inverse: Assumption}
   experiments:
     source: database
@@ -56,6 +55,7 @@ registers:
     properties:
       - {canonical: Title, backend: Title, type: title, derived: false}
       - {canonical: Type, backend: Type, type: select, derived: false, options_source: registry-schema}
+      - {canonical: Kind, backend: Kind, type: select, derived: false, options_source: registry-schema, required: false}
       - {canonical: Status, backend: Status, type: select, derived: false, options_source: registry-schema}
       - {canonical: Area, backend: Area, type: select, derived: false, options_source: vocabulary.area}
       - {canonical: Owner, backend: Owner, type: person, derived: false}
@@ -114,7 +114,6 @@ and tell the user which ID is missing or wrong.
 | Gaps | Gaps | multi-select | no |
 | Depends on / Enables | Depends on / Enables | self-relation | no |
 | Contradicts | Contradicts | self-relation | no |
-| Goals | Goals | relation (optional) | no |
 | Experiments | Experiments | relation → Experiments | no |
 
 ### Derived values
@@ -187,6 +186,7 @@ One database, split by `Type`.
 
 | Canonical field | Notion property | Notion type | Derived |
 |---|---|---|---|
+| Kind | Kind | select (optional) | no |
 | Owner | Owner | person | no |
 | Agreed by | Agreed by | people (multi) | no |
 | Unanimity score | Unanimity score | number 0–100 | no |
@@ -218,7 +218,6 @@ writes them into the config.
 | Supersedes / Superseded by | `Supersedes` / `Superseded by` | Decisions & Terminology | many | Self-relation. |
 | Based on assumption | `Based on assumption` | Assumptions | many | Rationale only; never flips assumption Status. |
 | Resolves assumption | `Resolves assumption` | Assumptions | many | Separate from `Based on assumption`. Gated flip of assumption Status. |
-| Goals | `Goals` | Goals (optional) | many | Only if the team keeps a goals/OKR database. |
 
 ## Setup operations
 

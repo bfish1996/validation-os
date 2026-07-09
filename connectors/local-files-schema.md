@@ -32,7 +32,6 @@ registers:
     relations:
       - {canonical: Depends on / Enables, backend: "Depends on / Enables bullets", target: assumptions, cardinality: many, self: true}
       - {canonical: Contradicts, backend: Contradicts, target: assumptions, cardinality: many, self: true}
-      - {canonical: Goals, backend: Goals, target: goals, cardinality: many, required: false}
       - {canonical: Experiments, backend: Experiments, target: experiments, cardinality: many, inverse: Assumption}
   experiments:
     source: file
@@ -58,6 +57,7 @@ registers:
     properties:
       - {canonical: Title, backend: "## <ID>: <Title> heading", type: heading, derived: false}
       - {canonical: Type, backend: Type, type: text, derived: false, options_source: registry-schema}
+      - {canonical: Kind, backend: Kind, type: text, derived: false, options_source: registry-schema, required: false}
       - {canonical: Status, backend: Status, type: text, derived: false, options_source: registry-schema}
       - {canonical: Area, backend: Area, type: text, derived: false, options_source: vocabulary.area}
       - {canonical: Owner, backend: Owner, type: text, derived: false}
@@ -112,7 +112,6 @@ Each register is one markdown file under `registry_dir`:
 | Gaps | `- **Gaps**: ...` | text | no |
 | Depends on / Enables | `- **Depends on**: ...` / `- **Enables**: ...` | text (IDs) | no |
 | Contradicts | `- **Contradicts**: ...` | text (IDs) | no |
-| Goals | `- **Goals**: ...` | text (IDs) | no |
 | Experiments | `- **Experiments**: ...` | text (IDs) | no |
 
 ### Derived values
@@ -179,6 +178,7 @@ One file (`decisions.md` / `terminology.md`) split by `Type`.
 
 | Canonical field | Markdown bullet | Type | Derived |
 |---|---|---|---|
+| Kind | `- **Kind**: ...` | text (optional) | no |
 | Owner | `- **Owner**: ...` | text | no |
 | Agreed by | `- **Agreed by**: ...` | text | no |
 | Unanimity score | `- **Unanimity score**: ...` | number 0–100 | no |
@@ -195,6 +195,7 @@ One file (`decisions.md` / `terminology.md`) split by `Type`.
 ## Rationale
 ## Alternatives considered
 ## Source
+## Outcome        <!-- Kind: Goal commitment rows only -->
 ```
 
 ### Terminology body subheadings
@@ -231,7 +232,6 @@ follows:
 | Supersedes / Superseded by | `Supersedes:` / `Superseded by:` | decisions | many |
 | Based on assumption | `Based on assumption:` | assumptions | many |
 | Resolves assumption | `Resolves assumption:` | assumptions | many |
-| Goals | `Goals:` | goals (optional) | many |
 
 ## Setup operations
 
