@@ -13,6 +13,7 @@
     "./skills/experiment-design",
     "./skills/find-evidence",
     "./skills/meeting-prep",
-    "./skills/decisions"
+    "./skills/decisions",
+    "./skills/self-review"
   ]
 }
