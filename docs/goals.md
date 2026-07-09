@@ -44,31 +44,52 @@ Timing is event-driven — commit when ready; impose your own cadence if you
 want one. Draft goal = `Provisional`. Re-cut or drop = supersede/reverse,
 never a silent edit.
 
-## Joint 2 — through: focus
+Drafting the goal is also what unlocks its own beliefs: the mining step's
+`Based on assumption` links (cited in `## Rationale`) flip each mined
+assumption's Status `Not Started → Goal Linked` the moment the goal is
+`Provisional` — no need to wait for `Active`. That's what makes "tested
+first" possible instead of circular: you can't responsibly commit a goal on
+an untested belief, and you can't test a belief that isn't in the queue yet,
+so a draft goal has to be enough to seed the queue.
 
-An assumption *gates a committed goal* when an `Active` Goal commitment
-links it via `Based on assumption` — there is no separate Goals field; the
-linkage is that relation read backwards. Gating a goal anchors the human's
-Impact score toward the top band (`assumption-guardrails.md §3`, checked
-both ways by audit) and gives the test-next queue a "gates a committed goal"
-lens.
+## Joint 2 — through: focus and the prioritization gate
 
-It **never** enters the math. Risk stays `Impact × (1 − Confidence/100)`;
-Confidence stays evidence-only. Goals move the mass; Risk sorts it — and a
-belief no goal has touched still competes on pure Risk, because the riskiest
-assumption is often one nobody has written a goal about yet.
+An assumption *gates a goal* when a **standing** (`Provisional` or `Active`)
+Goal commitment links it via `Based on assumption`, cited in `## Rationale`
+— there is no separate Goals field; the linkage is that relation read
+backwards. This does two things: it anchors the human's Impact score toward
+the top band (`assumption-guardrails.md §3`, checked both ways by audit),
+and it's a **hard gate** — the assumption's Status flips to `Goal Linked`,
+and nothing reaches the test-next queue (`Status = Experiment Needed`)
+without passing through that gate first, whatever its Risk. Citation in the
+rationale (not just the bare relation) is required — an uncited link is
+flagged as opportunistic goal-linking, someone wiring a pet assumption to
+whatever goal is open just to unlock testing.
+
+It still **never** enters the math. Risk stays `Impact × (1 −
+Confidence/100)`; Confidence stays evidence-only. The gate controls *whether*
+a belief is eligible for the queue; Risk still sorts *within* it — the
+riskiest linked assumption goes first, same as before. The difference from
+the old model: a belief no goal has touched no longer competes on pure Risk
+at all, it simply can't be prioritized yet. That's a deliberate trade — it
+means the riskiest assumption in the whole register can sit idle if nobody's
+written a goal near it, which is exactly why `anchor-dilution` (too many
+assumptions gating too few goals, or vice versa) is worth watching, not just
+noting.
 
 A goal is one **entry point** into the loop, alongside a call transcript or
-a grilling session: committing one surfaces assumptions, the queue reorders,
-experiments get designed against the top — the standard loop, seeded from a
-commitment instead of a conversation. Experiments are never auto-created;
-`/experiment-design` stays a gated human step.
+a grilling session: drafting one surfaces assumptions, gates them in, the
+queue reorders, experiments get designed against the top — the standard
+loop, seeded from a commitment instead of a conversation. Experiments are
+never auto-created; `/experiment-design` stays a gated human step.
 
 ## Joint 3 — out: results become learning
 
-Mid-cycle, the tripwire (§9e): a verdict landing on a belief an active goal
-rests on surfaces that goal for review — re-cut it or re-accept the bet,
-knowingly. This is what catches a broken goal in July instead of September.
+Mid-cycle, the tripwire (§9e): a verdict landing on a belief a `Provisional`
+or `Active` goal rests on surfaces that goal for review — re-cut it,
+re-accept the bet knowingly, or (for a draft goal) commit it for real now
+that the evidence looks good. This is what catches a broken goal in July
+instead of September, and it's also the normal path from draft to committed.
 
 At the deadline, a human closes `## Outcome` — `Achieved` / `Missed` /
 `Dropped`, never auto-flipped. Achieved/Missed are hard-gated on at least
@@ -79,21 +100,31 @@ miss usually invalidates one specifically. Decomposing the outcome via
 *beliefs*, not just the scoreboard, so the next goal is committed on a truer
 register.
 
-Goal death changes nothing mechanically on the assumptions that gated it —
-no status flips, no Impact edits. Stale goal-anchored scores surface through
-the normal audit consistency check.
+Goal death changes nothing mechanically on assumptions that have already
+advanced *past* `Goal Linked` — no status flips, no Impact edits, once the
+gate has done its job. An assumption still sitting *in* `Goal Linked` when
+its only linking goal dies with no successor does reopen — back to
+`Not Started`, gated — since the gate was the only thing holding it there.
+Stale goal-anchored scores surface through the normal audit consistency
+check either way.
 
 ## Worked example
 
 **July 9.** "Q3 goal: 3 SMBs signed on paid pilots at £500/mo by Sep 30 —
 log it." Capture drafts the Goal commitment; the rationale mines out ASM-12
 "SMBs will pay £500/mo" (Confidence 25) and ASM-15 "champions get sign-off
-in <4 weeks" (Confidence 10). One-way-door gate: both untested. The team
-commits with dated risk-acceptance — *revisit by 2026-08-08*.
+in <4 weeks" (Confidence 10), cites both in `## Rationale`, and links both
+via `Based on assumption`. Both flip `Not Started → Goal Linked` on the
+spot. One-way-door gate: both untested. The team commits with dated
+risk-acceptance — *revisit by 2026-08-08* — straight to `Active` (they could
+equally have stayed `Provisional` and tested first; either satisfies the
+gate).
 
-**Same week.** Both beliefs now gate a committed goal; ASM-15's Impact 40
-is flagged inconsistent, re-scored 85. Risk 76. A belief ignored since
-March is #1 in the test-next queue.
+**Same week.** Both beliefs, now `Goal Linked`, clear grill close-out (Gaps
+empty) and flip to `Experiment Needed` — the test-next queue. ASM-15's
+Impact 40 is flagged inconsistent, re-scored 85. Risk 76. A belief ignored
+since March, which the gate would have left idle indefinitely with no goal
+near it, is #1 in the queue the moment one is.
 
 **July 25.** `/find-evidence` closes the ASM-15 interviews: sign-off is
 8–12 weeks, not 4 — **Invalidated**. The tripwire surfaces the goal: a
@@ -121,6 +152,7 @@ did the thinking.
   Goals *anchor* the hand score; they never compute it.
 - **Auto-conclude anything.** Verdicts — experiment results and goal
   outcomes alike — are human.
-- **Cap or schedule goals.** No limit on Active goal commitments (audit
-  reports the count and flags anchor dilution, informationally); no imposed
-  cadence.
+- **Cap or schedule goals.** No limit on standing (`Provisional`+`Active`)
+  goal commitments; no imposed cadence. Audit reports the count and flags
+  anchor dilution when it gets high — worth a look, since it's now the
+  prioritization gate diluting, not just the Impact anchor.

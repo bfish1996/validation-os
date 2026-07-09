@@ -105,11 +105,15 @@ unreconciled contradiction (negation merged; tension wired via `Contradicts`
 Enforce that a falsifiability statement exists, then **stop.**
 Creating/running experiments is `/experiment-design`; logging existing
 evidence standalone is `/find-evidence`. This skill only ever moves `Status`
-`Not Started` → `Experiment Needed`, at grill close-out when `Gaps` empties
+`Goal Linked` → `Experiment Needed`, at grill close-out when `Gaps` empties
 (gated, single/seed — loop never flips `Status`; it tags the `Human review`
-gap instead). `Testing` is `/experiment-design`'s flip; verdicts are the
-evidence skills' — evidence rolls up `Confidence` on its own. Full flow:
-`registry-schema.md §Status flow`.
+gap instead). This skill never flips `Not Started` → `Goal Linked` — that's
+`/decisions`' gated `Based on assumption` write on a standing Goal
+commitment (`decision-guardrails.md §9g`); a fully-grilled row with no goal
+link waits in `Not Started`, not `Experiment Needed`. `Testing` is
+`/experiment-design`'s flip; verdicts are the evidence skills' — evidence
+rolls up `Confidence` on its own. Full flow: `registry-schema.md §Status
+flow`.
 
 ## Safety
 

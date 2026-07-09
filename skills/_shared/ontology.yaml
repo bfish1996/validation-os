@@ -36,8 +36,8 @@ vocabularies:
   # is a gated schema change.
   record_type: [Decision, Terminology]
   assumption_status:
-    [Not Started, Experiment Needed, Testing, Validated, Invalidated,
-     Inconclusive, Resolved by decision]
+    [Not Started, Goal Linked, Experiment Needed, Testing, Validated,
+     Invalidated, Inconclusive, Closed by decision]
   gaps:
     [5 Whys, Metric for truth, Scoring justification, Non-atomic,
      Unfalsifiable, Hyperbole, Lens check, Duplicate, Contradiction,
@@ -218,13 +218,17 @@ relations:
     target: assumptions
     cardinality: many-to-many
     applies_to: Decision
-    side_effects: none           # rationale only; NEVER touches the assumption's Status
+    side_effects: >-
+      On a Provisional/Active Kind: Goal commitment decision, cited in ##
+      Rationale: flips target Status → Goal Linked (gated). On every other
+      Decision Kind/Status: none — rationale only, never touches Status.
     meaning: >-
-      Why we decided this (decision-guardrails.md §6). Read backwards from an
-      Active Kind: Goal commitment decision, this edge IS the goal linkage —
-      the assumption gates that goal (Impact anchor + queue lens, never a
-      Confidence input; decision-guardrails.md §9). There is no separate
-      Goals relation.
+      Why we decided this (decision-guardrails.md §6). Read backwards from a
+      Provisional or Active Kind: Goal commitment decision, this edge IS the
+      goal linkage — the assumption gates that goal (Impact anchor +
+      prioritization gate + queue lens, never a Confidence input or Risk
+      formula input; decision-guardrails.md §9). There is no separate Goals
+      relation.
 
   - name: Resolves assumption
     kind: directed
@@ -233,7 +237,7 @@ relations:
     target: assumptions
     cardinality: many-to-many
     applies_to: Decision
-    side_effects: flips target Status → Resolved by decision (gated, human-affirmed)
+    side_effects: flips target Status → Closed by decision (gated, human-affirmed)
     meaning: This decision settles the open question without a test. Separate relation from Based on assumption — never inferred from it (decision-guardrails.md §6).
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -244,9 +248,15 @@ status_machines:
   assumption_status:
     initial: Not Started
     transitions:
-      - { from: Not Started, to: Experiment Needed,
+      - { from: Not Started, to: Goal Linked,
+          by: "/decisions (Based on assumption, set on a Provisional or Active Kind: Goal commitment row, cited in ## Rationale)", gate: gated,
+          trigger: "a standing Goal commitment decision links this row" }
+      - { from: Goal Linked, to: Experiment Needed,
           by: "/assumptions (single|seed)", gate: gated,
           trigger: "grill close-out: Gaps empties, no running experiment, no conclusive verdict" }
+      - { from: Goal Linked, to: Not Started,
+          by: "gated reopen session", gate: gated,
+          trigger: "every Provisional/Active Goal commitment linking this row flips to Reversed/Superseded with no successor re-linking it (decision-guardrails.md §9g)" }
       - { from: Experiment Needed, to: Testing,
           by: "/experiment-design", gate: gated,
           trigger: "creates an experiment with Result = Running" }
@@ -256,14 +266,15 @@ status_machines:
       - { from: Inconclusive, to: Experiment Needed,
           by: "/experiment-design", gate: gated,
           trigger: "a better test is worth designing" }
-      - { from: "*", to: Resolved by decision,
+      - { from: "*", to: Closed by decision,
           by: "/decisions (Resolves-assumption action only)", gate: gated }
-      - { from: Resolved by decision, to: [Experiment Needed, Not Started],
+      - { from: Closed by decision, to: [Experiment Needed, Goal Linked, Not Started],
           by: "gated reopen session", gate: gated,
-          trigger: "the resolving decision flips to Reversed/Superseded and the successor doesn't re-resolve (decision-guardrails.md §8)" }
+          trigger: "the resolving decision flips to Reversed/Superseded and the successor doesn't re-resolve (decision-guardrails.md §8); reopens to Experiment Needed if Gaps are empty, else Goal Linked if a standing goal link remains, else Not Started" }
     forbidden:
       - Batch/loop modes never flip Status — they tag the Human review gap instead.
       - Logging evidence never flips Status (Confidence-only).
+      - A row that has advanced past Goal Linked never falls back on goal death — the gate already discharged its job (decision-guardrails.md §9g).
 
   experiment_result:
     initial: "Running (forward design) | conclusive at creation (retrospective evidence)"
@@ -347,7 +358,7 @@ integrity_rules:
   - id: queue-state-mismatch
     severity: error
     surfaced_by: ["/assumptions audit"]
-    check: Status = Experiment Needed while Gaps is non-empty, a linked experiment is Running, or a conclusive verdict exists — the test-next queue is lying.
+    check: Status = Experiment Needed (or later) while Gaps is non-empty, a linked experiment is Running, a conclusive verdict exists, or no standing (Provisional/Active) Goal commitment ever linked this row via Based on assumption — the test-next queue is lying.
   - id: testing-without-running
     severity: warn
     surfaced_by: ["/assumptions audit"]
@@ -356,10 +367,18 @@ integrity_rules:
     severity: warn
     surfaced_by: ["/assumptions audit"]
     check: A linked experiment concluded but the assumption still sits in Testing — the verdict was never rolled up; flag for a gated close-out.
-  - id: resolved-without-resolver
+  - id: closed-without-resolver
     severity: error
     surfaced_by: ["/assumptions audit", "/decisions audit"]
-    check: Status = Resolved by decision but no standing (Active/Provisional) decision carries a Resolves assumption link to it — reopen per decision-guardrails.md §8.
+    check: Status = Closed by decision but no standing (Active/Provisional) decision carries a Resolves assumption link to it — reopen per decision-guardrails.md §8.
+  - id: stale-goal-link
+    severity: warn
+    surfaced_by: ["/assumptions audit", "/decisions audit"]
+    check: Status = Goal Linked but no standing (Provisional/Active) Goal-commitment decision currently carries a Based on assumption link to it — the gate should reopen the row to Not Started (registry-schema.md §Status flow).
+  - id: goal-link-uncited
+    severity: warn
+    surfaced_by: ["/decisions audit"]
+    check: A Goal-commitment decision's Based on assumption link whose target assumption is not named anywhere in that decision's ## Rationale prose — the relation-only-no-citation pattern flagged as opportunistic goal-linking (decision-guardrails.md §9g).
 
   # Propagation (cross-register — a verdict in one place invalidates state in another)
   - id: invalidated-dependency
@@ -377,7 +396,7 @@ integrity_rules:
   - id: stale-resolution
     severity: error
     surfaced_by: ["/decisions audit"]
-    check: A Reversed/Superseded decision whose Resolves assumption targets still sit in Resolved by decision (and the successor doesn't re-resolve them) — decision-guardrails.md §8.
+    check: A Reversed/Superseded decision whose Resolves assumption targets still sit in Closed by decision (and the successor doesn't re-resolve them) — decision-guardrails.md §8.
   - id: one-way-door-untested-basis
     severity: error
     surfaced_by: ["/decisions audit"]
@@ -407,8 +426,8 @@ integrity_rules:
   - id: stale-goal-anchor
     severity: warn
     surfaced_by: ["/assumptions audit", "/decisions audit"]
-    check: An assumption whose Impact scoring justification cites a goal that is no longer Active — the anchor is stale; re-justify or re-score (assumption-guardrails.md §3).
+    check: An assumption whose Impact scoring justification cites a goal that is no longer standing (Provisional/Active) — the anchor is stale; re-justify or re-score (assumption-guardrails.md §3).
   - id: anchor-dilution
-    severity: warn                # informational — there is no cap
+    severity: warn                # no hard cap, but no longer informational-only — goal-linkage now gates prioritization
     surfaced_by: ["/decisions audit"]
-    check: Report the count of Active Goal commitments; when most open assumptions gate some goal, the "gates a committed goal" Impact anchor has stopped discriminating.
+    check: Report the count of standing (Provisional+Active) Goal commitments and the share of open assumptions gated by one; when most open assumptions gate some goal, the "gates a committed goal" anchor and the Goal Linked gate have both stopped discriminating — review linking discipline in a gated session (decision-guardrails.md §9g).

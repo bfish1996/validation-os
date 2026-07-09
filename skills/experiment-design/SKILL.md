@@ -64,8 +64,10 @@ Two axes, kept separate: assumption **`Status`** = the verdict axis;
 assumption **`Confidence`** = how strongly known (derived from experiments).
 This skill moves `Status` Experiment Needed → Testing and sets the
 experiment `Result` = Running, nothing further. (A record still
-`Not Started` isn't grill-complete — send it through `/assumptions` first,
-or note the exception.)
+`Not Started` or `Goal Linked` isn't in the test-next queue yet — `Not
+Started` needs a goal link from `/decisions`, `Goal Linked` needs grill
+close-out from `/assumptions` — send it there first, or note the
+exception.)
 
 ## Seed (pick or detect)
 

@@ -180,10 +180,13 @@ assumption's `Status`.**
 ## Close out
 
 - All tags cleared → `Gaps` empty → record is guardrail-complete; **flip
-  `Status` `Not Started` → `Experiment Needed` in the same gated close-out
+  `Status` `Goal Linked` → `Experiment Needed` in the same gated close-out
   write** — that drops it onto the **test-next** queue
-  (`Status = Experiment Needed`, sorted by Risk). Full flow:
-  `registry-schema.md §Status flow`.
+  (`Status = Experiment Needed`, sorted by Risk). If the record is still
+  `Not Started` (no standing Goal commitment has linked it yet via `Based
+  on assumption`), close-out stops at gapless-but-`Not Started` — the goal
+  link is a separate gate this skill doesn't set; hand off to `/decisions`.
+  Full flow: `registry-schema.md §Status flow`.
 - **`Human review` gap** (present when a loop run auto-grilled this record):
   clear it only after walking the machine's answers (5 Whys, score, metric)
   past the record's `Owner` in this gated session — it counts like any other

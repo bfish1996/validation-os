@@ -41,20 +41,27 @@ autonomously wire `Supersedes`/`Superseded by` and flip the earlier record's
 `Status` to `Superseded` (`decision-guardrails.md §5`).
 
 **D — Assumption-link recommendations.** If a candidate's rationale plausibly
-cites an existing assumption, wire `Based on assumption` autonomously
-(rationale-only, never touches the assumption's `Status`). **Never**
-autonomously set `Resolves assumption`, even when the sweep is confident the
-decision settles the question — instead, add it to the run-log as a
-**recommendation** for a human to action via Capture mode. This is the one
+cites an existing assumption, wire `Based on assumption` autonomously — but
+only when the candidate's `Kind` is **not** `Goal commitment`, where it's
+still rationale-only and never touches the assumption's `Status`. For a
+`Kind: Goal commitment` candidate, `Based on assumption` flips the target
+assumption's `Status` to `Goal Linked` (`decision-guardrails.md §9g`), so it
+gets the same treatment as `Resolves assumption`: **never** autonomous —
+add it to the run-log as a **recommendation** for a human to action via
+Capture mode, which also confirms the citation lands in `## Rationale`.
+Likewise **never** autonomously set `Resolves assumption`, even when the
+sweep is confident the decision settles the question. This is the
 deliberate asymmetry in Sweep's autonomy: everything else here is reversible
-via the run-log; flipping an assumption's `Status` is a judgment call that
-stays gated.
+via the run-log; flipping an assumption's `Status` — whether to `Goal
+Linked` or `Closed by decision` — is a judgment call that stays gated.
 
 ## Autonomy rails
 
 - **New Decision records, `Related tension`, `Supersedes`/`Status` flips,
-  `Based on assumption`** — autonomous, logged.
-- **`Resolves assumption`** — never autonomous. Surfaced only as a run-log
+  `Based on assumption` (non-`Goal commitment` `Kind` only)** — autonomous,
+  logged.
+- **`Based on assumption` on a `Kind: Goal commitment` decision, `Resolves
+  assumption`** — never autonomous. Surfaced only as a run-log
   recommendation.
 - **Terminology check** — run `../../_shared/ubiquitous-language.md` over
   each new Decision statement (audience: Internal) same as Capture; add
@@ -71,13 +78,15 @@ A list of `{record, field, before, after, kind}` mutations
 (`../../_shared/gated-writes.md §Autonomous modes`), read back at the end.
 Must separately call out: new records created, tensions tagged,
 supersessions applied, and — distinctly — any recommended-but-not-applied
-`Resolves assumption` candidates for human follow-up via Capture.
+`Resolves assumption` or goal-commitment `Based on assumption` candidates
+for human follow-up via Capture.
 
 ## Never
 
 - Never schedule — Sweep is on-demand only in this skill.
-- Never autonomously set `Resolves assumption` — always a run-log
-  recommendation, never a write.
+- Never autonomously set `Resolves assumption`, or `Based on assumption` on
+  a `Kind: Goal commitment` decision — always a run-log recommendation,
+  never a write.
 - Never compare for conflicts across different `Area`s.
 - Never leave a clear intentional override as an unresolved tension — if the
   evidence clearly shows one decision overriding another, resolve straight
