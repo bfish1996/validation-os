@@ -143,10 +143,11 @@ Query the register: candidates are records whose `Lens` matches the person,
   (step 2's motivations layer) and find the register records that live
   inside it. A question aligned with their own aims gets real, considered
   answers; a high-Risk record outside their aims gets polite speculation,
-  whatever their role. If your register wires the optional `Goals` relation,
-  a candidate that gates a goal *this person owns or influences* is a
-  strong match (absence of a Goals link isn't disqualifying — most records
-  have none).
+  whatever their role. A candidate that gates a committed goal (linked via
+  `Based on assumption` from an `Active` `Kind: Goal commitment` decision —
+  `../_shared/decision-guardrails.md §9`) *this person owns or influences*
+  is a strong match (absence of a goal link isn't disqualifying — most
+  records have none).
 - **Unique qualification** — what can *this* person answer that a generic
   participant couldn't (their role, access, lived experience, their
   company's situation)? Drop high-Risk records they'd only speculate on.

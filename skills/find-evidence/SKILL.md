@@ -141,9 +141,23 @@ the read is auditable. Search the disconfirming case too.
   (`Running` → verdict), with links, and Confidence before → after.
 - "Swept, no qualifying hit" is a complete, honest outcome — say so plainly
   rather than logging a weak record to look productive.
+- **Goal tripwire** (`../_shared/decision-guardrails.md §9e`): if a
+  conclusive verdict landed, query `Active` Decisions with
+  `Kind: Goal commitment` that link this assumption via
+  `Based on assumption` (or name it in a risk-acceptance line). For each,
+  surface it: *"this goal rests on the belief just
+  validated/invalidated — review it (re-cut via supersede, or re-accept
+  the bet)?"* Surfacing only — never flip a decision's status or edit its
+  bar here; the review itself is a `/decisions` job.
 - If the sweep exposed that the assumption's Metric for truth is too vague
   to judge evidence against, that's a grill problem — flag it and point at
   `/assumptions` (single mode); don't fix it here.
+
+**Goal close-outs land here too**: when `/decisions` closes a goal's
+`## Outcome`, the decomposition of the result into per-assumption evidence
+rows (a hit → revealed-tier proof of the beliefs underneath; a miss → a
+specific invalidation) runs through this skill's procedure, same gates, and
+the record links back to the closing decision.
 
 ## Never
 

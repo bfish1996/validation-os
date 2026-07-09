@@ -10,7 +10,7 @@ time, gated, through Capture mode.
    `../../_shared/registry-schema.md`). Rules:
    `../../_shared/decision-guardrails.md`.
 2. **Check each record against the guardrail summary**
-   (`decision-guardrails.md §9`) and flag:
+   (`decision-guardrails.md §10`) and flag:
    - Missing **Owner**.
    - Missing **Agreed by**.
    - `Active` records with no **Decided date** or no **Source** — incomplete
@@ -31,6 +31,24 @@ time, gated, through Capture mode.
      `Resolves assumption` links point at assumptions still marked
      `Resolved by decision` (and not re-resolved by the successor) — the
      retired question is open again; flag each for a gated reopen.
+   - **Goal health** (`Kind: Goal commitment`, `decision-guardrails.md §9`):
+     - **Overdue risk-acceptances** — `Active` goal commitments with a
+       risk-acceptance line past its `revisit by` date whose assumption is
+       still untested (§9d).
+     - **Unclosed goals** — `Active` goal commitments past their target
+       date with an empty `## Outcome`.
+     - **Ungated outcomes** — `## Outcome` filled as Achieved/Missed with
+       zero linked evidence records, or Dropped without a
+       superseding/reversing decision link (§9f).
+     - **Stale goal anchors** — assumptions whose Impact scoring
+       justification cites a goal that is no longer `Active`
+       (`assumption-guardrails.md §3` runs the check both ways).
+     - **Anchor dilution** — report the count of `Active` goal
+       commitments; when most open assumptions gate some goal, note that
+       the goal anchor has stopped discriminating. Informational only —
+       there is no cap.
+     - Missing `Kind` on Decision rows — a nudge, never a block (legacy
+       rows are untyped by design).
 3. **Synthesise one ranked findings report** — by record, with the specific
    gap(s) and a suggested fix. Read it back to the user.
 4. When the user picks findings to fix, walk them one at a time through
