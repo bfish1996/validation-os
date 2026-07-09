@@ -1,0 +1,200 @@
+---
+connector: nosql
+setup_operations:
+  validate_backend:
+    status: supported
+    tool_namespace: nosql-mcp
+  create_backend:
+    status: supported
+    tool_namespace: nosql-mcp
+  seed_starter_records:
+    status: supported
+    tool_namespace: nosql-mcp
+  migrate_schema:
+    status: supported
+    tool_namespace: nosql-mcp
+---
+
+# Schema guide — NoSQL
+
+A document-store backend. Field semantics are owned by
+`skills/_shared/registry-schema.md`; this file maps those canonical fields onto
+NoSQL documents and collections.
+
+## Config
+
+```yaml
+connector: nosql
+nosql:
+  connection_name: ""         # harness-provided connection name
+  database: validation_os
+  assumptions_collection: assumptions
+  experiments_collection: experiments
+  decisions_collection: decisions
+```
+
+## Source containers
+
+| Register | NoSQL collection |
+|---|---|
+| Assumptions | `assumptions` |
+| Experiments | `experiments` |
+| Decisions & Terminology | `decisions` (split by `type` field) |
+
+## Shared conventions
+
+- Primary key: `_id` or `id` (e.g., `ASM-001`, `EXP-001`, `DEC-001`).
+- Timestamps: `createdAt`, `updatedAt` (ISO 8601 strings or native dates).
+- Body: long-form content stored as `body` (Markdown string) or `bodySections`
+  (JSON object keyed by section heading).
+- Derived fields live in a `derived` sub-object or use a `_` prefix so humans
+  know not to edit them directly.
+
+## Field mapping — Assumptions
+
+| Canonical field | Document path | Type | Derived |
+|---|---|---|---|
+| Title | `title` | string | no |
+| Description | `description` | string | no |
+| Lens | `lens` | string | no |
+| Theme | `themes` | string[] | no |
+| Impact | `impact` | number (0–100) | no |
+| Risk | `derived.risk` or `_risk` | number | yes |
+| Confidence | `derived.confidence` or `_confidence` | number | yes |
+| Corroboration count | `corroborationCount` | number | no |
+| Status | `status` | string | no |
+| Owner | `owner` | string | no |
+| Gaps | `gaps` | string[] | no |
+| Depends on / Enables | `dependsOn`, `enables` | string[] (IDs) | no |
+| Contradicts | `contradicts` | string[] (IDs) | no |
+| Goals | `goals` | string[] (IDs) | no |
+| Experiments | `experiments` | string[] (IDs) | no |
+| Body | `body` or `bodySections` | string / object | no |
+
+### Derived values
+
+- `derived.risk` = `impact * (1 - derived.confidence / 100)`
+- `derived.confidence` = max proven `strength` of linked experiments + capped
+corroboration bump.
+
+## Field mapping — Experiments
+
+| Canonical field | Document path | Type | Derived |
+|---|---|---|---|
+| Title | `title` | string | no |
+| Assumption | `assumptionId` | string (FK) | no |
+| Type | `type` | string | no |
+| Source quality | `sourceQuality` | string | no |
+| Feasibility | `feasibility` | string | no |
+| We're right if | `successCriteria` | string | no |
+| Result | `result` | string | no |
+| Strength | `derived.strength` or `_strength` | number | yes |
+| Date | `startDate`, `outcomeDate` | date / string | no |
+| Owner | `owner` | string | no |
+| Interviewee | `interviewee` | string | no |
+| Body | `body` or `bodySections` | string / object | no |
+
+### Derived values
+
+- `derived.strength` = rung band × source-quality modifier, gated to a
+conclusive Result.
+
+## Field mapping — Decisions & Terminology
+
+One collection, split by `type`.
+
+### Shared fields
+
+| Canonical field | Document path | Type | Derived |
+|---|---|---|---|
+| Title | `title` | string | no |
+| Type | `type` | string | no |
+| Status | `status` | string | no |
+| Area | `area` | string | no |
+| Related tension | `relatedTension` | string[] (IDs) | no |
+| Body | `body` or `bodySections` | string / object | no |
+
+### Decision-only fields
+
+| Canonical field | Document path | Type | Derived |
+|---|---|---|---|
+| Owner | `owner` | string | no |
+| Agreed by | `agreedBy` | string[] | no |
+| Unanimity score | `unanimityScore` | number (0–100) | no |
+| Source | `source` | string | no |
+| Decided date | `decidedDate` | date / string | no |
+| Supersedes / Superseded by | `supersedes`, `supersededBy` | string[] (IDs) | no |
+| Based on assumption | `basedOnAssumption` | string[] (IDs) | no |
+| Resolves assumption | `resolvesAssumption` | string[] (IDs) | no |
+
+## Vocabulary-driven fields
+
+The following fields should only contain values from
+`validation-os.config.yaml`:
+
+- `lens` → `vocabulary.lens`
+- `area` → `vocabulary.area`
+
+`/setup-validation-os` reads the config and proposes validation rules or
+lookup documents for these fields. If the config is missing the lists, it
+proposes a default set and writes them into the config.
+
+## Relations
+
+| Canonical relation | Implementation | Target | Cardinality |
+|---|---|---|---|
+| Assumption ↔ Experiments | `experiments` array on assumption; `assumptionId` on experiment | assumptions ↔ experiments | many |
+| Depends on / Enables | `dependsOn` / `enables` arrays | assumptions | many |
+| Contradicts | `contradicts` array on both documents | assumptions | many |
+| Related tension | `relatedTension` array on both documents | decisions | many |
+| Supersedes / Superseded by | `supersedes` / `supersededBy` arrays | decisions | many |
+| Based on assumption | `basedOnAssumption` array | assumptions | many |
+| Resolves assumption | `resolvesAssumption` array | assumptions | many |
+| Goals | `goals` array | goals (optional) | many |
+
+For two-way relations, both documents are patched inside the same write batch
+or transaction.
+
+## Setup operations
+
+### validate_backend
+
+1. Connect using the harness-provided `connection_name`.
+2. Check that the configured database exists.
+3. Check that `assumptions`, `experiments`, and `decisions` collections exist.
+4. Sample documents from each collection and verify that the fields above are
+   present with plausible types.
+5. Report missing collections, missing fields, missing indexes, and missing
+   relation arrays.
+
+### create_backend
+
+1. Create the configured database if it does not exist.
+2. Create the three collections.
+3. Create indexes on `id`, `status`, `lens`, `area`, `assumptionId`, and relation
+   arrays.
+4. Optionally create a `validationRules` or `_schema` document recording the
+   current vocabulary values from `validation-os.config.yaml`.
+
+### seed_starter_records
+
+Insert starter documents from `templates/registry/` into the three collections.
+Starter relations (e.g., experiment → assumption) are set as both relation
+arrays and inverse references. This is a gated write: preview the documents
+before inserting.
+
+### migrate_schema
+
+Add missing fields, collections, or indexes. Because NoSQL is schemaless,
+"migration" mostly means adding indexes and helper/validation documents.
+Offer a diff and apply only with user confirmation.
+
+## Cautions
+
+- Use batch writes or transactions when updating both ends of a relation.
+- Derived fields are recomputed by the skill; never let humans type into them.
+- `resolvesAssumption` is a separate array from `basedOnAssumption`; never
+  reuse one for the other.
+- Never store connection credentials in `validation-os.config.yaml`.
+- Document databases may not enforce foreign-key integrity; the skill must
+  verify relation target existence before writing.

@@ -8,15 +8,26 @@ connector's doc says *how*.
 Field semantics are owned by `skills/_shared/registry-schema.md` — a connector
 maps those fields onto its backend; it never redefines them.
 
+Each connector may also ship a **schema guide** at
+`connectors/<name>-schema.md`. This is the setup contract: how to build or
+validate the backend so that `/setup-validation-os` can walk users through
+creating the right structure for that connector. Runtime operations stay in
+`connectors/<name>.md`; setup operations and backend-specific field mapping stay
+in `connectors/<name>-schema.md`.
+
 ## Resolution
 
 1. Walk up from the working directory to find `validation-os.config.yaml`.
-2. Read `connector:` — the value names a doc in this directory
-   (`local-files` → `local-files.md`, `notion` → `notion.md`).
+2. Read `connector:` — the value names two docs in this directory:
+   - runtime contract: `<name>.md` (`local-files` → `local-files.md`,
+     `notion` → `notion.md`)
+   - schema guide (optional): `<name>-schema.md`
 3. No config file → the local-files connector with defaults
    (`registry_dir: registry`).
-4. Config names a connector whose doc or required keys are missing → stop and
-   tell the user what's missing; never guess IDs or paths.
+4. Config names a connector whose runtime doc or required keys are missing →
+   stop and tell the user what's missing; never guess IDs or paths.
+5. If `<name>-schema.md` is missing, `/setup-validation-os` falls back to the
+   manual instructions in `<name>.md` and does not attempt automated setup.
 
 ## Operations every connector must document
 
@@ -37,8 +48,10 @@ maps those fields onto its backend; it never redefines them.
   without (local files) has the *skill* compute and write them at every touch,
   and the connector doc must say so.
 - **Gated writes.** Every create/update is proposed to the user and confirmed
-  before it lands. The connector doc defines what a "proposed write" looks like
-  for its backend (diff of a file edit, preview of API properties).
+  before it lands. The runtime connector doc defines what a "proposed write"
+  looks like for its backend (diff of a file edit, preview of API properties).
+  The schema guide defines what a "proposed setup change" looks like (schema
+  diff, DDL diff, database creation preview).
 - **IDs live in config, never in skill or connector prose.** A connector doc
   explains where its config keys come from; it never contains a real workspace's
   identifiers.
@@ -46,12 +59,30 @@ maps those fields onto its backend; it never redefines them.
   user with what to fix — never silently skipped, never worked around by
   creating parallel structure.
 
-## Writing a new connector
+## Writing a new runtime connector
 
 Copy the structure of `local-files.md`: a **Config** section (keys the connector
 needs in `validation-os.config.yaml`), a **Setup** section (how a new user
 creates the backing structure), one section per operation above, and a
 **Cautions** section (backend-specific failure modes). Keep field semantics out
-of it — link to `registry-schema.md`. PRs welcome; a connector ships only with a
-worked end-to-end test: create an assumption, design an experiment, log
-evidence, record a decision, all through your connector.
+of it — link to `registry-schema.md`.
+
+## Writing a new schema guide
+
+Copy the structure of `local-files-schema.md`: **Config**, **Source containers**,
+**Field mapping** tables per register, **Vocabulary-driven fields**,
+**Relations**, **Setup operations**, and **Cautions**. Frontmatter should declare
+the connector name, the canonical setup operations it supports, and the harness
+tool namespace.
+
+## Shipping a connector
+
+A connector PR needs:
+
+1. `connectors/<name>.md` following the runtime section structure above.
+2. `connectors/<name>-schema.md` if `/setup-validation-os` should automate
+   setup for this backend. If the schema guide is omitted, setup falls back to
+   the manual instructions in `connectors/<name>.md`.
+3. A worked end-to-end test, documented in the PR: create an assumption →
+   design an experiment → log a piece of evidence → record a decision, all
+   through your connector on a scratch workspace.
