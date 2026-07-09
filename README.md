@@ -5,9 +5,9 @@ assumption at a time.** Five agent skills that turn the beliefs your
 business depends on into a scored, evidence-ranked register, and every
 meeting, transcript, and research hour into Confidence against it.
 
-Built and battle-tested daily at [Doshi](https://doshi.app) as the
-De-Risking Method; extracted here so any team can run it, in any agent
-harness, against any backend.
+Built and battle-tested daily running a real startup's assumption
+register; extracted here so any team can run it, in any agent harness,
+against any backend.
 
 ## Why this exists
 
