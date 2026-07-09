@@ -94,6 +94,22 @@ decision.
 Skills: `/decisions`. Rules: `skills/_shared/decision-guardrails.md`,
 `skills/_shared/ubiquitous-language.md`.
 
+## Goals & OKRs — an interface, not a module
+
+A goal is a **commitment to a measurable state change in the world**, and
+committing is a decision — so a goal lives as a Decision row
+(`Kind: Goal commitment`), and the OS never becomes an OKR tracker (your
+CRM/analytics stay the scoreboard). Three joints connect the two machines:
+**in** — goal-setting is evidence-gated: the beliefs a goal rests on are
+surfaced and either validated first or carried as dated risk-acceptances;
+**through** — beliefs gating a committed goal anchor Impact and get a queue
+lens, without ever touching the Risk formula or Confidence; **out** — a
+verdict landing on a belief an active goal rests on trips a review of that
+goal, and at the deadline the outcome is decomposed into evidence (a hit is
+top-rung proof; a miss usually invalidates something specific). Full
+treatment and a worked example: `goals.md`;
+rules: `skills/_shared/decision-guardrails.md §9`.
+
 ## Verdicts are human
 
 Experiments conclude with a human rendering **Validated / Invalidated /

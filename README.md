@@ -30,6 +30,11 @@ Validation-OS makes those beliefs impossible to ignore:
 - A shared **glossary** keeps the team speaking one language, and a
   **decision log** records what was decided and how unanimously — without
   letting a business call masquerade as validation.
+- **Goals/OKRs plug in as decisions**: committing to a goal is
+  evidence-gated against the beliefs it rests on, committed goals focus the
+  test-next queue, and every hit or miss decomposes back into evidence —
+  while your CRM/analytics stay the scoreboard
+  ([docs/goals.md](docs/goals.md)).
 
 The loop:
 
@@ -38,9 +43,10 @@ Assumption → grill & score → Experiment (pre-registered pass/kill bars)
      → Evidence → Confidence ↑ → Risk ↓ → next-riskiest assumption
 ```
 
-Theory, ladder, and cadence: [docs/method.md](docs/method.md) ·
+Theory, ladder, cadence, and goals: [docs/method.md](docs/method.md) ·
 [docs/evidence-ladder.md](docs/evidence-ladder.md) ·
-[docs/weekly-ritual.md](docs/weekly-ritual.md).
+[docs/weekly-ritual.md](docs/weekly-ritual.md) ·
+[docs/goals.md](docs/goals.md).
 
 ## Quickstart
 
@@ -72,7 +78,7 @@ Update later with `npx skills update`.
 | `/experiment-design` | Turn the riskiest assumption into a falsifiable, pre-registered test; prep the instrument (interview guide, survey, prototype brief, fake-door spec). | "how do I test this", "design an experiment", "interview guide for X" |
 | `/find-evidence` | Sweep what you *already* know — internal record (calls, chat, email, CRM) and rigorous desk research — and log it as conclusive evidence. | "what do we already know about X", "desk research this" |
 | `/meeting-prep` | Person-first: research whoever you're meeting, then work backward to the high-Risk assumptions they're uniquely qualified to test. | "I'm speaking to X tomorrow", "what should I ask X" |
-| `/decisions` | The shared glossary + the decision log — capture, sweep, audit; retire assumptions by explicit decision, never by accident. | "log this decision", "what's the canonical term for X" |
+| `/decisions` | The shared glossary + the decision log — capture, sweep, audit; retire assumptions by explicit decision, never by accident. Goal commitments live here: evidence-gated in, closed out into evidence. | "log this decision", "commit to this goal", "close out the goal", "what's the canonical term for X" |
 
 All five read the same config, write through the same connector, and
 enforce the same shared rulesets (`skills/_shared/`). Writes are **gated**
