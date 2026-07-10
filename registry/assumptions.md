@@ -22,7 +22,7 @@ Not a starter template (that's `templates/registry/`); this is live.
 - **Status**: Testing
 - **Owner**: Benji
 - **Gaps**: (none)
-- **Depends on**: (none)
+- **Depends on**: ASM-006
 - **Enables**: (none)
 - **Contradicts**: (none)
 - **Experiments**: EXP-001
@@ -75,7 +75,7 @@ fictional Ledgerly examples with a real, self-hosted register
 - **Status**: Not Started
 - **Owner**: Benji
 - **Gaps**: 5 Whys, Metric for truth, Scoring justification
-- **Depends on**: (none)
+- **Depends on**: ASM-006
 - **Enables**: (none)
 - **Contradicts**: (none)
 - **Experiments**: (none)
@@ -88,7 +88,8 @@ fictional Ledgerly examples with a real, self-hosted register
 
 ### Provenance & notes
 Seeded from the 2026-07-09 planning session. Not yet grilled — next in the
-queue behind ASM-001.
+queue behind ASM-001. 2026-07-10: linked upstream to ASM-006 — this belief
+silently assumes the reader already knows what a skill is.
 
 ## ASM-003: Real examples build more trust than fictional ones
 - **Description**: We assume a real, transparent, self-hosted worked
@@ -180,3 +181,198 @@ Seeded from the 2026-07-09 planning session.
 Seeded from the 2026-07-09 planning session. This is the honest caveat on
 EXP-001: friends are a convenience sample, not a screened one — flagged
 explicitly rather than left implicit (see 06-meeting-prep.md).
+
+## ASM-006: Target adopters already know what agent skills are
+- **Description**: We assume enough of the target Adopter population
+  already knows what an agent skill is — and has installed at least one —
+  that a skills-first repo (quickstart = `npx skills add`) is legible to
+  them without explanation.
+- **Lens**: Adopter
+- **Themes**: Distribution, Docs & DX
+- **Impact**: 75
+- **Confidence**: 0         <!-- derived -->
+- **Risk**: 75              <!-- derived -->
+- **Corroboration count**: 0
+- **Status**: Not Started
+- **Owner**: Benji
+- **Gaps**: (none)
+- **Depends on**: (none)
+- **Enables**: ASM-001, ASM-002
+- **Contradicts**: (none)
+- **Experiments**: (none)
+
+### 5 Whys
+1. Why do we believe this? Because we defined the target as agent-native
+   founders — people already living in Claude Code / Cursor / Codex, where
+   skills are the native packaging format.
+2. Why does it matter right now? The entire quickstart is `npx skills add`
+   with no explanation of what a skill is. If the reader lacks the concept,
+   the README's first actionable line is noise — and EXP-001 would score
+   that as a comprehension failure without telling us the real cause.
+3. Why might we be wrong? Skills are a young convention. Daily agent use
+   does not imply skill literacy — someone can run Cursor for a year and
+   never install a skill. We're conflating "uses an agent" with "knows the
+   skills ecosystem".
+4. Why hasn't it been tested? EXP-001's screener ("uses an AI agent for
+   real work weekly") was written assuming agent use implies skill
+   literacy — the guide never asks about skills directly, so the current
+   test is structurally blind to this failure mode.
+5. Why not just fix the README (add a "what's a skill?" explainer) instead
+   of testing? Because the right fix depends on who fails. If agent-native
+   readers are confused, it's a docs gap — cheap, add the explainer. If
+   the target market is mostly non-agent founders, it's a positioning
+   problem — the repo should lead with the method (docs/ works with no
+   agent at all) and treat the skills as the automation layer. Test first,
+   then design.
+
+Root: the delivery mechanism (agent skills) was chosen because the builder
+lives in that ecosystem, and its legibility to the buyer was assumed, never
+checked.
+
+### Metric for truth
+TRUE if ≥4 of 6 EXP-001 interviewees, asked *before* they read the repo,
+can (a) say roughly what an agent skill is and (b) report having installed
+or used at least one. Piggybacks on the same calls as EXP-001 with its own
+pre-registered bar — one added screener-stage question, near-zero cost.
+
+### Scoring justification
+Impact 75: if false, ASM-001 and ASM-002 both degrade — comprehension and
+install intent fail at the vocabulary layer before the method is ever
+judged. Not higher because the failure is recoverable by design (in-line
+explainer, method-first framing, agentless path through docs/), not a
+one-way door.
+
+### Provenance & notes
+Seeded from the 2026-07-10 working session on this PR — raised directly by
+the owner ("maybe not many people yet know what skills are"). Grilled in
+the same session; hand-written into the register as part of adjusting the
+PR rather than via a gated `/assumptions` run, so treat the grill as
+draft-quality until the owner re-reads it.
+
+## ASM-007: Installers sustain the ritual long enough to compound
+- **Description**: We assume founders who install validation-os will keep
+  running the loop — grilling, logging evidence, closing experiments —
+  past the first fortnight, because the skills cut the process cost enough
+  that the register compounds instead of going stale.
+- **Lens**: Adopter
+- **Themes**: Product, Community
+- **Impact**: 80
+- **Confidence**: 0         <!-- derived -->
+- **Risk**: 80              <!-- derived -->
+- **Corroboration count**: 0
+- **Status**: Not Started
+- **Owner**: Benji
+- **Gaps**: 5 Whys, Metric for truth, Scoring justification
+- **Depends on**: ASM-002
+- **Enables**: (none)
+- **Contradicts**: (none)
+- **Experiments**: (none)
+
+### 5 Whys
+
+### Metric for truth
+
+### Scoring justification
+
+### Provenance & notes
+Seeded from the 2026-07-10 working session. The install (ASM-002) is not
+the product — the sustained weekly ritual is. Every process tool's
+graveyard is full of enthusiastic day-one installs; nothing in the current
+register or EXP plan measures week-two behaviour.
+
+## ASM-008: The method generalizes beyond its home startup
+- **Description**: We assume the method — the evidence ladder, derived
+  Confidence, Risk = Impact × (1 − Confidence/100), the gates — produces
+  better test-next prioritization than founder intuition for teams other
+  than the one it was extracted from.
+- **Lens**: Adopter
+- **Themes**: Product, Positioning
+- **Impact**: 90
+- **Confidence**: 0         <!-- derived -->
+- **Risk**: 90              <!-- derived -->
+- **Corroboration count**: 0
+- **Status**: Not Started
+- **Owner**: Benji
+- **Gaps**: 5 Whys, Metric for truth, Scoring justification
+- **Depends on**: (none)
+- **Enables**: (none)
+- **Contradicts**: (none)
+- **Experiments**: (none)
+
+### 5 Whys
+
+### Metric for truth
+
+### Scoring justification
+
+### Provenance & notes
+Seeded from the 2026-07-10 working session. The README's core evidence is
+"battle-tested daily running a real startup" — n=1, and the n is us. The
+ladder's rung percentages and the Risk formula are asserted, not derived;
+what's actually load-bearing is whether teams using them make better
+kill/commit calls than they would by feel.
+
+## ASM-009: Six skills is a learnable surface, not a maze
+- **Description**: We assume users faced with six slash commands find the
+  right one for their situation via trigger phrases and natural language,
+  rather than bouncing off the choice or only ever using `/assumptions`.
+- **Lens**: Adopter
+- **Themes**: Docs & DX, Product
+- **Impact**: 45
+- **Confidence**: 0         <!-- derived -->
+- **Risk**: 45              <!-- derived -->
+- **Corroboration count**: 0
+- **Status**: Not Started
+- **Owner**: Benji
+- **Gaps**: 5 Whys, Metric for truth, Scoring justification
+- **Depends on**: ASM-006
+- **Enables**: (none)
+- **Contradicts**: (none)
+- **Experiments**: (none)
+
+### 5 Whys
+
+### Metric for truth
+
+### Scoring justification
+
+### Provenance & notes
+Seeded from the 2026-07-10 working session. The costly-signal close in
+EXP-001 ("run `/setup-validation-os` on one of your own projects and tell
+me what breaks") is the cheapest early read on this.
+
+## ASM-010: Validation is a gap adjacent skill packs leave open
+- **Description**: We assume validation-os occupies a niche that adjacent
+  skill ecosystems (mattpocock/skills foremost) do not cover — they own
+  the build workflow (prototype, TDD, code review, PRD-to-prod), so the
+  winning shape is a narrow validation layer that composes with them
+  rather than reinventing their ground.
+- **Lens**: Adopter
+- **Themes**: Positioning, Product
+- **Impact**: 65
+- **Confidence**: 0         <!-- derived -->
+- **Risk**: 65              <!-- derived -->
+- **Corroboration count**: 0
+- **Status**: Not Started
+- **Owner**: Benji
+- **Gaps**: 5 Whys, Metric for truth, Scoring justification
+- **Depends on**: (none)
+- **Enables**: (none)
+- **Contradicts**: (none)
+- **Experiments**: (none)
+
+### 5 Whys
+
+### Metric for truth
+
+### Scoring justification
+
+### Provenance & notes
+Seeded from the 2026-07-10 working session. Two falsifiable halves: (a) no
+popular pack already ships assumption-testing/validation skills — a desk
+sweep of skills.sh and the major packs settles it; (b) composition is real
+work we don't have to redo — Doshi's own OPS-1014 (prototype → production
+pipeline) and OPS-1144 (PRD handoff) are the live case: mattpocock-style
+/prototype, /tdd, /code-review cover the build side, and validation-os's
+exit stage (Validated assumption + prototype) is the input they need.
+Repo credits already name mattpocock/skills as structural inspiration.
