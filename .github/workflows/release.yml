@@ -1,0 +1,50 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pyyaml
+
+      - name: Tag must match plugin.json version
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          version=$(python -c "import json; print(json.load(open('.claude-plugin/plugin.json'))['version'])")
+          if [ "$tag" != "$version" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match plugin.json version $version — bump plugin.json (and CHANGELOG.md) first."
+            exit 1
+          fi
+
+      - name: Never release a broken state
+        run: python scripts/validate.py
+
+      - name: Extract release notes from CHANGELOG.md
+        run: |
+          awk -v tag="$GITHUB_REF_NAME" \
+            '$0 ~ "^## "tag"($| )" {flag=1; next} /^## / {flag=0} flag' \
+            CHANGELOG.md > release-notes.md
+          if ! grep -q '[^[:space:]]' release-notes.md; then
+            echo "::error::CHANGELOG.md has no \"## $GITHUB_REF_NAME\" section — every release ships human-written notes."
+            exit 1
+          fi
+          cat release-notes.md
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            --title "$GITHUB_REF_NAME" \
+            --notes-file release-notes.md \
+            --generate-notes
