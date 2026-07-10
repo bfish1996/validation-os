@@ -102,9 +102,10 @@ trigger phrases, so "I'm meeting the CFO of X tomorrow" reaches
 boundaries: `/assumptions` stops where `/experiment-design` starts, and
 both stop before *running* anything — verdicts stay human.
 
-**Worked examples:** [examples/](examples/) follows one assumption at a
-fictional startup from first call to logged decision — one short scene per
-skill.
+**Worked examples:** [examples/](examples/) follows one real assumption —
+validation-os run on itself, on its own launch day — from first mention to
+logged decision — one short scene per skill. The register it produces is
+real too: [registry/](registry/).
 
 ## How it fits together
 
@@ -291,6 +292,21 @@ against [the spec](connectors/SPEC.md). Each ships with a schema guide
 (`connectors/<name>-schema.md`) that `/setup-validation-os` uses to validate
 or build the backend for you — validate-first, every change gated.
 
+## Dashboard
+
+A zero-dependency local viewer for the registers — stat tiles and
+sortable, expandable tables, riskiest belief on top:
+
+```bash
+python3 dashboard/serve.py    # http://localhost:8787
+```
+
+Markdown stays the source of truth: the page re-parses `registry/` on
+every refresh, and the same parse is served at `/registry.json` (and
+downloadable from the page) for anything that wants the registers as
+JSON. Works on any project using the local-files connector — it reads
+`registry_dir` from your config.
+
 ## Repo map
 
 ```
@@ -299,7 +315,10 @@ skills/               the six skills + setup, one dir per skill
                       machine-readable ontology, evidence procedures, gate
                       discipline)
 connectors/           storage contract + reference implementations
+registry/             the live self-hosted register — validation-os run on
+                      itself (examples/ narrates it; this is the record)
 examples/             one assumption followed end-to-end, a scene per skill
+dashboard/            local read-only viewer + JSON view of the registers
 templates/            config + starter registry files
 docs/                 the method, the evidence ladder, the weekly ritual,
                       where it applies by function

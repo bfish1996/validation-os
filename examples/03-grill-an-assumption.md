@@ -1,47 +1,55 @@
 # 03 · Grill an assumption — `/assumptions` (single)
 
-ASM-004 was seeded in [02](02-seed-from-a-call.md) with three open Gaps.
+ASM-001 was seeded in [02](02-seed-from-a-call.md) with three open Gaps.
 
-**You type:** "grill ASM-004"
+**You type:** "grill ASM-001"
 
 One question at a time, each carrying a recommended answer. The 5 Whys
 first — why do we believe this?
 
-▎ Root so far: owners feel the pain monthly and already pay an accountant
-▎ to make it go away. Therefore-test: the money is already being spent —
-▎ the question is whether it re-routes to software, not whether the pain
-▎ exists. Accept as the 5-Whys root?
+▎ Root so far: the README and examples are the entire onboarding surface —
+▎ no salesperson, demo call, or onboarding flow sits behind them. We wrote
+▎ it, so we're structurally blind to where a first-time reader gets lost.
+▎ Accept as the 5-Whys root?
 
 Then the Metric for truth:
 
-▎ Proposed metric: TRUE if ≥6 of 10 ICP owners already spend ≥£40/month —
-▎ cash to a bookkeeper or ≥4 hours of their own time — on reconciliation
-▎ today. Countable, past-behaviour only, no "would you pay" hypotheticals.
+▎ Proposed metric: TRUE if ≥4 of 6 friends, given only the GitHub link,
+▎ state unprompted what problem validation-os solves and the literal next
+▎ command they'd run. Countable, no leading, no "would you install this."
 
 Then Impact, anchored rather than felt:
 
-▎ Recommend Impact 75: pricing gates the revenue plan and two downstream
-▎ beliefs (ASM-006 CAC payback, ASM-009 self-serve onboarding) depend on
-▎ it. Not 90+ — the company survives a re-price.
+▎ Recommend Impact 85: if comprehension fails, install intent (ASM-002)
+▎ and trust in real examples (ASM-003) collapse behind it — nearly
+▎ everything downstream depends on this landing. Not 100 — the doc can
+▎ still be iterated post-launch; this isn't a one-way door.
 
-Alex confirms each answer; close-out is one gated write — body sections
-filled, Gaps emptied, Status flipped:
+Benji confirms each answer; close-out is one gated write — body sections
+filled, Gaps emptied:
 
 ```
-Gaps: (none) · Status: Goal Linked → Experiment Needed
-Impact 75 · Confidence 0 · Risk 75 → top of the test-next queue
+Gaps: (none) · Status: Not Started
+Impact 85 · Confidence 0 · Risk 85
 ```
 
-ASM-004 already carries a standing `Goal Linked` status from an earlier
-`/decisions` capture (a Q3 pricing goal cites it in `## Rationale`) — that's
-what makes this flip legal. Gaps alone never promotes a record onto the
-test-next queue; without the goal link this close-out would have stopped at
-gapless-but-`Not Started`, ineligible until a Goal commitment claims it.
+▎ One more thing before this can queue: `Gaps` is empty, but `Status`
+▎ stays `Not Started` — grilling and goal-linkage are independent gates.
+▎ ASM-001 needs a standing goal to cite it via `Based on assumption`
+▎ before it can reach `Experiment Needed`.
 
-**What this shows:** the grill never batches questions, Impact is justified
-against goals and dependants, Confidence stays derived (still 0 — grilling
-is not evidence), and an empty Gaps list only promotes a belief onto the
-test-next queue once the separate goal-linkage gate has already been
-cleared.
+That link lands separately, the same day: DEC-001, a `Provisional` goal
+commitment ("validate README comprehension before wider launch"), cites
+ASM-001 in its `## Rationale`. That's what flips it —
+
+```
+Status: Not Started → Goal Linked → Experiment Needed
+```
+
+**What this shows:** the grill never batches questions, Impact is
+justified against what actually depends on the belief, Confidence stays
+derived (still 0 — grilling is not evidence), and an empty Gaps list only
+promotes a belief onto the test-next queue once the separate goal-linkage
+gate has also cleared.
 
 Next: [04 — sweep existing evidence](04-find-evidence.md).

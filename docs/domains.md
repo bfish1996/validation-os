@@ -100,8 +100,8 @@ changed is the `Theme` on the rows.
 
 ## Pricing & business model
 
-*"We assume sub-20-employee firms will pay ≥ €50/month because
-reconciliation costs them 4+ hours."* Willingness-to-pay beliefs are the
+*"We assume teams of this size will pay ≥ €50/month because the manual
+version of this job costs them 4+ hours."* Willingness-to-pay beliefs are the
 canonical case for **revealed > stated**: everyone says yes to a
 hypothetical price. Stated rungs (pricing question in an interview) cap
 low; the honest tests are Signed intent (deposit, pre-order, priced
