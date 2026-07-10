@@ -1,0 +1,460 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Validation-OS register</title>
+<style>
+  :root {
+    --bg: #f4f6f8;
+    --surface: #ffffff;
+    --ink: #1d2530;
+    --muted: #5b6675;
+    --faint: #8b95a5;
+    --border: #dfe4ea;
+    --row-hover: #f0f4f9;
+    --accent: #2456a6;
+    --accent-ink: #12294d;
+    --accent-soft: #d7e3f7;
+    --risk: #a84632;
+    --risk-track: #ece5e2;
+    --good: #2e7d4f;
+    --good-soft: #dcefe2;
+    --warn: #8a6116;
+    --warn-soft: #f3ead2;
+    --neutral-soft: #e8ebef;
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: "Avenir Next", "Segoe UI", -apple-system, system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12161d; --surface: #1a2029; --ink: #e6eaf0; --muted: #99a4b5;
+      --faint: #6d7788; --border: #2a323e; --row-hover: #212936;
+      --accent: #7fa9e6; --accent-ink: #cdddf5; --accent-soft: #1e2c44;
+      --risk: #d98268; --risk-track: #2b2622;
+      --good: #6cbf8e; --good-soft: #1c2f24;
+      --warn: #d3a94f; --warn-soft: #2f2818;
+      --neutral-soft: #242c38;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12161d; --surface: #1a2029; --ink: #e6eaf0; --muted: #99a4b5;
+    --faint: #6d7788; --border: #2a323e; --row-hover: #212936;
+    --accent: #7fa9e6; --accent-ink: #cdddf5; --accent-soft: #1e2c44;
+    --risk: #d98268; --risk-track: #2b2622;
+    --good: #6cbf8e; --good-soft: #1c2f24;
+    --warn: #d3a94f; --warn-soft: #2f2818;
+    --neutral-soft: #242c38;
+  }
+  :root[data-theme="light"] {
+    --bg: #f4f6f8; --surface: #ffffff; --ink: #1d2530; --muted: #5b6675;
+    --faint: #8b95a5; --border: #dfe4ea; --row-hover: #f0f4f9;
+    --accent: #2456a6; --accent-ink: #12294d; --accent-soft: #d7e3f7;
+    --risk: #a84632; --risk-track: #ece5e2;
+    --good: #2e7d4f; --good-soft: #dcefe2;
+    --warn: #8a6116; --warn-soft: #f3ead2;
+    --neutral-soft: #e8ebef;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 15px/1.55 var(--sans);
+  }
+  code {
+    font-family: var(--mono); font-size: 0.88em;
+    background: var(--neutral-soft); padding: 1px 5px; border-radius: 4px;
+  }
+  a { color: var(--accent); }
+  button { font: inherit; color: inherit; }
+
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 28px 24px 80px; }
+
+  header { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+  header h1 { font-size: 22px; font-weight: 600; margin: 0; letter-spacing: -0.01em; }
+  header .dir { font-family: var(--mono); font-size: 12px; color: var(--faint); }
+  header .spacer { flex: 1; }
+  .btn {
+    border: 1px solid var(--border); background: var(--surface);
+    border-radius: 7px; padding: 5px 12px; cursor: pointer; font-size: 13px;
+  }
+  .btn:hover { border-color: var(--accent); }
+  .btn:focus-visible, th.sortable:focus-visible, tr.row:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 1px;
+  }
+
+  .tiles {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 12px; margin: 22px 0 30px;
+  }
+  .tile {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 16px 12px;
+  }
+  .tile .label {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.07em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  .tile .value {
+    font-size: 26px; font-weight: 600; font-variant-numeric: tabular-nums;
+    margin-top: 2px;
+  }
+  .tile .sub { font-size: 12px; color: var(--muted); }
+  .tile .value .id { font-family: var(--mono); font-size: 16px; color: var(--accent); }
+
+  section { margin-bottom: 40px; }
+  section > h2 {
+    font-size: 15px; font-weight: 600; margin: 0 0 10px;
+    display: flex; align-items: baseline; gap: 8px;
+  }
+  section > h2 .count { color: var(--faint); font-weight: 400; font-size: 13px; }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; overflow-x: auto;
+  }
+  table { border-collapse: collapse; width: 100%; min-width: 700px; }
+  th, td { text-align: left; padding: 9px 12px; font-size: 13.5px; }
+  th {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--muted);
+    border-bottom: 1px solid var(--border); white-space: nowrap;
+    user-select: none;
+  }
+  th.sortable { cursor: pointer; }
+  th.sortable:hover { color: var(--ink); }
+  th .arrow { font-size: 9px; color: var(--accent); }
+  td { border-bottom: 1px solid var(--border); vertical-align: top; }
+  tbody tr:last-child > td { border-bottom: none; }
+  tr.row { cursor: pointer; }
+  tr.row:hover > td { background: var(--row-hover); }
+  td.num { font-variant-numeric: tabular-nums; text-align: right; font-family: var(--mono); font-size: 12.5px; }
+  td.id { font-family: var(--mono); font-size: 12px; color: var(--accent); white-space: nowrap; }
+  td .title { font-weight: 500; }
+  td.dim, span.dim { color: var(--muted); }
+  .themes { font-size: 12px; color: var(--muted); }
+
+  .pill {
+    display: inline-block; font-size: 11.5px; font-weight: 600;
+    padding: 1px 9px; border-radius: 999px; white-space: nowrap;
+  }
+  .pill.blue { background: var(--accent-soft); color: var(--accent-ink); }
+  .pill.green { background: var(--good-soft); color: var(--good); }
+  .pill.amber { background: var(--warn-soft); color: var(--warn); }
+  .pill.grey { background: var(--neutral-soft); color: var(--muted); }
+  .pill.red { background: var(--risk-track); color: var(--risk); }
+
+  .riskcell { display: flex; align-items: center; gap: 8px; min-width: 130px; }
+  .riskcell .n {
+    font-family: var(--mono); font-size: 12.5px;
+    font-variant-numeric: tabular-nums; width: 3ch; text-align: right;
+  }
+  .bar { flex: 1; height: 6px; border-radius: 3px; background: var(--risk-track); }
+  .bar i { display: block; height: 100%; border-radius: 3px; background: var(--risk); }
+
+  tr.detail > td { background: var(--row-hover); padding: 14px 18px 16px; }
+  .detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px 28px; max-width: 1050px; }
+  .detail-block h4 {
+    margin: 0 0 3px; font-size: 11px; font-weight: 600;
+    letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted);
+  }
+  .detail-block p, .detail-block ol { margin: 0; font-size: 13.5px; color: var(--ink); }
+  .detail-block ol { padding-left: 18px; }
+  .detail-block li { margin-bottom: 4px; }
+  .gaps-open { color: var(--warn); font-weight: 600; }
+  .empty { color: var(--faint); font-style: italic; }
+
+  footer { color: var(--faint); font-size: 12px; margin-top: 8px; }
+  #error {
+    background: var(--warn-soft); color: var(--warn); border-radius: 10px;
+    padding: 14px 18px; margin-top: 24px; display: none;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Validation-OS register</h1>
+    <span class="dir" id="dir"></span>
+    <span class="spacer"></span>
+    <button class="btn" id="download">Download registry.json</button>
+    <button class="btn" id="theme" aria-label="Toggle color theme">Theme: auto</button>
+  </header>
+
+  <div id="error"></div>
+  <div class="tiles" id="tiles"></div>
+  <div id="sections"></div>
+  <footer>Markdown in <code>registry/</code> is the source of truth — this page re-parses it on every refresh.
+    Click a row for the full record; click a column header to sort.</footer>
+</div>
+
+<script>
+"use strict";
+
+/* ---------- theme ---------- */
+const themeBtn = document.getElementById("theme");
+const themes = ["auto", "dark", "light"];
+let theme = localStorage.getItem("vos-theme") || "auto";
+function applyTheme() {
+  if (theme === "auto") document.documentElement.removeAttribute("data-theme");
+  else document.documentElement.setAttribute("data-theme", theme);
+  themeBtn.textContent = "Theme: " + theme;
+  localStorage.setItem("vos-theme", theme);
+}
+themeBtn.onclick = () => { theme = themes[(themes.indexOf(theme) + 1) % 3]; applyTheme(); };
+applyTheme();
+
+/* ---------- helpers ---------- */
+const esc = s => String(s ?? "").replace(/[&<>"]/g,
+  c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const md = s => esc(s).replace(/`([^`]+)`/g, "<code>$1</code>")
+                      .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+const none = v => !v || v === "(none)" || v === "n/a";
+const num = v => { const n = parseInt(v, 10); return Number.isFinite(n) ? n : null; };
+
+const STATUS_TONE = {
+  "Validated": "green", "Active": "green",
+  "Testing": "blue", "Running": "blue", "Goal Linked": "blue",
+  "Experiment Needed": "blue",
+  "Provisional": "amber", "Inconclusive": "amber",
+  "Invalidated": "red", "Reversed": "red",
+  "Not Started": "grey", "Closed by decision": "grey", "Superseded": "grey",
+};
+const pill = v => none(v) ? '<span class="dim">—</span>'
+  : `<span class="pill ${STATUS_TONE[v] || "grey"}">${esc(v)}</span>`;
+
+const riskBar = v => {
+  const n = num(v);
+  if (n === null) return '<span class="dim">—</span>';
+  return `<div class="riskcell"><span class="n">${n}</span>` +
+         `<span class="bar"><i style="width:${n}%"></i></span></div>`;
+};
+
+/* Free-text section -> paragraphs; numbered lists become <ol> */
+function renderSection(text) {
+  if (!text) return '<p class="empty">not filled yet</p>';
+  const lines = text.split("\n");
+  const items = [];
+  let cur = null;
+  for (const line of lines) {
+    const m = line.match(/^(\d+)\.\s+(.*)$/);
+    if (m) { cur = { li: m[2] }; items.push(cur); }
+    else if (cur && /^\s+\S/.test(line)) cur.li += " " + line.trim();
+    else { cur = null; items.push({ p: line.trim() }); }
+  }
+  let html = "", para = [];
+  const flush = () => {
+    const t = para.join(" ").trim();
+    if (t) html += `<p>${md(t)}</p>`;
+    para = [];
+  };
+  let ol = [];
+  const flushOl = () => {
+    if (ol.length) html += `<ol>${ol.map(x => `<li>${md(x)}</li>`).join("")}</ol>`;
+    ol = [];
+  };
+  for (const it of items) {
+    if (it.li !== undefined) { flush(); ol.push(it.li); }
+    else if (it.p === "") { flushOl(); flush(); }
+    else { flushOl(); para.push(it.p); }
+  }
+  flushOl(); flush();
+  return html || '<p class="empty">not filled yet</p>';
+}
+
+function detailBlocks(rec, fieldNames) {
+  let html = '<div class="detail-grid">';
+  for (const f of fieldNames) {
+    const v = rec.fields[f];
+    if (v === undefined) continue;
+    html += `<div class="detail-block"><h4>${esc(f)}</h4>` +
+      (none(v) ? '<p class="empty">(none)</p>' : `<p>${md(v)}</p>`) + "</div>";
+  }
+  for (const [name, body] of Object.entries(rec.sections)) {
+    html += `<div class="detail-block"><h4>${esc(name)}</h4>${renderSection(body)}</div>`;
+  }
+  return html + "</div>";
+}
+
+/* ---------- generic sortable/expandable table ---------- */
+function makeTable(mount, records, columns, detailFields, defaultSort) {
+  let sortKey = defaultSort ? defaultSort.key : null;
+  let sortDir = defaultSort ? defaultSort.dir : 1;
+
+  function value(rec, col) {
+    if (col.value) return col.value(rec);
+    return rec.fields[col.field] ?? "";
+  }
+  function render() {
+    const rows = [...records];
+    if (sortKey !== null) {
+      const col = columns.find(c => c.key === sortKey);
+      rows.sort((a, b) => {
+        const av = value(a, col), bv = value(b, col);
+        const an = num(av), bn = num(bv);
+        const cmp = (an !== null && bn !== null) ? an - bn
+          : String(av).localeCompare(String(bv));
+        return cmp * sortDir;
+      });
+    }
+    let html = "<table><thead><tr>";
+    for (const col of columns) {
+      const arrow = col.key === sortKey ? ` <span class="arrow">${sortDir > 0 ? "▲" : "▼"}</span>` : "";
+      html += `<th class="sortable" tabindex="0" role="button" data-key="${col.key}">${esc(col.label)}${arrow}</th>`;
+    }
+    html += "</tr></thead><tbody>";
+    for (const rec of rows) {
+      html += `<tr class="row" tabindex="0" data-id="${esc(rec.id)}">`;
+      for (const col of columns) html += `<td class="${col.cls || ""}">${col.html(rec)}</td>`;
+      html += "</tr>";
+      html += `<tr class="detail" data-for="${esc(rec.id)}" hidden><td colspan="${columns.length}">` +
+              detailBlocks(rec, detailFields) + "</td></tr>";
+    }
+    mount.innerHTML = html + "</tbody></table>";
+
+    mount.querySelectorAll("th.sortable").forEach(th => {
+      const activate = () => {
+        const k = th.dataset.key;
+        if (sortKey === k) sortDir = -sortDir; else { sortKey = k; sortDir = 1; }
+        render();
+      };
+      th.onclick = activate;
+      th.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); activate(); } };
+    });
+    mount.querySelectorAll("tr.row").forEach(tr => {
+      const toggle = () => {
+        const d = mount.querySelector(`tr.detail[data-for="${CSS.escape(tr.dataset.id)}"]`);
+        d.hidden = !d.hidden;
+      };
+      tr.onclick = toggle;
+      tr.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); } };
+    });
+  }
+  render();
+}
+
+/* ---------- page ---------- */
+async function main() {
+  let data;
+  try {
+    const res = await fetch("registry.json");
+    if (!res.ok) throw new Error(res.status + " " + res.statusText);
+    data = await res.json();
+  } catch (err) {
+    const box = document.getElementById("error");
+    box.style.display = "block";
+    box.textContent = "Could not load registry.json — is serve.py still running? (" + err.message + ")";
+    return;
+  }
+
+  document.getElementById("dir").textContent = data.registry_dir;
+  document.getElementById("download").onclick = () => {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const a = Object.assign(document.createElement("a"),
+      { href: URL.createObjectURL(blob), download: "registry.json" });
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+
+  const asm = data.assumptions, exp = data.experiments,
+        dec = data.decisions, term = data.terminology;
+
+  /* tiles */
+  const riskiest = [...asm].sort((a, b) => (num(b.fields.Risk) ?? -1) - (num(a.fields.Risk) ?? -1))[0];
+  const gapsOpen = asm.filter(r => !none(r.fields.Gaps)).length;
+  const running = exp.filter(r => r.fields.Result === "Running").length;
+  const standing = dec.filter(r => ["Provisional", "Active"].includes(r.fields.Status)).length;
+  document.getElementById("tiles").innerHTML = [
+    { label: "Assumptions", value: asm.length, sub: `${gapsOpen} with grill gaps open` },
+    riskiest && {
+      label: "Riskiest belief",
+      value: `<span class="id">${esc(riskiest.id)}</span> ${num(riskiest.fields.Risk) ?? "—"}`,
+      sub: esc(riskiest.title),
+    },
+    { label: "Experiments", value: exp.length, sub: `${running} running` },
+    { label: "Decisions", value: dec.length, sub: `${standing} standing · ${term.length} term${term.length === 1 ? "" : "s"}` },
+  ].filter(Boolean).map(t =>
+    `<div class="tile"><div class="label">${t.label}</div>` +
+    `<div class="value">${t.value}</div><div class="sub">${t.sub}</div></div>`
+  ).join("");
+
+  /* sections */
+  const sections = [
+    {
+      title: "Assumptions", records: asm,
+      note: "sorted by Risk — the test-next queue reads top-down",
+      columns: [
+        { key: "id", label: "ID", cls: "id", html: r => esc(r.id) },
+        { key: "title", label: "Assumption", html: r =>
+            `<span class="title">${md(r.title)}</span>` +
+            `<div class="themes">${esc(r.fields.Themes || "")}</div>` },
+        { key: "lens", label: "Lens", field: "Lens", cls: "dim", html: r => esc(r.fields.Lens || "—") },
+        { key: "impact", label: "Impact", field: "Impact", cls: "num", html: r => esc(r.fields.Impact ?? "—") },
+        { key: "conf", label: "Conf.", field: "Confidence", cls: "num", html: r => esc(r.fields.Confidence ?? "—") },
+        { key: "risk", label: "Risk", field: "Risk", html: r => riskBar(r.fields.Risk) },
+        { key: "status", label: "Status", field: "Status", html: r => pill(r.fields.Status) },
+        { key: "gaps", label: "Gaps", html: r => none(r.fields.Gaps)
+            ? '<span class="dim">clear</span>'
+            : `<span class="gaps-open">${esc(r.fields.Gaps)}</span>` },
+        { key: "exp", label: "Exp.", cls: "id", html: r => none(r.fields.Experiments) ? "" : esc(r.fields.Experiments) },
+      ],
+      detailFields: ["Description", "Owner", "Depends on", "Enables", "Contradicts", "Corroboration count"],
+      defaultSort: { key: "risk", dir: -1 },
+    },
+    {
+      title: "Experiments", records: exp,
+      columns: [
+        { key: "id", label: "ID", cls: "id", html: r => esc(r.id) },
+        { key: "title", label: "Experiment", html: r => `<span class="title">${md(r.title)}</span>` },
+        { key: "asm", label: "Assumption", cls: "id", html: r => esc(r.fields.Assumption || "—") },
+        { key: "type", label: "Type", field: "Type", cls: "dim", html: r => esc(r.fields.Type || "—") },
+        { key: "quality", label: "Source quality", field: "Source quality", cls: "dim", html: r => esc(r.fields["Source quality"] || "—") },
+        { key: "result", label: "Result", field: "Result", html: r => pill(r.fields.Result) },
+        { key: "strength", label: "Strength", field: "Strength", cls: "num", html: r => esc(r.fields.Strength ?? "—") },
+        { key: "date", label: "Date", field: "Date", cls: "dim", html: r => esc(r.fields.Date || "—") },
+      ],
+      detailFields: ["We're right if", "Feasibility", "Owner", "Interviewee"],
+    },
+    {
+      title: "Decisions", records: dec,
+      columns: [
+        { key: "id", label: "ID", cls: "id", html: r => esc(r.id) },
+        { key: "title", label: "Decision", html: r => `<span class="title">${md(r.title)}</span>` },
+        { key: "kind", label: "Kind", field: "Kind", cls: "dim", html: r => esc(r.fields.Kind || "—") },
+        { key: "status", label: "Status", field: "Status", html: r => pill(r.fields.Status) },
+        { key: "area", label: "Area", field: "Area", cls: "dim", html: r => esc(r.fields.Area || "—") },
+        { key: "rev", label: "Reversibility", field: "Reversibility", cls: "dim", html: r => esc(r.fields.Reversibility || "—") },
+        { key: "basis", label: "Based on", cls: "id", html: r => none(r.fields["Based on assumption"]) ? "" : esc(r.fields["Based on assumption"]) },
+        { key: "date", label: "Decided", field: "Decided date", cls: "dim", html: r => esc(r.fields["Decided date"] || "—") },
+      ],
+      detailFields: ["Owner", "Agreed by", "Unanimity score", "Supersedes", "Superseded by", "Resolves assumption"],
+    },
+    {
+      title: "Terminology", records: term,
+      columns: [
+        { key: "id", label: "ID", cls: "id", html: r => esc(r.id) },
+        { key: "title", label: "Term", html: r => `<span class="title">${md(r.title)}</span>` },
+        { key: "status", label: "Status", field: "Status", html: r => pill(r.fields.Status) },
+        { key: "area", label: "Area", field: "Area", cls: "dim", html: r => esc(r.fields.Area || "—") },
+      ],
+      detailFields: [],
+    },
+  ];
+
+  const mount = document.getElementById("sections");
+  for (const s of sections) {
+    const sec = document.createElement("section");
+    sec.innerHTML = `<h2>${esc(s.title)} <span class="count">${s.records.length}` +
+      (s.note ? ` · ${esc(s.note)}` : "") + `</span></h2><div class="card"></div>`;
+    mount.appendChild(sec);
+    if (s.records.length === 0) {
+      sec.querySelector(".card").innerHTML = '<p class="empty" style="padding:14px 18px">no records yet</p>';
+    } else {
+      makeTable(sec.querySelector(".card"), s.records, s.columns, s.detailFields, s.defaultSort);
+    }
+  }
+}
+main();
+</script>
+</body>
+</html>

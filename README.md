@@ -289,6 +289,21 @@ against [the spec](connectors/SPEC.md). Each ships with a schema guide
 (`connectors/<name>-schema.md`) that `/setup-validation-os` uses to validate
 or build the backend for you — validate-first, every change gated.
 
+## Dashboard
+
+A zero-dependency local viewer for the registers — stat tiles and
+sortable, expandable tables, riskiest belief on top:
+
+```bash
+python3 dashboard/serve.py    # http://localhost:8787
+```
+
+Markdown stays the source of truth: the page re-parses `registry/` on
+every refresh, and the same parse is served at `/registry.json` (and
+downloadable from the page) for anything that wants the registers as
+JSON. Works on any project using the local-files connector — it reads
+`registry_dir` from your config.
+
 ## Repo map
 
 ```
@@ -297,7 +312,10 @@ skills/               the six skills + setup, one dir per skill
                       machine-readable ontology, evidence procedures, gate
                       discipline)
 connectors/           storage contract + reference implementations
+registry/             the live self-hosted register — validation-os run on
+                      itself (examples/ narrates it; this is the record)
 examples/             one assumption followed end-to-end, a scene per skill
+dashboard/            local read-only viewer + JSON view of the registers
 templates/            config + starter registry files
 docs/                 the method, the evidence ladder, the weekly ritual,
                       where it applies by function
