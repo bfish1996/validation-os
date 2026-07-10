@@ -102,12 +102,23 @@
   .tile .sub { font-size: 12px; color: var(--muted); }
   .tile .value .id { font-family: var(--mono); font-size: 16px; color: var(--accent); }
 
-  section { margin-bottom: 40px; }
-  section > h2 {
-    font-size: 15px; font-weight: 600; margin: 0 0 10px;
-    display: flex; align-items: baseline; gap: 8px;
+  .tabs {
+    display: flex; gap: 2px; border-bottom: 1px solid var(--border);
+    margin: 0 0 16px; flex-wrap: wrap;
   }
-  section > h2 .count { color: var(--faint); font-weight: 400; font-size: 13px; }
+  .tab {
+    border: none; background: none; cursor: pointer;
+    padding: 8px 14px 9px; font-size: 14px; color: var(--muted);
+    border-bottom: 2px solid transparent; margin-bottom: -1px;
+  }
+  .tab:hover { color: var(--ink); }
+  .tab[aria-selected="true"] {
+    color: var(--accent); font-weight: 600;
+    border-bottom-color: var(--accent);
+  }
+  .tab .count { color: var(--faint); font-weight: 400; font-size: 12px; }
+  .tab:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  .note { margin: 0 0 10px; font-size: 13px; color: var(--muted); }
 
   .card {
     background: var(--surface); border: 1px solid var(--border);
@@ -164,6 +175,21 @@
   .gaps-open { color: var(--warn); font-weight: 600; }
   .empty { color: var(--faint); font-style: italic; }
 
+  a.reflink {
+    color: var(--accent); font-family: var(--mono); font-size: 0.95em;
+    text-decoration: none; border-bottom: 1px dotted var(--accent);
+    white-space: nowrap;
+  }
+  a.reflink:hover { border-bottom-style: solid; }
+  tr.flash > td { animation: flash 1.6s ease-out; }
+  @keyframes flash {
+    0%, 55% { background: var(--accent-soft); }
+    100% { background: transparent; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    tr.flash > td { animation: none; background: var(--accent-soft); }
+  }
+
   footer { color: var(--faint); font-size: 12px; margin-top: 8px; }
   #error {
     background: var(--warn-soft); color: var(--warn); border-radius: 10px;
@@ -207,8 +233,36 @@ applyTheme();
 /* ---------- helpers ---------- */
 const esc = s => String(s ?? "").replace(/[&<>"]/g,
   c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-const md = s => esc(s).replace(/`([^`]+)`/g, "<code>$1</code>")
-                      .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+/* Record IDs become links to the record's row — skip inside code spans */
+const linkIds = html => html.split(/(<code>[^]*?<\/code>)/g).map(seg =>
+  seg.startsWith("<code>") ? seg
+    : seg.replace(/\b((?:ASM|EXP|DEC|TERM)-\d{3})\b/g,
+        '<a class="reflink" data-target="$1" href="#$1">$1</a>')
+).join("");
+const md = s => linkIds(esc(s).replace(/`([^`]+)`/g, "<code>$1</code>")
+                              .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>"));
+
+/* Navigate to a record: switch to its tab, expand its detail, scroll, flash */
+let activateTabByPrefix = () => {};   // assigned once the tabs exist
+function revealRecord(id) {
+  activateTabByPrefix(id);
+  const tr = document.querySelector(`tr.row[data-id="${CSS.escape(id)}"]`);
+  if (!tr) return;
+  const d = document.querySelector(`tr.detail[data-for="${CSS.escape(id)}"]`);
+  if (d) d.hidden = false;
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  tr.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "center" });
+  tr.classList.remove("flash");
+  void tr.offsetWidth;
+  tr.classList.add("flash");
+}
+document.addEventListener("click", e => {
+  const a = e.target.closest("a.reflink");
+  if (!a) return;
+  e.preventDefault();
+  e.stopPropagation();
+  revealRecord(a.dataset.target);
+}, true);
 const none = v => !v || v === "(none)" || v === "n/a";
 const num = v => { const n = parseInt(v, 10); return Number.isFinite(n) ? n : null; };
 
@@ -368,7 +422,7 @@ async function main() {
     { label: "Assumptions", value: asm.length, sub: `${gapsOpen} with grill gaps open` },
     riskiest && {
       label: "Riskiest belief",
-      value: `<span class="id">${esc(riskiest.id)}</span> ${num(riskiest.fields.Risk) ?? "—"}`,
+      value: `${linkIds(esc(riskiest.id))} ${num(riskiest.fields.Risk) ?? "—"}`,
       sub: esc(riskiest.title),
     },
     { label: "Experiments", value: exp.length, sub: `${running} running` },
@@ -396,7 +450,7 @@ async function main() {
         { key: "gaps", label: "Gaps", html: r => none(r.fields.Gaps)
             ? '<span class="dim">clear</span>'
             : `<span class="gaps-open">${esc(r.fields.Gaps)}</span>` },
-        { key: "exp", label: "Exp.", cls: "id", html: r => none(r.fields.Experiments) ? "" : esc(r.fields.Experiments) },
+        { key: "exp", label: "Exp.", cls: "id", html: r => none(r.fields.Experiments) ? "" : linkIds(esc(r.fields.Experiments)) },
       ],
       detailFields: ["Description", "Owner", "Depends on", "Enables", "Contradicts", "Corroboration count"],
       defaultSort: { key: "risk", dir: -1 },
@@ -406,7 +460,7 @@ async function main() {
       columns: [
         { key: "id", label: "ID", cls: "id", html: r => esc(r.id) },
         { key: "title", label: "Experiment", html: r => `<span class="title">${md(r.title)}</span>` },
-        { key: "asm", label: "Assumption", cls: "id", html: r => esc(r.fields.Assumption || "—") },
+        { key: "asm", label: "Assumption", cls: "id", html: r => none(r.fields.Assumption) ? "—" : linkIds(esc(r.fields.Assumption)) },
         { key: "type", label: "Type", field: "Type", cls: "dim", html: r => esc(r.fields.Type || "—") },
         { key: "quality", label: "Source quality", field: "Source quality", cls: "dim", html: r => esc(r.fields["Source quality"] || "—") },
         { key: "result", label: "Result", field: "Result", html: r => pill(r.fields.Result) },
@@ -424,7 +478,7 @@ async function main() {
         { key: "status", label: "Status", field: "Status", html: r => pill(r.fields.Status) },
         { key: "area", label: "Area", field: "Area", cls: "dim", html: r => esc(r.fields.Area || "—") },
         { key: "rev", label: "Reversibility", field: "Reversibility", cls: "dim", html: r => esc(r.fields.Reversibility || "—") },
-        { key: "basis", label: "Based on", cls: "id", html: r => none(r.fields["Based on assumption"]) ? "" : esc(r.fields["Based on assumption"]) },
+        { key: "basis", label: "Based on", cls: "id", html: r => none(r.fields["Based on assumption"]) ? "" : linkIds(esc(r.fields["Based on assumption"])) },
         { key: "date", label: "Decided", field: "Decided date", cls: "dim", html: r => esc(r.fields["Decided date"] || "—") },
       ],
       detailFields: ["Owner", "Agreed by", "Unanimity score", "Supersedes", "Superseded by", "Resolves assumption"],
@@ -442,17 +496,46 @@ async function main() {
   ];
 
   const mount = document.getElementById("sections");
-  for (const s of sections) {
-    const sec = document.createElement("section");
-    sec.innerHTML = `<h2>${esc(s.title)} <span class="count">${s.records.length}` +
-      (s.note ? ` · ${esc(s.note)}` : "") + `</span></h2><div class="card"></div>`;
-    mount.appendChild(sec);
-    if (s.records.length === 0) {
-      sec.querySelector(".card").innerHTML = '<p class="empty" style="padding:14px 18px">no records yet</p>';
-    } else {
-      makeTable(sec.querySelector(".card"), s.records, s.columns, s.detailFields, s.defaultSort);
+  const tabbar = document.createElement("nav");
+  tabbar.className = "tabs";
+  tabbar.setAttribute("role", "tablist");
+  mount.appendChild(tabbar);
+
+  const panels = {};
+  function activateTab(title) {
+    for (const [t, { btn, panel }] of Object.entries(panels)) {
+      btn.setAttribute("aria-selected", String(t === title));
+      panel.hidden = t !== title;
     }
   }
+  for (const s of sections) {
+    const btn = document.createElement("button");
+    btn.className = "tab";
+    btn.setAttribute("role", "tab");
+    btn.innerHTML = `${esc(s.title)} <span class="count">${s.records.length}</span>`;
+    btn.onclick = () => activateTab(s.title);
+    tabbar.appendChild(btn);
+
+    const panel = document.createElement("section");
+    panel.setAttribute("role", "tabpanel");
+    panel.hidden = true;
+    panel.innerHTML = (s.note ? `<p class="note">${esc(s.note)}</p>` : "") +
+      '<div class="card"></div>';
+    mount.appendChild(panel);
+    panels[s.title] = { btn, panel };
+
+    if (s.records.length === 0) {
+      panel.querySelector(".card").innerHTML = '<p class="empty" style="padding:14px 18px">no records yet</p>';
+    } else {
+      makeTable(panel.querySelector(".card"), s.records, s.columns, s.detailFields, s.defaultSort);
+    }
+  }
+  const PREFIX_TAB = { ASM: "Assumptions", EXP: "Experiments", DEC: "Decisions", TERM: "Terminology" };
+  activateTabByPrefix = id => {
+    const tab = PREFIX_TAB[id.split("-")[0]];
+    if (tab && panels[tab]) activateTab(tab);
+  };
+  activateTab("Assumptions");
 }
 main();
 </script>
