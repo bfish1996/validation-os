@@ -233,6 +233,13 @@ commitment · sample too small or wrong-Lens to mean anything · confirmation
 bias (only logging evidence that fits the bet) · a pass bar vague enough to
 always pass.
 
+Before finalizing the protocol, pressure-test it against
+`references/threats-to-validity.md` (selection bias, novelty effects,
+Hawthorne effect, regression to the mean, spillover, sample
+representativeness, multiple comparisons, instrumentation drift,
+survivorship bias) and its stopping-rule and ethics notes — name whichever
+apply and either mitigate or explicitly accept them in the record body.
+
 ## 3b. When is a prototype needed? (rule table)
 
 Keyed to **what the experiment is discovering** — never to enthusiasm for
