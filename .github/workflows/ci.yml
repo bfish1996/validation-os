@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pyyaml
+      - run: python scripts/validate.py
+
+  links:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Offline mode: relative/local links only. External links are skipped
+      # on purpose — they flake and nothing in-repo depends on them resolving.
+      - uses: lycheeverse/lychee-action@v2
+        with:
+          # desk-research-rubric.md contains [<source>](<url>) template
+          # placeholders, not real links.
+          args: --offline --no-progress --exclude-path skills/_shared/desk-research-rubric.md './**/*.md'
+          fail: true
+
+  # Advisory only: asks an LLM whether changed prose schema docs semantically
+  # disagree with ontology.yaml. Never blocks merge; skips without the secret.
+  semantic-drift:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Detect changed schema docs
+        id: changed
+        run: |
+          files=$(git diff --name-only "origin/${{ github.base_ref }}...HEAD" -- \
+            skills/_shared/ontology.yaml skills/_shared/registry-schema.md 'connectors/*-schema.md' \
+            | tr '\n' ' ')
+          echo "files=$files" >> "$GITHUB_OUTPUT"
+          echo "Changed schema docs: ${files:-none}"
+      - name: Review drift with Ollama
+        if: steps.changed.outputs.files != ''
+        env:
+          OLLAMA_API_KEY: ${{ secrets.OLLAMA_API_KEY }}
+        run: |
+          if [ -z "$OLLAMA_API_KEY" ]; then
+            echo "OLLAMA_API_KEY not set — semantic drift review skipped." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          python scripts/semantic_drift.py ${{ steps.changed.outputs.files }} >> "$GITHUB_STEP_SUMMARY"

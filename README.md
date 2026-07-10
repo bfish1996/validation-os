@@ -1,5 +1,7 @@
 # Validation-OS
 
+[![CI](https://github.com/bfish1996/validation-os/actions/workflows/ci.yml/badge.svg)](https://github.com/bfish1996/validation-os/actions/workflows/ci.yml)
+
 **An operating system for de-risking your startup — one falsifiable
 assumption at a time.** Six agent skills that turn the beliefs your
 business depends on into a scored, evidence-ranked register, and every
@@ -69,7 +71,8 @@ under a minute. Already run your product work in Notion? Choose the Notion
 connector and point the config at your own databases
 ([connectors/notion.md](connectors/notion.md)).
 
-Update later with `npx skills update`.
+Update later with `npx skills update`. Versioned releases are tagged
+(`vX.Y.Z`) with notes in [CHANGELOG.md](CHANGELOG.md).
 
 ## The skills
 
