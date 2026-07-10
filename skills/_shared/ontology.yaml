@@ -435,3 +435,5 @@ integrity_rules:
     severity: warn                # no hard cap, but no longer informational-only — goal-linkage now gates prioritization
     surfaced_by: ["/decisions audit"]
     check: Report the count of standing (Provisional+Active) Goal commitments and the share of open assumptions gated by one; when most open assumptions gate some goal, the "gates a committed goal" anchor and the Goal Linked gate have both stopped discriminating — review linking discipline in a gated session (decision-guardrails.md §9g).
+
+# (no-op comment: exercising the semantic-drift CI job; PR will be closed, not merged)
