@@ -231,7 +231,9 @@ template), `fake-door.md` (stimulus / costly ask / instrumentation spec).
 hypotheticals · vanity metrics (impressions, "interest") standing in for
 commitment · sample too small or wrong-Lens to mean anything · confirmation
 bias (only logging evidence that fits the bet) · a pass bar vague enough to
-always pass.
+always pass · a desirability bar on a watched session (observation destroys
+desire signals — `threats-to-validity.md`; a usage test measures
+comprehension/usability, desire needs its own Revealed record).
 
 Before finalizing the protocol, pressure-test it against
 `references/threats-to-validity.md` (selection bias, novelty effects,

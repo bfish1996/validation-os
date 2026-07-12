@@ -12,6 +12,18 @@ accept them in the record body. Silence is not the same as "not applicable."
 - **Hawthorne effect** — are subjects behaving differently because they know
   they're being observed? Relevant to any moderated interview or usability
   session.
+- **Demand characteristics** — subjects infer the hypothesis from the setup
+  (the wording, the artefact, your body language) and supply the result they
+  think you want. Directional, unlike Hawthorne, and unconscious — "I told
+  them to be honest" is not a countermeasure. Cheap check: end every session
+  with "what do you think this was about?" — it reveals what your setup was
+  signalling. Mitigations live in the interview guide's session-framing
+  rules (`interview-guide.md`).
+- **Professional participants** — recruits who've done many studies play a
+  learned tester role: they persevere through broken flows, never quit, and
+  narrate tidy rationales. A recruitment problem, not a protocol one:
+  recruit from your own funnel or intercept people who already have the
+  problem; screen out serial research-panel participants.
 - **Regression to the mean** — if subjects were picked because of an extreme
   value (angriest churned users, most engaged power users), they'll drift
   toward average regardless of the intervention.
@@ -28,6 +40,16 @@ accept them in the record body. Silence is not the same as "not applicable."
   run? (analytics tracking changed mid-test, interviewer changed the script)
 - **Survivorship bias** — are dropouts silently excluded in a way that skews
   the result? (churned users can't answer your retention survey)
+
+## What observation destroys — and what survives
+
+Being watched corrupts signal selectively, not uniformly. **Survives:**
+where they get stuck, what they misread, the mental model they reveal,
+whether they can complete the task. **Destroyed:** enthusiasm, "would you
+use this", stated willingness to pay — anything about desire. Build the
+pass bar only on signals that survive the instrument; desirability needs
+its own revealed-preference record (`Signed intent` / `Paying users`), not
+a question tacked onto a watched session.
 
 ## Stopping rules
 
