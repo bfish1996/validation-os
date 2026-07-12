@@ -126,7 +126,7 @@ before opening the next; the write is gated at the end.
      clears the bar.
    - **Anti-patterns** (reject): leading/"would you" hypotheticals · vanity
      metrics · wrong-Lens or too-small sample · confirmation bias · a bar
-     vague enough to always pass.
+     vague enough to always pass · a desirability bar on a watched session.
    - **Threats to validity, stopping rules, ethics** —
      `references/threats-to-validity.md`. Pressure-test the protocol against
      it and name anything that applies before moving to the gated write.

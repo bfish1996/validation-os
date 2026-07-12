@@ -19,7 +19,9 @@ experiment. Keep the skeleton's headings verbatim so it stays parseable.
 - Must-have characteristics: <screenable FACTS — things a recruiter can
   verify ("manages ≥2 client portfolios", "switched banks in the last
   year"), never attitudes ("cares about money")>
-- Disqualifiers: <who contaminates the sample>
+- Disqualifiers: <who contaminates the sample — always include serial
+  research-panel participants (`threats-to-validity.md` § professional
+  participants)>
 - Target N: <from the pass bar's M> · Channel: <how we reach them>
 
 ### Stimulus (if any)
@@ -27,14 +29,30 @@ experiment. Keep the skeleton's headings verbatim so it stays parseable.
 - What to show, when to show it, and what NOT to say while showing it
   (introduce the stimulus only AFTER the past-behaviour core — never open
   with the demo)
+- Framing: cast the session as a task, never an evaluation — no "prototype",
+  "test", or "feedback"; disown the artefact ("another team built this, I'm
+  checking it holds up"); give a goal the software merely serves ("get me
+  the answer to X"), so evaluating isn't the job on offer
+- License abandonment up front — "if you'd normally give up and do
+  something else, say so" — and log that moment as a prime datum, not a
+  failed session
+- Where possible run in their context: their device, their data, a task
+  they actually care about — stakes are the strongest de-tester lever
 
 ### Question arc
 1. Context opener — their world, not our idea
 2. Past-behaviour core — "walk me through the last time you…"
 3. Probes — why / how, follow the pain, ask for specifics
-4. (if stimulus) task + observe — set a task, watch, don't guide or rescue
+4. (if stimulus) task + observe — have them do the task in their current
+   tool first (uncontaminated baseline), then set the task in the stimulus;
+   watch, don't guide or rescue — every prompt you give is a demand
+   characteristic. Prefer silent work + retrospective narration over
+   concurrent think-aloud (narrating makes behaviour slower and more
+   rational than it is)
 5. Costly-signal close — ask for something that costs them: time, an intro,
    a follow-up commitment
+6. Debrief — "what do you think this session was about?" — logs what the
+   setup was signalling (`threats-to-validity.md` § demand characteristics)
 
 ### How to ask (rules)
 - Non-leading; never "would you…"
