@@ -76,9 +76,9 @@ from validation-os's own registry: the tool run on itself.
 ### Rationale
 Cites ASM-003 (real examples build more trust than fictional ones). A
 fictional company invites exactly the skepticism the README is trying to
-prevent — a reader can't check a made-up story against anything. Rationale
-citations never touch the cited row: ASM-003 stays `Draft` until grilled
-and, separately, needs a goal link to enter the test-next queue.
+prevent — a reader can't check a made-up story against anything. `Kind:
+Direction`, so citing ASM-003 here does not gate its Status; it stays
+`Not Started` until separately grilled and, separately again, goal-linked.
 
 ### Alternatives considered
 Keep Ledgerly and add a second, real example alongside it — rejected:
@@ -88,62 +88,3 @@ fictional example instead — rejected: same problem, different name.
 
 ### Source
 2026-07-09 planning session — this session's task.
-
-## DEC-003: An assumption is never validated — no terminal Validated state
-- **Type**: Decision
-- **Kind**: Direction
-- **Status**: Active
-- **Area**: Product
-- **Owner**: Benji
-- **Agreed by**: Benji
-- **Unanimity score**: 100
-- **Source**: Linear OPS-1110 / OPS-1117 (notes 2026-07-12, session 2026-07-13)
-- **Decided date**: 2026-07-13
-- **Reversibility**: Two-way door
-- **Related tension**: (none)
-- **Supersedes**: (none)
-- **Superseded by**: (none)
-- **Based on assumption**: ASM-011
-- **Resolves assumption**: (none)
-
-### Decision
-An assumption is never validated. The model stores no terminal `Validated`
-state: an assumption's standing is its live Risk score
-(Impact × (1 − Confidence/100)), which moves whenever evidence or Impact
-moves. Stored lifecycle is `Draft → Live → Invalidated` only; testing,
-queue membership, goal linkage, and the proven set are derived views.
-"Validated" survives as an experiment's `Result` and as the prose
-shorthand "validated at \<rung\>". Full semantics: `docs/validated.md`.
-
-### Rationale
-Every "because" is a ✅ ground truth or a register record:
-- ✅ Falsification asymmetry: finite evidence can conclusively refute a
-  general claim but never conclusively prove one (Popper — settled
-  epistemology, not a bet). So `Invalidated` can honestly be a state;
-  `Validated` cannot.
-- ✅ Evidence describes the population and moment it sampled; markets,
-  users, and products keep moving after the sample is taken.
-- ✅ By construction the evidence ladder tops out at 99, not 100
-  (`docs/evidence-ladder.md`, Gilad lineage): even the strongest evidence
-  class leaves residual uncertainty.
-- ASM-011 — the operational bet: a live Risk score resurfaces stale or
-  newly load-bearing beliefs that a terminal status would freeze. Cited as
-  rationale only (`Kind: Direction`), so the citation does not gate
-  ASM-011's own lifecycle.
-
-Unanimity 100: sole-founder decision, no dissent to record. Two-way door:
-reinstating statuses is a schema migration — a cost we'd pay, not a door
-that locks.
-
-### Alternatives considered
-Keep `Validated` as a resting-but-reopenable status — rejected: every
-consumer must then be taught the status lies ("validated, but check the
-date"); a derived proven-set view says the same thing without storing a
-claim that decays. A fixed Confidence threshold for "validated" —
-rejected: the stopping rule is Risk (Impact-weighted), so no global
-Confidence number is honest.
-
-### Source
-Linear OPS-1110 (closed 2026-07-13 on this decision) and the OPS-1117
-comment thread (2026-07-12 notes); decided in the 2026-07-13 working
-session.
