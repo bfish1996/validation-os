@@ -2,8 +2,8 @@
 
 This is validation-os's self-hosted register — the tool run on itself, since
 launch day. It's live, and it doubles as the repo's examples: the published
-records below are what `/setup-validation-os` seeds a new registry from, and
-what the `examples/` walkthrough narrates.
+records are what `/setup-validation-os` seeds a new registry from, and the
+worked examples the docs point to.
 
 ## Layout
 

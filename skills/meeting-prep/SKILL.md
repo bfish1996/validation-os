@@ -48,7 +48,8 @@ contact" / thinner internal history.
 > `../_shared/gated-writes.md`. Per-source search guidance:
 > `../find-evidence/references/`.
 
-Worked example: `../../examples/06-meeting-prep.md`.
+Worked example: the interview guide inside
+`../../registry/experiments/EXP-001.md`, from validation-os's own register.
 
 ## The two registers this touches
 

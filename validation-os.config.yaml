@@ -2,8 +2,7 @@
 #
 # validation-os run on itself: the real beliefs behind "will anyone install
 # and use this," tracked with the same method the tool ships. See
-# registry/ for the live records and examples/ for the walkthrough of how
-# they got there.
+# registry/ for the live records — a few are published as examples.
 
 connector: local-files
 

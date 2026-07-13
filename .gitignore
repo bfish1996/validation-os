@@ -4,6 +4,10 @@
 # Scratch
 *.bak
 
+# Personal tooling — the dashboard views my registry, not part of the
+# published repo.
+dashboard/
+
 # The live register is local-only by default; the un-ignored records below
 # are deliberately published as worked examples (registry/README.md).
 registry/assumptions/*

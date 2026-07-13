@@ -21,8 +21,6 @@ Run inside the directory the user will work from. If a config file already
 exists, this is a reconfigure: show the current values and change only what
 the user asks.
 
-Worked example: `../../examples/01-setup.md`.
-
 ## Steps
 
 1. **Choose the connector.** Ask where the registry should live:

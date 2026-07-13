@@ -102,12 +102,11 @@ trigger phrases, so "I'm meeting the CFO of X tomorrow" reaches
 boundaries: `/assumptions` stops where `/experiment-design` starts, and
 both stop before *running* anything — verdicts stay human.
 
-**Worked examples:** [examples/](examples/) follows one real assumption —
-validation-os run on itself, on its own launch day — from first mention to
-logged decision — one short scene per skill. The register it produces is
-real too: the records it narrates are published in [registry/](registry/)
-(one file per record; the full register is local-first, with a few records
-deliberately public).
+**Real examples:** [registry/](registry/) is validation-os run on itself —
+its own live register, one file per record. The full register is
+local-first; a linked set of records (an assumption, its experiment, the
+decision that rests on it) is deliberately published, so the examples are
+real records from the tool's own launch, not a fictional company.
 
 ## How it fits together
 
@@ -157,8 +156,9 @@ flowchart LR
 ```
 
 After step 7 the loop closes: the next-riskiest belief is already sitting
-on top of the queue. [examples/](examples/) walks this exact journey with
-one concrete assumption, one scene per skill.
+on top of the queue. The published records in [registry/](registry/) show
+this exact journey on one concrete assumption (ASM-001 → EXP-001 →
+DEC-001).
 
 The goal in gate ② has a lifecycle of its own — drafting it is what opens
 the gate, and its verdict at the end flows back in as evidence. Same
@@ -295,21 +295,6 @@ against [the spec](connectors/SPEC.md). Each ships with a schema guide
 (`connectors/<name>-schema.md`) that `/setup-validation-os` uses to validate
 or build the backend for you — validate-first, every change gated.
 
-## Dashboard
-
-A zero-dependency local viewer for the registers — stat tiles and
-sortable, expandable tables, riskiest belief on top:
-
-```bash
-python3 dashboard/serve.py    # http://localhost:8787
-```
-
-Markdown stays the source of truth: the page re-parses `registry/` on
-every refresh, and the same parse is served at `/registry.json` (and
-downloadable from the page) for anything that wants the registers as
-JSON. Works on any project using the local-files connector — it reads
-`registry_dir` from your config.
-
 ## Repo map
 
 ```
@@ -319,10 +304,8 @@ skills/               the six skills + setup, one dir per skill
                       discipline)
 connectors/           storage contract + reference implementations
 registry/             the live self-hosted register — validation-os run on
-                      itself, one file per record (examples/ narrates it;
-                      local-first, a few records published as examples)
-examples/             one assumption followed end-to-end, a scene per skill
-dashboard/            local read-only viewer + JSON view of the registers
+                      itself, one file per record (local-first, a few
+                      records published as examples)
 docs/                 the method, the evidence ladder, the weekly ritual,
                       where it applies by function
 ```
