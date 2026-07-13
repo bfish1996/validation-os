@@ -1,12 +1,3 @@
-# Terminology
-
-The shared glossary — one `## TERM-###` section per term, so the whole
-team (and every skill) speaks one language. Format:
-`connectors/local-files.md` · field rules:
-`skills/_shared/registry-schema.md`. Owned by `/decisions`.
-
-This is validation-os's own register — the tool run on itself, on launch day.
-
 ## TERM-001: Self-hosted register
 - **Type**: Terminology
 - **Status**: Active
@@ -28,7 +19,8 @@ This is validation-os's own register — the tool run on itself, on launch day.
 ### How it differs
 - **vs `templates/registry/`:** the starter rows there are a generic,
   disposable scaffold for a new user's own project. The self-hosted
-  register is validation-os's own, permanent, and git-tracked.
+  register is validation-os's own and permanent — local-first, with a few
+  records published as worked examples (`registry/README.md`).
 - **vs the old `examples/` walkthrough:** the walkthrough narrates what a
   skill session looked like; the self-hosted register is the actual
   record that session produced.

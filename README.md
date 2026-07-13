@@ -105,7 +105,9 @@ both stop before *running* anything — verdicts stay human.
 **Worked examples:** [examples/](examples/) follows one real assumption —
 validation-os run on itself, on its own launch day — from first mention to
 logged decision — one short scene per skill. The register it produces is
-real too: [registry/](registry/).
+real too: the records it narrates are published in [registry/](registry/)
+(one file per record; the full register is local-first, with a few records
+deliberately public).
 
 ## How it fits together
 
@@ -316,7 +318,8 @@ skills/               the six skills + setup, one dir per skill
                       discipline)
 connectors/           storage contract + reference implementations
 registry/             the live self-hosted register — validation-os run on
-                      itself (examples/ narrates it; this is the record)
+                      itself, one file per record (examples/ narrates it;
+                      local-first, a few records published as examples)
 examples/             one assumption followed end-to-end, a scene per skill
 dashboard/            local read-only viewer + JSON view of the registers
 templates/            config + starter registry files

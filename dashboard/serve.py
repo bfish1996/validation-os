@@ -17,12 +17,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 
-REGISTERS = {
-    "assumptions": "assumptions.md",
-    "experiments": "experiments.md",
-    "decisions": "decisions.md",
-    "terminology": "terminology.md",
-}
+REGISTERS = ("assumptions", "experiments", "decisions", "terminology")
 
 H2_RE = re.compile(r"^## ((?:ASM|EXP|DEC|TERM)-\d+):\s*(.*)$")
 FIELD_RE = re.compile(r"^- \*\*(.+?)\*\*:\s*(.*)$")
@@ -82,11 +77,26 @@ def parse_register(path):
     return records
 
 
+def record_sort_key(rec):
+    prefix, _, num = rec["id"].partition("-")
+    return (prefix, int(num))
+
+
 def build_registry(registry_dir):
     out = {"registry_dir": str(registry_dir)}
-    for key, filename in REGISTERS.items():
-        path = registry_dir / filename
-        out[key] = parse_register(path) if path.exists() else []
+    for key in REGISTERS:
+        # One file per record (registry/<register>/<ID>.md); a register may
+        # still be a legacy single file (<register>.md).
+        directory = registry_dir / key
+        legacy = registry_dir / f"{key}.md"
+        if directory.is_dir():
+            records = [rec for path in sorted(directory.glob("*.md"))
+                       for rec in parse_register(path)]
+        elif legacy.exists():
+            records = parse_register(legacy)
+        else:
+            records = []
+        out[key] = sorted(records, key=record_sort_key)
     return out
 
 

@@ -21,17 +21,21 @@ resolved against the working directory.
 
 ```
 registry/
-  assumptions.md    # one ## section per assumption   (ASM-###)
-  experiments.md    # one ## section per experiment   (EXP-###)
-  decisions.md      # one ## section per decision     (DEC-###)
-  terminology.md    # one ## section per term         (TERM-###)
+  README.md         # layout + local/public policy
+  assumptions/      # one file per assumption   (ASM-###.md)
+  experiments/      # one file per experiment   (EXP-###.md)
+  decisions/        # one file per decision     (DEC-###.md)
+  terminology/      # one file per term         (TERM-###.md)
 ```
 
 ## Record format
 
-One `##` heading per record: `## <ID>: <Title>`. Fields as a bullet list
-directly under the heading; body sections as `###` subheadings. Relations are
-ID references (`ASM-002`), comma-separated. Example:
+One record per file, named by ID (`ASM-002.md`). The record keeps its
+`## <ID>: <Title>` heading as the first line — so a record's text is identical
+whether it lives in its own file or a legacy single-file register. Fields as a
+bullet list directly under the heading; body sections as `###` subheadings.
+Relations are ID references (`ASM-002`), comma-separated. Example
+(`registry/assumptions/ASM-002.md`):
 
 ```markdown
 ## ASM-002: Agent-native founders install via `npx skills add`
@@ -60,14 +64,14 @@ ID references (`ASM-002`), comma-separated. Example:
 
 ## Operations
 
-- **Query all** — read the whole register file; every `##` section is a record.
-- **Fetch one** — the `##` section whose ID matches.
-- **Search** — read the register file(s) and judge semantic similarity directly;
-  the files are small enough to read whole.
-- **Create** — append a new `##` section. Next ID = highest existing number + 1
-  for that prefix. Include every field the schema names, `(none)` where empty,
-  and all body subheadings even when empty.
-- **Update** — edit the record's section in place; leave untouched fields and
+- **Query all** — list the register directory; every `*.md` file is a record.
+- **Fetch one** — read the file named by the ID (`assumptions/ASM-002.md`).
+- **Search** — read the register directory's files and judge semantic
+  similarity directly; each record is small enough to read whole.
+- **Create** — write a new `<ID>.md` file. Next ID = highest number in the
+  directory's filenames + 1 for that prefix. Include every field the schema
+  names, `(none)` where empty, and all body subheadings even when empty.
+- **Update** — edit the record's file in place; leave untouched fields and
   sections intact.
 - **Link** — write the ID into both records' relation bullets (two-way
   relations: both ends; the Assumption↔Experiment pair: `Experiments:` on the
@@ -88,8 +92,11 @@ by hand knows not to type them.
 ## Cautions
 
 - Gated writes are file edits — propose the diff before saving.
-- A register file that's missing gets created empty from the template, with the
+- A register directory that's missing gets created from the template, with the
   user's confirmation — never silently.
-- If a record's section deviates from the format (missing fields, renamed
-  headings), flag it for repair rather than working around it; malformed rows
-  silently escape queries and audits.
+- If a record deviates from the format (missing fields, renamed headings, a
+  filename that doesn't match its heading ID), flag it for repair rather than
+  working around it; malformed rows silently escape queries and audits.
+- Legacy layout: a register may still be a single file (`assumptions.md`, one
+  `##` section per record). Read it fine, but offer to migrate to
+  one-file-per-record before the next write.

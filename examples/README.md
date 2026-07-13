@@ -5,9 +5,12 @@ assumption followed from first mention to a logged decision.
 
 **This is real.** Earlier versions of this walkthrough followed a fictional
 startup ("Ledgerly"). We replaced it: this thread is validation-os run on
-itself, on its own public launch day (2026-07-09) — the actual assumptions,
-experiments, and decisions live in [`registry/`](../registry/) at the repo
-root. Names, dates, and the GitHub numbers in scene 04 are real; nothing
+itself, on its own public launch day (2026-07-09) — the actual assumption,
+experiment, and decision records this thread produces are published in
+[`registry/`](../registry/) at the repo root (the full register is
+local-first; those records are deliberately public — see
+`registry/README.md`). Names, dates, and the GitHub numbers in scene 04 are
+real; nothing
 here is invented. Where a real outcome hasn't happened yet (the friend
 interviews in EXP-001 are still running as this is written), the scene says
 so instead of making one up.

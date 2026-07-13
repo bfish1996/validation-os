@@ -1,11 +1,3 @@
-# Terminology
-
-The shared glossary — one `## TERM-###` section per term, so the whole team
-(and every skill) speaks one language. Format: `connectors/local-files.md` ·
-field rules: `skills/_shared/registry-schema.md`. Owned by `/decisions`. The
-example below is safe to delete — it's a real term from validation-os's own
-register (`../../registry/terminology.md`).
-
 ## TERM-001: Self-hosted register (example)
 - **Type**: Terminology
 - **Status**: Active

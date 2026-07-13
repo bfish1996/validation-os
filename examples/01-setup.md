@@ -17,8 +17,12 @@ creates them on confirm —
 
 ```
 validation-os.config.yaml
-registry/assumptions.md · experiments.md · decisions.md · terminology.md
+registry/README.md
+registry/assumptions/ · experiments/ · decisions/ · terminology/
 ```
+
+One directory per register, one file per record (`ASM-001.md`), each seeded
+with a single example row.
 
 ▎ Which evidence sources can this agent actually reach? Web is always
 ▎ available; no Fireflies, Slack, or Attio are connected in this
