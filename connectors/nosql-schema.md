@@ -237,7 +237,8 @@ or transaction.
 
 ### seed_starter_records
 
-Insert starter documents from `templates/registry/` into the three collections.
+Insert one example starter document per register (titles marked `(example)`)
+into the three collections.
 Starter relations (e.g., experiment → assumption) are set as both relation
 arrays and inverse references. This is a gated write: preview the documents
 before inserting.

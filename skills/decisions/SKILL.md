@@ -39,8 +39,6 @@ work the register through the active connector (`connectors/SPEC.md`).
 > `../_shared/registry-schema.md`. Gate discipline:
 > `../_shared/gated-writes.md`. Read the ones your mode needs.
 
-Worked example (Decision capture): `../../examples/07-log-the-decision.md`.
-
 ## Pick the mode (Type × mode)
 
 | Type | Mode | Scope | Gate | Reference |

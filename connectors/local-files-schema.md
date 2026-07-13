@@ -15,8 +15,8 @@ setup_operations:
     tool_namespace: file-system
 registers:
   assumptions:
-    source: file
-    file: assumptions.md
+    source: directory
+    dir: assumptions
     properties:
       - {canonical: Title, backend: "## <ID>: <Title> heading", type: heading, derived: false}
       - {canonical: Description, backend: Description, type: text, derived: false}
@@ -34,8 +34,8 @@ registers:
       - {canonical: Contradicts, backend: Contradicts, target: assumptions, cardinality: many, self: true}
       - {canonical: Experiments, backend: Experiments, target: experiments, cardinality: many, inverse: Assumption}
   experiments:
-    source: file
-    file: experiments.md
+    source: directory
+    dir: experiments
     properties:
       - {canonical: Title, backend: "## <ID>: <Title> heading", type: heading, derived: false}
       - {canonical: Type, backend: Type, type: text, derived: false, options_source: registry-schema}
@@ -50,10 +50,10 @@ registers:
     relations:
       - {canonical: Assumption, backend: Assumption, target: assumptions, cardinality: one, inverse: Experiments}
   decisions_terminology:
-    source: file
-    files:
-      Decision: decisions.md
-      Terminology: terminology.md
+    source: directory
+    dirs:
+      Decision: decisions
+      Terminology: terminology
     properties:
       - {canonical: Title, backend: "## <ID>: <Title> heading", type: heading, derived: false}
       - {canonical: Type, backend: Type, type: text, derived: false, options_source: registry-schema}
@@ -89,12 +89,13 @@ local_files:
 
 ## Source containers
 
-Each register is one markdown file under `registry_dir`:
+Each register is a directory under `registry_dir`, holding one markdown file
+per record named by ID (`<ID>.md`):
 
-- `assumptions.md`
-- `experiments.md`
-- `decisions.md`
-- `terminology.md`
+- `assumptions/` — `ASM-###.md`
+- `experiments/` — `EXP-###.md`
+- `decisions/` — `DEC-###.md`
+- `terminology/` — `TERM-###.md`
 
 ## Field mapping — Assumptions
 
@@ -163,7 +164,7 @@ Result. See `registry-schema.md` and `experiment-guardrails.md` §2.
 
 ## Field mapping — Decisions & Terminology
 
-One file (`decisions.md` / `terminology.md`) split by `Type`.
+One directory each (`decisions/` / `terminology/`), split by `Type`.
 
 ### Shared fields
 
@@ -239,24 +240,26 @@ follows:
 
 ### validate_backend
 
-Check that `registry_dir` exists and contains `assumptions.md`, `experiments.md`,
-`decisions.md`, and `terminology.md`. For each file, scan the first few
-records and verify that every required field bullet is present and that derived
-values carry the `<!-- derived -->` marker. Report missing files, malformed
-sections, or missing fields.
+Check that `registry_dir` exists and contains the `assumptions/`,
+`experiments/`, `decisions/`, and `terminology/` directories. For each, scan a
+few record files and verify the filename matches the record's heading ID, every
+required field bullet is present, and derived values carry the
+`<!-- derived -->` marker. Report missing directories, malformed records, or
+missing fields. A register that is still a legacy single file
+(`assumptions.md`) validates against the same record rules, with a note to
+migrate.
 
 ### create_backend
 
-Create `registry_dir` and scaffold the four files from
-`templates/registry/`. Each file starts with a single placeholder record so the
-format is self-documenting. If a file already exists, the operation is skipped
-per-file and the user is warned.
+Create `registry_dir` and the four register directories. If a directory
+already exists, the operation is skipped per-directory and the user is warned.
 
 ### seed_starter_records
 
-Append the starter content from `templates/registry/` into the four files,
-replacing the placeholder records. This is a gated write: `/setup-validation-os`
-shows the diff before saving.
+Write one example record per register — every field bullet and body subheading
+this guide names, `(example)` appended to the title so it's obviously safe to
+delete — into the four directories, so a new registry is self-documenting.
+This is a gated write: `/setup-validation-os` shows the diff before saving.
 
 ### migrate_schema
 

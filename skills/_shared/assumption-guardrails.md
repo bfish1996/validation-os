@@ -163,6 +163,21 @@ a record with no outgoing `Depends on` (it bottoms out a 5-Whys chain, §2) is
 normal; don't inflate Impact just because a record has nothing further to
 trace. Only a high *incoming* `Enables` count moves the score.
 
+**Decision anchor (downward).** The goal anchor's mirror: decisions never
+close assumptions — they change what's staked on them. A standing
+(`Provisional`/`Active`) decision that carries a `Resolves assumption` link
+to this record (`decision-guardrails.md §6`) has foreclosed every path the
+question mattered on, so damage-if-false collapses: Impact drops to **0**
+in the same gated write and the row goes moot (`registry-schema.md §Status
+& derived views`), with a dated line in the *Scoring justification*
+recording the prior score and citing the decision — so reversal can restore
+it (mootness dies with the decision, `decision-guardrails.md §8`). If the
+chosen path still leans on the belief, that's not a resolve at all — it's
+`Based on`, and the score stays where the bands put it. Never a Confidence
+input: deciding is not evidence. The staleness check mirrors the goal
+anchor's — an Impact-0 score justified only by a decision that no longer
+stands is stale; audit flags it for a gated restore.
+
 **Impact is the only hand-scored number.**
 `Risk = Impact × (1 − Confidence/100)` (derived, never hand-written) ranges
 0–100; highest Risk is tested next.
