@@ -116,7 +116,9 @@ rules: `skills/_shared/decision-guardrails.md §9`.
 
 Experiments conclude with a human rendering **Validated / Invalidated /
 Inconclusive** against the pre-registered bar — never auto-flipped by a
-threshold, never by a batch job. Autonomous modes (register-wide grilling,
+threshold, never by a batch job. What a verdict does and doesn't settle —
+and why an assumption is never *fully* validated — is defined in
+`validated.md`. Autonomous modes (register-wide grilling,
 decision sweeps) write drafts and tag a `Human review` gap; only a gated
 session with the record's owner promotes their work. The cadence for this
 is the weekly ritual (`weekly-ritual.md`).

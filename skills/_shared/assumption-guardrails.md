@@ -168,7 +168,9 @@ trace. Only a high *incoming* `Enables` count moves the score.
 
 **Confidence is derived, not a score.** It comes from the record's linked
 Experiments (evidence) — you raise it by **logging evidence records**, never
-by typing a number. So the less accumulated evidence a record has, the higher
+by typing a number. It caps at 99: an assumption is never fully validated,
+and "validated enough" is a Risk judgment, not a Confidence number
+(`docs/validated.md`). So the less accumulated evidence a record has, the higher
 its Risk, automatically. Confidence is a function of **three axes** (full
 ruleset: `experiment-guardrails.md §2`):
 

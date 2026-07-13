@@ -110,7 +110,11 @@ Not Started ──(a Provisional/Active Goal commitment──▶ Goal Linked ─
   an experiment with `Result = Running`.
 - **`→ Validated / Invalidated / Inconclusive`** — flipped only when a conclusive
   experiment lands, human-gated. `Inconclusive` may loop back to
-  `Experiment Needed` when a better test is worth designing.
+  `Experiment Needed` when a better test is worth designing. `Validated` is a
+  snapshot of the strongest concluded evidence, not permanent closure — new
+  evidence, a rising Impact, or a staleness flag can put the belief back in
+  play (semantics: `docs/validated.md`; how re-entry is encoded in this
+  status machine is a schema change, tracked separately).
 - **Human-in-the-loop rule:** batch/loop modes **never flip Status** — they tag
   the `Human review` gap on every row they auto-grill, so a row can only enter
   the test-next queue once a human clears that gap in a gated session with the

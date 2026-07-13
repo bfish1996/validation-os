@@ -32,3 +32,38 @@ This is validation-os's own register — the tool run on itself, on launch day.
 - **vs the old `examples/` walkthrough:** the walkthrough narrates what a
   skill session looked like; the self-hosted register is the actual
   record that session produced.
+
+## TERM-002: Validated
+- **Type**: Terminology
+- **Status**: Active
+- **Area**: Docs & DX
+- **Related tension**: (none)
+
+### Definition
+- **All:** Of an **experiment** (`Result`): a human rendered the verdict
+  that the result cleared the pre-registered `We're right if` bar. Binary,
+  and a permanent historical fact. Of an **assumption** (`Status`): the
+  strongest concluded evidence currently supports the belief — a
+  provisional snapshot, always at a rung, never total. Full definition:
+  `docs/validated.md`.
+
+### Avoid / don't say
+- **All:** "fully validated" / "100% validated" → no such state;
+  Confidence caps at 99. Say "validated at \<rung\>" or give the
+  Confidence number.
+- **All:** "proven" of an assumption → records (concluded experiments) are
+  proven; a belief stays a bet. Say "validated at \<rung\>".
+- **All:** "closed" of a validated assumption → validation never closes a
+  question; only true invalidation (or graduating to a ✅ ground truth)
+  does. Say "below the risk threshold".
+
+### How it differs
+- **vs Proven (record):** "proven" describes an experiment row with a
+  conclusive `Result`; "validated" as an assumption `Status` is the rollup
+  of such records — evidence about a belief, not the belief becoming fact.
+- **vs ✅ Ground truth:** a ground truth is settled and lives outside the
+  register; a validated assumption is still an open bet whose Risk is
+  currently bought down.
+- **vs Closed by decision:** a decision can retire a question without
+  testing it; it never validates anything — only evidence moves
+  Confidence.

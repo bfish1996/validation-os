@@ -40,5 +40,9 @@ reflect **commitment**: what the signal cost the person to give.
   conversion rates; it cannot tell you *your* users will convert. For
   your-user behavioural claims, desk evidence caps at Inconclusive.
 
+- **The ladder tops out at 99, never 100.** No amount of evidence turns a
+  bet into a certainty — an assumption is never fully validated. What
+  "validated" does and doesn't mean: `validated.md`.
+
 Full operational ruleset: `skills/_shared/experiment-guardrails.md §2`.
 Credit: the ladder adapts Itamar Gilad's Confidence Meter.

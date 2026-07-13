@@ -47,6 +47,7 @@ Assumption → grill & score → Experiment (pre-registered pass/kill bars)
 
 Theory, ladder, cadence, and goals: [docs/method.md](docs/method.md) ·
 [docs/evidence-ladder.md](docs/evidence-ladder.md) ·
+[docs/validated.md](docs/validated.md) ·
 [docs/weekly-ritual.md](docs/weekly-ritual.md) ·
 [docs/goals.md](docs/goals.md). Not just product — sales outreach,
 pricing, fundraising, partnerships: [docs/domains.md](docs/domains.md).
