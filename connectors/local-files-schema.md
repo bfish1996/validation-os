@@ -256,11 +256,10 @@ already exists, the operation is skipped per-directory and the user is warned.
 
 ### seed_starter_records
 
-Copy the published example records from validation-os's own `registry/` (one
-per register — real, complete rows, not a fictional company) into the four
-directories, with `(example)` appended to each title so they're obviously safe
-to delete. This is a gated write: `/setup-validation-os` shows the diff before
-saving.
+Write one example record per register — every field bullet and body subheading
+this guide names, `(example)` appended to the title so it's obviously safe to
+delete — into the four directories, so a new registry is self-documenting.
+This is a gated write: `/setup-validation-os` shows the diff before saving.
 
 ### migrate_schema
 

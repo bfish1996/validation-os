@@ -8,24 +8,12 @@
 # published repo.
 dashboard/
 
-# The live register is local-only by default; the un-ignored records below
-# are deliberately published as worked examples (registry/README.md).
-registry/assumptions/*
-!registry/assumptions/ASM-001.md
-!registry/assumptions/ASM-006.md
-registry/experiments/*
-!registry/experiments/EXP-001.md
-!registry/experiments/EXP-002.md
-registry/decisions/*
-!registry/decisions/DEC-001.md
-!registry/decisions/DEC-002.md
-registry/terminology/*
-!registry/terminology/TERM-001.md
-
-# Raw evidence (transcripts, chat exports, identities) — local-only.
-# Public register records reference these paths and stay anonymized.
-registry/evidence/*
-!registry/evidence/README.md
+# The live register is local-only for now — versioned in its own nested git
+# repo (registry/.git) until we decide what, if anything, gets published.
+# To publish records later, replace this line with per-register patterns
+# (`registry/assumptions/*` + `!registry/assumptions/ASM-001.md`, ...) —
+# a `!` negation can't resurrect files inside a fully ignored directory.
+registry/
 
 # Local-only git hooks (consumer-side automation)
 .git/hooks/*

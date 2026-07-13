@@ -247,9 +247,8 @@ unasked.
 
 ### seed_starter_records
 
-Create one starter row per register from the published example records in
-validation-os's own `registry/` (titles marked `(example)`), setting relations
-where the starter content references itself (e.g., the starter
+Create one example starter row per register (titles marked `(example)`),
+setting relations where the starter content references itself (e.g., the starter
 experiment links to the starter assumption). Body content goes into the Notion
 page body as blocks, preserving the `## Decision`, `## Definition`, etc.
 subheadings.

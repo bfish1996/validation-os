@@ -48,9 +48,6 @@ Per-source search guidance lives in `references/` (one file per source
 type). No internal sources configured → the internal flavour still works by
 asking the user to paste or point at material.
 
-Worked example (desk flavour): `../../registry/experiments/EXP-002.md` — a
-real desk-research row from validation-os's own register.
-
 ## When to reach for this vs. its siblings
 
 - **`/find-evidence` (here)** — you have a record and want to know & log

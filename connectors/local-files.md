@@ -17,8 +17,7 @@ resolved against the working directory.
 
 ## Setup
 
-`/setup-validation-os` scaffolds the directory, seeding starter records from
-the published examples in this repo's own `registry/`:
+`/setup-validation-os` scaffolds the directory:
 
 ```
 registry/

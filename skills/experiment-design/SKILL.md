@@ -47,9 +47,6 @@ work the register through the active connector (`connectors/SPEC.md`).
 > Field map: `../_shared/registry-schema.md`. Gate discipline:
 > `../_shared/gated-writes.md`.
 
-Worked example: `../../registry/experiments/EXP-001.md` — a real designed
-test, interview guide included, from validation-os's own register.
-
 ## The two registers this touches
 
 - **Experiments** — work here. One assumption per experiment; evidence is

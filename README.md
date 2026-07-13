@@ -102,11 +102,10 @@ trigger phrases, so "I'm meeting the CFO of X tomorrow" reaches
 boundaries: `/assumptions` stops where `/experiment-design` starts, and
 both stop before *running* anything — verdicts stay human.
 
-**Real examples:** [registry/](registry/) is validation-os run on itself —
-its own live register, one file per record. The full register is
-local-first; a linked set of records (an assumption, its experiment, the
-decision that rests on it) is deliberately published, so the examples are
-real records from the tool's own launch, not a fictional company.
+**Run on itself:** validation-os tracks its own launch — will anyone
+install and use this? — as a live register built with the same method it
+ships. That register is local-first and private for now; the record format
+is documented in full in the connector guides.
 
 ## How it fits together
 
@@ -156,9 +155,7 @@ flowchart LR
 ```
 
 After step 7 the loop closes: the next-riskiest belief is already sitting
-on top of the queue. The published records in [registry/](registry/) show
-this exact journey on one concrete assumption (ASM-001 → EXP-001 →
-DEC-001).
+on top of the queue.
 
 The goal in gate ② has a lifecycle of its own — drafting it is what opens
 the gate, and its verdict at the end flows back in as evidence. Same
@@ -303,9 +300,6 @@ skills/               the six skills + setup, one dir per skill
                       machine-readable ontology, evidence procedures, gate
                       discipline)
 connectors/           storage contract + reference implementations
-registry/             the live self-hosted register — validation-os run on
-                      itself, one file per record (local-first, a few
-                      records published as examples)
 docs/                 the method, the evidence ladder, the weekly ritual,
                       where it applies by function
 ```
