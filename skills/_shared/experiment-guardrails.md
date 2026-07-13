@@ -5,7 +5,7 @@ The canonical rules every experiment **design** must satisfy. Cited by
 `references/{interview-guide,prototype-brief,survey,fake-door}.md` playbooks
 expand §3 into runnable artifacts — they cite this file, they don't fork it)
 and by the evidence skills that conclude a designed test (`/find-evidence`,
-via `desk-research-rubric.md` and `historic-evidence.md`). When this
+via `historic-evidence.md`). When this
 changes, all paths change.
 
 An experiment exists to **kill or confirm one assumption as cheaply as it

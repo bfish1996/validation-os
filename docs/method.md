@@ -55,7 +55,7 @@ Skills: `/experiment-design` (forward tests), `/find-evidence`
 `/meeting-prep` (person → assumption matching: work backward from who
 you're meeting to what they can uniquely prove or disprove). Rules:
 `skills/_shared/experiment-guardrails.md`,
-`skills/_shared/desk-research-rubric.md`.
+`skills/_shared/historic-evidence.md`.
 
 ## Habit 3 — Speak one language, log decisions
 
