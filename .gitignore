@@ -4,6 +4,17 @@
 # Scratch
 *.bak
 
+# Personal tooling — the dashboard views my registry, not part of the
+# published repo.
+dashboard/
+
+# The live register is local-only for now — versioned in its own nested git
+# repo (registry/.git) until we decide what, if anything, gets published.
+# To publish records later, replace this line with per-register patterns
+# (`registry/assumptions/*` + `!registry/assumptions/ASM-001.md`, ...) —
+# a `!` negation can't resurrect files inside a fully ignored directory.
+registry/
+
 # Local-only git hooks (consumer-side automation)
 .git/hooks/*
 !.git/hooks/*.sample

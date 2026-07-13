@@ -239,7 +239,8 @@ transaction.
 
 ### seed_starter_records
 
-Insert starter rows from `templates/registry/` into the three tables. Starter
+Insert one example starter row per register (titles marked `(example)`) into
+the three tables. Starter
 relations (e.g., experiment → assumption) are inserted into the appropriate
 junction tables. This is a gated write: preview the `INSERT` statements before
 running.
