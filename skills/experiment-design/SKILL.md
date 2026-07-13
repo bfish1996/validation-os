@@ -24,14 +24,15 @@ license: MIT
 Take one untested assumption and design the right experiment to kill or
 confirm it — as cheaply as it honestly can — then link it into the
 Experiments register and stop. This is the follow-up to `/assumptions`,
-which builds guardrail-clean beliefs and drops them onto a **test-next**
-queue; this skill picks them up.
+which builds guardrail-clean beliefs and flips them `Live`, feeding the
+derived **test-next** queue; this skill picks them up.
 
 **Scope = design + preparation, stops before *running*.** Pick the
 assumption, choose the `Type` rung, pre-register the pass/kill bars, write
-the protocol, create + link the record (`Result = Running`), (gated) flip
-the assumption `Status` → `Testing` — then **prepare the run** (step 7): the
-rung-matched playbook in `references/` produces the runnable artifacts.
+the protocol, create + link the record (`Result = Running`) — the linked
+assumption shows in the derived **Testing** view automatically — then
+**prepare the run** (step 7): the rung-matched playbook in `references/`
+produces the runnable artifacts.
 **Then stop.** Running the test, recruiting, sending, building the
 prototype, and recording `Result` / findings stay outside this skill.
 Evidence is **not** a separate table — it lives on the Experiment record
@@ -55,25 +56,27 @@ Worked example: `../../examples/05-design-the-experiment.md`.
   captured on this record (`Type` + `Result`).
 - **Assumptions** — the test-next queue source and the relation target. Read
   Description, body *Metric for truth*, Lens, Risk, Status, Confidence.
-  Write **only** `Status` (`Experiment Needed` → `Testing`), gated.
+  **Read-only** — creating the `Running` experiment is what moves the row
+  into the derived Testing view; no assumption field is written here.
 
 > ⚠️ Never work from a filtered view for the queue — query the full register
 > so nothing is silently out of scope.
 
-Two axes, kept separate: assumption **`Status`** = the verdict axis;
+Two axes, kept separate: the experiment's **`Result`** = the verdict axis;
 assumption **`Confidence`** = how strongly known (derived from experiments).
-This skill moves `Status` Experiment Needed → Testing and sets the
-experiment `Result` = Running, nothing further. (A record still
-`Not Started` or `Goal Linked` isn't in the test-next queue yet — `Not
-Started` needs a goal link from `/decisions`, `Goal Linked` needs grill
-close-out from `/assumptions` — send it there first, or note the
-exception.)
+This skill sets the experiment `Result` = Running, nothing further — the
+assumption's `Status` never moves here. (A record not in the derived
+test-next queue isn't ready yet — still `Draft` needs grill close-out from
+`/assumptions`, unlinked needs a goal link from `/decisions`, an
+already-running experiment means it's mid-test — send it there first, or
+note the exception.)
 
 ## Seed (pick or detect)
 
-- **Test-next queue (default).** Query Assumptions for
-  `Status = Experiment Needed`, sort by Risk descending, recommend the top
-  record.
+- **Test-next queue (default).** Compute the derived queue — `Status =
+  Live` (`Gaps` empty by invariant), goal-linked, no linked `Running`
+  experiment, Risk ≥ the working threshold — sort by Risk descending,
+  recommend the top record.
 - **Named assumption.** User names one — load that record.
 - **Already-chosen approach.** User says "interview to test X" — skip the
   recommendation in step 2, but still validate it maps to the right `Type`
@@ -139,9 +142,9 @@ before opening the next; the write is gated at the end.
    rung), `Feasibility`, `Result = Running`, `Date` = start; Owner and
    Interviewee optional at design. Link the **one** `Assumption`.
 6. **Gated write** (`../_shared/gated-writes.md`). Render the full record +
-   body, confirm, then create it. On confirm, offer to flip the linked
-   assumption's `Status` → `Testing` (a **second** gated write). Then
-   continue to step 7.
+   body, confirm, then create it. The linked assumption now shows in the
+   derived **Testing** view automatically — no status write. Then continue
+   to step 7.
 7. **Prepare the run** (router — open the ONE `references/` playbook
    matching the chosen `Type` rung; each playbook's writes are separately
    gated):
@@ -184,5 +187,6 @@ experiment).
 - **Writes are gated** — confirm the exact record + body before creating.
 - **Never set `Result` to anything but `Running`.** Verdicts, findings, and
   outcome dates belong to the evidence skills.
-- **Never set assumption `Status` past `Testing`.** Confidence rolls up on
-  its own — never hand-edit `Strength` / `Confidence`.
+- **Never write the assumption's `Status`.** The `Running` record alone
+  puts the row in the derived Testing view; Confidence rolls up on its
+  own — never hand-edit `Strength` / `Confidence`.

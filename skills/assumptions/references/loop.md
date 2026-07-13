@@ -40,7 +40,8 @@ clause schedules another round. A record is **done** when:
 1. `Gaps` contains **exactly `Human review` and nothing else** (all phases
    resolved; the review gap is loop's hand-off to a human — loop SETS it on
    every record it grills and never clears it, so a machine-grilled record
-   cannot reach the test-next queue without a gated human sign-off).
+   stays `Draft` — never `Live`, never in the derived test-next queue —
+   without a gated human sign-off).
 2. `Description` is canonical — `We assume [who] will [action] because
    [reason]`, real who/action/reason, plain language, no hyperbole.
 3. Single `Lens` set; `Theme` tagged.
@@ -118,8 +119,9 @@ Gates were waived, so these are built in instead:
 - **Read-only fields.** Never write `Risk`, `Confidence`, or `Strength`
   (derived — on the local-files connector, recompute them per
   `connectors/local-files.md`, never invent them). **Never flip `Status`** —
-  even the `Goal Linked` → `Experiment Needed` flip belongs to the gated
-  human-review session, because loop leaves the `Human review` gap set.
+  even the `Draft` → `Live` flip belongs to the gated human-review session,
+  because loop leaves the `Human review` gap set, holding the row in
+  `Draft`.
 - **Human review hand-off.** Tag the `Human review` gap on every record
   grilled this run; never clear it. The run-log doubles as the review
   packet — a human works the "Gaps contains Human review" queue through

@@ -286,12 +286,14 @@ skill's).
   assumption often needs **several** experiments (e.g. desk research then a
   pitch) — that's fine; they accrue as separate records.
 - **Two separate axes, do not conflate:**
-  - **Assumption `Status`** = `Not Started` → `Goal Linked` (goal-linkage
-    gate) → `Experiment Needed` (grill close-out) → **Testing** →
-    Validated/Invalidated/Inconclusive. `/experiment-design` only ever moves
-    it `Experiment Needed` → **Testing** (gated). Canonical flow:
-    `registry-schema.md §Status flow`.
+  - **Assumption `Status`** = `Draft` / `Live` / `Invalidated` — the
+    lifecycle and nothing else; Testing, queue membership, and goal linkage
+    are derived views computed from the row's data (`registry-schema.md
+    §Status & derived views`). `/experiment-design` never flips any status:
+    creating a `Running` experiment makes a `Live` row show in the derived
+    Testing view automatically.
   - **Experiment `Result`** = **Running** →
     Validated/Invalidated/Inconclusive. `/experiment-design` only ever sets
-    **Running**. Rolling `Result` back into the assumption `Status` is the
-    evidence skills' job.
+    **Running**. Concluding a `Result` is the evidence skills' job — a
+    verdict moves Confidence and Risk, never the assumption's `Status`;
+    only a human-affirmed kill flips `Live → Invalidated`.

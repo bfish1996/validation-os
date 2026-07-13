@@ -76,10 +76,10 @@ business call as if it validated an untested belief).
 **Decisions are the focus mechanism.** Every open assumption is a question
 you're paying to keep open. A decision prunes and re-ranks the register in
 one move: questions that only mattered on the paths it forecloses go moot
-(**resolves** — retired honestly, without pretending they were tested),
-while the beliefs the chosen path leans on (**based on**) stay open and
-gain dependents — which pushes their Impact, and so their Risk, up the
-test-next queue. Each decision also surfaces beliefs hiding in its own
+(**resolves** — Impact drops to 0, so they fall out of every ranking,
+retired honestly without pretending they were tested), while the beliefs
+the chosen path leans on (**based on**) stay open and gain dependents —
+which pushes their Impact, and so their Risk, up the test-next queue. Each decision also surfaces beliefs hiding in its own
 rationale: every "because" is either a ground truth or an assumption that
 belongs in the register. Net effect: fewer open questions, ranked by what
 you've actually committed to.
@@ -88,10 +88,10 @@ The bar a decision must clear scales with its **reversibility**. Every
 decision is classified a **two-way door** (reversible at a cost you'd
 happily pay — decide fast; it may rest on untested beliefs, because the
 decision itself functions as an experiment) or a **one-way door** (hard to
-undo — every assumption it rests on must be validated first, or the record
-carries an explicit risk-acceptance naming the untested bet). Reversing a
-decision reopens the assumptions it resolved — mootness dies with the
-decision.
+undo — every assumption it rests on must carry evidence putting its Risk
+below the working threshold first, or the record carries an explicit
+risk-acceptance naming the untested bet). Reversing a decision restores the
+Impact of the assumptions it resolved — mootness dies with the decision.
 
 Skills: `/decisions`. Rules: `skills/_shared/decision-guardrails.md`,
 `skills/_shared/ubiquitous-language.md`.
@@ -103,7 +103,8 @@ committing is a decision — so a goal lives as a Decision row
 (`Kind: Goal commitment`), and the OS never becomes an OKR tracker (your
 CRM/analytics stay the scoreboard). Three joints connect the two machines:
 **in** — goal-setting is evidence-gated: the beliefs a goal rests on are
-surfaced and either validated first or carried as dated risk-acceptances;
+surfaced and either tested to below-threshold Risk first or carried as
+dated risk-acceptances;
 **through** — beliefs gating a committed goal anchor Impact and get a queue
 lens, without ever touching the Risk formula or Confidence; **out** — a
 verdict landing on a belief an active goal rests on trips a review of that
@@ -116,7 +117,11 @@ rules: `skills/_shared/decision-guardrails.md §9`.
 
 Experiments conclude with a human rendering **Validated / Invalidated /
 Inconclusive** against the pre-registered bar — never auto-flipped by a
-threshold, never by a batch job. Autonomous modes (register-wide grilling,
+threshold, never by a batch job. On the assumption, a validating verdict
+changes nothing but Confidence; only a human-affirmed kill touches the row
+(`Live → Invalidated`) — there is no `Validated` status, because an
+assumption is never validated. What a verdict does and doesn't settle is
+defined in `validated.md`. Autonomous modes (register-wide grilling,
 decision sweeps) write drafts and tag a `Human review` gap; only a gated
 session with the record's owner promotes their work. The cadence for this
 is the weekly ritual (`weekly-ritual.md`).

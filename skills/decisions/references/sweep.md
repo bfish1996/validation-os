@@ -42,18 +42,19 @@ autonomously wire `Supersedes`/`Superseded by` and flip the earlier record's
 
 **D — Assumption-link recommendations.** If a candidate's rationale plausibly
 cites an existing assumption, wire `Based on assumption` autonomously — but
-only when the candidate's `Kind` is **not** `Goal commitment`, where it's
-still rationale-only and never touches the assumption's `Status`. For a
-`Kind: Goal commitment` candidate, `Based on assumption` flips the target
-assumption's `Status` to `Goal Linked` (`decision-guardrails.md §9g`), so it
-gets the same treatment as `Resolves assumption`: **never** autonomous —
-add it to the run-log as a **recommendation** for a human to action via
-Capture mode, which also confirms the citation lands in `## Rationale`.
-Likewise **never** autonomously set `Resolves assumption`, even when the
-sweep is confident the decision settles the question. This is the
-deliberate asymmetry in Sweep's autonomy: everything else here is reversible
-via the run-log; flipping an assumption's `Status` — whether to `Goal
-Linked` or `Closed by decision` — is a judgment call that stays gated.
+only when the candidate's `Kind` is **not** `Goal commitment`. The link is
+rationale-only and never touches the assumption, on any `Kind` — but on a
+`Kind: Goal commitment` candidate it is the derived goal linkage
+(`decision-guardrails.md §9g`): it anchors the target's Impact and admits
+it to the derived test-next queue, so it gets the same treatment as
+`Resolves assumption`: **never** autonomous — add it to the run-log as a
+**recommendation** for a human to action via Capture mode, which also
+confirms the citation lands in `## Rationale`. Likewise **never**
+autonomously set `Resolves assumption`, even when the sweep is confident
+the decision settles the question. This is the deliberate asymmetry in
+Sweep's autonomy: everything else here is reversible via the run-log;
+changing what the register prioritizes — admitting a row to the test-next
+queue, or mooting it at Impact 0 — is a judgment call that stays gated.
 
 ## Autonomy rails
 

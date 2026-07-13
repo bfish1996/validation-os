@@ -37,9 +37,8 @@ A record is in scope for triage if **either**:
    works from.
 
 Load records via the connector, never a filtered view. Default the sweep to
-non-terminal `Status` (`Not Started` / `Goal Linked` / `Experiment Needed` /
-`Testing`) to cut scan size; offer a wider "full sweep including concluded
-records" as an explicit option when asked.
+`Status` `Draft` / `Live` to cut scan size; offer a wider "full sweep
+including `Invalidated` records" as an explicit option when asked.
 
 ## Per-record triage
 

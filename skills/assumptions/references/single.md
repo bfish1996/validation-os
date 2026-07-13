@@ -88,7 +88,7 @@ Rules come from `../../_shared/assumption-guardrails.md`; this file is the
      the `Contradiction` tag if not already present.
    - **Clearing `Contradiction`** = the tension has been *examined, wired,
      and noted*. It does **not** require *resolving* the tension; one side
-     winning is evidence/`Status`, owned by the evidence skills.
+     winning is an evidence verdict, owned by the evidence skills.
 6. **`Scoring justification`** → **Impact is the only hand-scored number.**
    Quote the matched Impact band (`assumption-guardrails.md §3`),
    confirm/adjust the score, and write band + one-line reason into the body
@@ -171,8 +171,10 @@ so all three stay in lockstep.
 Pass it the record you're grilling (ID, Description, Metric for truth, Lens,
 current Confidence). It writes each qualifying piece as a **conclusive**
 Experiment record (`Result` = Validated / Invalidated / Inconclusive, never
-`Running`), one at a time, gated. **Confidence-only — it never moves the
-assumption's `Status`.**
+`Running`), one at a time, gated. **Confidence-only — logging evidence
+never moves the assumption's `Status`; the sole exception, a
+human-affirmed kill (`Invalidated` at a rung ≥ the strongest validating
+rung), is a separate gated `Live` → `Invalidated` write.**
 
 > Standalone, outside a grill? Use `/find-evidence` — the thin wrapper
 > around the same helper for when you only want the evidence sweep.
@@ -180,17 +182,17 @@ assumption's `Status`.**
 ## Close out
 
 - All tags cleared → `Gaps` empty → record is guardrail-complete; **flip
-  `Status` `Goal Linked` → `Experiment Needed` in the same gated close-out
-  write** — that drops it onto the **test-next** queue
-  (`Status = Experiment Needed`, sorted by Risk). If the record is still
-  `Not Started` (no standing Goal commitment has linked it yet via `Based
-  on assumption`), close-out stops at gapless-but-`Not Started` — the goal
-  link is a separate gate this skill doesn't set; hand off to `/decisions`.
-  Full flow: `registry-schema.md §Status flow`.
+  `Status` `Draft` → `Live` in the same gated close-out write** — the row
+  is now ranked by Risk, and it enters the derived **test-next** queue
+  (`Live` + goal-linked + no running experiment, sorted by Risk) on its
+  own. If no standing Goal commitment links it yet via `Based on
+  assumption`, it goes `Live` all the same but stays queue-invisible — the
+  goal link is `/decisions`' write, not this skill's; hand off there. Full
+  flow: `registry-schema.md §Status & derived views`.
 - **`Human review` gap** (present when a loop run auto-grilled this record):
   clear it only after walking the machine's answers (5 Whys, score, metric)
   past the record's `Owner` in this gated session — it counts like any other
-  gap, so the Status flip can't happen without that sign-off.
+  gap, so the `Draft` → `Live` flip can't happen without that sign-off.
 - **Terminology** — confirm zero outstanding must-fix before the record
   write; if the wording changed after Phase 9, re-run the check once more.
 - **Gate the write:** show final title / Description / scores / body /
@@ -208,7 +210,8 @@ assumption's `Status`.**
   `/experiment-design`. A historic Experiment record's `Result` is
   conclusive at creation, never `Running`.
 - Never flip the assumption `Status` from logging evidence —
-  Confidence-only; the verdict is the evidence skills' call.
+  Confidence-only; the one exception, the human-affirmed kill (`Live` →
+  `Invalidated`), is the evidence skills' gated call, not this grill's.
 - Never cherry-pick supporting hits — log disconfirming historic evidence
   too.
 - Never wire a `Contradicts` edge in place of a real merge: same proposition

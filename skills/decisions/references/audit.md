@@ -34,13 +34,14 @@ time, gated, through Capture mode.
    - `One-way door` records with a `Based on` link to an untested assumption
      and no risk-acceptance line in `## Rationale`.
    - **Stale resolutions**: `Reversed`/`Superseded` decisions whose
-     `Resolves assumption` links point at assumptions still marked
-     `Closed by decision` (and not re-resolved by the successor) — the
-     retired question is open again; flag each for a gated reopen.
-   - **Stale goal links**: assumptions marked `Goal Linked` with no standing
-     (`Provisional`/`Active`) `Kind: Goal commitment` decision currently
-     carrying a `Based on assumption` link to them — the gate should have
-     reopened the row to `Not Started`; flag for a gated reopen.
+     `Resolves assumption` targets still sit moot at Impact 0 (and not
+     re-resolved by the successor) — the retired question is open again;
+     flag each for a gated restore of the prior Impact from the dated
+     mootness line.
+   - **Moot without a resolver**: assumptions at Impact 0 whose mootness
+     line in `## Scoring justification` cites a resolving decision that is
+     no longer standing — same fix, from the assumption side; flag for the
+     gated restore.
    - **Uncited goal links**: a `Kind: Goal commitment` decision's `Based on
      assumption` link whose target isn't named anywhere in that decision's
      `## Rationale` — flag as opportunistic goal-linking (§9g).
@@ -64,19 +65,20 @@ time, gated, through Capture mode.
      - **Anchor dilution** — report the count of standing
        (`Provisional`+`Active`) goal commitments and the share of open
        assumptions gated by one; when most open assumptions gate some goal,
-       flag that both the Impact anchor and the `Goal Linked` gate have
-       stopped discriminating. No hard cap, but no longer informational-only
-       now that the linkage gates prioritization — worth a human look.
+       flag that both the Impact anchor and the goal-linkage queue
+       condition have stopped discriminating. No hard cap, but no longer
+       informational-only now that the linkage gates prioritization — worth
+       a human look.
      - Missing `Kind` on Decision rows — a nudge, never a block (legacy
        rows are untyped by design).
    These checks are the `/decisions audit` rules in
    `../../_shared/ontology.yaml §integrity_rules` — cite each finding by its
    rule `id` (`untyped-record`, `stale-resolution`, `stale-rationale`,
    `one-way-door-untested-basis`, `unresolved-tension`,
-   `supersedes-tension-overlap`, `closed-without-resolver`,
-   `stale-goal-link`, `goal-link-uncited`, `overdue-risk-acceptance`,
-   `unclosed-goal`, `ungated-outcome`, `stale-goal-anchor`, `anchor-dilution`,
-   plus the structural rules).
+   `supersedes-tension-overlap`, `moot-without-resolver`,
+   `goal-link-uncited`, `overdue-risk-acceptance`, `unclosed-goal`,
+   `ungated-outcome`, `stale-goal-anchor`, `anchor-dilution`, plus the
+   structural rules).
 3. **Synthesise one ranked findings report** — by record, with the specific
    gap(s) and a suggested fix. Read it back to the user.
 4. When the user picks findings to fix, walk them one at a time through

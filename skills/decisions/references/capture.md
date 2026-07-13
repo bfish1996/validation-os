@@ -53,20 +53,22 @@ memory with no source, ask for one — `Source` is required
 5. **Assumption links — two separate, never-inferred-from-each-other
    questions** (`decision-guardrails.md §6`):
    - *"Does the rationale cite an existing assumption?"* → if yes, propose
-     `Based on assumption`, linking the cited record(s). On any Decision
-     `Kind` other than `Goal commitment`, this never touches the
-     assumption's `Status`. On a `Provisional`/`Active` `Kind: Goal
-     commitment` row, this same link flips the assumption's `Status` to
-     `Goal Linked` (§9g) — make sure the cited assumption is actually named
+     `Based on assumption`, linking the cited record(s). This never touches
+     the assumption, on any `Kind`. On a `Provisional`/`Active` `Kind: Goal
+     commitment` row, this same link (read backwards) is the derived goal
+     linkage (§9g) — make sure the cited assumption is actually named
      in `## Rationale`, not just linked, or the write is a reject.
    - *"Does this decision settle that assumption without needing a test?"* →
      only if the user **explicitly** affirms, propose `Resolves assumption`
-     linking the record(s), **and** the paired write flipping the
-     assumption's `Status` to `Closed by decision`. If the user is unsure
-     or says no, leave this unset — an open assumption stays open.
+     linking the record(s), **and** the paired write dropping the
+     assumption's Impact to 0 — a dated line in its `## Scoring
+     justification` records the prior score and cites this decision;
+     `Status` untouched. If the user is unsure or says no, leave this
+     unset — an open assumption stays open.
    - **One-way door check** (`decision-guardrails.md §8`): if Reversibility
-     is `One-way door` and any `Based on` link points at an untested
-     assumption, require either an explicit risk-acceptance line in
+     is `One-way door` and any `Based on` link points at an assumption
+     whose Risk sits above the working threshold, require either an
+     explicit risk-acceptance line in
      `## Rationale` (naming the assumption and why deciding now beats
      testing first; dated format for goal commitments —
      `decision-guardrails.md §9d`), or propose `/experiment-design` and keep
@@ -86,11 +88,11 @@ memory with no source, ask for one — `Source` is required
      belief with no record gets proposed as a new row (hand off to
      `/assumptions` single mode), then linked via `Based on assumption`,
      cited by name in `## Rationale`. This is how drafting a goal seeds the
-     loop: each linked assumption flips `Not Started → Goal Linked` right
-     away — even while the decision is still `Provisional` — clearing the
-     one gate standing between it and the test-next queue. Grill it clean
-     (Gaps empty) and it lands in `Experiment Needed`; `/experiment-design`
-     picks it up from there.
+     loop: each linked assumption is goal-linked right away — even while
+     the decision is still `Provisional` — one of the derived test-next
+     queue's membership conditions. Grill it clean (Gaps empty, `Draft →
+     Live`) and it enters the queue; `/experiment-design` picks it up from
+     there.
    - **Reversibility is `One-way door`** for the cycle by default. For
      untested links prefer test-before-commit (record stays `Provisional`,
      route to `/experiment-design`) when a cheap probe can run first;
@@ -133,9 +135,9 @@ or the user asks. Rules: `decision-guardrails.md §9f`.
 
 Gated write (`../../_shared/gated-writes.md`), one record at a time. If
 `Resolves assumption` was set, render **two sequential confirmation cards** —
-the new/updated Decision record first, then the assumption's `Status` flip —
-the second conditional on the first being confirmed. Never bundle them into
-one silent write.
+the new/updated Decision record first, then the assumption's Impact drop to
+0 with its dated mootness line — the second conditional on the first being
+confirmed. Never bundle them into one silent write.
 
 ## Never
 

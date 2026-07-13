@@ -49,11 +49,11 @@ that's **loop mode** — seeding included, no gates.
 - **`Gaps` drives the work, never an exhaustive march.** A gap-filtered
   queue sorted by Risk descending *is* the grill queue: open one, grill
   top-down, stop when Risk gets low. Empty `Gaps` = guardrail-complete → the
-  close-out write flips `Status` `Goal Linked` → `Experiment Needed`,
-  dropping the record onto the **test-next** queue — but only once a
-  standing Goal commitment has already linked it (`Not Started → Goal
-  Linked`, `decision-guardrails.md §9g`). A grilled-clean record with no
-  goal link yet still sits in `Not Started`, gapless but ungated.
+  close-out write flips `Status` `Draft` → `Live`, and the record enters
+  the derived **test-next** queue on its own — but only once a standing
+  Goal commitment links it via `Based on assumption`
+  (`decision-guardrails.md §9g`). A grilled-clean record with no goal link
+  yet is `Live` but queue-invisible until a goal claims it.
 - **5 Whys timing.** Mandatory **at creation** (do it up front, so no
   backlog forms). For a retrofit backlog, prioritise by `Risk × gap-count`,
   not all at once — the low-Risk tail sits as clean scaffold until it's

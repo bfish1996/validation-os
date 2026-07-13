@@ -26,7 +26,7 @@ registers:
       - {canonical: Risk, backend: Risk, type: formula, derived: true, formula: "Impact * (1 - Confidence / 100)"}
       - {canonical: Confidence, backend: Confidence, type: rollup, derived: true, formula: "max of linked Experiments' Strength; capped corroboration bump per experiment-guardrails.md §2"}
       - {canonical: Corroboration count, backend: Corroboration count, type: number, derived: false}
-      - {canonical: Status, backend: Status, type: status, derived: false, options_source: registry-schema}
+      - {canonical: Status, backend: Status, type: select, derived: false, options_source: registry-schema}
       - {canonical: Owner, backend: Owner, type: person, derived: false}
       - {canonical: Gaps, backend: Gaps, type: multi_select, derived: false, options_source: registry-schema}
     relations:
@@ -110,7 +110,7 @@ and tell the user which ID is missing or wrong.
 | Risk | Risk | formula | yes |
 | Confidence | Confidence | rollup | yes |
 | Corroboration count | Corroboration count | number | no |
-| Status | Status | status | no |
+| Status | Status | select | no |
 | Owner | Owner | person | no |
 | Gaps | Gaps | multi-select | no |
 | Depends on / Enables | Depends on / Enables | self-relation | no |
@@ -218,8 +218,8 @@ writes them into the config.
 | Contradicts | `Contradicts` | Assumptions | many | Self-relation; set both ends. |
 | Related tension | `Related tension` | Decisions & Terminology | many | Self-relation. |
 | Supersedes / Superseded by | `Supersedes` / `Superseded by` | Decisions & Terminology | many | Self-relation. |
-| Based on assumption | `Based on assumption` | Assumptions | many | Rationale only; never flips assumption Status. |
-| Resolves assumption | `Resolves assumption` | Assumptions | many | Separate from `Based on assumption`. Gated flip of assumption Status. |
+| Based on assumption | `Based on assumption` | Assumptions | many | Rationale only; never touches the assumption row. |
+| Resolves assumption | `Resolves assumption` | Assumptions | many | Separate from `Based on assumption`. Gated Impact drop to 0 (moot); Status untouched. |
 
 ## Setup operations
 

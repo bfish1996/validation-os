@@ -44,7 +44,7 @@ whatever the backend.
 | Risk | derived | **Never hand-write.** = Impact × (1 − Confidence/100), ranges 0–100. Highest Risk is tested next. |
 | Confidence | derived | **Never hand-type.** Base = `max` of proven linked Experiments' `Strength`, plus a capped corroboration bump held below the next rung's floor. Full rule: `experiment-guardrails.md §2`. |
 | Corroboration count | number | Count of independent **proven** Experiment rows agreeing at this assumption's top proven rung. Maintained by the evidence skills at log time. 0 / empty = no bonus. |
-| Status | status | The **evidence** axis plus one prioritization gate, hard transition triggers below: `Not Started` → `Goal Linked` → `Experiment Needed` → `Testing` → `Validated` / `Invalidated` / `Inconclusive` / `Closed by decision`. |
+| Status | select | The **lifecycle** and nothing else: `Draft` (Gaps non-empty — record not yet trustworthy) → `Live` (the default forever-state, ranked by Risk) → `Invalidated` (rare, human-gated kill). There is **no `Validated`** — `docs/validated.md`. Testing, queue membership, goal linkage, mootness: derived views, §Status & derived views. |
 | Owner | person | Who voiced / champions the belief and is accountable for testing it. |
 | Gaps | multi-select | What's missing/wrong: `5 Whys`, `Metric for truth`, `Scoring justification`, `Non-atomic`, `Unfalsifiable`, `Hyperbole`, `Lens check`, `Duplicate`, `Contradiction`, `Human review`. **Drives the grill queues.** Empty Gaps = guardrail-complete. `Human review` is the machine-grill sign-off gap: batch modes set it on every row they auto-grill and never clear it; only a gated session with the row's Owner clears it. |
 | Depends on / Enables | self-relation | The dependency graph. Relationships live HERE, not in the body. |
@@ -56,9 +56,10 @@ There is **no separate Goals field**: an assumption *gates* a goal when a
 commitment` links it via `Based on assumption` — the goal linkage is that
 relation read backwards (`decision-guardrails.md §9`). That linkage does two
 things at once: it's an Impact anchor for the human scorer (**never** a
-Confidence input, never in the Risk formula), and it flips the assumption's
-`Status` to `Goal Linked` — the hard gate on entering the test-next queue.
-A `Provisional` (draft) goal counts, not only `Active`, so a goal's own
+Confidence input, never in the Risk formula), and it makes the row
+**goal-linked** — a test-next-queue membership condition read straight from
+the relation (§Status & derived views), never a stored status. A
+`Provisional` (draft) goal counts, not only `Active`, so a goal's own
 underlying beliefs can be tested *before* the goal commits
 (`decision-guardrails.md §9c`) — otherwise nothing could ever bootstrap a
 first goal. The link must be cited in the decision's `## Rationale` prose,
@@ -69,68 +70,60 @@ Record **body** holds the long-form the fields can't: `## 5 Whys`,
 `## Metric for truth`, `## Scoring justification`, `## Provenance & notes`
 (per-row caveats, merge/dedup outcomes, source provenance).
 
-## Status flow — Assumptions (canonical; every skill enforces the same triggers)
+## Status & derived views — Assumptions (canonical; every skill enforces the same triggers)
 
-`Status` carries the **evidence** axis plus the **goal-linkage gate**. It
-never encodes build quality (that's `Gaps`) or "how much evidence" (that's
-the derived Confidence — a row with no evidence is simply Confidence = 0,
-never a dedicated status).
+`Status` stores the record's **lifecycle** and nothing else — three values.
+An assumption is never validated (`docs/validated.md`): its standing is its
+live Risk score, so every workflow state the old kanban would store is a
+**derived view**, computed from the row's data, never written.
 
 ```
-Not Started ──(a Provisional/Active Goal commitment──▶ Goal Linked ──(grill close-out:
-     │          links it via Based on assumption,                    Gaps empties)──▶ Experiment Needed
-     │          cited in ## Rationale)                       ▲                              │  ▲
- (seed default)                                    (every linking goal                      │  │(/experiment-design
-     │                                              dies with no successor                  │  │ creates a Running
-     │                                              re-link, gated reopen)                  │  │ experiment)
-     │                                                       │                              ▼  │
-     │                                                       └──────────────────────── Testing ┘
-     │                                                                                     │
-     │                                              Validated / Invalidated / Inconclusive ◀┘
-     │                                              (conclusive verdict, human-gated)
-     └──(any state, via /decisions' gated Resolves-assumption action)──▶ Closed by decision
+Draft ──(grill close-out: the last Gaps tag──▶ Live ──(conclusive kill at a rung ≥ the
+  ▲      clears, gated session)                │  ▲     strongest validating rung,
+  │                                            │  │     human-affirmed)──▶ Invalidated
+  └──(a new gap lands: audit finding, ─────────┘  │                             │
+      contradiction, staleness flag)              └──(gated reopen: kill re-judged
+                                                      flawed, or world changed)◀┘
 ```
 
-- **`Not Started`** — seed default; the row is still being built and `Gaps` says
-  what's missing. Fully-grilled rows (`Gaps` empty) still sit here until a goal
-  claims them — grilling and goal-linkage are independent prerequisites.
-- **`→ Goal Linked`** — flipped when a standing (`Provisional` or `Active`)
-  `Kind: Goal commitment` decision sets `Based on assumption` on this row
-  (gated write, in `/decisions`), cited in that decision's `## Rationale`.
-  This is the **hard gate**: a row cannot reach `Experiment Needed` without
-  passing through here first, regardless of `Gaps`. `Goal Linked` does
-  **not** require `Gaps` to be empty — grilling and linking can happen in
-  either order.
-- **`→ Experiment Needed`** — flipped at grill close-out, in the same gated write
-  that clears the last gap, **only reachable from `Goal Linked`**. Checkable
-  trigger: Gaps empty + goal-linked + no running experiment + no conclusive
-  verdict. This is **the test-next queue marker** — queue =
-  `Status = Experiment Needed` sorted by Risk descending.
-- **`→ Testing`** — flipped only by `/experiment-design` (gated) when it creates
-  an experiment with `Result = Running`.
-- **`→ Validated / Invalidated / Inconclusive`** — flipped only when a conclusive
-  experiment lands, human-gated. `Inconclusive` may loop back to
-  `Experiment Needed` when a better test is worth designing.
-- **Human-in-the-loop rule:** batch/loop modes **never flip Status** — they tag
-  the `Human review` gap on every row they auto-grill, so a row can only enter
-  the test-next queue once a human clears that gap in a gated session with the
-  row's Owner.
-- **`Goal Linked` reopens to `Not Started`** — gated, when every `Provisional`/
-  `Active` `Kind: Goal commitment` decision linking this row via `Based on
-  assumption` flips to `Reversed`/`Superseded` with no successor re-linking
-  it. Only fires from `Goal Linked` itself: once a row has advanced to
-  `Experiment Needed` or later, a dying goal changes nothing mechanically
-  (`decision-guardrails.md §9g`) — the gate already discharged its job.
-- **`→ Closed by decision`** — a terminal state entered **only** via
-  `/decisions`' gated Resolves-assumption action; `/assumptions` never sets it.
-  Behaves like a conclusive verdict for queue purposes. A decision merely
-  *citing* an assumption as rationale (`Based on assumption`) never triggers
-  this — `decision-guardrails.md §6`. Terminal only while the resolving decision
-  stands: if that decision is later `Reversed`/`Superseded` (and not
-  re-resolved by the successor), the assumption reopens in a gated session —
-  back to `Experiment Needed` if Gaps are empty, else `Goal Linked` or
-  `Not Started` depending on whether a standing goal link remains
-  (`decision-guardrails.md §8`).
+- **`Draft`** — `Gaps` non-empty, always (`draft-live-gaps-invariant`). The
+  record isn't trustworthy yet — its Impact and Metric for truth are unproofed
+  — so it is neither ranked nor queued. Seed default. Batch/loop modes tag
+  `Human review`, which keeps (or returns) the row here; only a gated session
+  with the Owner promotes it.
+- **`Live`** — the default forever-state. Ranked by Risk continuously; never
+  "done". Evidence, Impact changes, and goal links move its Risk and its
+  derived views — never its Status.
+- **`Invalidated`** — the rare, real closure: a linked experiment concluded
+  `Invalidated` at a rung ≥ the row's strongest validating rung, and a human
+  affirmed the kill. Reopens to `Live` only by human re-verdict (the killing
+  experiment was flawed, or the world changed).
+
+**Derived views (compute them; never write them):**
+
+| View | Definition |
+|---|---|
+| Goal-linked | a standing (`Provisional`/`Active`) `Kind: Goal commitment` decision links the row via `Based on assumption`, cited in its `## Rationale` |
+| Testing | `Live` + a linked experiment with `Result: Running` |
+| Test-next queue | `Live` + goal-linked + no running experiment + Risk ≥ the working threshold, sorted by Risk descending |
+| Proven set | `Live` + strongest concluded experiment `Validated` — "what we currently know"; provisional, always |
+| Moot | Impact = 0 via a standing decision's `Resolves assumption` action |
+
+- **Evidence never flips Status.** A validating verdict moves Confidence →
+  Risk → queue position, nothing else. Only a human-affirmed kill flips
+  `Live → Invalidated`. An `Inconclusive` experiment contributes zero and
+  leaves the row exactly where it was.
+- **The goal-linkage gate survives as a queue condition.** A fully-grilled,
+  unlinked row is `Live` but queue-invisible until a goal claims it. When the
+  last linking goal dies, the row silently drops out of the queue — no status
+  ceremony, no reopen session (`decision-guardrails.md §9g`).
+- **Mootness, not closure, for decisions.** A resolving decision lowers the
+  assumption's Impact to 0 in the same gated write, with a dated line in
+  `## Scoring justification` recording the prior score and citing the
+  decision; reversal restores it (`decision-guardrails.md §8`). There is no
+  `Closed by decision` status.
+- **The working Risk threshold** is a prioritisation setting, not a record
+  property — rows above it are the queue; rows below it are dormant, not done.
 
 ## Field map — Experiments
 
@@ -173,8 +166,8 @@ Decision rows (the decision log). Terminology enforcement rules live in
 | Decided date | date | Decision only | When it was decided; may differ from row creation. |
 | Reversibility | select | Decision only | `Two-way door` / `One-way door`. Unclear = one-way. Sets the evidence bar for `Based on` links — `decision-guardrails.md §8`. |
 | Supersedes / Superseded by | self-relation, two-way | Decision only | Resolved, intentional override — distinct from `Related tension` (unresolved). |
-| Based on assumption | relation → Assumptions | Decision only | Rationale. On a `Provisional`/`Active` `Kind: Goal commitment` row, this is also the goal-linkage gate: setting it (gated, cited in `## Rationale`) flips the target assumption's Status to `Goal Linked`. On any other Decision `Kind`, it never touches Status. |
-| Resolves assumption | relation → Assumptions | Decision only | **Separate** relation from `Based on assumption` — never reuse one for the other. Setting it (gated) flips the linked assumption's Status to `Closed by decision`. `decision-guardrails.md §6`. |
+| Based on assumption | relation → Assumptions | Decision only | Rationale. Never touches the assumption, on any `Kind`. On a `Provisional`/`Active` `Kind: Goal commitment` row this edge, read backwards, is the goal linkage — a derived queue condition (§Status & derived views). |
+| Resolves assumption | relation → Assumptions | Decision only | **Separate** relation from `Based on assumption` — never reuse one for the other. Setting it (gated) makes the linked assumption **moot**: Impact drops to 0, with a dated line recording the prior score; Status untouched. `decision-guardrails.md §6`. |
 
 ### Decision row body template
 

@@ -47,6 +47,7 @@ Assumption → grill & score → Experiment (pre-registered pass/kill bars)
 
 Theory, ladder, cadence, and goals: [docs/method.md](docs/method.md) ·
 [docs/evidence-ladder.md](docs/evidence-ladder.md) ·
+[docs/validated.md](docs/validated.md) ·
 [docs/weekly-ritual.md](docs/weekly-ritual.md) ·
 [docs/goals.md](docs/goals.md). Not just product — sales outreach,
 pricing, fundraising, partnerships: [docs/domains.md](docs/domains.md).
@@ -142,7 +143,7 @@ flowchart LR
   end
 
   A -->|"1 · quality gate:<br>grill until Gaps is empty"| Q
-  D -->|"2 · priority gate: the goal<br>cites the belief → Goal Linked"| Q
+  D -->|"2 · priority gate: the goal<br>cites the belief → goal-linked"| Q
   D -.->|"a goal's 'because' with no<br>record yet → new assumption"| A
   Q -->|"3 · riskiest first"| E
   E -->|"4 · Running experiment"| RUN
@@ -172,7 +173,7 @@ flowchart LR
     P["Provisional goal — a /decisions row,<br>Kind: Goal commitment; SMART bar with a named<br>instrument, rationale names the beliefs it rests on"]:::record
   end
   subgraph g2["② De-risk"]
-    T["its beliefs run the main loop above —<br>linking already flipped them to Goal Linked,<br>so a draft's beliefs queue for testing<br>before anyone commits"]:::record
+    T["its beliefs run the main loop above —<br>linking already made them goal-linked,<br>so a draft's beliefs queue for testing<br>before anyone commits"]:::record
   end
   subgraph g3["③ Commit"]
     C["human commits: Provisional → Active<br>(good evidence on its beliefs is the trigger)"]:::human
@@ -183,7 +184,7 @@ flowchart LR
     RA["re-accept the bet<br>new dated risk-acceptance line"]:::record
     RC["re-cut<br>a new goal Supersedes it; the successor<br>re-links the beliefs it keeps"]:::record
     DP["drop<br>the goal flips Reversed"]:::record
-    X["any belief still sitting in Goal Linked with no<br>surviving goal reopens to Not Started;<br>beliefs past the gate don't move"]:::record
+    X["a belief whose last linking goal dies<br>silently drops out of the test-next queue;<br>its row doesn't change"]:::record
   end
   subgraph g5["⑤ Close out"]
     O["target date → human verdict in ## Outcome,<br>read from the named instrument"]:::human
@@ -211,56 +212,42 @@ A hit becomes top-rung evidence on the beliefs it proved; a miss usually
 invalidates one specific belief — either way the loop's next lap starts
 better informed.
 
-Underneath the flow, an assumption's `Status` is a state machine. The three
-boxes tell you what a state *means*: left of the queue, in play, done.
+Underneath the flow, an assumption's `Status` stores only its lifecycle —
+three values, because **an assumption is never validated**
+([docs/validated.md](docs/validated.md)): its standing is its live `Risk`
+score, moving forever as evidence and stakes move.
 
 ```mermaid
 stateDiagram-v2
   direction LR
-  state "Before the queue" as Pre {
-    NS: Not Started — being built, or grilled clean but unclaimed by any goal
-    GL: Goal Linked — a standing goal cites it
-  }
-  state "In play" as Play {
-    EN: Experiment Needed — sits in the test-next queue
-    TE: Testing — an experiment is running against it
-  }
-  state "Concluded" as Done {
-    V: Validated
-    I: Invalidated
-    IC: Inconclusive — signal too weak to call
-    CD: Closed by decision — retired by explicit judgment, no test
-  }
+  D: Draft — Gaps non-empty; being built, not yet ranked
+  L: Live — ranked by Risk, forever; never "done"
+  I: Invalidated — conclusively killed; the rare, real closure
 
-  [*] --> NS
-  NS --> GL: /decisions — a standing goal cites it
-  GL --> NS: gated reopen — its last linking goal died
-  GL --> EN: /assumptions — grill close-out, Gaps empty
-  EN --> TE: /experiment-design — creates the Running experiment
-  TE --> V: human verdict
-  TE --> I: human verdict
-  TE --> IC: human verdict
-  IC --> EN: /experiment-design — a better test is worth it
-  NS --> CD: /decisions — Resolves assumption (reachable from any state)
+  [*] --> D
+  D --> L: /assumptions — grill close-out, Gaps empty
+  L --> D: a new gap lands — audit finding, contradiction, staleness
+  L --> I: human verdict — conclusive kill at a rung ≥ the strongest support
+  I --> L: gated reopen — kill re-judged flawed, or the world changed
 ```
 
-Every transition has exactly one owner — no other skill may make that move,
-and each one is a gated write a human confirms:
+Everything a kanban would store is a **derived view**, computed from the
+row's data:
 
-| Move | Only mover | Trigger |
-|---|---|---|
-| Not Started → Goal Linked | `/decisions` | a standing (Provisional/Active) goal commitment cites the belief in its rationale |
-| Goal Linked → Experiment Needed | `/assumptions` | grill close-out — the last `Gaps` tag clears |
-| Experiment Needed → Testing | `/experiment-design` | a `Running` experiment is created against it |
-| Testing → Validated / Invalidated / Inconclusive | a human | verdict against the pre-registered bar, at `/find-evidence` close-out |
-| any → Closed by decision | `/decisions` | explicit `Resolves assumption` — never inferred from a mere citation |
-| reopens (→ Not Started / Experiment Needed) | a human, gated | the linking goal or resolving decision was reversed/superseded |
+| Derived view (never stored) | Computed from |
+|---|---|
+| Goal-linked | a standing goal commitment cites it via `Based on assumption` |
+| Testing | a linked experiment is `Running` |
+| Test-next queue | Live + goal-linked + no running experiment + Risk above the working threshold |
+| Proven set | Live + strongest concluded experiment `Validated` — provisional, always |
+| Moot | Impact dropped to 0 by a resolving decision; reversal restores it |
 
-Two things never move `Status`: logging evidence (that moves `Confidence`,
-which moves `Risk`, which moves the queue) and the autonomous bulk modes
-(`/assumptions` loop, `/decisions` sweep) — those tag `Human review` and
-leave a run-log, and only a gated session with the record's owner promotes
-their work.
+Three things never move `Status`: logging evidence (that moves
+`Confidence`, which moves `Risk`, which moves the queue), decisions (a
+resolving decision moves `Impact` to 0 — mootness, not closure), and the
+autonomous bulk modes (`/assumptions` loop, `/decisions` sweep) — those tag
+`Human review`, which holds the row in `Draft`, and only a gated session
+with the record's owner promotes their work.
 
 ## Configuration
 

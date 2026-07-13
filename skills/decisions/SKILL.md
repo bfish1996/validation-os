@@ -7,14 +7,15 @@ description: >-
   drafts against the glossary. Decisions: capture a decision made in a
   call/thread/note (gated, one at a time — what was decided, by whom, with
   what unanimity), sweep a date range for candidate decisions plus conflict
-  and supersession detection, audit decision health. Decisions can retire
-  assumption records via Resolves assumption, kept strictly separate from
-  citing one as rationale. Goals/OKRs live here too: committing to a goal is
-  a decision (Kind: Goal commitment) — evidence-gated against the beliefs it
-  rests on, closed out with a human verdict decomposed into evidence. Use
-  for "glossary", "what's the canonical term for X", "how do we say X to
-  <audience>", "log this decision", "what did we decide about X", "sweep
-  decisions", "audit the decision log", "check terminology", "add a term",
+  and supersession detection, audit decision health. Decisions can moot an
+  assumption via Resolves assumption (Impact to 0), kept strictly separate
+  from citing one as rationale. Goals/OKRs live here too: committing to a
+  goal is a decision (Kind: Goal commitment) — evidence-gated against the
+  beliefs it rests on, closed out with a human verdict decomposed into
+  evidence. Use for "glossary", "what's the canonical term for X", "how do
+  we say X to <audience>", "log this decision", "what did we decide about
+  X", "sweep decisions", "audit the decision log", "check terminology",
+  "add a term",
   "log this goal", "commit to this goal/OKR", "close out the goal", "did we
   hit the goal". Skip for /assumptions (a decision citing an assumption is
   NOT the same as resolving it).
@@ -138,9 +139,9 @@ settles an open assumption. Full choreography lives in `references/`; read
   unclosed goals, anchor dilution); fixes gated afterward through Capture.
 
 **The one rule that spans all three:** `Based on assumption` (rationale) and
-`Resolves assumption` (deliberate, status-flipping judgment) are separate
-relations, always asked as separate questions, never inferred from each
-other — `../_shared/decision-guardrails.md §6`.
+`Resolves assumption` (deliberate judgment that moots the target — Impact
+to 0) are separate relations, always asked as separate questions, never
+inferred from each other — `../_shared/decision-guardrails.md §6`.
 
 ## How other skills use this
 
