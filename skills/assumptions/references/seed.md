@@ -9,9 +9,22 @@ and stub them; the actual build runs through **single mode**
 
 ## Detect the seed
 
-- **Blank topic** — the user names an area with nothing written yet. Stub
-  one or more records from the interview; each starts with **all** `Gaps`
-  set, so single mode grills every phase from scratch.
+- **Blank topic** — the user names an area with nothing written yet, or asks
+  to pressure-test a raw idea. If the `/office-hours` skill
+  ([garrytan/gstack](https://github.com/garrytan/gstack), install with
+  `npx skills add garrytan/gstack` — [skills.sh](https://skills.sh)) is
+  available in this harness, hand off to it in Startup mode first — its six
+  forcing questions (demand reality, status quo, desperate specificity,
+  narrowest wedge, observation & surprise, future-fit) push the idea to
+  named-person, named-wedge specificity before anything is stubbed. Its
+  design doc's problem restatement and named person/wedge become the seed
+  material. Not installed, or not a fit? Stub straight from the raw idea as
+  usual — every phase still opens as a `Gaps`, so nothing here substitutes
+  for the Statement/5-Whys/scoring grill in single mode. Either way, stub
+  one or more records from what survives; each starts with **all** `Gaps`
+  set, so single mode grills every phase from scratch — the interview only
+  sharpens Description and Owner, it never pre-fills Confidence or clears a
+  guardrail.
 - **Call transcript / notes** — extract the candidate assumptions stated or
   implied in the material. Pre-fill what's actually stated (Description,
   Lens if clear), leave the rest as `Gaps`. One record per distinct
