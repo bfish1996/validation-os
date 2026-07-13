@@ -127,9 +127,10 @@ don't re-derive the schema here. It first **pulls the assumption's open
 found transcript which is *the run of* one of those guides **closes that
 record out** — flips its `Result`, sets the outcome date, writes findings —
 rather than creating a duplicate. The match is proposed and confirmed at the
-gate, never auto-applied. **When `web` is in `sources` it applies
-`../_shared/desk-research-rubric.md`** — the rigor that makes a published
-fact trustworthy enough to write into the register.
+gate, never auto-applied. **When `web` is in `sources` it applies the desk
+disciplines in `../_shared/historic-evidence.md` §1 and §4** — tiering,
+triangulation, exact quotes with dates, the counter-case search — the rigor
+that makes a published fact trustworthy enough to write into the register.
 
 **Show your work as you go.** For each candidate surface: source + link,
 one line of what it shows, the rung you'd assign and why, and the honest

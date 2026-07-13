@@ -13,9 +13,10 @@ are through the active connector, **read-only**.
   guessed number. Exception for clean D1 scores (3–4): absence of
   contradiction is proven by the register check plus the moment's framing
   quotes.
-- **Fairness pass.** Before finalizing, run a skeptic over every 0–1 (the
-  skeptic pass from `../../_shared/desk-research-rubric.md §5`, aimed
-  inward): was that decision actually Active at the moment's date? Is the
+- **Fairness pass.** Before finalizing, run a skeptic over every 0–1 (a
+  refute-by-default pass, aimed inward — the score survives only if the
+  skeptic can't knock it down): was that decision actually Active at the
+  moment's date? Is the
   "claim asserted as fact" actually a Validated assumption? Does the quote
   carry the reading? A refutation that stands raises the score.
 - **Attribution.** Diarization check per

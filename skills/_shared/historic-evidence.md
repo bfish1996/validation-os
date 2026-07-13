@@ -53,10 +53,11 @@ per-source search guidance lives in `/find-evidence`'s `references/`) sweep
 your own record; `web` sweeps published secondary sources (desk research).
 **Default when a caller omits `sources`: the configured internal sources**,
 so desk research is strictly opt-in. **When `web` is in `sources`, the
-search + verification must follow `desk-research-rubric.md`** — source
-tiering, triangulation, recency, provenance-for-every-claim, and an
-adversarial refute pass are what make a published fact trustworthy enough to
-write into the register.
+search + verification keep the desk disciplines** — source tiering,
+triangulation, recency, provenance-for-every-claim, and an adversarial
+refute pass are what make a published fact trustworthy enough to write into
+the register. (These disciplines graduate to a dedicated strength-of-evidence
+rubric in future work; until it lands, §1 and §4 here are the bar.)
 
 With **no internal sources configured**, the internal flavour degrades to
 asking the user to paste or point at material (notes, a transcript file, an
@@ -92,11 +93,14 @@ stops the register filling with duplicates for the same interview.
 
 - **Internal**: cast wide across the configured sources — call transcripts
   (the primary internal source when available), notes, chat, email, CRM.
-- **Desk / web**: follow `desk-research-rubric.md` — decompose the
-  `metric_for_truth` into document-answerable sub-questions, fan out
-  searches per sub-question (including the counter-case), fetch and **tier**
-  every source (A/B/C/D), and pull the **exact quote/figure + URL +
-  publication date**. No source, no claim.
+- **Desk / web**: decompose the `metric_for_truth` into document-answerable
+  sub-questions, fan out searches per sub-question (including the
+  counter-case), fetch and **tier** every source (A — primary/authoritative;
+  B — reputable secondary; C — weak/self-interested, corroboration only;
+  D — anecdotal, lead-generation only, never cited), and pull the **exact
+  quote/figure + URL + publication date**. Load-bearing claims need ≥2
+  independent origins or one Tier-A primary — count origins, not
+  restatements. No source, no claim: model priors are never evidence.
 
 ### 2. Triage each candidate
 
@@ -127,8 +131,9 @@ its work.
   research date (desk), never a future date.
 - **`Interviewee` / `Owner`** if known.
 - **Body** = a short evidence summary, the **source link(s)**, and what it
-  shows vs. the claim. For desk evidence, use the body template in
-  `desk-research-rubric.md`.
+  shows vs. the claim. For desk evidence: per-sub-question findings with
+  tier + dates + exact quotes, conflicts and how they were weighed, caveats
+  (single-sourced or stale claims), and the sources considered & dropped.
 
 ### 4. Retrospective-honesty guardrail
 
@@ -149,7 +154,7 @@ Counter it deliberately — both flavours:
   belief (most incidental internal mentions are Inconclusive; so is desk
   evidence that only sets a **base rate** for a *your-user behaviour* —
   desk research can't validate what your own users will do, only what the
-  world already shows; `desk-research-rubric.md §7`).
+  world already shows).
 - Log disconfirming evidence as **Invalidated** — never silently drop the
   hits that cut against the bet. Cherry-picking supporting evidence is the
   failure mode this guardrail exists to stop.
@@ -205,6 +210,11 @@ number untouched.
   capture conflicting sources.
 - Never write a `Type` value that isn't live in the register.
 - Never write a desk fact you didn't fetch and quote — no model priors as
-  evidence (`desk-research-rubric.md §2`); and never mark a your-user
-  behavioural claim Validated off desk evidence (base rate ≠ validation,
-  §7).
+  evidence; and never mark a your-user behavioural claim Validated off desk
+  evidence (base rate ≠ validation).
+- Never file a long-form research write-up outside evidence: in-repo notes
+  live at `docs/evidence/<slug>.md` with front-matter carrying the record
+  fields (`type` — an `experiment_type` rung, `tier`, `result`,
+  `source_quality`, `strength`, `date`, `subject`, `owner`) — never a
+  `research/` or `notes/` folder. An untyped note is a claim with no place
+  in the Confidence rollup.

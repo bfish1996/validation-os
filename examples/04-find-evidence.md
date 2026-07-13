@@ -9,7 +9,7 @@ back honestly:
 ▎ Internal sources: none configured beyond web — no Fireflies, Slack, or
 ▎ Attio connected in this workspace. Desk sweep for "do people understand
 ▎ agent-skill READMEs cold": nothing I can fetch and quote meets the
-▎ desk-research bar (`desk-research-rubric.md` — no source, no claim).
+▎ desk-research bar (no source, no claim — `historic-evidence.md §1`).
 ▎ Swept, no qualifying hit — that's a valid, complete outcome; nothing
 ▎ gets written, and nothing gets manufactured to fill the gap.
 
