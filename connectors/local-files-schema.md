@@ -251,16 +251,16 @@ migrate.
 
 ### create_backend
 
-Create `registry_dir` and scaffold the four directories (plus the registry
-README) from `templates/registry/`. Each directory starts with a single
-placeholder record so the format is self-documenting. If a directory already
-exists, the operation is skipped per-directory and the user is warned.
+Create `registry_dir` and the four register directories. If a directory
+already exists, the operation is skipped per-directory and the user is warned.
 
 ### seed_starter_records
 
-Copy the starter records from `templates/registry/` into the four directories,
-replacing the placeholder records. This is a gated write: `/setup-validation-os`
-shows the diff before saving.
+Copy the published example records from validation-os's own `registry/` (one
+per register — real, complete rows, not a fictional company) into the four
+directories, with `(example)` appended to each title so they're obviously safe
+to delete. This is a gated write: `/setup-validation-os` shows the diff before
+saving.
 
 ### migrate_schema
 

@@ -72,7 +72,7 @@ def frontmatter(path):
 ontology = load_yaml(ONTOLOGY)
 manifest = load_json(PLUGIN_MANIFEST)
 load_json(ROOT / "skills/self-review/references/evals.json")
-load_yaml(ROOT / "templates/validation-os.config.yaml")
+load_yaml(ROOT / "validation-os.config.yaml")
 
 
 # ── 2. Skill frontmatter ↔ 3. plugin manifest ↔ skill dirs ─────────────────

@@ -17,11 +17,11 @@ resolved against the working directory.
 
 ## Setup
 
-`/setup-validation-os` scaffolds the directory from `templates/registry/`:
+`/setup-validation-os` scaffolds the directory, seeding starter records from
+the published examples in this repo's own `registry/`:
 
 ```
 registry/
-  README.md         # layout + local/public policy
   assumptions/      # one file per assumption   (ASM-###.md)
   experiments/      # one file per experiment   (EXP-###.md)
   decisions/        # one file per decision     (DEC-###.md)
@@ -92,8 +92,8 @@ by hand knows not to type them.
 ## Cautions
 
 - Gated writes are file edits — propose the diff before saving.
-- A register directory that's missing gets created from the template, with the
-  user's confirmation — never silently.
+- A register directory that's missing gets created empty, with the user's
+  confirmation — never silently.
 - If a record deviates from the format (missing fields, renamed headings, a
   filename that doesn't match its heading ID), flag it for repair rather than
   working around it; malformed rows silently escape queries and audits.

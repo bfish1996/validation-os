@@ -95,9 +95,10 @@ Worked example: `../../examples/01-setup.md`.
    options — if the backend was created before the vocabulary was set, offer
    the option updates as part of the same gated setup.
 
-7. **Write the config.** Compose `validation-os.config.yaml` from
-   `templates/validation-os.config.yaml` with the answers above, show it in
-   full, and write it only on the user's confirmation.
+7. **Write the config.** Compose `validation-os.config.yaml` from the answers
+   above (validation-os's own config file at the repo root is the worked
+   example of the format), show it in full, and write it only on the user's
+   confirmation.
 
 8. **Prove the loop.** Offer to run `/assumptions` now to capture the user's
    first real assumption — setup is complete when one genuine record exists,
@@ -107,7 +108,7 @@ Worked example: `../../examples/01-setup.md`.
 
 This skill configures and builds/validates backends; it never grills, scores,
 designs experiments, or edits registry records beyond seeding the starter
-templates — those belong to `/assumptions`, `/experiment-design`,
+examples — those belong to `/assumptions`, `/experiment-design`,
 `/find-evidence`, and `/decisions`.
 
 ## Never

@@ -17,10 +17,11 @@
   demo data here; this is the live one.
 
 ### How it differs
-- **vs `templates/registry/`:** the starter rows there are a generic,
-  disposable scaffold for a new user's own project. The self-hosted
-  register is validation-os's own and permanent — local-first, with a few
-  records published as worked examples (`registry/README.md`).
+- **vs a starter template:** there isn't one — the published records here
+  are what `/setup-validation-os` seeds a new registry from. The seeded
+  copies are disposable examples; the self-hosted register is
+  validation-os's own and permanent — local-first, with a few records
+  published (`registry/README.md`).
 - **vs the old `examples/` walkthrough:** the walkthrough narrates what a
   skill session looked like; the self-hosted register is the actual
   record that session produced.

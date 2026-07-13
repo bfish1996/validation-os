@@ -266,8 +266,9 @@ their work.
 
 ## Configuration
 
-One file, `validation-os.config.yaml`, at your workspace root (template:
-[templates/validation-os.config.yaml](templates/validation-os.config.yaml)):
+One file, `validation-os.config.yaml`, at your workspace root (this repo's
+own [validation-os.config.yaml](validation-os.config.yaml) is a live
+example):
 
 ```yaml
 connector: local-files        # or: notion | sql | nosql
@@ -322,7 +323,6 @@ registry/             the live self-hosted register — validation-os run on
                       local-first, a few records published as examples)
 examples/             one assumption followed end-to-end, a scene per skill
 dashboard/            local read-only viewer + JSON view of the registers
-templates/            config + starter registry files
 docs/                 the method, the evidence ladder, the weekly ritual,
                       where it applies by function
 ```
