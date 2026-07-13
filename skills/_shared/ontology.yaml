@@ -4,7 +4,8 @@
 # the `*-guardrails.md` files (operational rules). Prose stays the human
 # source of meaning; this file is the single machine source for:
 # entity/property/relation completeness, select-option legality, status
-# transitions, derivation formulas, and cross-register integrity rules.
+# transitions, derived views, derivation formulas, and cross-register
+# integrity rules.
 #
 # Who reads it:
 # - Connector schema guides (`connectors/*-schema.md`) must map every entity,
@@ -35,9 +36,10 @@ vocabularies:
   # listed is illegal (integrity rule `illegal-select-value`). Adding a value
   # is a gated schema change.
   record_type: [Decision, Terminology]
-  assumption_status:
-    [Not Started, Goal Linked, Experiment Needed, Testing, Validated,
-     Invalidated, Inconclusive, Closed by decision]
+  # Small on purpose: there is no Validated status, and queue membership,
+  # Testing, goal linkage, and mootness are derived views (derived_views:),
+  # never stored values (docs/validated.md).
+  assumption_status: [Draft, Live, Invalidated]
   gaps:
     [5 Whys, Metric for truth, Scoring justification, Non-atomic,
      Unfalsifiable, Hyperbole, Lens check, Duplicate, Contradiction,
@@ -219,9 +221,10 @@ relations:
     cardinality: many-to-many
     applies_to: Decision
     side_effects: >-
-      On a Provisional/Active Kind: Goal commitment decision, cited in ##
-      Rationale: flips target Status → Goal Linked (gated). On every other
-      Decision Kind/Status: none — rationale only, never touches Status.
+      None, on any Kind — this edge never touches Status. Read backwards from
+      a Provisional/Active Kind: Goal commitment decision (cited in ##
+      Rationale) it IS the goal linkage: a condition of the derived test-next
+      queue (derived_views.test_next_queue) and an Impact anchor.
     meaning: >-
       Why we decided this (decision-guardrails.md §6). Read backwards from a
       Provisional or Active Kind: Goal commitment decision, this edge IS the
@@ -237,8 +240,13 @@ relations:
     target: assumptions
     cardinality: many-to-many
     applies_to: Decision
-    side_effects: flips target Status → Closed by decision (gated, human-affirmed)
-    meaning: This decision settles the open question without a test. Separate relation from Based on assumption — never inferred from it (decision-guardrails.md §6).
+    side_effects: >-
+      Lowers the target's Impact to 0 (moot), gated and human-affirmed: a
+      dated line in the assumption's ## Scoring justification records the
+      prior Impact and cites this decision; reversal restores it
+      (decision-guardrails.md §8). Never touches Status — closure is reserved
+      for true invalidation (docs/validated.md).
+    meaning: This decision retires the open question without a test by making it moot — the paths it mattered on are foreclosed. Separate relation from Based on assumption — never inferred from it (decision-guardrails.md §6).
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Status machines — every legal transition, who may perform it, and the gate.
@@ -246,35 +254,25 @@ relations:
 # ─────────────────────────────────────────────────────────────────────────────
 status_machines:
   assumption_status:
-    initial: Not Started
+    initial: Draft
     transitions:
-      - { from: Not Started, to: Goal Linked,
-          by: "/decisions (Based on assumption, set on a Provisional or Active Kind: Goal commitment row, cited in ## Rationale)", gate: gated,
-          trigger: "a standing Goal commitment decision links this row" }
-      - { from: Goal Linked, to: Experiment Needed,
+      - { from: Draft, to: Live,
           by: "/assumptions (single|seed)", gate: gated,
-          trigger: "grill close-out: Gaps empties, no running experiment, no conclusive verdict" }
-      - { from: Goal Linked, to: Not Started,
-          by: "gated reopen session", gate: gated,
-          trigger: "every Provisional/Active Goal commitment linking this row flips to Reversed/Superseded with no successor re-linking it (decision-guardrails.md §9g)" }
-      - { from: Experiment Needed, to: Testing,
-          by: "/experiment-design", gate: gated,
-          trigger: "creates an experiment with Result = Running" }
-      - { from: Testing, to: [Validated, Invalidated, Inconclusive],
+          trigger: "grill close-out: the last Gaps tag (including Human review) clears in a gated session" }
+      - { from: Live, to: Draft,
+          by: "/assumptions (gated session)", gate: gated,
+          trigger: "a new gap lands on the row — audit finding, contradiction, staleness flag" }
+      - { from: Live, to: Invalidated,
           by: "evidence skills + human verdict", gate: gated,
-          trigger: "a linked experiment concludes against its pre-registered bar" }
-      - { from: Inconclusive, to: Experiment Needed,
-          by: "/experiment-design", gate: gated,
-          trigger: "a better test is worth designing" }
-      - { from: "*", to: Closed by decision,
-          by: "/decisions (Resolves-assumption action only)", gate: gated }
-      - { from: Closed by decision, to: [Experiment Needed, Goal Linked, Not Started],
+          trigger: "a linked experiment concludes Invalidated at a rung ≥ the row's strongest validating rung, and a human affirms the kill against the pre-registered bar" }
+      - { from: Invalidated, to: Live,
           by: "gated reopen session", gate: gated,
-          trigger: "the resolving decision flips to Reversed/Superseded and the successor doesn't re-resolve (decision-guardrails.md §8); reopens to Experiment Needed if Gaps are empty, else Goal Linked if a standing goal link remains, else Not Started" }
+          trigger: "the killing experiment is re-judged flawed, or the world has changed enough that the kill no longer holds — human re-verdict" }
     forbidden:
-      - Batch/loop modes never flip Status — they tag the Human review gap instead.
-      - Logging evidence never flips Status (Confidence-only).
-      - A row that has advanced past Goal Linked never falls back on goal death — the gate already discharged its job (decision-guardrails.md §9g).
+      - There is no Validated status. Validation is only ever Confidence rising and Risk falling — "validated at <rung>" is prose, never a stored state (docs/validated.md).
+      - Draft ⇔ Gaps non-empty, always (integrity rule draft-live-gaps-invariant). Batch/loop modes tag the Human review gap — which keeps or returns the row to Draft — and never flip Status directly.
+      - Logging evidence never flips Status (Confidence-only). Only a human-affirmed kill does.
+      - Testing, queue membership, goal linkage, and mootness are derived views (derived_views:), never stored.
 
   experiment_result:
     initial: "Running (forward design) | conclusive at creation (retrospective evidence)"
@@ -296,6 +294,27 @@ status_machines:
       - { from: [Active, Provisional], to: Reversed,
           by: "/decisions", gate: gated,
           trigger: "abandoned outright, no successor" }
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Derived views — assumption states read from data, never stored. Boards and
+# filters may display them; no field carries them (registry-schema.md §Status
+# & derived views). The working Risk threshold is a prioritisation setting,
+# not a record property.
+# ─────────────────────────────────────────────────────────────────────────────
+derived_views:
+  goal_linked: >-
+    A standing (Provisional/Active) Kind: Goal commitment decision links the
+    row via Based on assumption, cited in its ## Rationale.
+  testing: "Status = Live AND a linked experiment has Result = Running."
+  test_next_queue: >-
+    Status = Live AND goal_linked AND no linked Running experiment AND Risk ≥
+    the working threshold — sorted by Risk descending.
+  proven_set: >-
+    Status = Live AND the strongest concluded linked experiment is Validated —
+    "what we currently know"; provisional, always (docs/validated.md).
+  moot: >-
+    Impact = 0 via a standing decision's Resolves assumption action — drops
+    out of every ranking; reversal restores the prior Impact.
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Integrity rules — derivable defects no single-record grill can see. Each is
@@ -359,26 +378,18 @@ integrity_rules:
     check: Two records asserting opposite truth values of the same proposition — a negation-duplicate; merge (assumption-guardrails.md §4a).
 
   # Status coherence (assumptions × experiments)
-  - id: queue-state-mismatch
+  - id: draft-live-gaps-invariant
     severity: error
     surfaced_by: ["/assumptions audit"]
-    check: Status = Experiment Needed (or later) while Gaps is non-empty, a linked experiment is Running, a conclusive verdict exists, or no standing (Provisional/Active) Goal commitment ever linked this row via Based on assumption — the test-next queue is lying.
-  - id: testing-without-running
-    severity: warn
-    surfaced_by: ["/assumptions audit"]
-    check: Status = Testing with no linked Running experiment (or vice versa).
+    check: Status = Draft with empty Gaps, or Status = Live with non-empty Gaps — the Draft ⇔ Gaps invariant is broken; fix in a gated session.
   - id: unrolled-verdict
     severity: warn
     surfaced_by: ["/assumptions audit"]
-    check: A linked experiment concluded but the assumption still sits in Testing — the verdict was never rolled up; flag for a gated close-out.
-  - id: closed-without-resolver
+    check: A linked experiment concluded Invalidated at a rung ≥ the row's strongest validating rung while the assumption still sits Live — the kill was never rolled up; flag for a gated close-out (human verdict).
+  - id: moot-without-resolver
     severity: error
     surfaced_by: ["/assumptions audit", "/decisions audit"]
-    check: Status = Closed by decision but no standing (Active/Provisional) decision carries a Resolves assumption link to it — reopen per decision-guardrails.md §8.
-  - id: stale-goal-link
-    severity: warn
-    surfaced_by: ["/assumptions audit", "/decisions audit"]
-    check: Status = Goal Linked but no standing (Provisional/Active) Goal-commitment decision currently carries a Based on assumption link to it — the gate should reopen the row to Not Started (registry-schema.md §Status flow).
+    check: Impact = 0 with a mootness line citing a resolving decision that is no longer standing (Reversed/Superseded, successor doesn't re-resolve) — restore the prior Impact per decision-guardrails.md §8.
   - id: goal-link-uncited
     severity: warn
     surfaced_by: ["/decisions audit"]
@@ -388,11 +399,11 @@ integrity_rules:
   - id: invalidated-dependency
     severity: warn
     surfaced_by: ["/assumptions audit"]
-    check: An assumption whose Depends on target is Invalidated while it is itself Validated or carries high Confidence — its validation rests on a broken foundation; propose the Human review gap.
+    check: An assumption whose Depends on target is Invalidated while it is itself Live with high Confidence — its support rests on a broken foundation; propose the Human review gap.
   - id: contradicts-both-validated
     severity: error
     surfaced_by: ["/assumptions audit"]
-    check: Both ends of a Contradicts edge are Validated — the tension the edge marks was never real, or one verdict is wrong.
+    check: Both ends of a Contradicts edge carry a validating strongest concluded experiment — the tension the edge marks was never real, or one verdict is wrong.
   - id: stale-rationale
     severity: warn                # error when the decision is a One-way door
     surfaced_by: ["/decisions audit"]
@@ -400,11 +411,11 @@ integrity_rules:
   - id: stale-resolution
     severity: error
     surfaced_by: ["/decisions audit"]
-    check: A Reversed/Superseded decision whose Resolves assumption targets still sit in Closed by decision (and the successor doesn't re-resolve them) — decision-guardrails.md §8.
+    check: A Reversed/Superseded decision whose Resolves assumption targets still sit moot at Impact 0 (and the successor doesn't re-resolve them) — decision-guardrails.md §8.
   - id: one-way-door-untested-basis
     severity: error
     surfaced_by: ["/decisions audit"]
-    check: A One-way door decision Based on an untested assumption with no risk-acceptance line in ## Rationale — decision-guardrails.md §8.
+    check: A One-way door decision Based on an assumption whose Risk sits above the working threshold, with no risk-acceptance line in ## Rationale — decision-guardrails.md §8.
   - id: unresolved-tension
     severity: warn
     surfaced_by: ["/decisions audit"]
@@ -434,4 +445,4 @@ integrity_rules:
   - id: anchor-dilution
     severity: warn                # no hard cap, but no longer informational-only — goal-linkage now gates prioritization
     surfaced_by: ["/decisions audit"]
-    check: Report the count of standing (Provisional+Active) Goal commitments and the share of open assumptions gated by one; when most open assumptions gate some goal, the "gates a committed goal" anchor and the Goal Linked gate have both stopped discriminating — review linking discipline in a gated session (decision-guardrails.md §9g).
+    check: Report the count of standing (Provisional+Active) Goal commitments and the share of open assumptions gated by one; when most open assumptions gate some goal, the "gates a committed goal" anchor and the goal-linkage queue condition have both stopped discriminating — review linking discipline in a gated session (decision-guardrails.md §9g).

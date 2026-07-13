@@ -104,16 +104,18 @@ unreconciled contradiction (negation merged; tension wired via `Contradicts`
 
 Enforce that a falsifiability statement exists, then **stop.**
 Creating/running experiments is `/experiment-design`; logging existing
-evidence standalone is `/find-evidence`. This skill only ever moves `Status`
-`Goal Linked` → `Experiment Needed`, at grill close-out when `Gaps` empties
-(gated, single/seed — loop never flips `Status`; it tags the `Human review`
-gap instead). This skill never flips `Not Started` → `Goal Linked` — that's
+evidence standalone is `/find-evidence`. This skill only ever flips
+`Status` `Draft` ⇔ `Live`: `Draft` → `Live` at grill close-out when `Gaps`
+empties (gated, single/seed — loop never flips `Status`; it tags the
+`Human review` gap instead, which holds the row in `Draft`), and `Live` →
+`Draft` when a new gap lands. Goal linkage is never a status — it's
 `/decisions`' gated `Based on assumption` write on a standing Goal
-commitment (`decision-guardrails.md §9g`); a fully-grilled row with no goal
-link waits in `Not Started`, not `Experiment Needed`. `Testing` is
-`/experiment-design`'s flip; verdicts are the evidence skills' — evidence
-rolls up `Confidence` on its own. Full flow: `registry-schema.md §Status
-flow`.
+commitment, read as a derived queue condition (`decision-guardrails.md
+§9g`); a fully-grilled row with no goal link is `Live` but queue-invisible.
+Testing is a derived view (`Live` + a `Running` experiment), never a flip;
+verdicts are the evidence skills' — evidence rolls up `Confidence` on its
+own, and only a human-affirmed kill flips `Live` → `Invalidated`. Full
+flow: `registry-schema.md §Status & derived views`.
 
 ## Safety
 

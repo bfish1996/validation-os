@@ -27,7 +27,7 @@ it) with properties matching the schema's field maps:
   Theme (multi-select), Impact (number), Risk (**formula**:
   `Impact * (1 - Confidence / 100)`), Confidence (**rollup**: max of linked
   Experiments' Strength — see note below on the corroboration bump),
-  Corroboration count (number), Status (status), Owner (person), Gaps
+  Corroboration count (number), Status (select), Owner (person), Gaps
   (multi-select), Depends on / Enables (self-relation), Contradicts
   (self-relation), Experiments (relation → Experiments).
 - **Experiments** — title, Assumption (relation → Assumptions, many-to-many),

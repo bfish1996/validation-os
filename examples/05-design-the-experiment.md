@@ -30,7 +30,9 @@ Fewer than 3 of 6 get it, or several describe it as something it's not
 ("a project tracker", "a notes app").
 ```
 
-Two gated writes: create EXP-001, then flip ASM-001 `Status → Testing`.
+One gated write creates EXP-001; ASM-001's Status stays `Live` — with a
+`Running` experiment now linked, it reads as Testing (a derived view)
+and drops out of the test-next queue.
 Prep follows from `references/interview-guide.md` — screener, target N,
 non-leading questions ("walk me through the last decision that went
 wrong," never "would you find this useful") — into the record body. Then

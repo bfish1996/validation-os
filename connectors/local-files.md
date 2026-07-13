@@ -44,7 +44,7 @@ ID references (`ASM-002`), comma-separated. Example:
 - **Confidence**: 25        <!-- derived -->
 - **Risk**: 52.5            <!-- derived -->
 - **Corroboration count**: 0
-- **Status**: Experiment Needed
+- **Status**: Live
 - **Owner**: you
 - **Gaps**: (none)
 - **Depends on**: ASM-001

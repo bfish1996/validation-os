@@ -32,8 +32,8 @@ its own registry — the tool run on itself.
 Cites ASM-001 (README readers understand the next step, cold) — a
 fictional example is one more thing standing between the reader and
 understanding what to do next, and it can't be checked against anything
-real. `Kind: Direction`, so citing an assumption here as rationale doesn't
-gate its Status.
+real. A `Based on assumption` link is rationale only — it never touches
+ASM-001's row, on any `Kind`.
 
 ### Alternatives considered
 Keep the fictional example and add a real one alongside it — rejected:

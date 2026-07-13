@@ -65,10 +65,10 @@ health note with the orphan share and which families float free.
 Run every check in `ontology.yaml §integrity_rules` whose `surfaced_by`
 includes `/assumptions audit`, citing each finding by rule `id`. Phase A/B/C
 already cover the per-record and graph-shape rules; what only this phase
-catches is status coherence and propagation — `queue-state-mismatch`,
-`testing-without-running`, `unrolled-verdict`, `resolved-without-resolver`,
-`invalidated-dependency`, `contradicts-both-validated`,
-`derived-field-stale`, `strength-not-gated`, `corroboration-count-mismatch`.
+catches is status coherence and propagation — `draft-live-gaps-invariant`,
+`unrolled-verdict`, `moot-without-resolver`, `invalidated-dependency`,
+`contradicts-both-validated`, `derived-field-stale`, `strength-not-gated`,
+`corroboration-count-mismatch`.
 These need the assumptions **and** their linked experiments loaded — pull
 both registers before fanning out.
 

@@ -14,7 +14,9 @@ description: >-
   pass, base-rate≠validation). Each qualifying hit is triaged against the
   assumption's Metric for truth + Lens and written as a conclusive
   Experiment record — gated per record. Confidence rolls up automatically;
-  never flips the assumption's Status. Use for "find evidence for this
+  the assumption's Status moves only on a human-affirmed kill (Invalidated
+  at a rung at or above the strongest validating rung, gated Live to
+  Invalidated). Use for "find evidence for this
   assumption", "what do we already know about X", "desk research this
   assumption", "what does the market/regulation/competition say about X",
   "size the market for Y", "are there historic interviews suggesting demand
@@ -141,15 +143,19 @@ the read is auditable. Search the disconfirming case too.
 - Report what changed: for each record, say whether it was a **new**
   conclusive record or an existing `Running` guide you **closed out**
   (`Running` → verdict), with links, and Confidence before → after.
+- A validating or inconclusive verdict changes nothing on the assumption
+  beyond Confidence. A **kill** — `Invalidated` at a rung ≥ the
+  assumption's strongest validating rung — triggers the gated `Live` →
+  `Invalidated` flip: propose it, the human affirms; never auto-apply.
 - "Swept, no qualifying hit" is a complete, honest outcome — say so plainly
   rather than logging a weak record to look productive.
 - **Goal tripwire** (`../_shared/decision-guardrails.md §9e`): if a
   conclusive verdict landed, query `Active` Decisions with
   `Kind: Goal commitment` that link this assumption via
   `Based on assumption` (or name it in a risk-acceptance line). For each,
-  surface it: *"this goal rests on the belief just
-  validated/invalidated — review it (re-cut via supersede, or re-accept
-  the bet)?"* Surfacing only — never flip a decision's status or edit its
+  surface it: *"this goal rests on the belief this verdict just supported
+  or killed — review it (re-cut via supersede, or re-accept the bet)?"*
+  Surfacing only — never flip a decision's status or edit its
   bar here; the review itself is a `/decisions` job.
 - If the sweep exposed that the assumption's Metric for truth is too vague
   to judge evidence against, that's a grill problem — flag it and point at
@@ -165,7 +171,10 @@ the record links back to the closing decision.
 
 - Never grill the record here (split / 5 Whys / score / vocabulary) —
   that's `/assumptions`. This skill only finds and logs existing evidence.
-- Never flip the assumption `Status` — Confidence-only.
+- Never flip the assumption `Status` on a validating or inconclusive
+  verdict — Confidence-only. The one exception is the kill: `Invalidated`
+  at a rung ≥ the strongest validating rung flips `Live` → `Invalidated`,
+  gated and human-affirmed.
 - Never log a *not-yet-run* test as existing evidence — designing a future
   test is `/experiment-design`. But **do** close out a `Running` guide once
   its interview has actually happened (flip it in place, don't duplicate

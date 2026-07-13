@@ -28,9 +28,20 @@ An assumption is a bet about the world, and the world moves. So:
   finished.
 - **Assumption-level "validated" therefore always carries a rung.** Say
   "validated at Signed intent, Confidence 60", never "validated" as if it
-  were done. The `Validated` status is a snapshot — *the strongest
-  concluded evidence currently supports this belief* — a resting state,
-  not a terminal one.
+  were done. It is prose shorthand, nothing more.
+
+## The asymmetry: you can invalidate, you can never validate
+
+Evidence can conclusively refute a general claim; it can only ever
+*support* one. The register makes that asymmetry structural: `Invalidated`
+exists as a stored state — the rare, human-affirmed kill — and `Validated`
+does not exist as a state at all. An assumption's `Status` is only ever
+`Draft` (still being built, `Gaps` non-empty), `Live` (ranked by Risk,
+forever), or `Invalidated` (`registry-schema.md §Status & derived views`).
+Validation is nothing but Confidence rising and Risk falling; "what we
+currently know" is the derived proven-set view (`Live` + strongest
+concluded experiment `Validated`), a filter you compute, not a state you
+grant.
 
 ## "Validated enough" is a Risk judgment, not a Confidence number
 
@@ -50,19 +61,20 @@ current and keep you working above the threshold, not to march every row
 to a finish line. Where the threshold sits is a prioritisation rule, not a
 property of the record.
 
-## What sends a validated assumption back into play
+## What puts a supported belief back in the queue
 
-Re-testing is **event-driven** — there is no decay formula. A validated
-assumption re-enters the queue when its Risk crosses back above the
+Nothing needs "reopening", because nothing closed: a `Live` row is ranked
+forever, and re-testing is **event-driven** — there is no decay formula.
+The row re-enters the queue when its Risk crosses back above the
 threshold, which happens when:
 
 - **New evidence lands against it** — a concluded experiment at an equal
-  or stronger rung contradicts the standing verdict.
+  or stronger rung contradicts the standing support.
 - **Impact rises** — a new goal or decision leans on it, or new dependents
   accrue in the graph, so the old Confidence no longer covers the new
   stakes.
-- **A resolving decision is reversed** — mootness dies with the decision
-  (`decision-guardrails.md §8`).
+- **A resolving decision is reversed** — its Impact is restored and
+  mootness dies with the decision (`decision-guardrails.md §8`).
 - **The evidence goes stale** — audit flags that the market, users, or
   product the evidence describes have since changed; a human re-renders
   the call. Staleness is a prompt to a person, never an auto-downgrade.
@@ -85,7 +97,7 @@ on it, but only evidence moves Confidence.
 - Say **"validated at \<rung\>"** or give the Confidence number.
 - Don't say **"fully validated"**, **"proven"** (of an assumption —
   records are proven, beliefs aren't), **"de-risked"**, or **"done"**.
-- `Validated` (Status) means *currently supported by our strongest
-  concluded evidence* — still a bet, still revisable.
+- Don't write `Validated` into an assumption's `Status` — the value does
+  not exist. The proven set is a filtered view, not a state.
 
 Glossary entry: `registry/terminology.md §TERM-002`.

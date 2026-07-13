@@ -15,9 +15,10 @@ with real ones from our own registry, decided today"
 
 ▎ One more check: this decision cites ASM-003 ("real examples build more
 ▎ trust than fictional ones") as rationale — a `Based on assumption`
-▎ link. It does NOT resolve it: the belief stays live, ungrilled, and can
-▎ still accumulate evidence later. `Resolves assumption` is a separate
-▎ gated action for retiring a belief by explicit decision — not this.
+▎ link. It does NOT resolve it: the row is untouched — still ungrilled,
+▎ still able to accumulate evidence later. `Resolves assumption` is a
+▎ separate gated action that makes a belief moot: Impact drops to 0 with
+▎ the prior score recorded, Status untouched — not this.
 
 One gated write:
 

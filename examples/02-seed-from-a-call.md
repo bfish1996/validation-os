@@ -30,7 +30,7 @@ ASM-001 as created:
   the core loop and first command are stated plainly enough to act on
   without live explanation.
 - **Lens**: Adopter · **Themes**: Positioning, Docs & DX
-- **Status**: Not Started · **Owner**: Benji
+- **Status**: Draft · **Owner**: Benji
 - **Gaps**: 5 Whys, Metric for truth, Scoring justification
 ```
 

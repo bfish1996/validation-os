@@ -119,20 +119,22 @@ assumptions.**
 - **`Based on assumption`** — rationale only. It answers *"why did we decide
   this?"* A decision can cite an untested, low-confidence, or even
   since-invalidated assumption as its reason **without that citation implying
-  anything about the assumption's truth.** On most Decision rows, setting
-  this relation never touches the linked assumption's `Status`. The one
-  exception: on a `Provisional` or `Active` `Kind: Goal commitment` row, this
-  relation **is** the goal-linkage gate — setting it (cited in `##
-  Rationale`) flips the target assumption's `Status` to `Goal Linked` (§9g).
-  That single exception aside, citing an assumption never implies anything
-  about its truth, and never resolves it.
+  anything about the assumption's truth.** Setting this relation never
+  touches the linked assumption, on any `Kind`. On a `Provisional` or
+  `Active` `Kind: Goal commitment` row this relation, read backwards, **is**
+  the derived goal linkage (§9g) — a test-next-queue membership condition
+  and an Impact anchor, computed from the relation, never a status flip.
+  Citing an assumption never implies anything about its truth, and never
+  resolves it.
 - **`Resolves assumption`** — a separate, deliberate human judgment that this
   decision **settles** the open question the assumption was testing, without
   needing an experiment (e.g. the business chose to proceed regardless of
   what turns out to be true, or the decision makes the question moot).
-  Setting this relation is the **only** thing that flips the linked
-  assumption's `Status` to `Closed by decision`
-  (`registry-schema.md §Status flow`).
+  Setting this relation (gated, human-affirmed) makes the linked assumption
+  **moot**: its Impact drops to 0 in the same gated write, with a dated line
+  in its `## Scoring justification` recording the prior score and citing
+  this decision. `Status` is untouched
+  (`registry-schema.md §Status & derived views`).
 
 **A decision must never be treated as resolving an assumption just because it
 cites it via `Based on assumption`.** Capture and Sweep ask these as two
@@ -142,7 +144,8 @@ distinct, separately-gated questions — never infer one from the other:
    assumption` only.
 2. *"Does this decision settle that assumption without needing a test?"* →
    only if explicitly affirmed, propose `Resolves assumption` **and** the
-   paired gated write to flip the assumption's `Status`.
+   paired gated write dropping the assumption's Impact to 0 (the dated
+   mootness line).
 
 If a decision is Based-on an assumption and the user hasn't explicitly
 answered question 2, leave `Resolves assumption` unset — an open assumption
@@ -175,9 +178,9 @@ are unavoidable. It's a bar-setter:
   low-confidence assumptions: reversing is cheap, so the decision itself
   functions like an experiment. No extra gate.
 - **One-way door** — the strict gate. Every `Based on assumption` link should
-  point at a `Validated` or `Closed by decision` record. If any linked
-  assumption is untested, Capture must either (a) record an explicit
-  **risk-acceptance line** in `## Rationale` naming the untested
+  point at a record whose Risk sits below the working threshold. If any
+  linked assumption still sits above it, Capture must either (a) record an
+  explicit **risk-acceptance line** in `## Rationale` naming the
   assumption(s) and why deciding now beats testing first (dated format:
   §9d), or (b) propose routing to `/experiment-design` and leaving the
   decision `Provisional` until the evidence lands. A one-way door silently
@@ -186,14 +189,15 @@ are unavoidable. It's a bar-setter:
 **Mootness dies with the decision.** When a Decision carrying `Resolves
 assumption` links flips to `Reversed` or `Superseded` (and the superseding
 decision doesn't re-resolve the same records), each linked assumption's
-`Closed by decision` status is stale — the question it retired is open
-again. Audit flags these; a human reopens each in a gated session
-(`registry-schema.md §Status flow`). The same logic applies to goal-linkage
-(§9g): when a `Provisional`/`Active` `Kind: Goal commitment` decision that
-was the sole `Based on assumption` link keeping an assumption `Goal Linked`
-flips to `Reversed`/`Superseded` with no successor re-linking it, that
-assumption's `Goal Linked` status is stale too — reopens the same way, but
-only while the row hasn't advanced past `Goal Linked` yet.
+Impact-0 mootness is stale — the question it retired is open again. Audit
+flags these (`stale-resolution`, `moot-without-resolver`); a human restores
+each row's prior Impact — the dated mootness line records it — in a gated
+session (`registry-schema.md §Status & derived views`). Goal-linkage (§9g)
+needs no such ceremony: when a `Provisional`/`Active` `Kind: Goal
+commitment` decision that was the sole `Based on assumption` link on an
+assumption flips to `Reversed`/`Superseded` with no successor re-linking
+it, the row simply drops out of the derived test-next queue — the linkage
+was never stored, so there is nothing to reopen.
 
 ---
 
@@ -250,14 +254,15 @@ self-impose a cadence, the system never does. A draft goal = `Status:
 Provisional`. Re-cutting or dropping a goal mid-cycle = `Supersedes` /
 `Reversed`, per §5 — never a silent edit of the bar.
 
-**A `Provisional` link satisfies the goal-linkage gate exactly like an
+**A `Provisional` link makes the target goal-linked exactly like an
 `Active` one** (§9g) — this is what makes test-before-commit possible at
-all. If linking required `Active`, an untested belief could never be tested
-before the goal committed, and the goal could never responsibly commit
-before the belief was tested: a circular lock at the exact moment this
-system cares most about de-risking. A draft goal's rationale is enough to
-put its assumptions in the test-next queue; committing for real (`Provisional
-→ Active`) is a separate, later gated step once the evidence looks good.
+all. If the linkage required `Active`, an untested belief could never be
+tested before the goal committed, and the goal could never responsibly
+commit before the belief was tested: a circular lock at the exact moment
+this system cares most about de-risking. A draft goal's rationale is enough
+to put its assumptions in the derived test-next queue; committing for real
+(`Provisional → Active`) is a separate, later gated step once the evidence
+looks good.
 
 ### 9d. Risk-acceptance lines — dated, parseable
 
@@ -301,15 +306,17 @@ by a threshold. The gate, by verdict:
 ### 9g. Focus effects — anchor, gate, and lens, never the formula
 
 An assumption gates a goal when a `Provisional` or `Active` Goal commitment
-links it via `Based on assumption`, cited in `## Rationale`. That linkage
-does three things: (a) anchors the human's Impact score
-(`assumption-guardrails.md §3` — justify anything below top-band, and Audit
-flags mismatches in both directions); (b) flips the assumption's `Status` to
-`Goal Linked` — the **hard gate** on ever reaching `Experiment Needed`
-(`registry-schema.md §Status flow`); (c) gives the test-next queue a "gates
-a committed goal" lens once past the gate. It still **never** enters the
-Risk formula and never touches Confidence — the gate controls *whether* an
-assumption is eligible for prioritization, not how it's scored once it is.
+links it via `Based on assumption`, cited in `## Rationale`. That linkage —
+**derived**, read from the relation, never stored on the row — does three
+things: (a) anchors the human's Impact score (`assumption-guardrails.md §3`
+— justify anything below top-band, and Audit flags mismatches in both
+directions); (b) makes the row **goal-linked**, a membership condition of
+the derived test-next queue (`registry-schema.md §Status & derived views`):
+a fully-grilled, unlinked `Live` row is queue-invisible until a goal claims
+it; (c) gives the queue a "gates a committed goal" lens. It still **never**
+enters the Risk formula and never touches Confidence or `Status` — the
+linkage controls *whether* an assumption is eligible for prioritization,
+not how it's scored once it is.
 
 **Citation, not just the relation, is required.** Capture/Sweep reject a
 `Based on assumption` link on a Goal commitment that isn't named in the
@@ -329,15 +336,12 @@ unlinked, then relinked), as a signal to review that team's linking
 discipline in a gated session, not just a metric to note.
 
 When a goal dies (`Dropped`/`Missed`/`Superseded`) with no successor
-re-linking, nothing changes mechanically on assumptions that have already
-advanced **past** `Goal Linked` (`Experiment Needed` or later) — no status
-flips, no Impact edits, matching the "no take-back" rule in
-`registry-schema.md §Status flow`. An assumption still sitting **in**
-`Goal Linked` when its only linking goal dies does reopen — the gate was the
-only thing holding it there, so the gated reopen session drops it back to
-`Not Started` (§8). Stale goal-anchored Impact justifications surface
-through the ordinary audit consistency check either way, and
-reopening/re-scoring stays a gated human pass.
+re-linking, nothing changes mechanically on the assumptions it linked — no
+status flips, no Impact edits, no reopen session. The rows simply drop out
+of the derived test-next queue, silently, because the linkage was never
+stored (`registry-schema.md §Status & derived views`). Stale goal-anchored
+Impact justifications surface through the ordinary audit consistency check
+(`stale-goal-anchor`), and re-scoring stays a gated human pass.
 
 ---
 
@@ -350,12 +354,11 @@ severity field · `Supersedes` wired only for a genuine intentional override,
 never in place of an unresolved `Related tension` · `Based on` and `Resolves`
 assumption relations set independently, never one inferred from the other ·
 Sweep's conflict search never crosses `Area` · Reversibility classified
-(unclear = one-way) · One-way door with untested `Based on` links carries a
-risk-acceptance line or stays `Provisional` pending a test · Goal
+(unclear = one-way) · One-way door with above-threshold `Based on` links
+carries a risk-acceptance line or stays `Provisional` pending a test · Goal
 commitments (§9): bar passes the SMART checks incl. calibration evidence ·
 risk-acceptance lines dated in the parseable format · `## Outcome` verdict
 gated (Achieved/Missed need ≥1 evidence link; Dropped needs the
 superseding/reversing decision link) · goal linkage (`Provisional` or
-`Active`) is cited in `## Rationale`, not just the relation, and flips the
-target assumption to `Goal Linked`; it never touches Confidence or the Risk
-formula.
+`Active`) is cited in `## Rationale`, not just the relation; it never
+touches the target's `Status`, Confidence, or the Risk formula.

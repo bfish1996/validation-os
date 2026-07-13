@@ -21,8 +21,8 @@ this captures a test, observation, or published fact that already exists.
 Both write to the same Experiments register.
 
 > **Confidence-only.** This procedure **never moves the assumption's
-> `Status`.** Rolling a verdict back into `Status` is a separate,
-> human-gated call.
+> `Status`.** Only a human-affirmed kill ever flips it
+> (`Live → Invalidated`) — a separate, gated call.
 
 |  | New evidence (`/experiment-design`) | Existing evidence (here) |
 |---|---|---|
@@ -30,7 +30,7 @@ Both write to the same Experiments register.
 | `Result` at creation | `Running` | Conclusive (Validated / Invalidated / Inconclusive) |
 | `Date` | Today (start) | When the evidence occurred; for desk, the research date |
 | Body | Protocol + pre-registered pass/kill bar | Evidence summary + source link(s) + what it shows |
-| Touches assumption `Status`? | Offers `Experiment Needed` → `Testing` (gated) | **Never** (Confidence-only) |
+| Touches assumption `Status`? | **Never** — a `Running` record puts the row in the derived Testing view | **Never** (Confidence-only) |
 
 ---
 

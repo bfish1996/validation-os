@@ -26,30 +26,31 @@ Then Impact, anchored rather than felt:
 ▎ still be iterated post-launch; this isn't a one-way door.
 
 Benji confirms each answer; close-out is one gated write — body sections
-filled, Gaps emptied:
+filled, Gaps emptied, and the last tag clearing flips the lifecycle:
 
 ```
-Gaps: (none) · Status: Not Started
+Gaps: (none) · Status: Draft → Live
 Impact 85 · Confidence 0 · Risk 85
 ```
 
-▎ One more thing before this can queue: `Gaps` is empty, but `Status`
-▎ stays `Not Started` — grilling and goal-linkage are independent gates.
-▎ ASM-001 needs a standing goal to cite it via `Based on assumption`
-▎ before it can reach `Experiment Needed`.
+▎ One more thing before this can queue: ASM-001 is `Live` and ranked at
+▎ Risk 85, but the test-next queue is a derived view — `Live` +
+▎ goal-linked + no running experiment. No standing goal cites it via
+▎ `Based on assumption` yet, so it's ranked but queue-invisible.
 
 That link lands separately, the same day: DEC-001, a `Provisional` goal
 commitment ("validate README comprehension before wider launch"), cites
-ASM-001 in its `## Rationale`. That's what flips it —
+ASM-001 in its `## Rationale`. Nothing on the row changes — the link,
+read backwards, is what computes it into the queue:
 
 ```
-Status: Not Started → Goal Linked → Experiment Needed
+Live, unlinked (queue-invisible) → Live, goal-linked → test-next queue
 ```
 
 **What this shows:** the grill never batches questions, Impact is
 justified against what actually depends on the belief, Confidence stays
-derived (still 0 — grilling is not evidence), and an empty Gaps list only
-promotes a belief onto the test-next queue once the separate goal-linkage
-gate has also cleared.
+derived (still 0 — grilling is not evidence), and clearing the last gap
+flips `Draft → Live` while queue entry stays a derived view that only
+computes true once the separate goal-linkage condition also holds.
 
 Next: [04 — sweep existing evidence](04-find-evidence.md).

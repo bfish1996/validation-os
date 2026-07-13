@@ -19,7 +19,7 @@ new registry starts from a genuine example instead of an invented one.
 - **Confidence**: 0         <!-- derived -->
 - **Risk**: 85              <!-- derived -->
 - **Corroboration count**: 0
-- **Status**: Testing
+- **Status**: Live
 - **Owner**: Benji
 - **Gaps**: (none)
 - **Depends on**: (none)

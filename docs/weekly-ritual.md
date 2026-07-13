@@ -6,8 +6,9 @@ appears) happens ad hoc through the skills.
 
 ## Monday — prioritise by Risk
 
-Open the **test-next queue**: assumptions with `Status = Experiment Needed`,
-sorted by Risk descending.
+Open the **test-next queue** — the derived view: `Live`, goal-linked
+assumptions with no running experiment and Risk at or above the working
+threshold, sorted by Risk descending.
 
 1. Sanity-check the top of the queue — do the Risk rankings still reflect
    reality? (A stale Impact score is cheaper to fix now than after a week
@@ -30,7 +31,10 @@ sorted by Risk descending.
    human verdict against its pre-registered bar: Validated / Invalidated /
    Inconclusive. Never auto-flip on a threshold; never leave a finished
    test `Running` (that's `/find-evidence`'s close-out flow — it flips the
-   record in place and Confidence rolls up).
+   record in place and Confidence rolls up). On the assumption, a
+   validating verdict moves nothing but Confidence; only a kill — a
+   conclusive Invalidated at a rung at or above the row's strongest
+   validating rung, human-affirmed — flips the row `Live → Invalidated`.
 2. **Log the week's stray evidence.** Anything heard in calls, threads, or
    research that bears on an open assumption: `/find-evidence`.
 3. **Log the week's decisions.** Anything the team actually decided:
@@ -43,9 +47,9 @@ sorted by Risk descending.
    the goal's owner: test now, re-accept with a new date, or re-cut the
    goal.
 5. **Clear the human-review queue.** If a loop/batch run grilled records
-   this week, walk the `Human review` gaps with each record's owner —
-   machine-grilled records don't enter the test-next queue without
-   sign-off.
+   this week, walk the `Human review` gaps with each record's owner — the
+   gap holds machine-grilled records in `Draft`, and only a gated sign-off
+   promotes them to `Live` (and so into the queue).
 
 ## Monthly-ish — audit
 
@@ -53,7 +57,7 @@ Run `/assumptions` (audit mode) and `/decisions` (Audit) for a read-only
 health report: duplicates, contradictions, orphaned records, incomplete
 decisions, stale tensions — plus goal health: overdue risk-acceptance
 revisit dates, goals past their target date with an empty `## Outcome`,
-Impact scores anchored to goals that are no longer Active, and anchor
+Impact scores anchored to goals that are no longer standing, and anchor
 dilution (when most open assumptions gate some goal, the goal anchor has
 stopped discriminating). Fix the top findings through the gated flows.
 

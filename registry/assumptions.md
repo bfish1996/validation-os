@@ -19,7 +19,7 @@ Not a starter template (that's `templates/registry/`); this is live.
 - **Confidence**: 0         <!-- derived -->
 - **Risk**: 85              <!-- derived -->
 - **Corroboration count**: 0
-- **Status**: Testing
+- **Status**: Live
 - **Owner**: Benji
 - **Gaps**: (none)
 - **Depends on**: ASM-006
@@ -72,7 +72,7 @@ fictional Ledgerly examples with a real, self-hosted register
 - **Confidence**: 0         <!-- derived -->
 - **Risk**: 70              <!-- derived -->
 - **Corroboration count**: 0
-- **Status**: Not Started
+- **Status**: Draft
 - **Owner**: Benji
 - **Gaps**: 5 Whys, Metric for truth, Scoring justification
 - **Depends on**: ASM-006
@@ -101,7 +101,7 @@ silently assumes the reader already knows what a skill is.
 - **Confidence**: 0         <!-- derived -->
 - **Risk**: 60              <!-- derived -->
 - **Corroboration count**: 0
-- **Status**: Not Started
+- **Status**: Draft
 - **Owner**: Benji
 - **Gaps**: 5 Whys, Metric for truth, Scoring justification
 - **Depends on**: (none)
@@ -117,8 +117,8 @@ silently assumes the reader already knows what a skill is.
 
 ### Provenance & notes
 Seeded from the 2026-07-09 planning session. Cited as rationale by DEC-002
-(a `Direction` decision, so citing it does not gate its Status — it stays
-`Not Started` until grilled and, separately, goal-linked).
+(a `Direction` decision — rationale citations never touch the row; it
+stays `Draft` until grilled and, separately, needs a goal link to queue).
 
 ## ASM-004: GitHub stars are too early to read as signal
 - **Description**: We assume GitHub stars won't be a usable adoption
@@ -130,7 +130,7 @@ Seeded from the 2026-07-09 planning session. Cited as rationale by DEC-002
 - **Confidence**: 0         <!-- derived -->
 - **Risk**: 40              <!-- derived -->
 - **Corroboration count**: 0
-- **Status**: Not Started
+- **Status**: Draft
 - **Owner**: Benji
 - **Gaps**: 5 Whys, Scoring justification
 - **Depends on**: (none)
@@ -163,7 +163,7 @@ Seeded from the 2026-07-09 planning session.
 - **Confidence**: 0         <!-- derived -->
 - **Risk**: 55              <!-- derived -->
 - **Corroboration count**: 0
-- **Status**: Not Started
+- **Status**: Draft
 - **Owner**: Benji
 - **Gaps**: 5 Whys, Metric for truth, Scoring justification
 - **Depends on**: (none)
@@ -193,7 +193,7 @@ explicitly rather than left implicit (see 06-meeting-prep.md).
 - **Confidence**: 0         <!-- derived -->
 - **Risk**: 75              <!-- derived -->
 - **Corroboration count**: 0
-- **Status**: Not Started
+- **Status**: Live
 - **Owner**: Benji
 - **Gaps**: (none)
 - **Depends on**: (none)
@@ -260,7 +260,7 @@ draft-quality until the owner re-reads it.
 - **Confidence**: 0         <!-- derived -->
 - **Risk**: 80              <!-- derived -->
 - **Corroboration count**: 0
-- **Status**: Not Started
+- **Status**: Draft
 - **Owner**: Benji
 - **Gaps**: 5 Whys, Metric for truth, Scoring justification
 - **Depends on**: ASM-002
@@ -291,7 +291,7 @@ register or EXP plan measures week-two behaviour.
 - **Confidence**: 0         <!-- derived -->
 - **Risk**: 90              <!-- derived -->
 - **Corroboration count**: 0
-- **Status**: Not Started
+- **Status**: Draft
 - **Owner**: Benji
 - **Gaps**: 5 Whys, Metric for truth, Scoring justification
 - **Depends on**: (none)
@@ -322,7 +322,7 @@ kill/commit calls than they would by feel.
 - **Confidence**: 0         <!-- derived -->
 - **Risk**: 45              <!-- derived -->
 - **Corroboration count**: 0
-- **Status**: Not Started
+- **Status**: Draft
 - **Owner**: Benji
 - **Gaps**: 5 Whys, Metric for truth, Scoring justification
 - **Depends on**: ASM-006
@@ -353,7 +353,7 @@ me what breaks") is the cheapest early read on this.
 - **Confidence**: 0         <!-- derived -->
 - **Risk**: 65              <!-- derived -->
 - **Corroboration count**: 0
-- **Status**: Not Started
+- **Status**: Draft
 - **Owner**: Benji
 - **Gaps**: 5 Whys, Metric for truth, Scoring justification
 - **Depends on**: (none)
@@ -374,5 +374,37 @@ sweep of skills.sh and the major packs settles it; (b) composition is real
 work we don't have to redo — Doshi's own OPS-1014 (prototype → production
 pipeline) and OPS-1144 (PRD handoff) are the live case: mattpocock-style
 /prototype, /tdd, /code-review cover the build side, and validation-os's
-exit stage (Validated assumption + prototype) is the input they need.
+exit stage (a proven-set assumption + prototype) is the input they need.
 Repo credits already name mattpocock/skills as structural inspiration.
+
+## ASM-011: A live Risk score beats terminal statuses for re-test discipline
+- **Description**: We assume a register whose standing is a live Risk
+  score with no terminal Validated state will resurface stale or newly
+  load-bearing beliefs that a status-driven register leaves frozen,
+  because marking a row "done" is what stops anyone re-ranking it.
+- **Lens**: Adopter
+- **Themes**: Product
+- **Impact**: 65
+- **Confidence**: 0         <!-- derived -->
+- **Risk**: 65              <!-- derived -->
+- **Corroboration count**: 0
+- **Status**: Draft
+- **Owner**: Benji
+- **Gaps**: 5 Whys, Metric for truth, Scoring justification
+- **Depends on**: (none)
+- **Enables**: (none)
+- **Contradicts**: (none)
+- **Experiments**: (none)
+
+### 5 Whys
+
+### Metric for truth
+
+### Scoring justification
+
+### Provenance & notes
+Seeded 2026-07-13 from DEC-003's rationale — the operational bet behind
+removing terminal statuses (Linear OPS-1110 / OPS-1117). The
+epistemological part of that rationale (falsification asymmetry, evidence
+staleness) is ✅ ground truth and lives in the decision, not here; this row
+carries only the falsifiable design bet.

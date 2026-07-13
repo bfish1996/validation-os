@@ -4,8 +4,8 @@ The canonical rules every assumption must satisfy. Cited by `/assumptions`
 (the inline gauntlet) **and** by its audit path, so build and audit judge by
 the same standard. When this changes, both paths change.
 
-The schema (field map, status flow) lives in `registry-schema.md`; this file
-is the operational ruleset.
+The schema (field map, status & derived views) lives in
+`registry-schema.md`; this file is the operational ruleset.
 
 ---
 
@@ -144,11 +144,12 @@ justification*. The check runs **both ways**: a goal-gating record scored
 low needs a justification, and a top-band score justified *only* by a goal
 that is no longer standing is stale — audit flags both.
 
-That same linkage also flips the assumption's `Status` to `Goal Linked` —
-the hard gate on entering `Experiment Needed` (`registry-schema.md §Status
-flow`). An assumption with `Gaps` empty but no standing goal link sits in
-`Not Started` until one claims it; don't mistake a fully-grilled, unlinked
-row for one that's ready to queue.
+That same linkage also makes the row **goal-linked** — a derived view read
+straight from the relation, never a stored status, and a membership
+condition of the test-next queue (`registry-schema.md §Status & derived
+views`). A `Live` row with no standing goal link is queue-invisible until
+one claims it; don't mistake a fully-grilled, unlinked row for one that's
+ready to queue.
 
 **Dependency anchor.** Before finalizing the score, glance at the record's
 `Enables` relation — the set of other records that name *this* one in their
@@ -168,8 +169,8 @@ trace. Only a high *incoming* `Enables` count moves the score.
 
 **Confidence is derived, not a score.** It comes from the record's linked
 Experiments (evidence) — you raise it by **logging evidence records**, never
-by typing a number. It caps at 99: an assumption is never fully validated,
-and "validated enough" is a Risk judgment, not a Confidence number
+by typing a number. It caps at 99: an assumption is never validated, and
+"validated enough" is a Risk judgment, not a Confidence number
 (`docs/validated.md`). So the less accumulated evidence a record has, the higher
 its Risk, automatically. Confidence is a function of **three axes** (full
 ruleset: `experiment-guardrails.md §2`):
@@ -223,8 +224,8 @@ the dependency graph (e.g. a load-bearing root scored Impact 10) is a flag.
     different evidence** — they are genuinely two assumptions. **Keep both**,
     wire a **`Contradicts`** edge (set it both ways), tag both with the
     **`Contradiction`** gap, and note the resolving experiment in the body's
-    `## Provenance & notes`. The bet is which one wins; evidence (`Status`),
-    not the grill, decides.
+    `## Provenance & notes`. The bet is which one wins; evidence, not the
+    grill, decides.
 - **Enforcement (mandatory, not optional).** Before creating a record, search
   the register and surface the nearest 2–3 — every new stub sets the
   `Duplicate` gap regardless of suspicion

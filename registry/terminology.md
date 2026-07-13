@@ -42,10 +42,11 @@ This is validation-os's own register — the tool run on itself, on launch day.
 ### Definition
 - **All:** Of an **experiment** (`Result`): a human rendered the verdict
   that the result cleared the pre-registered `We're right if` bar. Binary,
-  and a permanent historical fact. Of an **assumption** (`Status`): the
-  strongest concluded evidence currently supports the belief — a
-  provisional snapshot, always at a rung, never total. Full definition:
-  `docs/validated.md`.
+  and a permanent historical fact. Of an **assumption**: prose shorthand
+  only — "validated at \<rung\>". There is no stored Validated state: an
+  assumption's `Status` is only `Draft` / `Live` / `Invalidated`, and
+  "what we currently know" is the derived proven-set view. Full
+  definition: `docs/validated.md`.
 
 ### Avoid / don't say
 - **All:** "fully validated" / "100% validated" → no such state;
@@ -62,8 +63,8 @@ This is validation-os's own register — the tool run on itself, on launch day.
   conclusive `Result`; "validated" as an assumption `Status` is the rollup
   of such records — evidence about a belief, not the belief becoming fact.
 - **vs ✅ Ground truth:** a ground truth is settled and lives outside the
-  register; a validated assumption is still an open bet whose Risk is
+  register; a supported assumption is still an open bet whose Risk is
   currently bought down.
-- **vs Closed by decision:** a decision can retire a question without
-  testing it; it never validates anything — only evidence moves
-  Confidence.
+- **vs Moot:** a resolving decision retires a question without testing it
+  by dropping its Impact to 0; it never validates anything — only
+  evidence moves Confidence.
