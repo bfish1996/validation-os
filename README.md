@@ -41,7 +41,7 @@ The loop:
 
 ```
 Assumption → grill & score → Experiment (pre-registered pass/kill bars)
-     → Evidence → Confidence ↑ → Risk ↓ → next-riskiest assumption
+     → Evidence → Confidence moves → Risk follows → next test surfaces
 ```
 
 Theory, ladder, cadence, and goals: [docs/method.md](docs/method.md) ·
@@ -128,7 +128,7 @@ flowchart LR
 
   subgraph gate["② Prioritise"]
     D["/goals<br>the team commits to a goal; its rationale<br>names the beliefs the goal rests on —<br>anchoring their Impact, gating nothing"]:::skill
-    Q["test-next queue<br>every Live record competes on its<br>own merits; riskiest on top"]:::record
+    Q["test-next surface<br>candidate experiments on Live beliefs, ranked<br>by Feasibility × the belief's Risk — cheapest<br>honest test of the riskiest belief on top"]:::record
   end
 
   subgraph test["③ Test"]
@@ -145,21 +145,21 @@ flowchart LR
   A -->|"1 · the one gate:<br>grill until Gaps is empty"| Q
   D -.->|"2 · Impact anchor: a goal rests on<br>the belief → it ranks higher (never<br>a condition of entry)"| Q
   D -.->|"a goal's 'because' with no<br>record yet → new assumption"| A
-  Q -->|"3 · riskiest first"| E
+  Q -->|"3 · cheapest honest test<br>of the riskiest belief"| E
   E -->|"4 · Running experiment"| RUN
   M -->|"guide for that call"| RUN
   RUN -->|"5 · what happened"| F
   F -->|"6 · evidence linked<br>to the record"| V
-  V -->|"7 · Confidence ↑ → Risk ↓<br>→ the queue reorders itself"| Q
+  V -->|"7 · Confidence moves → Risk follows<br>→ the surface reorders itself"| Q
   V -.->|"a goal rested on this<br>belief → tripwire: review the goal"| D
   D -.->|"goal closes → its result is decomposed<br>per belief back into evidence"| F
 ```
 
-After step 7 the loop closes: the next-riskiest belief is already sitting
-on top of the queue.
+After step 7 the loop closes: the cheapest honest test of the now-riskiest
+belief is already sitting on top of the surface.
 
 **One gate, not two.** Grilling is the only thing standing between a belief
-and the queue — a goal moves *where* a belief ranks, never *whether* it
+and the surface — a goal moves *where* a belief ranks, never *whether* it
 competes. The goal has a lifecycle of its own, and its verdict at the end
 flows back in as evidence. Same colours:
 
@@ -174,7 +174,7 @@ flowchart LR
     B["/goals reads each belief's Confidence back<br>as an advisory band — ready · gamble ·<br>betting against your evidence · kill lane"]:::skill
   end
   subgraph g2["② De-risk — optional"]
-    T["its beliefs run the main loop above.<br>They were always queue-eligible; the goal<br>anchors their Impact so they rank higher"]:::record
+    T["its beliefs run the main loop above.<br>They were always surface-eligible; the goal<br>anchors their Derived Impact so they rank higher"]:::record
   end
   subgraph g3["③ Commit"]
     C["human commits: Draft → Active.<br>Nothing blocks this — a gamble just needs<br>a dated risk-acceptance line on the record"]:::human
@@ -211,7 +211,7 @@ A hit becomes top-rung evidence on the beliefs it proved; a miss usually
 invalidates one specific belief — either way the loop's next lap starts
 better informed. When a goal dies, the beliefs it linked don't move: they
 keep competing on their own Risk, because they never needed the goal to be
-in the queue.
+on the surface.
 
 Underneath the flow, an assumption's `Status` stores only its lifecycle —
 three values, because **an assumption is never validated**
@@ -245,7 +245,7 @@ row's data:
 | Moot | Impact dropped to 0 by a resolving decision; reversal restores it |
 
 Three things never move `Status`: logging evidence (that moves
-`Confidence`, which moves `Risk`, which moves the queue), decisions (a
+`Confidence`, which moves `Risk`, which moves the surface), decisions (a
 resolving decision moves `Impact` to 0 — mootness, not closure), and the
 autonomous bulk modes (`/assumptions` loop, `/decisions` sweep) — those tag
 `Human review`, which holds the row in `Draft`, and only a gated session

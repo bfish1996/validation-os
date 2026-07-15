@@ -137,8 +137,12 @@ don't plan for Confidence a chat can't deliver.
 
 Query the register: candidates are records whose `Lens` matches the person
 and whose `Status` is `Draft` or `Live` — never `Invalidated` — sorted by
-Risk descending (a row already in the derived Testing view still counts;
-another interviewee is more evidence). Then apply two filters, in order:
+Risk descending (`Risk = Derived Impact × (1 − max(0, Confidence)/100)`; a
+row already in the derived Testing view still counts; another interviewee is
+more evidence). A belief whose signed `Confidence` has gone **negative**
+(evidence stacked against it) is a live re-test priority, not a settled one —
+a conversation that could confirm or overturn that doubt is high-value. Then
+apply two filters, in order:
 
 - **Goal intersection** — start from what the person is trying to achieve
   (step 2's motivations layer) and find the register records that live
@@ -147,8 +151,9 @@ another interviewee is more evidence). Then apply two filters, in order:
   whatever their role. A candidate linked from a standing (`Draft`/`Active`)
   Goal record via `Based on assumption` (`../../docs/goals.md`) that *this
   person owns or influences* is a strong match. Absence of a goal link is not
-  disqualifying at all — an unlinked row sits in the test-next queue like any
-  other; the link is a signal about *this person's* stake, nothing more.
+  disqualifying at all — an unlinked row's experiments sit on the test-next
+  surface like any other's; the link is a signal about *this person's* stake,
+  nothing more.
 - **Unique qualification** — what can *this* person answer that a generic
   participant couldn't (their role, access, lived experience, their
   company's situation)? Drop high-Risk records they'd only speculate on.
