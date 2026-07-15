@@ -20,8 +20,9 @@ The schema (field map, status & derived views) lives in
    "better"), absolutes ("always", "only", "nothing else"), and placeholders
    ("benefits exist though unclear what they are"). Each needs an observable
    threshold.
-3. **Assess risk.** Score **Impact** (§3) — the only hand-scored number; Risk
-   derives via Confidence (an evidence rollup). Focus energy on high-Risk.
+3. **Assess risk.** Score **Impact** (§3) — the intrinsic seed, the only
+   hand-scored number; Derived Impact, Confidence, and Risk are all computed.
+   Focus energy on high-Risk.
 4. **Metric for truth.** State the evidence that would turn it into a fact
    ("≥N of M institutions sign", "≥X% of users do Y"). This is the
    falsifiability statement; it later seeds an Experiment's `We're right if`.
@@ -128,12 +129,13 @@ a prompt to re-check, not a cap.)
 
 ---
 
-## 3. Scoring — anchored bands
+## 3. Scoring — seed, propagation, Risk
 
-**Impact (0–100) — if false, how much of the proposed *solution* breaks?**
-The direction itself is a given — it is not under test; a top-band failure
-means *rethink the solution*, not *abandon the direction*. Impact is
-damage-if-false, not likelihood.
+**Impact (0–100, the seed) — if false, how much of the proposed *solution*
+breaks?** The only hand-scored number. The direction itself is a given — it
+is not under test; a top-band failure means *rethink the solution*, not
+*abandon the direction*. Impact is damage-if-false, not likelihood. Anchored
+bands:
 
 - **90–100** — back to the drawing board on the solution (the core solution
   thesis doesn't hold).
@@ -142,82 +144,111 @@ damage-if-false, not likelihood.
 - **30–50** — a major branch needs rework, recoverable.
 - **10–20** — minor, adjust & move on.
 
-**Goal anchor.** If a standing (`Draft` or `Active`) Goal record links this
-assumption via `Based on assumption`, named in the goal's rationale
-(`../../docs/goals.md`) — score `Impact` toward the top of its band: a belief
-a company target depends on matters more. This is a **prompt to the human
-scorer, not a formula** — Impact stays the one hand-scored number, and a goal
-link never touches Confidence or the Risk formula. Cite the goal in the
-*Scoring justification*. The check runs **both ways**: a goal-linked record
-scored low needs a justification, and a top-band score justified *only* by a
-goal that is no longer standing is stale — audit flags both.
+**The seed is purely intrinsic severity.** Don't fold in what depends on the
+record — no bump for dependents, goals, or decisions; the propagation below
+applies those mechanically, and hand-anchoring them too would double-count.
+**Being a root is not itself a signal** — a record with no outgoing
+`Depends on` (it bottoms out a 5-Whys chain, §2) is normal; don't inflate
+the seed because a record has nothing further to trace.
 
-**The Impact anchor is all a goal link does.** It is not a queue condition:
-every `Live` row is eligible for the test-next queue on its own merits,
-linked or not (`registry-schema.md §Status & derived views`). A
-fully-grilled, unlinked row is queued like any other — the anchor changes
-where it ranks, never whether it competes.
+**Derived Impact (derived — the weekly script writes it, Risk reads it).**
+What depends on a belief is load it carries, and the graph already knows it:
 
-**Dependency anchor.** Before finalizing the score, glance at the record's
-`Enables` relation — the set of other records that name *this* one in their
-`Depends on`. The more records depend on this one, the more of the register's
-chains break if it turns out false, so score `Impact` toward the top of its
-matched band the more load-bearing the record is. Also a **prompt, not a
-formula** — dependent count is eyeballed, never counted by a field. Cite it
-in the *Scoring justification* (e.g. "6 downstream records depend on this;
-scored 85 within the 60–80 band"). **Being a root is not itself a signal** —
-a record with no outgoing `Depends on` (it bottoms out a 5-Whys chain, §2) is
-normal; don't inflate Impact just because a record has nothing further to
-trace. Only a high *incoming* `Enables` count moves the score.
+```
+Derived Impact = seed + (100 − seed) × S / (S + 100)
+```
 
-**Decision anchor (downward).** The goal anchor's mirror: decisions never
-close assumptions — they change what's staked on them. A standing
-(`Provisional`/`Active`) decision that carries a `Resolves assumption` link
-to this record (`decision-guardrails.md §6`) has foreclosed every path the
-question mattered on, so damage-if-false collapses: Impact drops to **0**
-in the same gated write and the row goes moot (`registry-schema.md §Status
-& derived views`), with a dated line in the *Scoring justification*
-recording the prior score and citing the decision — so reversal can restore
-it (mootness dies with the decision, `decision-guardrails.md §8`). If the
-chosen path still leans on the belief, that's not a resolve at all — it's
-`Based on`, and the score stays where the bands put it. Never a Confidence
-input: deciding is not evidence. The staleness check mirrors the goal
-anchor's — an Impact-0 score justified only by a decision that no longer
-stands is stale; audit flags it for a gated restore.
+where `S` = the sum of the record's **dependents' pull**: the `Derived
+Impact` of every assumption whose `Depends on` names this record, **plus 100
+per standing decision or goal** that names it via `Based on assumption` (a
+flat, max-severity node — no per-Kind grading, no signed push, upward only).
+Computed in one reverse-topological pass over the DAG (dependents first;
+cycles are impossible by §2's merge rule). Properties, by construction:
 
-**Impact is the only hand-scored number.**
-`Risk = Impact × (1 − Confidence/100)` (derived, never hand-written) ranges
-0–100; highest Risk is tested next.
+- a **leaf** (S = 0) keeps its pure hand score; a root the whole thesis
+  leans on tends toward 100;
+- bounded ≤ 100 and **floored at the seed** — propagation can never lower a
+  score, and a catastrophic-but-leaf belief keeps its hand floor;
+- one max-severity dependent lifts a record halfway to the ceiling — a
+  goal-critical leaf surfaces for review instead of hiding under-ranked;
+- only **standing** (`Provisional`/`Active` decisions, `Draft`/`Active`
+  goals) nodes count — reverse or supersede one and its push vanishes at the
+  next recompute, no stored state to clean up;
+- a **moot** row (see below) is pinned at Derived Impact 0 and contributes
+  nothing to its own `Depends on` targets.
 
-**Confidence is derived, not a score.** It comes from the record's linked
-Experiments (evidence) — you raise it by **logging evidence records**, never
-by typing a number. It caps at 99: an assumption is never validated, and
-"validated enough" is a Risk judgment, not a Confidence number
-(`docs/validated.md`). So the less accumulated evidence a record has, the higher
-its Risk, automatically. Confidence is a function of **three axes** (full
-ruleset: `experiment-guardrails.md §2`):
+The recompute is a **weekly, connector-agnostic script** (run in the weekly
+ritual; re-run on demand after a seed override). `Derived Impact` is stale
+between runs *by design* — mooting and the gating views stay
+relation-derived and immediate. **Review by exception:** eyeball only the
+queue top; disagree → edit the **seed band** or fix a wrong **graph edge**,
+never the derived total.
 
-- **Rung** — the evidence `Type` on the say < do < commit ladder. The
-  dominant dial: the rollup takes the `max` proven rung, so 🟢 Revealed beats
-  any pile of 🔴 Stated.
-- **Source quality** — a within-rung High/Medium/Low weight for the source's
-  seniority / authority / ICP-fit. Positions a record inside its rung, never
-  across.
-- **Corroboration** — a **bounded bump** when ≥K independent proven records
-  agree at the top proven rung (tracked in `Corroboration count`), capped
-  below the next rung's floor. Replication earns a little; it can't
-  manufacture a higher rung.
+**Goal and decision links are propagation nodes, not scoring prompts.** A
+standing goal or decision that leans on a belief (`Based on assumption`)
+raises that belief's Derived Impact through `S` — mechanically, flat, and
+auditable. Don't also nudge the seed for it. Linkage is never a Confidence
+input (deciding is not evidence) and never a queue condition: every `Live`
+row competes on its own merits, linked or not (`registry-schema.md §Status
+& derived views`, `docs/goals.md`).
+
+**Decision anchor (downward).** Decisions never close assumptions — they
+change what's staked on them. A standing decision that carries a `Resolves
+assumption` link to this record (`decision-guardrails.md §6`) has foreclosed
+every path the question mattered on, so damage-if-false collapses: the seed
+drops to **0** in the same gated write, Derived Impact pins to 0, and the
+row goes moot (`registry-schema.md §Status & derived views`), with a dated
+line in the *Scoring justification* recording the prior score and citing the
+decision — so reversal can restore it (mootness dies with the decision,
+`decision-guardrails.md §8`). If the chosen path still leans on the belief,
+that's not a resolve at all — it's `Based on`, and the belief gains a
+propagation node instead. An Impact-0 score justified only by a decision
+that no longer stands is stale; audit flags it for a gated restore.
+
+**Scoring justification carries three parts**, so the derived number stays
+auditable: the hand-owned intrinsic reason ("scored 60: the GTM motion dies
+if false"), the script-written propagation provenance ("Derived 82 = seed 60
++ pull from 6 dependents incl. Q3 pilot goal"), and any dated
+override/mootness lines.
+
+**Risk (derived, never hand-written).**
+
+```
+Risk = Derived Impact × (1 − max(0, Confidence) / 100)
+```
+
+Risk ranges 0 to Derived Impact — never negative, never above Impact: a
+belief the evidence is *against* routes to the kill review, not to more
+testing budget. Moot → Derived Impact 0 → Risk 0, no special rule. Compute
+at full precision and **sort on the unrounded value; display rounded**
+(rounding before sorting manufactures ties). Risk is a two-term function of
+Impact and Confidence only — effort/cost-to-test is a property of the test,
+not the belief, and lives at the experiment-prioritisation layer
+(`experiment-guardrails.md §2 Axis B`).
+
+**Confidence is derived, not a score.** You move it by **logging evidence
+readings**, never by typing a number. Signed, −100…100, 0 = no evidence: the
+signed, strength-weighted average of the record's concluded readings with a
+neutral prior (`w₀ = 100`) — full ruleset and the rung/magnitude/source
+tables: `experiment-guardrails.md §2`, `docs/evidence-ladder.md`. It
+asymptotes at ±99: an assumption is never validated, and "validated enough"
+is a Risk judgment, not a Confidence number (`docs/validated.md`). The
+**negative zone is the kill-o-meter**: evidence net-against lowers
+Confidence — a re-test signal (Risk stays clamped), and at **≤ −50** audit
+prompts a human-affirmed kill (never automatic).
 
 **Volume lives in rung choice, not record count.** 100 people validating a
-belief = one `Survey at scale` record, not 100 `Anecdotal` records — because
-the rollup is a `max`, extra weak records don't stack. Two filters before a
-signal counts at all: (a) it must test *this* claim — evidence for a sibling
-or dependency doesn't bear on this record; (b) a *planned* test ("X wants a
-demo") isn't evidence yet — it's an experiment to design.
+belief = one `Survey at scale` record, not 100 `Anecdotal` records — the
+average is bounded by the strongest reading and same-source readings dedupe,
+so weak records don't stack. Two filters before a signal counts at all: (a)
+it must test *this* claim — evidence for a sibling or dependency doesn't
+bear on this record (linkage is binary, one reading ↔ one belief); (b) a
+*planned* test ("X wants a demo") isn't evidence yet — it's an experiment to
+design.
 
 **Always record the chosen Impact band + a one-line reason** in the body's
-Scoring justification — so the number is auditable. A score that contradicts
-the dependency graph (e.g. a load-bearing root scored Impact 10) is a flag.
+Scoring justification — so the number is auditable. A seed that contradicts
+the record's own severity (e.g. "the thesis dies" scored 10) is a flag.
 
 ---
 

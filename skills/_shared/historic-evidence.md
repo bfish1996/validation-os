@@ -114,26 +114,32 @@ its work.
 ### 3. Set the record, per piece
 
 - **`Type`** = the rung matching the evidence's strength
-  (`experiment-guardrails.md §2`): a hypothetical "I'd use that" → 🔴
+  (`experiment-guardrails.md §2`): a hypothetical "I'd use that" → 🧪
   `Opinion`; users describing something they **actually did**, unprompted →
-  🔴 `Anecdotal`; a structured questionnaire already run → 🟡
-  `Survey at scale`; regulation / published data / competitor fact → 🟡
-  `Desk research`; unpaid real use → 🟢 `Prototype usage`; payment / signed
-  commitment observed → 🟢 `Signed intent` / `Paying users`. A *measured*
+  🧪 `Anecdotal`; a structured questionnaire already run → 🧪
+  `Survey at scale`; regulation / published data / competitor fact → 🧪
+  `Desk research`; unpaid real use → 🧪 `Prototype usage`; payment / signed
+  commitment observed → 🎯 `Signed intent` / `Paying users`. A *measured*
   product metric that bears on the Metric for truth is real behaviour —
-  revealed-tier, with the analytics view as the source.
-- **`Source quality`** = High / Medium / Low for the source's seniority /
-  decision authority / ICP-fit. Modulates Strength **within** the rung,
-  never across it.
+  Goal-category, with the analytics view as the source. Mind the structural
+  guard on retrospective 🎯 negatives: with no pre-registered kill floor, an
+  absence of sales/signups is `Inconclusive`, never an Invalidated reading.
+- **`Source quality`** = Representativeness × Credibility, each picked from
+  {1.0, 0.7, 0.5} (`experiment-guardrails.md §2`). Scales the reading's
+  weight **within** the rung, never its value across rungs. Record both
+  picks + one-line justifications in the body's grading block.
 - **`Result`** = Validated / Invalidated / Inconclusive, judged honestly
   against the **current** `metric_for_truth`.
 - **`Date`** = when the evidence occurred (historic internal) or the
   research date (desk), never a future date.
 - **`Interviewee` / `Owner`** if known.
-- **Body** = a short evidence summary, the **source link(s)**, and what it
-  shows vs. the claim. For desk evidence: per-sub-question findings with
-  tier + dates + exact quotes, conflicts and how they were weighed, caveats
-  (single-sourced or stale claims), and the sources considered & dropped.
+- **Body** = a short evidence summary, the **source link(s)**, what it
+  shows vs. the claim, and the **grading block** (rung + magnitude anchor on
+  Goal rungs + the Rep×Cred picks with one-line justifications + the source
+  the independence dedupe keys off — `experiment-guardrails.md §2`). For
+  desk evidence: per-sub-question findings with tier + dates + exact
+  quotes, conflicts and how they were weighed, caveats (single-sourced or
+  stale claims), and the sources considered & dropped.
 
 ### 4. Retrospective-honesty guardrail
 
@@ -183,19 +189,17 @@ record as normal — never overwrite a `Running` record on a weak match.
 
 ### 6. After writing
 
-`Confidence` rolls up from the new Experiment record (it reads only
-**proven** evidence — `Strength` is 0 unless `Result` is
-Validated/Invalidated), and `Risk` recomputes. On the local-files connector,
-the skill recomputes and rewrites both in the same gated edit
-(`connectors/local-files.md §Derived fields`). **Never** flip the
-assumption `Status`.
+`Confidence` recomputes from the new reading (only **concluded**
+Validated/Invalidated readings enter the signed weighted average — `Strength`
+is 0 otherwise; same-source readings dedupe — `experiment-guardrails.md
+§2`), and `Risk` follows. On the local-files connector, the skill recomputes
+and rewrites both in the same gated edit (`connectors/local-files.md
+§Derived fields`). **Never** flip the assumption `Status` — but if the
+recomputed Confidence lands at or below **−50**, say so: the row is in the
+kill lane and audit will chase a human kill verdict (`register-audit.md`).
 
-**Corroboration (the one number to hand-maintain).** If the record you just
-wrote is an **independent, proven** record that **agrees at the
-assumption's current top proven rung** — not the same source, not a re-log —
-increment the assumption's `Corroboration count`. A disagreeing record, a
-lower-rung record, or a duplicate source does **not** count; leave the
-number untouched.
+There is no corroboration count to maintain — replication is just more
+evidence mass in the average.
 
 ---
 

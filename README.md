@@ -22,13 +22,13 @@ Validation-OS makes those beliefs impossible to ignore:
 
 - Every belief becomes an **Assumption** — one falsifiable sentence, scored
   for Impact, traced to its roots with a disciplined 5 Whys.
-- Every assumption gets **Risk = Impact × (1 − Confidence/100)** — and
-  Confidence is *never typed by hand*: it's the strength of the strongest
-  concluded **Experiment**, on an 8-rung evidence ladder from Opinion (5%)
-  to Paying users (99%).
-- The register **reorders itself**: evidence lands → Confidence rises →
-  Risk falls → the next-riskiest belief surfaces. You always know what to
-  test next.
+- Every assumption gets **Risk = Impact × (1 − max(0, Confidence)/100)** —
+  and Confidence is *never typed by hand*: it's the signed, weighted
+  average of every concluded **Experiment** reading, on an 8-rung evidence
+  ladder from Opinion (±3) to Paying users (±99), where evidence against a
+  belief counts negative.
+- The register **reorders itself**: evidence lands → Confidence moves →
+  Risk follows → the next test surfaces. You always know what to test next.
 - A shared **glossary** keeps the team speaking one language, and a
   **decision log** records what was decided and how unanimously — without
   letting a business call masquerade as validation.
@@ -239,8 +239,9 @@ row's data:
 |---|---|
 | Goal-linked | a standing Goal record cites it via `Based on assumption` — an Impact anchor and a view, never a queue condition |
 | Testing | a linked experiment is `Running` |
-| Test-next queue | Live + no running experiment + Risk above the working threshold |
-| Proven set | Live + strongest concluded experiment `Validated` — provisional, always |
+| Test-next surface | experiments on Live rows, ranked by Feasibility × the linked belief's Risk |
+| Kill lane | Live + Confidence ≤ −50 — surfaced for a human kill verdict |
+| Proven set | Live + strongest concluded reading `Validated` — provisional, always |
 | Moot | Impact dropped to 0 by a resolving decision; reversal restores it |
 
 Three things never move `Status`: logging evidence (that moves

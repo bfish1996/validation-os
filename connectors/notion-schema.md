@@ -23,9 +23,9 @@ registers:
       - {canonical: Lens, backend: Lens, type: select, derived: false, options_source: vocabulary.lens}
       - {canonical: Theme, backend: Theme, type: multi_select, derived: false, options_source: registry-schema}
       - {canonical: Impact, backend: Impact, type: number, derived: false}
-      - {canonical: Risk, backend: Risk, type: formula, derived: true, formula: "Impact * (1 - Confidence / 100)"}
-      - {canonical: Confidence, backend: Confidence, type: rollup, derived: true, formula: "max of linked Experiments' Strength; capped corroboration bump per experiment-guardrails.md §2"}
-      - {canonical: Corroboration count, backend: Corroboration count, type: number, derived: false}
+      - {canonical: Risk, backend: Risk, type: number, derived: true, formula: "Derived Impact * (1 - max(0, Confidence) / 100); script-computed — no native formula"}
+      - {canonical: Confidence, backend: Confidence, type: number, derived: true, formula: "signed weighted average of concluded readings with neutral prior w0=100 (experiment-guardrails.md §2); script-computed — no native rollup"}
+      - {canonical: Derived Impact, backend: Derived Impact, type: number, derived: true, formula: "seed + (100 - seed) × S/(S + 100) over the dependency DAG (assumption-guardrails.md §3); weekly script"}
       - {canonical: Status, backend: Status, type: select, derived: false, options_source: registry-schema}
       - {canonical: Owner, backend: Owner, type: person, derived: false}
       - {canonical: Gaps, backend: Gaps, type: multi_select, derived: false, options_source: registry-schema}
@@ -39,11 +39,11 @@ registers:
     properties:
       - {canonical: Title, backend: Title, type: title, derived: false}
       - {canonical: Type, backend: Type, type: select, derived: false, options_source: registry-schema}
-      - {canonical: Source quality, backend: Source quality, type: select, derived: false, options_source: registry-schema}
+      - {canonical: Source quality, backend: Source quality, type: number, derived: false, options_source: registry-schema}
       - {canonical: Feasibility, backend: Feasibility, type: select, derived: false, options_source: registry-schema}
       - {canonical: We're right if, backend: We're right if, type: rich_text, derived: false}
       - {canonical: Result, backend: Result, type: select, derived: false, options_source: registry-schema}
-      - {canonical: Strength, backend: Strength, type: formula, derived: true, formula: "canonical computation, experiment-guardrails.md §2 — full Notion formula in Derived values below"}
+      - {canonical: Strength, backend: Strength, type: number, derived: true, formula: "signed rung anchor × sign(Result), Goal rungs × magnitude band (experiment-guardrails.md §2); script-computed"}
       - {canonical: Date, backend: Date, type: date, derived: false}
       - {canonical: Owner, backend: Owner, type: person, derived: false}
       - {canonical: Interviewee, backend: Interviewee, type: rich_text, derived: false, required: false}
@@ -107,9 +107,9 @@ and tell the user which ID is missing or wrong.
 | Lens | Lens | select | no |
 | Theme | Theme | multi-select | no |
 | Impact | Impact | number 0–100 | no |
-| Risk | Risk | formula | yes |
-| Confidence | Confidence | rollup | yes |
-| Corroboration count | Corroboration count | number | no |
+| Risk | Risk | number | yes |
+| Confidence | Confidence | number | yes |
+| Derived Impact | Derived Impact | number | yes |
 | Status | Status | select | no |
 | Owner | Owner | person | no |
 | Gaps | Gaps | multi-select | no |
@@ -119,14 +119,16 @@ and tell the user which ID is missing or wrong.
 
 ### Derived values
 
-- **Risk** formula:
-  ```
-  Impact * (1 - Confidence / 100)
-  ```
-- **Confidence** rollup: max of linked Experiments' `Strength`, plus a capped
-corroboration bump. If Notion cannot express the cap inside the rollup, keep the
-rollup as plain `max` and let the skill state the bumped figure in prose when it
-matters. Never hand-edit the rollup.
+- **Risk** = `Derived Impact * (1 - max(0, Confidence) / 100)`
+- Confidence is the signed weighted average of concluded readings with a
+neutral prior (w₀ = 100), deduped by source; Strength is the signed rung
+anchor (Goal rungs × magnitude band); Derived Impact propagates dependents'
+pull over the DAG. Canonical formulas: `experiment-guardrails.md §2`,
+`assumption-guardrails.md §3` — skills/the weekly script compute them; never
+hand-edit.
+  Notion formulas/rollups cannot express the signed average or the DAG pass —
+  store Risk, Confidence, Strength, and Derived Impact as plain **number**
+  properties the script writes.
 
 ## Field mapping — Experiments
 
@@ -146,28 +148,13 @@ matters. Never hand-edit the rollup.
 
 ### Derived values
 
-- **Strength** formula — implements the canonical computation in
-  `experiment-guardrails.md` §2 (rung base × source-quality modifier, capped at
-  99, 0 unless the Result is conclusive):
-  ```
-  if(and(prop("Result") != "Validated", prop("Result") != "Invalidated"), 0,
-    min(99, round(
-      if(prop("Type") == "Opinion", 5,
-      if(prop("Type") == "Pitch-deck reaction", 10,
-      if(prop("Type") == "Anecdotal", 15,
-      if(prop("Type") == "Desk research", 25,
-      if(prop("Type") == "Survey at scale", 40,
-      if(prop("Type") == "Signed intent", 60,
-      if(prop("Type") == "Prototype usage", 80,
-      if(prop("Type") == "Paying users", 99, 0))))))))
-      *
-      if(prop("Source quality") == "High", 1.15,
-      if(prop("Source quality") == "Low", 0.85, 1))
-    ))
-  )
-  ```
-  If Notion's formula editor rejects this exact shape, preserve the semantics —
-  the rung bases, modifiers, cap, and conclusive-Result gate are canonical.
+- **Strength** — signed rung anchor × sign(Result) — Validated positive, Invalidated
+negative; Goal rungs (Signed intent, Paying users) × magnitude band
+(Low/Typical/High); 0 unless the Result is conclusive. Canonical table:
+`experiment-guardrails.md §2`.
+  A Notion formula can't read the pre-registered bars or the magnitude pick, so
+  Strength is a plain number the evidence skills write at conclusion — the
+  grading block in the record body is what makes it auditable.
 
 ## Field mapping — Decisions & Terminology
 

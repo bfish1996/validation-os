@@ -72,9 +72,26 @@ already cover the per-record and graph-shape rules; what only this phase
 catches is status coherence and propagation — `draft-live-gaps-invariant`,
 `unrolled-verdict`, `moot-without-resolver`, `invalidated-dependency`,
 `contradicts-both-validated`, `derived-field-stale`, `strength-not-gated`,
-`corroboration-count-mismatch`.
+`reading-ungraded`, `goal-rung-no-floor`, `kill-zone-unreviewed`,
+`stale-representativeness`.
 These need the assumptions **and** their linked experiments loaded — pull
 both registers before fanning out.
+
+Two of these deserve their mechanics spelled out:
+
+- **The kill prompt (`kill-zone-unreviewed`).** A `Live` row whose signed
+  Confidence sits at or below **−50** is in the kill lane: the audit
+  surfaces it for a **human-affirmed** kill verdict ("evidence net-against —
+  render a kill?"). Never auto-flip `Status` — evidence-against is a score
+  decrement and a re-test signal until a human says otherwise
+  (`docs/validated.md`). Below the threshold, a net-negative row is just a
+  higher-Risk row re-entering the test-next surface; no finding.
+- **The ICP/Lens re-grade trigger (`stale-representativeness`).** When the
+  ICP or a Lens definition is redefined, every reading whose
+  Representativeness was graded under the old definition is silently stale —
+  the stored `Source quality` feeds the recompute unchallenged. On detecting
+  (or being told of) an ICP/Lens change, flag all such readings for a
+  Rep re-grade, dated.
 
 ## Synthesis
 

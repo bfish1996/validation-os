@@ -4,8 +4,8 @@ description: >-
   The one skill for the Assumption Registry — build, grill, audit, and
   bulk-complete the beliefs your business depends on. Enforces atomic,
   falsifiable, plain-language assumptions with a disciplined 4-step
-  definition, mandatory 5 Whys, anchored Impact scoring (0–100, dependency-
-  and goal-aware), dedup + contradiction reconciliation with named boundary
+  definition, mandatory 5 Whys, anchored Impact scoring (0–100, a purely
+  intrinsic seed), dedup + contradiction reconciliation with named boundary
   statements, a healthy Depends-on/Enables graph, glossary-checked
   vocabulary, and retrospective evidence logging. Five modes; pick by the
   ask: single (default) — grill ONE record to guardrail-complete, gated
@@ -92,7 +92,8 @@ norm.
 See `../_shared/assumption-guardrails.md §6`. Reject a candidate that fails
 any: Atomic · Falsifiable · Plain (no hyperbole, no unneeded verbosity) ·
 5 Whys + therefore-test ·
-Scored with justification (Impact anchored to goals *and* dependent count) ·
+Scored with justification (a purely intrinsic seed — goals/dependents ride
+the propagation, not the hand score) ·
 Not a duplicate (or merged, with the redundant dimension named) · Distinct
 from its nearest neighbours, with the discriminating dimension named in the
 body (checked on every new record, not just suspected overlaps) · No

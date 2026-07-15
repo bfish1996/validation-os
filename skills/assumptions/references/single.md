@@ -89,11 +89,13 @@ Rules come from `../../_shared/assumption-guardrails.md`; this file is the
    - **Clearing `Contradiction`** = the tension has been *examined, wired,
      and noted*. It does **not** require *resolving* the tension; one side
      winning is an evidence verdict, owned by the evidence skills.
-6. **`Scoring justification`** → **Impact is the only hand-scored number.**
-   Quote the matched Impact band (`assumption-guardrails.md §3`),
-   confirm/adjust the score, and write band + one-line reason into the body
-   so it's auditable. (Re-score flagged contradictions — e.g. a load-bearing
-   root scored low.)
+6. **`Scoring justification`** → **Impact (the seed) is the only
+   hand-scored number — pure intrinsic severity.** Quote the matched Impact
+   band (`assumption-guardrails.md §3`), confirm/adjust the score, and
+   write band + one-line reason into the body so it's auditable. Don't fold
+   in dependents, goals, or decisions — the weekly propagation applies
+   those to `Derived Impact` mechanically. (Re-score flagged contradictions
+   — e.g. "the thesis dies" scored 10.)
    **Then handle evidence → Confidence (derived, never typed):** pull the
    record's linked `Experiments` and quote what you already know, and
    **actively ask for any *unlinked* signal too:** *"What else bears on this
@@ -192,12 +194,12 @@ rung), is a separate gated `Live` → `Invalidated` write.**
 
 - All tags cleared → `Gaps` empty → record is guardrail-complete; **flip
   `Status` `Draft` → `Live` in the same gated close-out write** — the row
-  is now ranked by Risk, and it enters the derived **test-next** queue
-  (`Live` + no running experiment, sorted by Risk) on its own — **no goal
-  link required**. A standing Goal record linking it via `Based on
-  assumption` anchors its Impact and so moves it up the queue, but never
-  decides whether it's in one; that link is `/goals`' write, not this
-  skill's. Full flow: `registry-schema.md §Status & derived views`.
+  is now ranked by Risk and competes as a test candidate on its own — **no
+  goal link required**. A standing Goal record linking it via `Based on
+  assumption` lifts its Derived Impact through the propagation and so moves
+  it up the ranking, but never decides whether it competes; that link is
+  `/goals`' write, not this skill's. Full flow: `registry-schema.md §Status
+  & derived views`.
 - **`Human review` gap** (present when a loop run auto-grilled this record):
   clear it only after walking the machine's answers (5 Whys, score, metric)
   past the record's `Owner` in this gated session — it counts like any other
