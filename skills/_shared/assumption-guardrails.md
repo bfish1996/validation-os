@@ -30,6 +30,15 @@ The schema (field map, status & derived views) lives in
 desperate for X". No marketing adjectives. The claim must read as a flat,
 testable bet.
 
+**Concise, not just plain.** Say it in the fewest plain words that still
+name the who/what/why — one core clause plus one reason clause. No stacked
+subordinate clauses, no jargon outside the glossary, no redundant hedging
+or qualifier-stacking ("in many cases, it could potentially be argued
+that…"). Rewrite test: for each clause, ask "does removing this change the
+claim?" — if not, cut it. This is checked alongside hyperbole (both are
+"plain language"), just a different failure mode: hyperbole overstates,
+verbosity buries.
+
 ---
 
 ## 2. Five Whys (mandatory, every assumption)

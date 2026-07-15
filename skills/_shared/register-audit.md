@@ -28,9 +28,13 @@ never a filtered view.
 
 Apply `assumption-guardrails.md §1,3,4`. Per record emit: issues, atomic /
 falsifiable / plain-language booleans, severity (`ok|minor|major`), and a
-*proposed* clean title + falsifiable Description + Theme tags. Do **not**
-invent scores or 5-Whys — audit only what's shown; flag missing scores for
-the human (audit) or the grill (loop).
+*proposed* clean title + falsifiable Description + Theme tags.
+**Plain-language now covers both failure modes** — hyperbole (overstates)
+and verbosity (buries the claim in stacked clauses/jargon/hedging) — flag
+either, and where verbosity trips, include a proposed concise rewrite
+alongside the falsifiable-Description proposal. Do **not** invent scores or
+5-Whys — audit only what's shown; flag missing scores for the human (audit)
+or the grill (loop).
 
 ## Phase B — Dedup & contradiction panel (barrier, ≥2 perspectives, union)
 
