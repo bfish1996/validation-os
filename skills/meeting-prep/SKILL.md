@@ -144,12 +144,11 @@ another interviewee is more evidence). Then apply two filters, in order:
   (step 2's motivations layer) and find the register records that live
   inside it. A question aligned with their own aims gets real, considered
   answers; a high-Risk record outside their aims gets polite speculation,
-  whatever their role. A candidate that gates a goal (linked via `Based on
-  assumption` from a standing `Provisional`/`Active` `Kind: Goal commitment`
-  decision — `../_shared/decision-guardrails.md §9`) *this person owns or
-  influences* is a strong match (absence of a goal link isn't disqualifying
-  for a candidate no goal has claimed yet — it just stays out of the
-  derived test-next queue until one does).
+  whatever their role. A candidate linked from a standing (`Draft`/`Active`)
+  Goal record via `Based on assumption` (`../../docs/goals.md`) that *this
+  person owns or influences* is a strong match. Absence of a goal link is not
+  disqualifying at all — an unlinked row sits in the test-next queue like any
+  other; the link is a signal about *this person's* stake, nothing more.
 - **Unique qualification** — what can *this* person answer that a generic
   participant couldn't (their role, access, lived experience, their
   company's situation)? Drop high-Risk records they'd only speculate on.

@@ -142,23 +142,21 @@ damage-if-false, not likelihood.
 - **30–50** — a major branch needs rework, recoverable.
 - **10–20** — minor, adjust & move on.
 
-**Goal anchor.** If the assumption *directly gates a goal* — a standing
-(`Provisional` or `Active`) Decision with `Kind: Goal commitment` links it
-via `Based on assumption`, cited in `## Rationale` (`decision-guardrails.md
-§9`) — score `Impact` toward the top of its band: a belief a company target
-depends on matters more. This is a **prompt to the human scorer, not a
-formula** — Impact stays the one hand-scored number, and a goal link never
-touches Confidence or the Risk formula. Cite the goal in the *Scoring
-justification*. The check runs **both ways**: a goal-gating record scored
-low needs a justification, and a top-band score justified *only* by a goal
-that is no longer standing is stale — audit flags both.
+**Goal anchor.** If a standing (`Draft` or `Active`) Goal record links this
+assumption via `Based on assumption`, named in the goal's rationale
+(`../../docs/goals.md`) — score `Impact` toward the top of its band: a belief
+a company target depends on matters more. This is a **prompt to the human
+scorer, not a formula** — Impact stays the one hand-scored number, and a goal
+link never touches Confidence or the Risk formula. Cite the goal in the
+*Scoring justification*. The check runs **both ways**: a goal-linked record
+scored low needs a justification, and a top-band score justified *only* by a
+goal that is no longer standing is stale — audit flags both.
 
-That same linkage also makes the row **goal-linked** — a derived view read
-straight from the relation, never a stored status, and a membership
-condition of the test-next queue (`registry-schema.md §Status & derived
-views`). A `Live` row with no standing goal link is queue-invisible until
-one claims it; don't mistake a fully-grilled, unlinked row for one that's
-ready to queue.
+**The Impact anchor is all a goal link does.** It is not a queue condition:
+every `Live` row is eligible for the test-next queue on its own merits,
+linked or not (`registry-schema.md §Status & derived views`). A
+fully-grilled, unlinked row is queued like any other — the anchor changes
+where it ranks, never whether it competes.
 
 **Dependency anchor.** Before finalizing the score, glance at the record's
 `Enables` relation — the set of other records that name *this* one in their

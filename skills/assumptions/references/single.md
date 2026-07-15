@@ -193,11 +193,11 @@ rung), is a separate gated `Live` → `Invalidated` write.**
 - All tags cleared → `Gaps` empty → record is guardrail-complete; **flip
   `Status` `Draft` → `Live` in the same gated close-out write** — the row
   is now ranked by Risk, and it enters the derived **test-next** queue
-  (`Live` + goal-linked + no running experiment, sorted by Risk) on its
-  own. If no standing Goal commitment links it yet via `Based on
-  assumption`, it goes `Live` all the same but stays queue-invisible — the
-  goal link is `/decisions`' write, not this skill's; hand off there. Full
-  flow: `registry-schema.md §Status & derived views`.
+  (`Live` + no running experiment, sorted by Risk) on its own — **no goal
+  link required**. A standing Goal record linking it via `Based on
+  assumption` anchors its Impact and so moves it up the queue, but never
+  decides whether it's in one; that link is `/goals`' write, not this
+  skill's. Full flow: `registry-schema.md §Status & derived views`.
 - **`Human review` gap** (present when a loop run auto-grilled this record):
   clear it only after walking the machine's answers (5 Whys, score, metric)
   past the record's `Owner` in this gated session — it counts like any other

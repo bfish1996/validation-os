@@ -14,6 +14,7 @@
     "./skills/find-evidence",
     "./skills/meeting-prep",
     "./skills/decisions",
+    "./skills/goals",
     "./skills/self-review"
   ]
 }

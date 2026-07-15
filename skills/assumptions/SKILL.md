@@ -108,9 +108,9 @@ evidence standalone is `/find-evidence`. This skill only ever flips
 empties (gated, single/seed — loop never flips `Status`; it tags the
 `Human review` gap instead, which holds the row in `Draft`), and `Live` →
 `Draft` when a new gap lands. Goal linkage is never a status — it's
-`/decisions`' gated `Based on assumption` write on a standing Goal
-commitment, read as a derived queue condition (`decision-guardrails.md
-§9g`); a fully-grilled row with no goal link is `Live` but queue-invisible.
+`/goals`' `Based on assumption` write on a standing Goal record, read back
+as an Impact anchor and a view, never a queue condition (`../../docs/goals.md`);
+a fully-grilled row with no goal link is `Live` and queues like any other.
 Testing is a derived view (`Live` + a `Running` experiment), never a flip;
 verdicts are the evidence skills' — evidence rolls up `Confidence` on its
 own, and only a human-affirmed kill flips `Live` → `Invalidated`. Full

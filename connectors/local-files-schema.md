@@ -198,8 +198,11 @@ One directory each (`decisions/` / `terminology/`), split by `Type`.
 ### Rationale
 ### Alternatives considered
 ### Source
-### Outcome        <!-- Kind: Goal commitment rows only -->
 ```
+
+> Goal records have no layout here yet — a goal is not a Decision row
+> (`skills/_shared/decision-guardrails.md §9`) and its physical schema is
+> pending (`skills/_shared/registry-schema.md §The three registers`).
 
 ### Terminology body subheadings
 

@@ -9,16 +9,12 @@ description: >-
   what unanimity), sweep a date range for candidate decisions plus conflict
   and supersession detection, audit decision health. Decisions can moot an
   assumption via Resolves assumption (Impact to 0), kept strictly separate
-  from citing one as rationale. Goals/OKRs live here too: committing to a
-  goal is a decision (Kind: Goal commitment) — evidence-gated against the
-  beliefs it rests on, closed out with a human verdict decomposed into
-  evidence. Use for "glossary", "what's the canonical term for X", "how do
-  we say X to <audience>", "log this decision", "what did we decide about
-  X", "sweep decisions", "audit the decision log", "check terminology",
-  "add a term",
-  "log this goal", "commit to this goal/OKR", "close out the goal", "did we
-  hit the goal". Skip for /assumptions (a decision citing an assumption is
-  NOT the same as resolving it).
+  from citing one as rationale. Use for "glossary", "what's the canonical
+  term for X", "how do we say X to <audience>", "log this decision", "what
+  did we decide about X", "sweep decisions", "audit the decision log",
+  "check terminology", "add a term". Skip for /assumptions (a decision
+  citing an assumption is NOT the same as resolving it) and for /goals (a
+  goal is NOT a decision row — it has its own record and its own skill).
 license: MIT
 ---
 
@@ -125,16 +121,17 @@ settles an open assumption. Full choreography lives in `references/`; read
 `../_shared/decision-guardrails.md` first for every mode.
 
 - **Capture** (`references/capture.md`) — gated, one decision at a time,
-  pointed at a specific transcript/thread/note. Also the home of **goal
-  commitments** (`Kind: Goal commitment` — a goal lives as a Decision row,
-  `../_shared/decision-guardrails.md §9`) and their **close-out** (the
-  `## Outcome` verdict, evidence-gated).
+  pointed at a specific transcript/thread/note.
 - **Sweep** (`references/sweep.md`) — on-demand over a user-given date range,
   across the evidence sources the config declares; autonomous write +
   run-log for new records and relations, but never for `Resolves assumption`.
 - **Audit** (`references/audit.md`) — read-only health report across
-  Decision records (including goal health: overdue risk-acceptance dates,
-  unclosed goals, anchor dilution); fixes gated afterward through Capture.
+  Decision records; fixes gated afterward through Capture.
+
+**Goals are not decisions** (`../_shared/decision-guardrails.md §9`). A goal
+is its own record with its own skill — `/goals`. If a session lands on "log
+this goal" or "close out the goal", hand off; if a source turns out to
+contain a goal rather than a decision, say so and route it.
 
 **The one rule that spans all three:** `Based on assumption` (rationale) and
 `Resolves assumption` (deliberate judgment that moots the target — Impact

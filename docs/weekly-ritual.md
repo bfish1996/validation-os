@@ -6,18 +6,18 @@ appears) happens ad hoc through the skills.
 
 ## Monday — prioritise by Risk
 
-Open the **test-next queue** — the derived view: `Live`, goal-linked
-assumptions with no running experiment and Risk at or above the working
-threshold, sorted by Risk descending.
+Open the **test-next queue** — the derived view: `Live` assumptions with no
+running experiment and Risk at or above the working threshold, sorted by Risk
+descending. Every `Live` row is eligible, goal-linked or not.
 
 1. Sanity-check the top of the queue — do the Risk rankings still reflect
    reality? (A stale Impact score is cheaper to fix now than after a week
    of testing the wrong thing.)
-2. Check the queue against your active goals: for each `Active`
-   `Kind: Goal commitment` decision, are the assumptions it rests on
-   actually near the top of the queue and being tested? A committed goal
-   whose gating beliefs nobody is testing is a quiet gamble
-   (`decision-guardrails.md §9`).
+2. Check the queue against your active goals: for each `Active` Goal record,
+   are the beliefs it rests on actually near the top of the queue and being
+   tested? An active goal whose beliefs nobody is testing is a quiet gamble
+   (`goals.md`). If they're ranked low, that's a signal to re-read the Impact
+   anchor — not a reason to skip them.
 3. Commit the week's tests: for the top 1–3 records, run
    `/experiment-design` (or confirm the already-Running experiments are
    actually moving).
@@ -40,12 +40,11 @@ threshold, sorted by Risk descending.
 3. **Log the week's decisions.** Anything the team actually decided:
    `/decisions` (Capture for the ones you remember; an occasional Sweep
    over the week's transcripts catches the rest).
-4. **Tend the goals.** Any goal past its target date gets closed out —
-   human verdict in `## Outcome`, decomposed into evidence
-   (`decision-guardrails.md §9f`). Any risk-acceptance past its
-   `revisit by` date with the assumption still untested gets walked with
-   the goal's owner: test now, re-accept with a new date, or re-cut the
-   goal.
+4. **Tend the goals.** Any goal past its deadline gets closed out via
+   `/goals` — human verdict against the pre-registered bars, decomposed per
+   belief into evidence (`goals.md`). Any risk-acceptance past its
+   `revisit by` date with the belief still untested gets walked with the
+   goal's owner: test now, re-accept with a new date, or re-cut the goal.
 5. **Clear the human-review queue.** If a loop/batch run grilled records
    this week, walk the `Human review` gaps with each record's owner — the
    gap holds machine-grilled records in `Draft`, and only a gated sign-off
@@ -53,13 +52,14 @@ threshold, sorted by Risk descending.
 
 ## Monthly-ish — audit
 
-Run `/assumptions` (audit mode) and `/decisions` (Audit) for a read-only
-health report: duplicates, contradictions, orphaned records, incomplete
-decisions, stale tensions — plus goal health: overdue risk-acceptance
-revisit dates, goals past their target date with an empty `## Outcome`,
-Impact scores anchored to goals that are no longer standing, and anchor
-dilution (when most open assumptions gate some goal, the goal anchor has
-stopped discriminating). Fix the top findings through the gated flows.
+Run `/assumptions` (audit mode), `/decisions` (Audit), and `/goals` (audit)
+for a read-only health report: duplicates, contradictions, orphaned records,
+incomplete decisions, stale tensions — plus goal health: overdue
+risk-acceptance revisit dates, gambles taken with no line written down,
+tripwires nobody answered, goals past their deadline still open, outcomes
+closed without being decomposed, Impact scores anchored to goals that are no
+longer standing, and anchor dilution. Fix the top findings through the gated
+flows.
 
 The point of the cadence: **the register reorders itself** (evidence →
 Confidence ↑ → Risk ↓), so Monday's queue is always fresh, and Friday's
