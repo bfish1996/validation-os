@@ -120,12 +120,8 @@ assumptions.**
   this?"* A decision can cite an untested, low-confidence, or even
   since-invalidated assumption as its reason **without that citation implying
   anything about the assumption's truth.** Setting this relation never
-  touches the linked assumption, on any `Kind`. On a `Provisional` or
-  `Active` `Kind: Goal commitment` row this relation, read backwards, **is**
-  the derived goal linkage (§9g) — a test-next-queue membership condition
-  and an Impact anchor, computed from the relation, never a status flip.
-  Citing an assumption never implies anything about its truth, and never
-  resolves it.
+  touches the linked assumption. Citing an assumption never implies anything
+  about its truth, and never resolves it.
 - **`Resolves assumption`** — a separate, deliberate human judgment that this
   decision **settles** the open question the assumption was testing, without
   needing an experiment (e.g. the business chose to proceed regardless of
@@ -181,10 +177,23 @@ are unavoidable. It's a bar-setter:
   point at a record whose Risk sits below the working threshold. If any
   linked assumption still sits above it, Capture must either (a) record an
   explicit **risk-acceptance line** in `## Rationale` naming the
-  assumption(s) and why deciding now beats testing first (dated format:
-  §9d), or (b) propose routing to `/experiment-design` and leaving the
-  decision `Provisional` until the evidence lands. A one-way door silently
-  resting on a high-Risk untested assumption is a reject.
+  assumption(s) and why deciding now beats testing first (format below), or
+  (b) propose routing to `/experiment-design` and leaving the decision
+  `Provisional` until the evidence lands. A one-way door silently resting on
+  a high-Risk untested assumption is a reject.
+
+### Risk-acceptance lines — dated, parseable
+
+One line per assumption, so Audit can parse the revisit date:
+
+```
+Risk-acceptance: <assumption ref> — <why deciding now beats testing first> — revisit by <YYYY-MM-DD>
+```
+
+Audit and the weekly ritual flag records whose risk-accepted assumptions are
+past `revisit by` and still untested. **`/goals` uses this same format** for
+the risk-acceptance a band asks for (`docs/goals.md`) — one parser, both
+callers.
 
 **Mootness dies with the decision.** When a Decision carrying `Resolves
 assumption` links flips to `Reversed` or `Superseded` (and the superseding
@@ -192,158 +201,34 @@ decision doesn't re-resolve the same records), each linked assumption's
 Impact-0 mootness is stale — the question it retired is open again. Audit
 flags these (`stale-resolution`, `moot-without-resolver`); a human restores
 each row's prior Impact — the dated mootness line records it — in a gated
-session (`registry-schema.md §Status & derived views`). Goal-linkage (§9g)
-needs no such ceremony: when a `Provisional`/`Active` `Kind: Goal
-commitment` decision that was the sole `Based on assumption` link on an
-assumption flips to `Reversed`/`Superseded` with no successor re-linking
-it, the row simply drops out of the derived test-next queue — the linkage
-was never stored, so there is nothing to reopen.
+session (`registry-schema.md §Status & derived views`).
 
 ---
 
-## 9. Goal commitments (`Kind: Goal commitment`)
+## 9. Goals are not decisions
 
 A goal is **a time-boxed, owned commitment to a measurable state change in
-the world** — and adopting one is a decision, so **the decision row IS the
-goal record**. There is no separate goals register, no KR rows, no progress
-mirroring: external tools (CRM, analytics, docs) stay the scoreboard;
-Validation-OS owns three joints only — the evidence-gated commitment (in),
-the Impact anchor + prioritization gate + queue lens (through), and results
-decomposed into evidence (out). Rationale and a worked example:
-`docs/goals.md`.
+the world** — and it is **not a Decision row**. Committing to a goal is a
+commitment, but it isn't a call between options, which is all this file's
+apparatus is for: a unanimity band and a reversibility door say nothing
+useful about a target. What a goal needs is two bars fixed in advance and a
+human verdict at the deadline.
 
-### 9a. Kind
+Goals live as their own **Goal record**: fields in `registry-schema.md`, the
+model and a worked example in `docs/goals.md`, drafting and close-out via
+`/goals`. Nothing in this file applies to them.
 
-`Kind` (select, Decision rows only): `Goal commitment` / `Direction`
-(strategy, scope, path calls) / `Operating` (process, tooling,
-how-we-work). Optional — legacy rows without it are untyped; Audit nudges,
-never blocks. Only `Goal commitment` carries the extra rules below;
-Direction and Operating follow the ordinary sections unchanged.
+`Kind` (select, Decision rows only): `Direction` (strategy, scope, path
+calls) / `Operating` (process, tooling, how-we-work). Optional — legacy rows
+without it are untyped; Audit nudges, never blocks. There is **no `Goal
+commitment` kind**; a legacy row still carrying one is migrated to a Goal
+record, not re-typed.
 
-### 9b. The goal bar — SMART, checkable
-
-The `## Decision` heading of a Goal commitment must state a bar that is:
-
-- **Specific** — an outcome (a state change), never an activity. "Run 10
-  interviews" is an experiment plan, not a goal.
-- **Measurable, instrument named in advance** — which number, read from
-  where ("Attio, stage 'Pilot signed'", "PostHog w4 cohort"). Unambiguous
-  hit/miss at the deadline, decidable by reading the number.
-- **Assignable** — exactly one `Owner`.
-- **Realistic — the target number cites calibration evidence.** A target
-  nobody can justify from the register or current data is hyperbole — the
-  same rule as an assumption's Description. Challenge it; propose a re-cut
-  the evidence can carry (stretch targets are fine when labelled as such).
-- **Time-bound** — a target date in the `## Decision` line.
-
-A Goal commitment missing any of these is incomplete — same treatment as §1.
-
-### 9c. Commitment gate — the evidence bar, plus belief-mining
-
-A goal commitment is one-way for its cycle: classify `One-way door` and run
-§8's strict gate. Additionally, mine the rationale for beliefs (the goal's
-"because"s) **including ones not yet in the register** — a load-bearing
-belief with no assumption record gets proposed as a new row (hand off to
-`/assumptions` single mode), then linked via `Based on assumption`, cited in
-`## Rationale`. For untested links, prefer **test-before-commit** when a
-cheap experiment can run first (leave the decision `Provisional`, route to
-`/experiment-design`); otherwise record dated risk-acceptance (§9d).
-
-Timing is event-driven — commit whenever the team is ready; a team may
-self-impose a cadence, the system never does. A draft goal = `Status:
-Provisional`. Re-cutting or dropping a goal mid-cycle = `Supersedes` /
-`Reversed`, per §5 — never a silent edit of the bar.
-
-**A `Provisional` link makes the target goal-linked exactly like an
-`Active` one** (§9g) — this is what makes test-before-commit possible at
-all. If the linkage required `Active`, an untested belief could never be
-tested before the goal committed, and the goal could never responsibly
-commit before the belief was tested: a circular lock at the exact moment
-this system cares most about de-risking. A draft goal's rationale is enough
-to put its assumptions in the derived test-next queue; committing for real
-(`Provisional → Active`) is a separate, later gated step once the evidence
-looks good.
-
-### 9d. Risk-acceptance lines — dated, parseable
-
-Every risk-acceptance in a Goal commitment's `## Rationale` follows this
-format, one line per assumption, so Audit can parse the revisit date:
-
-```
-Risk-acceptance: <assumption ref> — <why deciding now beats testing first> — revisit by <YYYY-MM-DD>
-```
-
-Audit and the weekly ritual flag Active Goal commitments whose risk-accepted
-assumptions are past `revisit by` and still untested — this is the tripwire
-that catches a broken goal mid-cycle instead of at the deadline.
-
-### 9e. The mid-cycle tripwire
-
-When a conclusive verdict lands on an assumption that a `Provisional` or
-`Active` `Kind: Goal commitment` decision links via `Based on assumption`
-(or names in a risk-acceptance line), the evidence flow **surfaces that
-decision for review** — the goal may need re-cutting (supersede), dropping
-(reverse), or the bet re-accepted knowingly. For a `Provisional` goal, good
-evidence is also the trigger to commit it for real (`Provisional → Active`).
-Surfacing only: no status auto-flips, no auto-supersede; whether the goal
-stands, commits, or dies is a human decision.
-
-### 9f. Close-out gate
-
-Closing a goal fills `## Outcome` with a human verdict — never auto-flipped
-by a threshold. The gate, by verdict:
-
-- **`Achieved` / `Missed`** — hard-gated on **at least one linked
-  Experiment/Evidence record**: the outcome must be decomposed into what it
-  proved or disproved (via `/find-evidence` — a hit is top-rung evidence for
-  the beliefs underneath; a miss usually invalidates one specifically).
-  There is always something learned; an outcome with no evidence link is a
-  reject.
-- **`Dropped`** — exempt from the evidence link (a goal abandoned because
-  the world changed may have nothing to decompose; don't force a fake row)
-  but requires a link to the superseding/reversing decision instead.
-
-### 9g. Focus effects — anchor, gate, and lens, never the formula
-
-An assumption gates a goal when a `Provisional` or `Active` Goal commitment
-links it via `Based on assumption`, cited in `## Rationale`. That linkage —
-**derived**, read from the relation, never stored on the row — does three
-things: (a) anchors the human's Impact score (`assumption-guardrails.md §3`
-— justify anything below top-band, and Audit flags mismatches in both
-directions); (b) makes the row **goal-linked**, a membership condition of
-the derived test-next queue (`registry-schema.md §Status & derived views`):
-a fully-grilled, unlinked `Live` row is queue-invisible until a goal claims
-it; (c) gives the queue a "gates a committed goal" lens. It still **never**
-enters the Risk formula and never touches Confidence or `Status` — the
-linkage controls *whether* an assumption is eligible for prioritization,
-not how it's scored once it is.
-
-**Citation, not just the relation, is required.** Capture/Sweep reject a
-`Based on assumption` link on a Goal commitment that isn't named in the
-decision's `## Rationale` prose — a bare relation with no rationale text is
-the opportunistic-linking smell: someone wiring an assumption to whatever
-goal is open just to unlock its testing, which both inflates that
-assumption's Impact anchor without justification and pollutes the "gates a
-committed goal" queue lens.
-
-There is **no cap** on concurrently standing (`Provisional`+`Active`) goal
-commitments, but Audit reports the count and flags **anchor dilution** — when
-most open assumptions gate some goal, the anchor and the gate have both
-stopped discriminating. This is no longer informational-only now that
-goal-linkage gates prioritization: treat repeated anchor-dilution flags, or
-churn on a single row's `Based on assumption` link (linked, then quickly
-unlinked, then relinked), as a signal to review that team's linking
-discipline in a gated session, not just a metric to note.
-
-When a goal dies (`Dropped`/`Missed`/`Superseded`) with no successor
-re-linking, nothing changes mechanically on the assumptions it linked — no
-status flips, no Impact edits, no reopen session. The rows simply drop out
-of the derived test-next queue, silently, because the linkage was never
-stored (`registry-schema.md §Status & derived views`). Stale goal-anchored
-Impact justifications surface through the ordinary audit consistency check
-(`stale-goal-anchor`), and re-scoring stays a gated human pass.
-
----
+Goal-linkage is not a Decision concept either. An assumption's Impact anchor
+and its per-goal queue view are read from the **Goal record's** `Based on
+assumption` links (`docs/goals.md`, `assumption-guardrails.md §3`) — no
+`Kind` of Decision row confers them, and linkage is a lens, never a
+queue-membership condition.
 
 ## 10. Guardrail summary (reject a Capture/Sweep write that fails any)
 
@@ -355,10 +240,6 @@ never in place of an unresolved `Related tension` · `Based on` and `Resolves`
 assumption relations set independently, never one inferred from the other ·
 Sweep's conflict search never crosses `Area` · Reversibility classified
 (unclear = one-way) · One-way door with above-threshold `Based on` links
-carries a risk-acceptance line or stays `Provisional` pending a test · Goal
-commitments (§9): bar passes the SMART checks incl. calibration evidence ·
-risk-acceptance lines dated in the parseable format · `## Outcome` verdict
-gated (Achieved/Missed need ≥1 evidence link; Dropped needs the
-superseding/reversing decision link) · goal linkage (`Provisional` or
-`Active`) is cited in `## Rationale`, not just the relation; it never
-touches the target's `Status`, Confidence, or the Risk formula.
+carries a risk-acceptance line or stays `Provisional` pending a test · `Kind`
+is `Direction` or `Operating` only — a row proposed as `Goal commitment` is a
+Goal record, rejected here and routed to `/goals` (§9).

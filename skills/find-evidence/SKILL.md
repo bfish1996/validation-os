@@ -148,23 +148,24 @@ the read is auditable. Search the disconfirming case too.
   `Invalidated` flip: propose it, the human affirms; never auto-apply.
 - "Swept, no qualifying hit" is a complete, honest outcome — say so plainly
   rather than logging a weak record to look productive.
-- **Goal tripwire** (`../_shared/decision-guardrails.md §9e`): if a
-  conclusive verdict landed, query `Active` Decisions with
-  `Kind: Goal commitment` that link this assumption via
-  `Based on assumption` (or name it in a risk-acceptance line). For each,
-  surface it: *"this goal rests on the belief this verdict just supported
-  or killed — review it (re-cut via supersede, or re-accept the bet)?"*
-  Surfacing only — never flip a decision's status or edit its
-  bar here; the review itself is a `/decisions` job.
+- **Goal tripwire** (`../../docs/goals.md §Out`): if a conclusive verdict
+  landed, query standing (`Draft`/`Active`) Goal records that link this
+  assumption via `Based on assumption` (or name it in a risk-acceptance
+  line). For each, surface it: *"this goal rests on the belief this verdict
+  just supported or killed — review it (re-cut, or re-accept the bet)?"*
+  Surfacing only — never flip a goal's lifecycle or edit a bar here; the
+  review itself is a `/goals` job.
 - If the sweep exposed that the assumption's Metric for truth is too vague
   to judge evidence against, that's a grill problem — flag it and point at
   `/assumptions` (single mode); don't fix it here.
 
-**Goal close-outs land here too**: when `/decisions` closes a goal's
-`## Outcome`, the decomposition of the result into per-assumption evidence
-rows (a hit → revealed-tier proof of the beliefs underneath; a miss → a
-specific invalidation) runs through this skill's procedure, same gates, and
-the record links back to the closing decision.
+**Goal close-outs land here too**: when `/goals` closes a goal, the
+decomposition of the result into **per-belief** evidence readings (a hit →
+revealed-tier proof of the beliefs underneath; a miss → a specific
+invalidation) runs through this skill's procedure, same gates, and each
+reading links back to the closing goal. `/goals` cannot close a goal as
+Achieved/Missed until those readings exist — this skill is the gate's
+other half. A `Dropped` goal emits nothing; there is nothing to decompose.
 
 ## Never
 

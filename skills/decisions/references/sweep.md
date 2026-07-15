@@ -41,29 +41,30 @@ autonomously wire `Supersedes`/`Superseded by` and flip the earlier record's
 `Status` to `Superseded` (`decision-guardrails.md §5`).
 
 **D — Assumption-link recommendations.** If a candidate's rationale plausibly
-cites an existing assumption, wire `Based on assumption` autonomously — but
-only when the candidate's `Kind` is **not** `Goal commitment`. The link is
-rationale-only and never touches the assumption, on any `Kind` — but on a
-`Kind: Goal commitment` candidate it is the derived goal linkage
-(`decision-guardrails.md §9g`): it anchors the target's Impact and admits
-it to the derived test-next queue, so it gets the same treatment as
-`Resolves assumption`: **never** autonomous — add it to the run-log as a
-**recommendation** for a human to action via Capture mode, which also
-confirms the citation lands in `## Rationale`. Likewise **never**
-autonomously set `Resolves assumption`, even when the sweep is confident
-the decision settles the question. This is the deliberate asymmetry in
-Sweep's autonomy: everything else here is reversible via the run-log;
-changing what the register prioritizes — admitting a row to the test-next
-queue, or mooting it at Impact 0 — is a judgment call that stays gated.
+cites an existing assumption, wire `Based on assumption` autonomously. The
+link is rationale-only and never touches the assumption, on any `Kind`.
+
+**Never** autonomously set `Resolves assumption`, even when the sweep is
+confident the decision settles the question. This is the deliberate asymmetry
+in Sweep's autonomy: everything else here is reversible via the run-log;
+mooting a row at Impact 0 changes what the register prioritizes, and that
+judgment call stays gated.
+
+**Goals are out of scope.** A candidate that turns out to be a goal — a
+time-boxed commitment to a measurable outcome — is not a Decision row
+(`decision-guardrails.md §9`). Never create one here, in any `Kind`; log it
+as a recommendation to run `/goals` draft. The same applies to any legacy row
+found carrying the retired `Kind: Goal commitment`: log it for migration,
+never re-type it autonomously.
 
 ## Autonomy rails
 
 - **New Decision records, `Related tension`, `Supersedes`/`Status` flips,
-  `Based on assumption` (non-`Goal commitment` `Kind` only)** — autonomous,
-  logged.
-- **`Based on assumption` on a `Kind: Goal commitment` decision, `Resolves
-  assumption`** — never autonomous. Surfaced only as a run-log
+  `Based on assumption`** — autonomous, logged.
+- **`Resolves assumption`** — never autonomous. Surfaced only as a run-log
   recommendation.
+- **Goals** — never created or migrated here. Surfaced only as a run-log
+  recommendation to run `/goals`.
 - **Terminology check** — run `../../_shared/ubiquitous-language.md` over
   each new Decision statement (audience: Internal) same as Capture; add
   unknown terms as `Provisional` glossary records autonomously.
@@ -79,15 +80,16 @@ A list of `{record, field, before, after, kind}` mutations
 (`../../_shared/gated-writes.md §Autonomous modes`), read back at the end.
 Must separately call out: new records created, tensions tagged,
 supersessions applied, and — distinctly — any recommended-but-not-applied
-`Resolves assumption` or goal-commitment `Based on assumption` candidates
-for human follow-up via Capture.
+`Resolves assumption` candidates for human follow-up via Capture, and any
+goal candidates or legacy goal-commitment rows for follow-up via `/goals`.
 
 ## Never
 
 - Never schedule — Sweep is on-demand only in this skill.
-- Never autonomously set `Resolves assumption`, or `Based on assumption` on
-  a `Kind: Goal commitment` decision — always a run-log recommendation,
-  never a write.
+- Never autonomously set `Resolves assumption` — always a run-log
+  recommendation, never a write.
+- Never create a goal as a Decision row, or migrate a legacy `Kind: Goal
+  commitment` row — recommend `/goals`.
 - Never compare for conflicts across different `Area`s.
 - Never leave a clear intentional override as an unresolved tension — if the
   evidence clearly shows one decision overriding another, resolve straight

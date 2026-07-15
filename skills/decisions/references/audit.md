@@ -42,43 +42,28 @@ time, gated, through Capture mode.
      line in `## Scoring justification` cites a resolving decision that is
      no longer standing — same fix, from the assumption side; flag for the
      gated restore.
-   - **Uncited goal links**: a `Kind: Goal commitment` decision's `Based on
-     assumption` link whose target isn't named anywhere in that decision's
-     `## Rationale` — flag as opportunistic goal-linking (§9g).
    - **Stale rationale**: `Active` decisions whose `Based on assumption`
      link points at a now-`Invalidated` assumption — the reason the decision
      rested on has been disproved; flag for re-affirm or revisit (highest
      severity when the decision is a `One-way door`).
-   - **Goal health** (`Kind: Goal commitment`, `decision-guardrails.md §9`):
-     - **Overdue risk-acceptances** — `Active` goal commitments with a
-       risk-acceptance line past its `revisit by` date whose assumption is
-       still untested (§9d).
-     - **Unclosed goals** — `Active` goal commitments past their target
-       date with an empty `## Outcome`.
-     - **Ungated outcomes** — `## Outcome` filled as Achieved/Missed with
-       zero linked evidence records, or Dropped without a
-       superseding/reversing decision link (§9f).
-     - **Stale goal anchors** — assumptions whose Impact scoring
-       justification cites a goal that is no longer standing
-       (`Provisional`/`Active`) (`assumption-guardrails.md §3` runs the
-       check both ways).
-     - **Anchor dilution** — report the count of standing
-       (`Provisional`+`Active`) goal commitments and the share of open
-       assumptions gated by one; when most open assumptions gate some goal,
-       flag that both the Impact anchor and the goal-linkage queue
-       condition have stopped discriminating. No hard cap, but no longer
-       informational-only now that the linkage gates prioritization — worth
-       a human look.
-     - Missing `Kind` on Decision rows — a nudge, never a block (legacy
-       rows are untyped by design).
+   - **Retired goal-commitment rows**: any row still carrying `Kind: Goal
+     commitment` — a goal is not a Decision row
+     (`decision-guardrails.md §9`). Report it for migration to a Goal
+     record; **do not** audit it as a goal (that's `/goals audit`) and do not
+     re-type it in place.
+   - Missing `Kind` on Decision rows — a nudge, never a block (legacy rows
+     are untyped by design).
    These checks are the `/decisions audit` rules in
    `../../_shared/ontology.yaml §integrity_rules` — cite each finding by its
    rule `id` (`untyped-record`, `stale-resolution`, `stale-rationale`,
    `one-way-door-untested-basis`, `unresolved-tension`,
-   `supersedes-tension-overlap`, `moot-without-resolver`,
-   `goal-link-uncited`, `overdue-risk-acceptance`, `unclosed-goal`,
-   `ungated-outcome`, `stale-goal-anchor`, `anchor-dilution`, plus the
+   `supersedes-tension-overlap`, `moot-without-resolver`, plus the
    structural rules).
+
+**Goal health is not audited here.** Overdue risk-acceptances, unanswered
+tripwires, unclosed goals, undecomposed outcomes, uncited goal links, stale
+goal anchors, and anchor dilution all moved to `/goals audit`
+(`../../goals/references/audit.md`) when goals stopped being decisions.
 3. **Synthesise one ranked findings report** — by record, with the specific
    gap(s) and a suggested fix. Read it back to the user.
 4. When the user picks findings to fix, walk them one at a time through

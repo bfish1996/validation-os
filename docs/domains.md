@@ -65,17 +65,19 @@ use it before any call a campaign books.
 
 Goals, decisions, the glossary, and the weekly ritual run identically on
 a non-product function — nothing is re-plumbed. The outreach case, end to
-end (mechanics: `goals.md`, `decision-guardrails.md §9`):
+end (mechanics: `goals.md`):
 
 **Commit.** *"Q3: 15 qualified meetings with logistics ops leads by
-Sep 30"* is a Decision row, `Kind: Goal commitment`, like any other goal.
-The SMART check forces a glossary row first — **"qualified meeting" gets
-a Terminology entry** (booked ≠ attended ≠ ICP-matched), or the bar is
-ambiguous at the deadline. The gate mines the rationale: ASM-31 *"ops
-leads at 20–50-person logistics firms feel the pain weekly"* and ASM-32
-*"cold email reaches them"* — both untested, committed with a dated
-risk-acceptance. Both now gate a committed goal: Impact anchors high, the
-test-next queue reorders around outreach beliefs.
+Sep 30"* is a Goal record, like any other goal — bars fixed at commit time,
+instrument named (the CRM's qualified-meeting stage). The SMART check forces
+a glossary row first — **"qualified meeting" gets a Terminology entry**
+(booked ≠ attended ≠ ICP-matched), or the bar is ambiguous at the deadline.
+Drafting mines the rationale: ASM-31 *"ops leads at 20–50-person logistics
+firms feel the pain weekly"* and ASM-32 *"cold email reaches them"* — both
+untested. `/goals` reads both back in the gamble band and asks for a dated
+risk-acceptance; the team writes one and commits anyway, which is a
+supported answer. Both beliefs anchor Impact high and rise up the queue —
+they were always eligible for it, goal or no goal.
 
 **Test.** `/experiment-design` turns ASM-32 into a pre-registered
 campaign — *"we're right if ≥5% of 100 sends book a meeting"*, one Survey
@@ -85,15 +87,15 @@ ASM-31, Mom-Test style: past behaviour, never the pitch.
 **Verdict → tripwire.** The campaign concludes 1/100 — **Invalidated**
 against its own bar, by a human. That verdict lands on a belief an active
 goal rests on, so the tripwire surfaces the goal in week 3, not at the
-deadline. The team supersedes: warm-intro channel, 10 meetings — a
-logged decision with rationale, not a silent re-cut.
+deadline. The team supersedes: warm-intro channel, 10 meetings — a new Goal
+record with its own bars, not a silent edit of the old one.
 
-**Close out.** Sep 30, CRM shows 12 qualified meetings: `## Outcome:
-Achieved`, decomposed via `/find-evidence` — the successor channel belief
-is validated by revealed behaviour, and the interview notes from those
-meetings become the evidence rows that move ASM-31. The Q4 outreach goal
-is committed against what is now the register's riskiest surviving
-belief.
+**Close out.** Sep 30, the CRM shows 12 qualified meetings: `Closed:
+Achieved`, decomposed per belief via `/find-evidence` — the successor
+channel belief gets a strong positive reading from revealed behaviour, and
+the interview notes from those meetings become the evidence that moves
+ASM-31. The Q4 outreach goal is drafted against what is now the register's
+riskiest surviving belief.
 
 Same loop, same gates, same weekly ritual slot — the only thing that
 changed is the `Theme` on the rows.

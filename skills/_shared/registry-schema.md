@@ -25,9 +25,19 @@ whatever the backend.
 - **Experiments** — one row per test designed against an assumption; evidence
   rows and experiment rows are the same thing. Created by `/experiment-design`,
   concluded by `/find-evidence` and the humans running the test.
-- **Decisions & Terminology** — the decision log (including goal
-  commitments — a goal lives as a Decision row, `decision-guardrails.md §9`)
-  and the shared glossary. Owned by `/decisions`.
+- **Decisions & Terminology** — the decision log and the shared glossary.
+  Owned by `/decisions`. Goals are **not** decisions
+  (`decision-guardrails.md §9`).
+
+> **Goal records — schema pending.** A goal is a first-class **Goal record**,
+> not a Decision row: two bars fixed at commit time (`We're right if` /
+> `We're wrong if`), a deadline, an owner, the instrument named in advance,
+> `Based on assumption` links, and a `Draft → Active → Closed`
+> (`Achieved`/`Missed`/`Dropped`) lifecycle. The model is settled
+> (`docs/goals.md`) and `/goals` operates it; the **field map, body template,
+> and which register it lives in are not decided here yet** — they land with
+> the registry-schema rewrite, alongside the migration rule for legacy
+> `Kind: Goal commitment` rows.
 
 > ⚠️ **Always query the full register, never a filtered view or subset.**
 > Auditing or looping a filtered slice silently skips rows.
@@ -51,20 +61,15 @@ whatever the backend.
 | Contradicts | self-relation | Links two rows in **tension** (distinct claims that can't both hold). Set it on **both** rows; pairs with the `Contradiction` gap and a provenance note. Not for negation-duplicates — those merge (`assumption-guardrails.md §4`). |
 | Experiments | relation | The tests designed against this belief. Inverse of the Experiment's `Assumption` relation. |
 
-There is **no separate Goals field**: an assumption *gates* a goal when a
-**standing** (`Provisional` or `Active`) Decision with `Kind: Goal
-commitment` links it via `Based on assumption` — the goal linkage is that
-relation read backwards (`decision-guardrails.md §9`). That linkage does two
-things at once: it's an Impact anchor for the human scorer (**never** a
-Confidence input, never in the Risk formula), and it makes the row
-**goal-linked** — a test-next-queue membership condition read straight from
-the relation (§Status & derived views), never a stored status. A
-`Provisional` (draft) goal counts, not only `Active`, so a goal's own
-underlying beliefs can be tested *before* the goal commits
-(`decision-guardrails.md §9c`) — otherwise nothing could ever bootstrap a
-first goal. The link must be cited in the decision's `## Rationale` prose,
-not just the relation — an uncited link is a gaming smell, flagged by audit
-(`decision-guardrails.md §9g`).
+There is **no separate Goals field**: an assumption is *goal-linked* when a
+standing (`Draft` or `Active`) Goal record links it via `Based on
+assumption` — the linkage is that relation read backwards, computed, never
+stored. It is an **Impact anchor** for the human scorer and a **queue view**
+("what does this goal rest on?") — **never** a Confidence input, never in
+the Risk formula, and **never a condition of queue membership**: every
+`Live` row is queue-eligible on its own merits, linked or not
+(§Status & derived views, `docs/goals.md`). A `Draft` goal counts, not only
+`Active`, so a goal's own beliefs can be tested before it commits.
 
 Record **body** holds the long-form the fields can't: `## 5 Whys`,
 `## Metric for truth`, `## Scoring justification`, `## Provenance & notes`
@@ -103,9 +108,9 @@ Draft ──(grill close-out: the last Gaps tag──▶ Live ──(conclusive 
 
 | View | Definition |
 |---|---|
-| Goal-linked | a standing (`Provisional`/`Active`) `Kind: Goal commitment` decision links the row via `Based on assumption`, cited in its `## Rationale` |
+| Goal-linked | a standing (`Draft`/`Active`) Goal record links the row via `Based on assumption`. An Impact anchor and a queue **view** — never a membership condition (`docs/goals.md`) |
 | Testing | `Live` + a linked experiment with `Result: Running` |
-| Test-next queue | `Live` + goal-linked + no running experiment + Risk ≥ the working threshold, sorted by Risk descending |
+| Test-next queue | `Live` + no running experiment + Risk ≥ the working threshold, sorted by Risk descending. **Goal-agnostic** |
 | Proven set | `Live` + strongest concluded experiment `Validated` — "what we currently know"; provisional, always |
 | Moot | Impact = 0 via a standing decision's `Resolves assumption` action |
 
@@ -113,10 +118,13 @@ Draft ──(grill close-out: the last Gaps tag──▶ Live ──(conclusive 
   Risk → queue position, nothing else. Only a human-affirmed kill flips
   `Live → Invalidated`. An `Inconclusive` experiment contributes zero and
   leaves the row exactly where it was.
-- **The goal-linkage gate survives as a queue condition.** A fully-grilled,
-  unlinked row is `Live` but queue-invisible until a goal claims it. When the
-  last linking goal dies, the row silently drops out of the queue — no status
-  ceremony, no reopen session (`decision-guardrails.md §9g`).
+- **Goal linkage never gates the queue.** A fully-grilled, unlinked row is
+  `Live` and queue-eligible like any other — the riskiest belief in the
+  register is never invisible because no goal happens to sit near it. When a
+  linking goal dies, nothing changes mechanically on the row: no status
+  flips, no Impact edits, no reopen session; it keeps competing on its own
+  Risk. Linkage remains an Impact anchor and a per-goal view only
+  (`docs/goals.md`).
 - **Mootness, not closure, for decisions.** A resolving decision lowers the
   assumption's Impact to 0 in the same gated write, with a dated line in
   `## Scoring justification` recording the prior score and citing the
@@ -155,7 +163,7 @@ Decision rows (the decision log). Terminology enforcement rules live in
 |---|---|---|---|
 | Title | title | shared | The term, or a short handle for the decision. |
 | Type | select | shared | `Terminology` / `Decision`. Determines which fields apply. |
-| Kind | select (optional) | Decision only | `Goal commitment` / `Direction` / `Operating`. Goal commitment = adopting a goal (the decision row IS the goal record — `decision-guardrails.md §9`); Direction = strategy/scope/path calls; Operating = process/tooling/how-we-work. Optional: absent on legacy rows = untyped; Audit nudges, never blocks. |
+| Kind | select (optional) | Decision only | `Direction` / `Operating`. Direction = strategy/scope/path calls; Operating = process/tooling/how-we-work. **No `Goal commitment`** — a goal is its own record (`decision-guardrails.md §9`); legacy rows carrying it migrate. Optional: absent on legacy rows = untyped; Audit nudges, never blocks. |
 | Status | select | shared, different meaning per Type | `Active` / `Provisional` / `Superseded` / `Reversed`. Terminology: Active = hard-enforce, Provisional = advisory, Superseded/Reversed = flag-if-used. Decision: Active = in force, Provisional = tentative, Superseded = replaced (paired with `Supersedes`), Reversed = abandoned outright. |
 | Area | select | both (Terminology docs may call it "Bounded context") | Which domain of your product the row belongs to — define your own list in setup. Scopes the sweep-mode conflict search to same-Area pairs. |
 | Related tension | self-relation, two-way | shared | Terminology: confusable-neighbour pairing. Decision: unresolved contradiction flag, resolved via `Supersedes`. |
@@ -166,7 +174,7 @@ Decision rows (the decision log). Terminology enforcement rules live in
 | Decided date | date | Decision only | When it was decided; may differ from row creation. |
 | Reversibility | select | Decision only | `Two-way door` / `One-way door`. Unclear = one-way. Sets the evidence bar for `Based on` links — `decision-guardrails.md §8`. |
 | Supersedes / Superseded by | self-relation, two-way | Decision only | Resolved, intentional override — distinct from `Related tension` (unresolved). |
-| Based on assumption | relation → Assumptions | Decision only | Rationale. Never touches the assumption, on any `Kind`. On a `Provisional`/`Active` `Kind: Goal commitment` row this edge, read backwards, is the goal linkage — a derived queue condition (§Status & derived views). |
+| Based on assumption | relation → Assumptions | Decision only | Rationale. Never touches the assumption, on any `Kind`. (The Goal record carries a relation of the same name — that one, read backwards, is the goal linkage: an Impact anchor and a view, never a queue condition.) |
 | Resolves assumption | relation → Assumptions | Decision only | **Separate** relation from `Based on assumption` — never reuse one for the other. Setting it (gated) makes the linked assumption **moot**: Impact drops to 0, with a dated line recording the prior score; Status untouched. `decision-guardrails.md §6`. |
 
 ### Decision row body template
@@ -174,17 +182,12 @@ Decision rows (the decision log). Terminology enforcement rules live in
 Verbatim-parsed headings — a row that breaks the template silently escapes
 automated checks:
 
-- `## Decision` — one-line statement of what was decided. For `Kind: Goal
-  commitment`: the objective plus the measurable bar and its instrument
-  ("3 signed paid pilots by Sep 30; measured in Attio, stage 'Pilot signed'").
+- `## Decision` — one-line statement of what was decided.
 - `## Rationale` — why; cites `Based on assumption` rows; carries the Unanimity
   scoring justification and any risk-acceptance lines (dated format:
-  `decision-guardrails.md §9`).
+  `decision-guardrails.md §8`).
 - `## Alternatives considered` — options on the table and why they lost.
 - `## Source` — the actual quote/link (mirrors the Source field).
-- `## Outcome` — **`Kind: Goal commitment` rows only.** Empty until the goal
-  closes; then the human verdict (`Achieved` / `Missed` / `Dropped`) with
-  links per the close-out gate (`decision-guardrails.md §9`).
 
 ### Terminology row body template
 

@@ -65,16 +65,15 @@ assumption **`Confidence`** = how strongly known (derived from experiments).
 This skill sets the experiment `Result` = Running, nothing further — the
 assumption's `Status` never moves here. (A record not in the derived
 test-next queue isn't ready yet — still `Draft` needs grill close-out from
-`/assumptions`, unlinked needs a goal link from `/decisions`, an
-already-running experiment means it's mid-test — send it there first, or
-note the exception.)
+`/assumptions`, an already-running experiment means it's mid-test — send it
+there first, or note the exception.)
 
 ## Seed (pick or detect)
 
 - **Test-next queue (default).** Compute the derived queue — `Status =
-  Live` (`Gaps` empty by invariant), goal-linked, no linked `Running`
-  experiment, Risk ≥ the working threshold — sort by Risk descending,
-  recommend the top record.
+  Live` (`Gaps` empty by invariant), no linked `Running` experiment, Risk ≥
+  the working threshold — sort by Risk descending, recommend the top record.
+  Goal-agnostic: every `Live` row is eligible, linked or not.
 - **Named assumption.** User names one — load that record.
 - **Already-chosen approach.** User says "interview to test X" — skip the
   recommendation in step 2, but still validate it maps to the right `Type`

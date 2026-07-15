@@ -32,11 +32,10 @@ Validation-OS makes those beliefs impossible to ignore:
 - A shared **glossary** keeps the team speaking one language, and a
   **decision log** records what was decided and how unanimously — without
   letting a business call masquerade as validation.
-- **Goals/OKRs plug in as decisions**: committing to a goal is
-  evidence-gated against the beliefs it rests on, committed goals focus the
-  test-next queue, and every hit or miss decomposes back into evidence —
-  while your CRM/analytics stay the scoreboard
-  ([docs/goals.md](docs/goals.md)).
+- **Goals/OKRs are instruments, not gates**: the OS never blocks a
+  commitment — it tells you what a goal bets on before you make it, and every
+  hit or miss decomposes back into evidence on the beliefs underneath, while
+  your CRM/analytics stay the scoreboard ([docs/goals.md](docs/goals.md)).
 
 The loop:
 
@@ -83,7 +82,8 @@ Update later with `npx skills update`. Versioned releases are tagged
 | `/experiment-design` | Turn the riskiest assumption into a falsifiable, pre-registered test; prep the instrument (interview guide, survey, prototype brief, fake-door spec). | "how do I test this", "design an experiment", "interview guide for X" |
 | `/find-evidence` | Sweep what you *already* know — internal record (calls, chat, email, CRM) and rigorous desk research — and log it as conclusive evidence. | "what do we already know about X", "desk research this" |
 | `/meeting-prep` | Person-first: research whoever you're meeting, then work backward to the high-Risk assumptions they're uniquely qualified to test. | "I'm speaking to X tomorrow", "what should I ask X" |
-| `/decisions` | The shared glossary + the decision log — capture, sweep, audit; retire assumptions by explicit decision, never by accident. Goal commitments live here: evidence-gated in, closed out into evidence. | "log this decision", "commit to this goal", "close out the goal", "what's the canonical term for X" |
+| `/decisions` | The shared glossary + the decision log — capture, sweep, audit; retire assumptions by explicit decision, never by accident. | "log this decision", "sweep decisions", "what's the canonical term for X" |
+| `/goals` | Goal records — draft one (SMART bar, two bars fixed at commit time, the beliefs underneath read back as advisory bands), close it out into per-belief evidence, audit goal health. Never blocks a commitment. | "log this goal", "commit to this goal", "close out the goal", "did we hit the goal" |
 | `/self-review` | A private coach: sweep your own recorded calls for pitches and load-bearing claims, score yourself against the registers (decision fidelity, assumption transparency, experiment-first, concreteness), track trends, get improve-next actions. Writes only to a local gitignored directory — never through the connector. | "review my calls", "how did I pitch", "am I still reopening settled decisions" |
 
 All six read the same config and enforce the same shared rulesets
@@ -126,9 +126,9 @@ flowchart LR
     A["/assumptions<br>a call, transcript, or hunch becomes one<br>falsifiable sentence — Impact scored, 5-Whys<br>traced; Gaps tags list what's still missing"]:::skill
   end
 
-  subgraph gate["② Two gates"]
-    D["/decisions<br>the team commits to a goal; its rationale<br>names the beliefs the goal rests on"]:::skill
-    Q["test-next queue<br>a record enters only after BOTH gates<br>fire, in either order; riskiest on top"]:::record
+  subgraph gate["② Prioritise"]
+    D["/goals<br>the team commits to a goal; its rationale<br>names the beliefs the goal rests on —<br>anchoring their Impact, gating nothing"]:::skill
+    Q["test-next queue<br>every Live record competes on its<br>own merits; riskiest on top"]:::record
   end
 
   subgraph test["③ Test"]
@@ -142,8 +142,8 @@ flowchart LR
     V["human verdict against the locked bar<br>Validated · Invalidated · Inconclusive"]:::human
   end
 
-  A -->|"1 · quality gate:<br>grill until Gaps is empty"| Q
-  D -->|"2 · priority gate: the goal<br>cites the belief → goal-linked"| Q
+  A -->|"1 · the one gate:<br>grill until Gaps is empty"| Q
+  D -.->|"2 · Impact anchor: a goal rests on<br>the belief → it ranks higher (never<br>a condition of entry)"| Q
   D -.->|"a goal's 'because' with no<br>record yet → new assumption"| A
   Q -->|"3 · riskiest first"| E
   E -->|"4 · Running experiment"| RUN
@@ -151,16 +151,17 @@ flowchart LR
   RUN -->|"5 · what happened"| F
   F -->|"6 · evidence linked<br>to the record"| V
   V -->|"7 · Confidence ↑ → Risk ↓<br>→ the queue reorders itself"| Q
-  V -.->|"a goal rested on this<br>belief → review the goal"| D
-  D -.->|"goal closes → its result is<br>decomposed back into evidence"| F
+  V -.->|"a goal rested on this<br>belief → tripwire: review the goal"| D
+  D -.->|"goal closes → its result is decomposed<br>per belief back into evidence"| F
 ```
 
 After step 7 the loop closes: the next-riskiest belief is already sitting
 on top of the queue.
 
-The goal in gate ② has a lifecycle of its own — drafting it is what opens
-the gate, and its verdict at the end flows back in as evidence. Same
-colours:
+**One gate, not two.** Grilling is the only thing standing between a belief
+and the queue — a goal moves *where* a belief ranks, never *whether* it
+competes. The goal has a lifecycle of its own, and its verdict at the end
+flows back in as evidence. Same colours:
 
 ```mermaid
 flowchart LR
@@ -169,47 +170,48 @@ flowchart LR
   classDef record fill:#eceef1,stroke:#77808c,color:#272d35
 
   subgraph g1["① Draft"]
-    P["Provisional goal — a /decisions row,<br>Kind: Goal commitment; SMART bar with a named<br>instrument, rationale names the beliefs it rests on"]:::record
+    P["Draft Goal record — both bars fixed at commit<br>time, instrument named; rationale names the<br>beliefs it rests on"]:::record
+    B["/goals reads each belief's Confidence back<br>as an advisory band — ready · gamble ·<br>betting against your evidence · kill lane"]:::skill
   end
-  subgraph g2["② De-risk"]
-    T["its beliefs run the main loop above —<br>linking already made them goal-linked,<br>so a draft's beliefs queue for testing<br>before anyone commits"]:::record
+  subgraph g2["② De-risk — optional"]
+    T["its beliefs run the main loop above.<br>They were always queue-eligible; the goal<br>anchors their Impact so they rank higher"]:::record
   end
   subgraph g3["③ Commit"]
-    C["human commits: Provisional → Active<br>(good evidence on its beliefs is the trigger)"]:::human
+    C["human commits: Draft → Active.<br>Nothing blocks this — a gamble just needs<br>a dated risk-acceptance line on the record"]:::human
   end
   subgraph g4["④ Stand — the tripwire"]
     W["a conclusive verdict lands on a linked<br>belief while the goal stands"]:::record
-    REV["human reviews the goal —<br>never a silent edit of the bar"]:::human
+    REV["human reviews the goal —<br>never a silent edit of a bar"]:::human
     RA["re-accept the bet<br>new dated risk-acceptance line"]:::record
-    RC["re-cut<br>a new goal Supersedes it; the successor<br>re-links the beliefs it keeps"]:::record
-    DP["drop<br>the goal flips Reversed"]:::record
-    X["a belief whose last linking goal dies<br>silently drops out of the test-next queue;<br>its row doesn't change"]:::record
+    RC["re-cut<br>a new goal supersedes it; the successor<br>re-links the beliefs it keeps"]:::record
+    DP["drop<br>the goal closes Dropped"]:::record
   end
   subgraph g5["⑤ Close out"]
-    O["target date → human verdict in ## Outcome,<br>read from the named instrument"]:::human
-    AM["Achieved / Missed — can't be written with zero<br>evidence links: the result is decomposed into<br>per-belief evidence via /find-evidence"]:::record
-    DR["Dropped — exempt from evidence, but must<br>link the superseding / reversing decision"]:::record
+    O["deadline → human verdict read against the<br>bars fixed at commit time, from the<br>named instrument"]:::human
+    AM["Achieved / Missed — can't close with zero<br>per-belief readings: the result is decomposed<br>via /find-evidence"]:::record
+    DR["Dropped — emits no evidence; nothing<br>to decompose"]:::record
   end
 
-  P -->|"1 · beliefs enter the main<br>loop while still a draft"| T
+  P --> B
+  B -->|"1 · beliefs enter the main<br>loop while still a draft"| T
   T -->|"2 · evidence lands<br>in its favour"| C
-  P -.->|"no cheap test? dated risk-acceptance line,<br>revisit-by date — audit chases overdue ones"| C
+  B -.->|"gambling? dated risk-acceptance line,<br>revisit-by date — audit chases overdue ones,<br>and the goal proceeds either way"| C
   C -->|"3 · the cycle runs"| O
   T -.-> W
   W --> REV
   REV -->|"the bet still holds"| RA
-  REV -->|"the bar is now wrong"| RC
+  REV -->|"a bar is now wrong"| RC
   REV -->|"the goal is dead"| DP
   REV -.->|"still a draft and the evidence<br>is good → commit it"| C
-  RC -.-> X
-  DP -.-> X
   O -->|"hit or miss"| AM
   O -->|"abandoned"| DR
 ```
 
 A hit becomes top-rung evidence on the beliefs it proved; a miss usually
 invalidates one specific belief — either way the loop's next lap starts
-better informed.
+better informed. When a goal dies, the beliefs it linked don't move: they
+keep competing on their own Risk, because they never needed the goal to be
+in the queue.
 
 Underneath the flow, an assumption's `Status` stores only its lifecycle —
 three values, because **an assumption is never validated**
@@ -235,9 +237,9 @@ row's data:
 
 | Derived view (never stored) | Computed from |
 |---|---|
-| Goal-linked | a standing goal commitment cites it via `Based on assumption` |
+| Goal-linked | a standing Goal record cites it via `Based on assumption` — an Impact anchor and a view, never a queue condition |
 | Testing | a linked experiment is `Running` |
-| Test-next queue | Live + goal-linked + no running experiment + Risk above the working threshold |
+| Test-next queue | Live + no running experiment + Risk above the working threshold |
 | Proven set | Live + strongest concluded experiment `Validated` — provisional, always |
 | Moot | Impact dropped to 0 by a resolving decision; reversal restores it |
 

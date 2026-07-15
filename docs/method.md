@@ -96,22 +96,23 @@ Impact of the assumptions it resolved — mootness dies with the decision.
 Skills: `/decisions`. Rules: `skills/_shared/decision-guardrails.md`,
 `skills/_shared/ubiquitous-language.md`.
 
-## Goals & OKRs — an interface, not a module
+## Goals & OKRs — instruments, not gates
 
-A goal is a **commitment to a measurable state change in the world**, and
-committing is a decision — so a goal lives as a Decision row
-(`Kind: Goal commitment`), and the OS never becomes an OKR tracker (your
-CRM/analytics stay the scoreboard). Three joints connect the two machines:
-**in** — goal-setting is evidence-gated: the beliefs a goal rests on are
-surfaced and either tested to below-threshold Risk first or carried as
-dated risk-acceptances;
-**through** — beliefs gating a committed goal anchor Impact and get a queue
-lens, without ever touching the Risk formula or Confidence; **out** — a
-verdict landing on a belief an active goal rests on trips a review of that
-goal, and at the deadline the outcome is decomposed into evidence (a hit is
-top-rung proof; a miss usually invalidates something specific). Full
-treatment and a worked example: `goals.md`;
-rules: `skills/_shared/decision-guardrails.md §9`.
+A goal is a **time-boxed, owned commitment to a measurable state change in
+the world**, held as its own **Goal record** — two bars fixed at commit time
+(`We're right if` / `We're wrong if`), a deadline, an owner, and the
+measuring instrument named in advance. The OS never becomes an OKR tracker
+(your CRM/analytics stay the scoreboard), and it **never gates goal-making**
+— the team commits to what it chooses. Three joints connect the two machines:
+**in** — the beliefs a goal rests on are surfaced and their Confidence read
+back as **advisory bands**, which ask for a dated risk-acceptance when you're
+gambling but never block; **through** — those beliefs anchor Impact and get a
+queue view, but linkage is never a queue-membership condition: every `Live`
+assumption is eligible on its own merits; **out** — a verdict landing on a
+linked belief trips a review of the goal, and at the deadline the outcome is
+decomposed per belief into evidence (a hit is top-rung proof; a miss usually
+invalidates something specific). Full treatment and a worked example:
+`goals.md`; skill: `/goals`.
 
 ## Verdicts are human
 

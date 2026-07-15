@@ -50,7 +50,11 @@ vocabularies:
   decision_terminology_status: [Active, Provisional, Superseded, Reversed]
   reversibility: [Two-way door, One-way door]
   # Optional on Decision rows; absent = untyped legacy (nudge, never a block).
-  decision_kind: [Goal commitment, Direction, Operating]
+  # No `Goal commitment`: a goal is its own Goal record, not a Decision row
+  # (decision-guardrails.md §9, docs/goals.md). Legacy rows carrying the
+  # retired value migrate to a Goal record; the Goal record's own schema is
+  # not defined here yet (registry-schema.md §The three registers).
+  decision_kind: [Direction, Operating]
 
   # The 8-rung activity-and-strength ladder (experiment-guardrails.md §2).
   # Order = strength, weakest first. `base` feeds the Strength derivation.
@@ -158,8 +162,6 @@ entities:
       - { name: Reversibility, type: select, options: vocabularies.reversibility,
           applies_to: Decision }
     body_headings:
-      # Kind: Goal commitment rows additionally carry an Outcome heading,
-      # empty until close-out (decision-guardrails.md §9f).
       Decision: [Decision, Rationale, Alternatives considered, Source]
       # Verbatim names the terminology check keys off (ubiquitous-language.md).
       Terminology: [Definition, Avoid / don't say, How it differs]
@@ -221,17 +223,12 @@ relations:
     cardinality: many-to-many
     applies_to: Decision
     side_effects: >-
-      None, on any Kind — this edge never touches Status. Read backwards from
-      a Provisional/Active Kind: Goal commitment decision (cited in ##
-      Rationale) it IS the goal linkage: a condition of the derived test-next
-      queue (derived_views.test_next_queue) and an Impact anchor.
+      None, on any Kind — this edge never touches Status.
     meaning: >-
-      Why we decided this (decision-guardrails.md §6). Read backwards from a
-      Provisional or Active Kind: Goal commitment decision, this edge IS the
-      goal linkage — the assumption gates that goal (Impact anchor +
-      prioritization gate + queue lens, never a Confidence input or Risk
-      formula input; decision-guardrails.md §9). There is no separate Goals
-      relation.
+      Why we decided this (decision-guardrails.md §6). Decision rows only. The
+      Goal record carries a same-named relation which, read backwards, is the
+      goal linkage (derived_views.goal_linked) — that one is not this one, and
+      no Kind of Decision row confers goal linkage.
 
   - name: Resolves assumption
     kind: directed
@@ -303,12 +300,15 @@ status_machines:
 # ─────────────────────────────────────────────────────────────────────────────
 derived_views:
   goal_linked: >-
-    A standing (Provisional/Active) Kind: Goal commitment decision links the
-    row via Based on assumption, cited in its ## Rationale.
+    A standing (Draft/Active) Goal record links the row via Based on
+    assumption. An Impact anchor and a per-goal queue view ONLY — never a
+    condition of test_next_queue membership, never a Confidence or Risk input
+    (docs/goals.md).
   testing: "Status = Live AND a linked experiment has Result = Running."
   test_next_queue: >-
-    Status = Live AND goal_linked AND no linked Running experiment AND Risk ≥
-    the working threshold — sorted by Risk descending.
+    Status = Live AND no linked Running experiment AND Risk ≥ the working
+    threshold — sorted by Risk descending. Goal-agnostic: every Live row is
+    eligible on its own merits, linked or not (docs/goals.md).
   proven_set: >-
     Status = Live AND the strongest concluded linked experiment is Validated —
     "what we currently know"; provisional, always (docs/validated.md).
@@ -392,8 +392,8 @@ integrity_rules:
     check: Impact = 0 with a mootness line citing a resolving decision that is no longer standing (Reversed/Superseded, successor doesn't re-resolve) — restore the prior Impact per decision-guardrails.md §8.
   - id: goal-link-uncited
     severity: warn
-    surfaced_by: ["/decisions audit"]
-    check: A Goal-commitment decision's Based on assumption link whose target assumption is not named anywhere in that decision's ## Rationale prose — the relation-only-no-citation pattern flagged as opportunistic goal-linking (decision-guardrails.md §9g).
+    surfaced_by: ["/goals audit"]
+    check: A Goal record's Based on assumption link whose target assumption is not named anywhere in the goal's rationale prose — a relation with no reasoning behind it. Now an anchor-hygiene check only. With the queue gate retired there is nothing to "unlock" by linking, but an uncited link still inflates the target's Impact anchor without justification (docs/goals.md).
 
   # Propagation (cross-register — a verdict in one place invalidates state in another)
   - id: invalidated-dependency
@@ -425,24 +425,33 @@ integrity_rules:
     surfaced_by: ["/decisions audit"]
     check: The same counterpart wired in both Related tension and Supersedes — once Supersedes is set, the tension is resolved (decision-guardrails.md §5).
 
-  # Goal commitments (Kind: Goal commitment — decision-guardrails.md §9)
+  # Goal records (docs/goals.md — goals are instruments, never gates, so every
+  # rule here surfaces or chases; none blocks a human from committing.)
   - id: overdue-risk-acceptance
     severity: error
-    surfaced_by: ["/decisions audit"]
-    check: An Active Goal commitment with a risk-acceptance line past its "revisit by" date whose assumption is still untested (decision-guardrails.md §9d).
+    surfaced_by: ["/goals audit"]
+    check: An Active Goal record with a risk-acceptance line past its "revisit by" date whose assumption is still untested (format — decision-guardrails.md §8).
+  - id: goal-band-unaccepted
+    severity: warn
+    surfaced_by: ["/goals audit"]
+    check: An Active Goal record with a linked belief whose Confidence sits below the ready band and no dated risk-acceptance line naming it — the gamble was taken without being written down. Advisory at draft time, chased once Active (docs/goals.md §In).
+  - id: goal-tripwire-unreviewed
+    severity: warn
+    surfaced_by: ["/goals audit"]
+    check: A Draft/Active Goal record resting on a belief that took a conclusive verdict after the goal was drafted, with no subsequent re-cut, risk-acceptance, or affirmation — the mid-cycle tripwire fired and nobody answered it (docs/goals.md §Out).
   - id: unclosed-goal
     severity: warn
-    surfaced_by: ["/decisions audit"]
-    check: An Active Goal commitment past its target date with an empty ## Outcome section.
+    surfaced_by: ["/goals audit"]
+    check: An Active Goal record past its deadline that has not been Closed.
   - id: ungated-outcome
     severity: error
-    surfaced_by: ["/decisions audit"]
-    check: An ## Outcome filled as Achieved/Missed with zero linked Experiment/Evidence records, or as Dropped without a superseding/reversing decision link (decision-guardrails.md §9f).
+    surfaced_by: ["/goals audit"]
+    check: A Goal record Closed as Achieved/Missed whose outcome was never decomposed — no per-belief reading against any linked assumption. The outcome IS the evidence; closing without reading it back is the one thing the joint exists to prevent. Dropped is exempt, emitting no evidence.
   - id: stale-goal-anchor
     severity: warn
-    surfaced_by: ["/assumptions audit", "/decisions audit"]
-    check: An assumption whose Impact scoring justification cites a goal that is no longer standing (Provisional/Active) — the anchor is stale; re-justify or re-score (assumption-guardrails.md §3).
+    surfaced_by: ["/assumptions audit", "/goals audit"]
+    check: An assumption whose Impact scoring justification cites a goal that is no longer standing (Draft/Active) — the anchor is stale; re-justify or re-score (assumption-guardrails.md §3).
   - id: anchor-dilution
-    severity: warn                # no hard cap, but no longer informational-only — goal-linkage now gates prioritization
-    surfaced_by: ["/decisions audit"]
-    check: Report the count of standing (Provisional+Active) Goal commitments and the share of open assumptions gated by one; when most open assumptions gate some goal, the "gates a committed goal" anchor and the goal-linkage queue condition have both stopped discriminating — review linking discipline in a gated session (decision-guardrails.md §9g).
+    severity: warn                # lens health only — linkage no longer gates anything
+    surfaced_by: ["/goals audit"]
+    check: Report the count of standing (Draft+Active) Goal records and the share of open assumptions linked to one; when most open assumptions link to some goal, the Impact anchor and the per-goal view have stopped discriminating. Informational — with the queue gate retired this dilutes a lens, not prioritisation (docs/goals.md §Through).
