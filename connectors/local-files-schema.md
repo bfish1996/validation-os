@@ -23,9 +23,9 @@ registers:
       - {canonical: Lens, backend: Lens, type: text, derived: false, options_source: vocabulary.lens}
       - {canonical: Theme, backend: Themes, type: text, derived: false, options_source: registry-schema}
       - {canonical: Impact, backend: Impact, type: number, derived: false}
-      - {canonical: Risk, backend: Risk, type: number, derived: true, formula: "Impact * (1 - Confidence / 100); skill-computed, bullet marked <!-- derived -->"}
-      - {canonical: Confidence, backend: Confidence, type: number, derived: true, formula: "max proven Strength + capped corroboration bump (experiment-guardrails.md §2); skill-computed, bullet marked <!-- derived -->"}
-      - {canonical: Corroboration count, backend: Corroboration count, type: number, derived: false}
+      - {canonical: Risk, backend: Risk, type: number, derived: true, formula: "Derived Impact * (1 - max(0, Confidence) / 100); skill-computed, bullet marked <!-- derived -->"}
+      - {canonical: Confidence, backend: Confidence, type: number, derived: true, formula: "signed weighted average of concluded readings with neutral prior w0=100 (experiment-guardrails.md §2); skill-computed, bullet marked <!-- derived -->"}
+      - {canonical: Derived Impact, backend: Derived Impact, type: number, derived: true, formula: "seed + (100 - seed) × S/(S + 100) over the dependency DAG (assumption-guardrails.md §3); weekly script, bullet marked <!-- derived -->"}
       - {canonical: Status, backend: Status, type: text, derived: false, options_source: registry-schema}
       - {canonical: Owner, backend: Owner, type: text, derived: false}
       - {canonical: Gaps, backend: Gaps, type: text, derived: false, options_source: registry-schema}
@@ -39,11 +39,11 @@ registers:
     properties:
       - {canonical: Title, backend: "## <ID>: <Title> heading", type: heading, derived: false}
       - {canonical: Type, backend: Type, type: text, derived: false, options_source: registry-schema}
-      - {canonical: Source quality, backend: Source quality, type: text, derived: false, options_source: registry-schema}
+      - {canonical: Source quality, backend: Source quality, type: number, derived: false, options_source: registry-schema}
       - {canonical: Feasibility, backend: Feasibility, type: text, derived: false, options_source: registry-schema}
       - {canonical: We're right if, backend: We're right if, type: text, derived: false}
       - {canonical: Result, backend: Result, type: text, derived: false, options_source: registry-schema}
-      - {canonical: Strength, backend: Strength, type: number, derived: true, formula: "rung base × source-quality modifier (experiment-guardrails.md §2); skill-computed, bullet marked <!-- derived -->"}
+      - {canonical: Strength, backend: Strength, type: number, derived: true, formula: "signed rung anchor × sign(Result), Goal rungs × magnitude band (experiment-guardrails.md §2); skill-computed, bullet marked <!-- derived -->"}
       - {canonical: Date, backend: Date, type: text, derived: false}
       - {canonical: Owner, backend: Owner, type: text, derived: false}
       - {canonical: Interviewee, backend: Interviewee, type: text, derived: false, required: false}
@@ -108,7 +108,7 @@ per record named by ID (`<ID>.md`):
 | Impact | `- **Impact**: ...` | number 0–100 | no |
 | Risk | `- **Risk**: ...` | number | yes |
 | Confidence | `- **Confidence**: ...` | number | yes |
-| Corroboration count | `- **Corroboration count**: ...` | number | no |
+| Derived Impact | `- **Derived Impact**: ...` | number | yes |
 | Status | `- **Status**: ...` | text | no |
 | Owner | `- **Owner**: ...` | text | no |
 | Gaps | `- **Gaps**: ...` | text | no |
@@ -118,9 +118,13 @@ per record named by ID (`<ID>.md`):
 
 ### Derived values
 
-- **Risk** = `Impact * (1 - Confidence / 100)`
-- **Confidence** = max proven Strength of linked Experiments, plus a capped
-corroboration bump. See `experiment-guardrails.md` §2.
+- **Risk** = `Derived Impact * (1 - max(0, Confidence) / 100)`
+- Confidence is the signed weighted average of concluded readings with a
+neutral prior (w₀ = 100), deduped by source; Strength is the signed rung
+anchor (Goal rungs × magnitude band); Derived Impact propagates dependents'
+pull over the DAG. Canonical formulas: `experiment-guardrails.md §2`,
+`assumption-guardrails.md §3` — skills/the weekly script compute them; never
+hand-edit.
 
 ### Body subheadings
 
@@ -151,8 +155,10 @@ Every assumption record must contain these subheadings, even when empty:
 
 ### Derived values
 
-- **Strength** = rung band × source-quality modifier, gated to a conclusive
-Result. See `registry-schema.md` and `experiment-guardrails.md` §2.
+- **Strength** = signed rung anchor × sign(Result) — Validated positive, Invalidated
+negative; Goal rungs (Signed intent, Paying users) × magnitude band
+(Low/Typical/High); 0 unless the Result is conclusive. Canonical table:
+`experiment-guardrails.md §2`.
 
 ### Body subheadings
 

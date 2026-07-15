@@ -50,10 +50,10 @@ whatever the backend.
 | Description | text | One-sentence falsifiable statement: `We assume [user/system] will [behavior] because [reason]`. Plain, no hyperbole. |
 | Lens | select | The one audience whose decision this drives. **Single** — spans two → it's two assumptions; split. Define your own lens list in setup (example set: Commercial / Consumer / Investor). |
 | Theme | multi-select | Topic; orthogonal to Lens. Example set: Go-to-market, Product, UX, Business model, Technology, Regulatory, Market & competition, Trust & data. |
-| Impact | number 0–100 | **The only hand-scored number.** Anchored bands: `assumption-guardrails.md §3`. |
-| Risk | derived | **Never hand-write.** = Impact × (1 − Confidence/100), ranges 0–100. Highest Risk is tested next. |
-| Confidence | derived | **Never hand-type.** Base = `max` of proven linked Experiments' `Strength`, plus a capped corroboration bump held below the next rung's floor. Full rule: `experiment-guardrails.md §2`. |
-| Corroboration count | number | Count of independent **proven** Experiment rows agreeing at this assumption's top proven rung. Maintained by the evidence skills at log time. 0 / empty = no bonus. |
+| Impact | number 0–100 | **The intrinsic seed — the only hand-scored number.** Pure severity-if-false on anchored bands; never folds in dependents, goals, or decisions (the propagation does). `assumption-guardrails.md §3`. |
+| Derived Impact | derived | **Never hand-write.** = seed + (100 − seed) × S/(S + 100), where S sums the dependents' pull (dependent assumptions' Derived Impact + 100 per standing decision/goal `Based on` node). Written by the weekly recompute script; stale between runs by design. `assumption-guardrails.md §3`. |
+| Risk | derived | **Never hand-write.** = Derived Impact × (1 − max(0, Confidence)/100), ranges 0 to Derived Impact. Full-precision sort, rounded display. |
+| Confidence | derived | **Never hand-type.** Signed −100…100, 0 = no evidence: strength-weighted average of concluded linked readings with neutral prior w₀ = 100, deduped by source. ≤ −50 = the kill zone (human review prompt). Full rule: `experiment-guardrails.md §2`. |
 | Status | select | The **lifecycle** and nothing else: `Draft` (Gaps non-empty — record not yet trustworthy) → `Live` (the default forever-state, ranked by Risk) → `Invalidated` (rare, human-gated kill). There is **no `Validated`** — `docs/validated.md`. Testing, queue membership, goal linkage, mootness: derived views, §Status & derived views. |
 | Owner | person | Who voiced / champions the belief and is accountable for testing it. |
 | Gaps | multi-select | What's missing/wrong: `5 Whys`, `Metric for truth`, `Scoring justification`, `Non-atomic`, `Unfalsifiable`, `Hyperbole`, `Lens check`, `Duplicate`, `Contradiction`, `Human review`. **Drives the grill queues.** Empty Gaps = guardrail-complete. `Human review` is the machine-grill sign-off gap: batch modes set it on every row they auto-grill and never clear it; only a gated session with the row's Owner clears it. |
@@ -64,12 +64,13 @@ whatever the backend.
 There is **no separate Goals field**: an assumption is *goal-linked* when a
 standing (`Draft` or `Active`) Goal record links it via `Based on
 assumption` — the linkage is that relation read backwards, computed, never
-stored. It is an **Impact anchor** for the human scorer and a **queue view**
-("what does this goal rest on?") — **never** a Confidence input, never in
-the Risk formula, and **never a condition of queue membership**: every
-`Live` row is queue-eligible on its own merits, linked or not
-(§Status & derived views, `docs/goals.md`). A `Draft` goal counts, not only
-`Active`, so a goal's own beliefs can be tested before it commits.
+stored. It is an **Impact anchor** (the goal enters the Derived Impact
+propagation as a flat node — `assumption-guardrails.md §3`) and a **queue
+view** ("what does this goal rest on?") — **never** a Confidence input, and
+**never a condition of queue membership**: every `Live` row is
+queue-eligible on its own merits, linked or not (§Status & derived views,
+`docs/goals.md`). A `Draft` goal counts, not only `Active`, so a goal's own
+beliefs can be tested before it commits.
 
 Record **body** holds the long-form the fields can't: `## 5 Whys`,
 `## Metric for truth`, `## Scoring justification`, `## Provenance & notes`
@@ -83,9 +84,9 @@ live Risk score, so every workflow state the old kanban would store is a
 **derived view**, computed from the row's data, never written.
 
 ```
-Draft ──(grill close-out: the last Gaps tag──▶ Live ──(conclusive kill at a rung ≥ the
-  ▲      clears, gated session)                │  ▲     strongest validating rung,
-  │                                            │  │     human-affirmed)──▶ Invalidated
+Draft ──(grill close-out: the last Gaps tag──▶ Live ──(evidence net-against — Confidence
+  ▲      clears, gated session)                │  ▲     in the kill zone (≤ −50) — and a
+  │                                            │  │     human affirms)──▶ Invalidated
   └──(a new gap lands: audit finding, ─────────┘  │                             │
       contradiction, staleness flag)              └──(gated reopen: kill re-judged
                                                       flawed, or world changed)◀┘
@@ -99,25 +100,29 @@ Draft ──(grill close-out: the last Gaps tag──▶ Live ──(conclusive 
 - **`Live`** — the default forever-state. Ranked by Risk continuously; never
   "done". Evidence, Impact changes, and goal links move its Risk and its
   derived views — never its Status.
-- **`Invalidated`** — the rare, real closure: a linked experiment concluded
-  `Invalidated` at a rung ≥ the row's strongest validating rung, and a human
-  affirmed the kill. Reopens to `Live` only by human re-verdict (the killing
-  experiment was flawed, or the world changed).
+- **`Invalidated`** — the rare, real closure: the evidence has turned
+  decisively against the belief (signed Confidence in the kill zone, ≤ −50 —
+  only a series of missed Goal-rung readings can get there), and a human
+  affirmed the kill. The crossing raises an audit prompt; it never
+  auto-flips. Reopens to `Live` only by human re-verdict (the killing
+  evidence was flawed, or the world changed).
 
 **Derived views (compute them; never write them):**
 
 | View | Definition |
 |---|---|
-| Goal-linked | a standing (`Draft`/`Active`) Goal record links the row via `Based on assumption`. An Impact anchor and a queue **view** — never a membership condition (`docs/goals.md`) |
+| Goal-linked | a standing (`Draft`/`Active`) Goal record links the row via `Based on assumption`. An Impact anchor (propagation node) and a queue **view** — never a membership condition (`docs/goals.md`) |
 | Testing | `Live` + a linked experiment with `Result: Running` |
-| Test-next queue | `Live` + no running experiment + Risk ≥ the working threshold, sorted by Risk descending. **Goal-agnostic** |
-| Proven set | `Live` + strongest concluded experiment `Validated` — "what we currently know"; provisional, always |
-| Moot | Impact = 0 via a standing decision's `Resolves assumption` action |
+| Test-next surface | **experiments, not assumptions** (there is no Risk-ranked belief queue): candidate/designed experiments on `Live` rows, ranked by `Feasibility` × the linked assumption's Risk, **goal-agnostic**. The exact ruleset, tie-breaks (most-negative signed Confidence first), and top-N cut are the experiment-prioritisation layer's |
+| Kill lane | `Live` + Confidence ≤ −50 — surfaced by audit for a human kill verdict, out of the test-next surface |
+| Proven set | `Live` + strongest (largest `\|Strength\|`) concluded reading `Validated` — "what we currently know"; provisional, always |
+| Moot | seed Impact = 0 via a standing decision's `Resolves assumption` action; Derived Impact pins to 0 |
 
-- **Evidence never flips Status.** A validating verdict moves Confidence →
-  Risk → queue position, nothing else. Only a human-affirmed kill flips
-  `Live → Invalidated`. An `Inconclusive` experiment contributes zero and
-  leaves the row exactly where it was.
+- **Evidence never flips Status.** A validating verdict raises Confidence
+  (lowering Risk); an invalidating one lowers it (raising Risk — a re-test
+  signal, and past −50 a kill prompt), nothing else. Only a human-affirmed
+  kill flips `Live → Invalidated`. An `Inconclusive` experiment contributes
+  nothing and leaves the row exactly where it was.
 - **Goal linkage never gates the queue.** A fully-grilled, unlinked row is
   `Live` and queue-eligible like any other — the riskiest belief in the
   register is never invisible because no goal happens to sit near it. When a
@@ -139,19 +144,22 @@ Draft ──(grill close-out: the last Gaps tag──▶ Live ──(conclusive 
 |---|---|---|
 | Title | title | The specific question being tested — a question, not a topic. |
 | Assumption | relation | **One** assumption per experiment. A test that would also inform another belief → a second experiment record, never two beliefs blurred into one. |
-| Type | select | The single 8-rung activity-and-strength ladder — `experiment-guardrails.md §2`. 🔴 Stated: Opinion · Pitch-deck reaction · Anecdotal. 🟡 Researched: Desk research · Survey at scale. 🟢 Revealed: Prototype usage · Signed intent · Paying users. |
-| Source quality | select High/Medium/Low | How much *this* source's word is worth (seniority, authority, ICP-fit). Modulates Strength **within** the rung's band, never across. |
+| Type | select | The single 8-rung activity-and-strength ladder — `experiment-guardrails.md §2`. 🧪 Testing: Opinion · Pitch-deck reaction · Anecdotal · Desk research · Survey at scale · Prototype usage. 🎯 Goals: Signed intent · Paying users (two pre-registered bars, magnitude bands). |
+| Source quality | number | How much *this* source's word is worth: `Representativeness × Credibility`, each from {1.0, 0.7, 0.5} — anchors {0.25, 0.35, 0.5, 0.7, 1.0}. Scales the reading's *weight* in the Confidence average, within its rung, never across. Picks + justifications live in the body's grading block (`experiment-guardrails.md §2`). |
 | Feasibility | select High/Medium/Low | How hard the test is to actually run (access, cost, time). Set at design time. |
 | We're right if | text | The pre-registered pass bar. Concrete and countable. |
 | Result | select | `Running` → `Validated` / `Invalidated` / `Inconclusive`. Design sets Running; conclusion is human-gated. |
-| Strength | derived | **Never hand-write.** Rung band × source-quality modifier, **gated to a conclusive Result** — 0 while Running or Inconclusive. The assumption's Confidence reads this. |
+| Strength | derived | **Never hand-write.** The signed reading value `s`: rung anchor (× magnitude band on 🎯 Goal rungs), positive on `Validated`, negative on `Invalidated`, **gated to a conclusive Result** — 0 while Running or Inconclusive. The assumption's Confidence reads this. |
 | Date | date | Start date on creation; outcome date at conclusion. |
 | Owner | person | Who runs the test. Optional at design time. |
 | Interviewee | relation/text (optional) | Who was spoken to — useful for spotting repeat conversations. Set when known. |
 
 Record **body** holds the protocol: the per-method template
 (`experiment-guardrails.md §3`), `We're wrong if` (the kill bar), and results
-notes.
+notes — including, once concluded, the **grading block** (rung, magnitude
+anchor on Goal rungs, Representativeness × Credibility picks with one-line
+justifications, and the source the independence dedupe keys off —
+`experiment-guardrails.md §2`).
 
 ## Field map — Decisions & Terminology
 

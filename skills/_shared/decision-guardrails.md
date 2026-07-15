@@ -120,8 +120,11 @@ assumptions.**
   this?"* A decision can cite an untested, low-confidence, or even
   since-invalidated assumption as its reason **without that citation implying
   anything about the assumption's truth.** Setting this relation never
-  touches the linked assumption. Citing an assumption never implies anything
-  about its truth, and never resolves it.
+  touches the linked assumption's truth: never its Confidence, never its
+  Status. What it does move is **stakes** — a standing decision enters the
+  Impact propagation as a flat dependent node, lifting the belief's Derived
+  Impact at the next weekly recompute (`assumption-guardrails.md §3`); the
+  push dies with the decision. Citing an assumption never resolves it.
 - **`Resolves assumption`** — a separate, deliberate human judgment that this
   decision **settles** the open question the assumption was testing, without
   needing an experiment (e.g. the business chose to proceed regardless of
@@ -225,10 +228,10 @@ commitment` kind**; a legacy row still carrying one is migrated to a Goal
 record, not re-typed.
 
 Goal-linkage is not a Decision concept either. An assumption's Impact anchor
-and its per-goal queue view are read from the **Goal record's** `Based on
-assumption` links (`docs/goals.md`, `assumption-guardrails.md §3`) — no
-`Kind` of Decision row confers them, and linkage is a lens, never a
-queue-membership condition.
+(the goal's node in the Derived Impact propagation) and its per-goal queue
+view are read from the **Goal record's** `Based on assumption` links
+(`docs/goals.md`, `assumption-guardrails.md §3`) — no `Kind` of Decision row
+confers them, and linkage is a lens, never a queue-membership condition.
 
 ## 10. Guardrail summary (reject a Capture/Sweep write that fails any)
 

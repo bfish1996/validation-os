@@ -16,10 +16,12 @@ edited retroactively. What can change is how much that fact is worth today.
 
 An assumption is a bet about the world, and the world moves. So:
 
-- **There is no "fully validated."** Confidence tops out at 99
+- **There is no "fully validated."** Confidence asymptotes at ±99
   (`evidence-ladder.md`) by design: even paying customers are evidence
   about the users you tested, in the market as it was. No pile of evidence
-  turns a bet about the future into a certainty.
+  turns a bet about the future into a certainty — and a single reading,
+  however strong, lands only near half its rung; the ceiling takes a
+  series.
 - **A claim that *is* certain isn't an assumption.** Settled facts are
   ✅ ground truths — they live outside the register and terminate 5-Whys
   branches (`assumption-guardrails.md §2`). Graduating out of the register
@@ -27,7 +29,7 @@ An assumption is a bet about the world, and the world moves. So:
   bet (the regulation passed; the contract is signed), not that testing
   finished.
 - **Assumption-level "validated" therefore always carries a rung.** Say
-  "validated at Signed intent, Confidence 60", never "validated" as if it
+  "validated at Signed intent, Confidence +42", never "validated" as if it
   were done. It is prose shorthand, nothing more.
 
 ## The asymmetry: you can invalidate, you can never validate
@@ -35,7 +37,12 @@ An assumption is a bet about the world, and the world moves. So:
 Evidence can conclusively refute a general claim; it can only ever
 *support* one. The register makes that asymmetry structural: `Invalidated`
 exists as a stored state — the rare, human-affirmed kill — and `Validated`
-does not exist as a state at all. An assumption's `Status` is only ever
+does not exist as a state at all. Evidence-against is a **score
+decrement**: it lowers signed Confidence, which raises Risk — a re-test
+signal, never a closure. The kill route runs through the score's negative
+zone: Confidence sinking to −50 (which only a series of missed Goal-rung
+readings can do) raises an audit prompt for a **human** kill verdict —
+nothing flips automatically. An assumption's `Status` is only ever
 `Draft` (still being built, `Gaps` non-empty), `Live` (ranked by Risk,
 forever), or `Invalidated` (`registry-schema.md §Status & derived views`).
 Validation is nothing but Confidence rising and Risk falling; "what we
@@ -49,8 +56,12 @@ There is no global Confidence threshold above which an assumption counts
 as validated. The stopping rule is **Risk**:
 
 ```
-Risk = Impact × (1 − Confidence/100)
+Risk = Impact × (1 − max(0, Confidence)/100)
 ```
+
+(The clamp is deliberate: a belief the evidence is *against* already sits
+at full Risk for its Impact — the negative zone routes to the kill review,
+not to more testing budget.)
 
 You stop testing a belief when its Risk falls below the working threshold
 — not when Confidence crosses a magic number. Because Impact varies, the
@@ -68,11 +79,11 @@ forever, and re-testing is **event-driven** — there is no decay formula.
 The row re-enters the queue when its Risk crosses back above the
 threshold, which happens when:
 
-- **New evidence lands against it** — a concluded experiment at an equal
-  or stronger rung contradicts the standing support.
+- **New evidence lands against it** — a concluded negative reading lowers
+  the signed Confidence, raising Risk in the same recompute.
 - **Impact rises** — a new goal or decision leans on it, or new dependents
-  accrue in the graph, so the old Confidence no longer covers the new
-  stakes.
+  accrue in the graph, lifting its Derived Impact at the next propagation
+  run, so the old Confidence no longer covers the new stakes.
 - **A resolving decision is reversed** — its Impact is restored and
   mootness dies with the decision (`decision-guardrails.md §8`).
 - **The evidence goes stale** — audit flags that the market, users, or

@@ -23,37 +23,44 @@ points:
 
 - **One activity-and-strength field: `Type`.** There is no separate "method"
   field. `Type` is the single 8-rung select that names *both* what you do
-  and how strong the evidence is, colour-grouped into three tiers (weakest →
-  strongest):
-  - 🔴 **Stated** (weak): `Opinion` · `Pitch-deck reaction` · `Anecdotal`
-  - 🟡 **Researched** (medium): `Desk research` · `Survey at scale`
-  - 🟢 **Revealed** (strong): `Prototype usage` (unpaid) · `Signed intent`
-    (concept / fake-door / LOI) · `Paying users`
-  Per-rung definitions and weights live in §2 — read them before picking a
-  rung.
-- **`Source quality`** (High / Medium / Low) = how much *this* source's word
-  is worth — seniority, decision authority, company size, ICP-fit (§2, "the
-  who"). It **modulates `Strength` within the rung's band**, never across a
-  rung boundary.
-- **`Strength`** (derived, read-only) = the rung band × source-quality
-  modifier, **gated to a conclusive `Result`**: it holds the value when the
-  record is `Validated`/`Invalidated`, and **0** while `Running` or
-  `Inconclusive`. The assumption's **`Confidence`** (`max` over linked
-  experiments) reads `Strength` directly, so Confidence only ever reflects
-  **proven** evidence. Never set it by hand.
+  and how strong the evidence is, grouped into **two categories** by how the
+  evidence is produced (`docs/evidence-ladder.md`):
+  - 🧪 **Testing** (recruited-sample instruments; plateau ±30): `Opinion` ·
+    `Pitch-deck reaction` · `Anecdotal` · `Desk research` · `Survey at
+    scale` · `Prototype usage` (unpaid)
+  - 🎯 **Goals** (open-world targets, two pre-registered bars, closed by the
+    market): `Signed intent` (concept / fake-door / LOI) · `Paying users`
+  Per-rung values live in §2 — read them before picking a rung.
+- **`Source quality`** (number) = how much *this* source's word is worth:
+  `Representativeness × Credibility`, each picked from `{1.0, 0.7, 0.5}`
+  (§2, "the who"). It scales the reading's **weight** in the Confidence
+  average, within its rung — never its value across rungs.
+- **`Strength`** (derived, read-only) = the reading's **signed value `s`**:
+  the rung anchor (× magnitude band on Goal rungs), positive when
+  `Validated`, negative when `Invalidated`, **gated to a conclusive
+  `Result`** — **0** while `Running` or `Inconclusive`. The assumption's
+  **`Confidence`** (signed weighted average over linked readings) reads it
+  directly, so Confidence only ever reflects **concluded** evidence. Never
+  set it by hand.
 - **`Feasibility`** = how hard the experiment is to actually run — `High`
   (quick / cheap / access ready) · `Medium` · `Low` (slow / costly /
   access-blocked). Set at design time; it's the second axis of `Type` choice
-  (§2).
+  (§2) and, with the linked assumption's Risk, what ranks the test-next
+  surface (`registry-schema.md §Status & derived views`).
 
-**Confidence has three axes, not one.** The assumption's `Confidence` is a
-function of **rung** (what *kind* of signal — `Type`) × **source quality**
-(*who* gave it) × **corroboration** (*how many* independent proven records
-agree — an assumption-side count, `assumption-guardrails.md §3`), all gated
-to a conclusive `Result`. **Ladder integrity, always:** neither source
-quality nor corroboration can lift a record past a stronger rung's floor —
-weak evidence never outranks strong, no matter how senior the source or how
-much of it piles up.
+**One reading ↔ one belief, linkage binary.** The unit entering the
+Confidence average is one concluded reading against exactly one assumption —
+bar, rung, `Result`, and `Strength` are all per-belief. A rich artifact (an
+interview) that bears on N beliefs fans into up to N readings sharing a
+source; there is no partial-credit "directness" discount — a weak proxy for
+the claim reads as a lower rung or `Inconclusive`, never a discounted strong
+reading. Evidence on a sibling or dependency never flows across the graph
+into this belief's Confidence.
+
+**Ladder integrity, always:** the Confidence average is bounded by its
+strongest reading's value, and source quality only scales weight — so weak
+evidence never outranks strong, no matter how senior the source or how much
+of it piles up.
 
 ---
 
@@ -89,94 +96,159 @@ Choosing the experiment is choosing **one `Type` rung** — and it's a
 trade-off of **two axes**, not one:
 
 **Axis A — evidence strength (climb as high as the belief needs).** The 8
-`Type` rungs, weakest → strongest, with indicative strength percentages. The
-gaps *between* rungs reflect **commitment** — what the signal cost the
-person to give:
+`Type` rungs, weakest → strongest, in **two categories**
+(`docs/evidence-ladder.md`). The gaps *between* rungs reflect **commitment**
+— what the signal cost the person to give:
 
-- 🔴 **Stated** (weak — what people *say*):
-  - `Opinion` (~5%) — what someone says about a **hypothetical**: "I think
+- 🧪 **Testing** (instruments run on a sample you can enumerate; plateau ±30):
+  - `Opinion` (±3) — what someone says about a **hypothetical**: "I think
     users would like this". Includes self / team / advisor. Pure stated
     preference, no behaviour behind it.
-  - `Pitch-deck reaction` (~10%) — a verbal "yes, I'd…" to a pitch or mock.
+  - `Pitch-deck reaction` (±6) — a verbal "yes, I'd…" to a pitch or mock.
     Still stated, but to a concrete stimulus.
-  - `Anecdotal` (~15%) — a report of something that **actually happened**: a
+  - `Anecdotal` (±10) — a report of something that **actually happened**: a
     specific past behaviour or an unprompted real complaint ("three users
     told us they've been doing this manually in a spreadsheet"). It
     references real behaviour, so it's a weak, small-N *shadow* of revealed
     preference — **that's why it sits above `Opinion`**, not below.
-- 🟡 **Researched** (medium — what's *already knowable or asked at scale*):
-  - `Desk research` (~25%) — regulation, published data, competitor /
+  - `Desk research` (±15) — regulation, published data, competitor /
     prior-internal facts. *Always ask first: "is this already knowable in
     hours, no participants?"*
-  - `Survey at scale` (~40%) — a structured questionnaire at larger N. This
+  - `Survey at scale` (±25) — a structured questionnaire at larger N. This
     is **where volume lives**: 100 people who validate a belief = **one
     `Survey at scale` record**, not 100 `Anecdotal` records.
-- 🟢 **Revealed** (strong — what people *do* / commit), lowest → highest:
-  - `Signed intent` (~60%) — concept / fake-door / LOI / deposit: a
-    **costly** commitment made *before* the thing is built.
-  - `Prototype usage` (~80%) — real use of a throwaway / Wizard-of-Oz build.
-    Genuine behaviour, but no money changed hands, and it's
-    novelty-biased and drawn from non-representative early users.
-  - `Paying users` (~99%) — real money, A/B, signed contract. Strongest,
-    priciest.
+  - `Prototype usage` (±30) — real use of a throwaway / Wizard-of-Oz build.
+    Genuine behaviour, but it measures **comprehension / usability /
+    engagement**, not demand — and it's novelty-biased, drawn from
+    non-representative early users. Demand needs a Goal rung.
+- 🎯 **Goals** (open-world targets with a deadline, two pre-registered bars,
+  closed by the market — `docs/goals.md`):
+  - `Signed intent` (±55 / 68 / 80) — concept / fake-door / LOI / deposit: a
+    **costly** commitment made *before* the thing is built. A fake-door test
+    is a *short* goal.
+  - `Paying users` (±75 / 88 / 99) — real money, A/B, signed contract.
+    Strongest, priciest.
 
-Revealed > Stated: a costly action beats a "would you?". Push for the
-highest rung the test can honestly reach.
+Revealed > stated: a costly action beats a "would you?" — within Testing
+(`Prototype usage` > `Survey at scale`) and across the **commitment cliff**
+(any Goal rung beats every Testing rung). Push for the highest rung the test
+can honestly reach.
 
 **Axis B — feasibility (can we actually run it?).** Set `Feasibility` for
 how hard the test is to execute given **access to the right population,
 cost, and time**. The strongest rung is worthless if you can't run it this
-quarter.
+quarter. The categories embody the trade: Testing is quick and feasible,
+Goals are slow and expensive with a high ceiling — test cheaply until a
+belief has earned a Goal-tier bet.
 
 **Pick the rung that maximises strength × feasibility.** Recommend the
 highest strength rung that is still genuinely runnable, in one line
 ("`Signed intent` ideal but no buyer access yet → `Desk research` first,
-`High` feasibility"). If the ideal rung is `Low` feasibility, drop a tier
+`High` feasibility"). If the ideal rung is `Low` feasibility, drop down
 and **say why** — don't design a test that won't get run. A high-Risk belief
 often needs several records: a feasible weak test now, a stronger one when
 access opens.
 
-**The two modifiers (within a rung — never across).** Rung choice is the
-coarse dial; two finer dials position a record *inside* its rung's band and
-feed `Confidence`. Neither can lift a record past the next rung's floor.
+**Reading value `s` (canonical — every backend implements exactly this).**
+`Strength` holds the signed reading value, gated to a conclusive `Result`
+(0 while `Running` or `Inconclusive`):
 
-- **Source quality — *the who*.** Seniority, decision authority, company
-  size, ICP-fit of the source. A CFO at a target-size organisation is
-  `High`; a junior at an off-ICP company is `Low`. A `High`-quality
-  `Opinion` is still just an opinion — it never reaches `Anecdotal`'s band,
-  let alone Revealed.
-- **Corroboration — *how much*** (bounded bump;
-  `assumption-guardrails.md §3`). When ≥K independent proven records agree
-  at the top proven rung, the assumption's `Confidence` earns a small,
-  capped uplift — replication is worth something, but it's capped below the
-  next rung's floor, so 100 corroborating weak records still can't beat one
-  stronger record.
+- `s = rung anchor × sign(Result)` — `Validated` positive, `Invalidated`
+  negative. Symmetric: a −95 is as strong, and as hard to earn, as a +95.
+- Rung anchors: `Opinion` 3 · `Pitch-deck reaction` 6 · `Anecdotal` 10 ·
+  `Desk research` 15 · `Survey at scale` 25 · `Prototype usage` 30 ·
+  `Signed intent` 55/68/80 · `Paying users` 75/88/99.
+- **Magnitude (Low / Typical / High) exists only on the Goal rungs** —
+  picked from what actually materialised (commitment size × count ×
+  activity depth) on absolute anchors, **never %-of-target**. Target 1,
+  land 1 → Low; target 10, land 4 → the magnitude of 4 real customers. No
+  ambition term: sandbagging can't inflate, stretch is never punished.
+- **Goal sign comes from the two bars:** hit/beat `We're right if` → full
+  positive; at/below `We're wrong if` → negative; between → interpolate
+  (degree of achievement). **No pre-registered floor → no negative** — an
+  uncontrolled absence of sales is `Inconclusive`, never a kill reading
+  (the base-rate guard is structural). Churn is a *retention*-belief
+  negative at `Prototype usage` grade, never a clean `Paying users` kill.
 
-**Strength computation (canonical — every backend implements exactly this).**
-`Strength = rung base × source-quality modifier`, rounded, capped at 99, and
-gated to a conclusive `Result` (0 while `Running` or `Inconclusive`):
+**Source quality — *the who* (a weight, within a rung, never across).** Two
+judged sub-scores, each picked from `{1.0, 0.7, 0.5}`; the field stores the
+product:
 
-- Rung base = the indicative percentage above: `Opinion` 5 ·
-  `Pitch-deck reaction` 10 · `Anecdotal` 15 · `Desk research` 25 ·
-  `Survey at scale` 40 · `Signed intent` 60 · `Prototype usage` 80 ·
-  `Paying users` 99.
-- Source-quality modifier: `High` ×1.15 · `Medium` ×1.0 · `Low` ×0.85.
+- **Representativeness** — does this source generalise to our ICP? (folds
+  ICP-fit + company size): `1.0` dead-centre ICP profile & size · `0.7`
+  adjacent segment/size · `0.5` off-ICP but on-topic. An unknown or
+  uncertain ICP caps the achievable pick — you can't claim `1.0` without a
+  committed Lens/ICP to point at.
+- **Credibility** — how much to trust their word? (folds seniority +
+  decision authority + independence/bias): `1.0` senior decision-maker,
+  independent · `0.7` relevant role, minor distance or mild bias · `0.5`
+  junior / no authority / conflicted.
 
-The modifiers are sized so no rung's `High` reaches the next rung's floor —
-ladder integrity holds by construction. Backends with native formulas (Notion)
-encode this in the `Strength` formula; formula-less backends have the skill
-compute it on every touching write.
+`source_quality = Representativeness × Credibility ∈ [0.25, 1.0]` — anchors
+`{0.25, 0.35, 0.5, 0.7, 1.0}` (0.49 rounds to 0.5). The floor is 0.25, not
+0: a weak but on-topic source still nudges Confidence; genuinely irrelevant
+evidence is zeroed upstream by the **Lens** gate, never here. **The trust
+test** decides whether a future factor belongs in source quality: it belongs
+**iff it changes how much you trust the source's word, holding the signal
+and the segment fixed.** (End-user activity and amount paid are the
+*signal* — they set magnitude; market/sub-vertical size is *segment value* —
+it rides the Impact seed. Neither is source quality.)
 
-**Volume lives in rung choice, not in a record count.** More records do
-**not** stack: `Confidence` is a `max`, so 100 `Anecdotal` records roll up
-exactly like one. If you have volume, it should change the *rung* — a
-systematic ask of 100 people is a `Survey at scale` (medium), not 100
-anecdotes (weak).
+**Confidence (canonical aggregation).** The assumption's Confidence is the
+signed, strength-weighted average of its concluded readings, shrunk toward 0
+by a neutral prior:
 
-**Sample size (N) gates the `Result`; it is not a `Strength` multiplier.** A
-test whose N is too small (or wrong-Lens) to mean anything comes back
-`Inconclusive` — contributing **0** proven strength — rather than a shrunken
-positive. State the minimum qualified N in the pass bar (`survey.md`,
+```
+Confidence = (w₀·0 + Σ wᵢ·sᵢ) / (w₀ + Σ wᵢ)     w₀ = 100,  wᵢ = |sᵢ| × source_qualityᵢ
+```
+
+- **Signed, −100…100; no evidence = 0.** Stored signed; Risk clamps the
+  negative zone to 0 (`assumption-guardrails.md §3`).
+- **Only concluded `Validated` / `Invalidated` readings enter** — `Running`
+  and `Inconclusive` are excluded from numerator *and* denominator; a belief
+  with only inconclusive tests sits at the prior because it has no mass.
+- **Independence dedupes by source:** readings sharing a `Source` against
+  the same belief count once — only the strongest (largest `|s|`; most
+  recent on ties) enters the sum. N readings cut from one interview are one
+  unit of corroborating mass, not N.
+- **No corroboration bump** — replication is just more mass reducing
+  shrinkage; there is no separate uplift mechanic.
+- **Volume reaches toward the rung ceiling, never past it** (the average is
+  bounded by the strongest reading), and a lone top-grade reading lands near
+  half its rung (one max hit ≈ +49; one max miss ≈ −49) — approaching ±99
+  takes a series (Cromwell's rule, both directions).
+- **`w₀ = 100`** is the one empirical knob (hard floor ≥ 98, so no single
+  reading can reach the kill zone). **Kill zone: Confidence ≤ −50** raises
+  the audit flag for a human-affirmed kill (`register-audit.md`) — never an
+  automatic `Invalidated`. Testing negatives asymptote at −30: **only a
+  series of missed Goals can kill a belief.**
+
+Backends never encode this in a native formula — a connector-agnostic script
+(and the evidence skills, on every touching write) recomputes `Strength`,
+`Confidence`, and `Risk` from the stored fields.
+
+**The grading block (write-up convention — what makes a reading auditable).**
+Every concluded reading documents its grading in the record body (under
+`Results notes`), so the numbers are reproducible from the record alone:
+
+- the **rung** and, on Goal rungs, the **magnitude pick** with the absolute
+  anchor it keys to ("2 paying pilots at £500/mo → Paying, Low");
+- the **Representativeness** and **Credibility** picks, one-line
+  justification each;
+- the **source** (person/artifact) the independence dedupe keys off.
+
+A reading missing its grading block can't be audited into the average —
+audit flags it.
+
+**Volume lives in rung choice, not in a record count.** Same-source records
+don't stack (the dedupe), and weak records can't out-average strong ones. If
+you have volume, it should change the *rung* — a systematic ask of 100
+people is a `Survey at scale`, not 100 anecdotes.
+
+**Sample size (N) gates the `Result`; it is not a magnitude lever.** A test
+whose N is too small (or wrong-Lens) to mean anything comes back
+`Inconclusive` — contributing **nothing** — rather than a shrunken positive.
+State the minimum qualified N in the pass bar (`survey.md`,
 `interview-guide.md`); below it, the result is noise, not weak validation.
 
 > `Type` options are a real select — propose a genuinely new rung only as a
@@ -188,9 +260,9 @@ positive. State the minimum qualified N in the pass bar (`survey.md`,
 ## 3. Per-method playbooks (what goes in the experiment body)
 
 The protocol lives in the record **body**. Pick the template by the chosen
-`Type` rung's tier: 🟡 `Desk research` → desk template; 🔴
-`Opinion`/`Anecdotal` + 🟡 `Survey at scale` → interview template; 🔴
-`Pitch-deck reaction` + 🟢 Revealed → pitch/prototype template.
+`Type` rung: `Desk research` → desk template; `Opinion`/`Anecdotal` +
+`Survey at scale` → interview template; `Pitch-deck reaction` +
+`Prototype usage` + the 🎯 Goal rungs → pitch/prototype template.
 
 The checklists below are the **minimum bar**; the full prep skeletons live
 in `/experiment-design`'s `references/` — `interview-guide.md` (guide
@@ -198,7 +270,7 @@ skeleton + how-to-ask rules, also the question discipline `survey.md`
 inherits), `prototype-brief.md` (prototype-needed rule table §3b + brief
 template), `fake-door.md` (stimulus / costly ask / instrumentation spec).
 
-### 🔵 Desk research (🟡 `Desk research` rung)
+### 🔵 Desk research (`Desk research` rung)
 
 - **Sub-questions.** Break the belief into the specific questions sources
   must answer (each maps to part of `We're right if`).
@@ -208,7 +280,7 @@ template), `fake-door.md` (stimulus / costly ask / instrumentation spec).
 - **Decision rule.** What pattern across sources = pass vs. fail. Capture
   conflicting evidence, don't cherry-pick.
 
-### 🟣 User interview (🔴 `Opinion` / `Anecdotal`, 🟡 `Survey at scale` rungs)
+### 🟣 User interview (`Opinion` / `Anecdotal` / `Survey at scale` rungs)
 
 - **Recruit / screener.** Who qualifies (must match the `Lens`), how many
   (small-N, but name the target), how you'll reach them.
@@ -218,7 +290,11 @@ template), `fake-door.md` (stimulus / costly ask / instrumentation spec).
 - **Signal.** What answer pattern clears `We're right if` (e.g. "≥N of M
   unprompted describe the problem we're betting on").
 
-### 🟠 Pitch / Prototype (🔴 `Pitch-deck reaction`, 🟢 Revealed rungs)
+### 🟠 Pitch / Prototype (`Pitch-deck reaction`, `Prototype usage`, 🎯 Goal rungs)
+
+A 🎯 Goal-rung design (`Signed intent` / `Paying users`) is a **goal**: both
+bars pre-registered, deadline set, instrument named in advance
+(`docs/goals.md`) — a fake-door is a short goal.
 
 - **Stimulus.** The thing shown (mock, landing page, one-pager, demo) —
   realistic enough that the ask is real.

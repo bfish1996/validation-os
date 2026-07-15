@@ -13,10 +13,10 @@ description: >-
   triangulation, recency, provenance for every claim, an adversarial refute
   pass, base-rate≠validation). Each qualifying hit is triaged against the
   assumption's Metric for truth + Lens and written as a conclusive
-  Experiment record — gated per record. Confidence rolls up automatically;
-  the assumption's Status moves only on a human-affirmed kill (Invalidated
-  at a rung at or above the strongest validating rung, gated Live to
-  Invalidated). Use for "find evidence for this
+  Experiment record — gated per record. Confidence recomputes automatically
+  (signed: evidence-against lowers it); the assumption's Status moves only
+  on a human-affirmed kill (Confidence in the kill zone, ≤ −50, gated Live
+  to Invalidated). Use for "find evidence for this
   assumption", "what do we already know about X", "desk research this
   assumption", "what does the market/regulation/competition say about X",
   "size the market for Y", "are there historic interviews suggesting demand
@@ -142,10 +142,10 @@ the read is auditable. Search the disconfirming case too.
 - Report what changed: for each record, say whether it was a **new**
   conclusive record or an existing `Running` guide you **closed out**
   (`Running` → verdict), with links, and Confidence before → after.
-- A validating or inconclusive verdict changes nothing on the assumption
-  beyond Confidence. A **kill** — `Invalidated` at a rung ≥ the
-  assumption's strongest validating rung — triggers the gated `Live` →
-  `Invalidated` flip: propose it, the human affirms; never auto-apply.
+- Any verdict changes nothing on the assumption beyond Confidence — an
+  invalidating one lowers it (re-test signal). If the recompute lands the
+  Confidence at or below **−50**, the row is in the kill lane: propose the
+  gated `Live` → `Invalidated` flip, the human affirms; never auto-apply.
 - "Swept, no qualifying hit" is a complete, honest outcome — say so plainly
   rather than logging a weak record to look productive.
 - **Goal tripwire** (`../../docs/goals.md §Out`): if a conclusive verdict
@@ -171,10 +171,9 @@ other half. A `Dropped` goal emits nothing; there is nothing to decompose.
 
 - Never grill the record here (split / 5 Whys / score / vocabulary) —
   that's `/assumptions`. This skill only finds and logs existing evidence.
-- Never flip the assumption `Status` on a validating or inconclusive
-  verdict — Confidence-only. The one exception is the kill: `Invalidated`
-  at a rung ≥ the strongest validating rung flips `Live` → `Invalidated`,
-  gated and human-affirmed.
+- Never flip the assumption `Status` on a verdict — Confidence-only. The
+  one exception is the kill: Confidence at or below −50 flips `Live` →
+  `Invalidated`, gated and human-affirmed.
 - Never log a *not-yet-run* test as existing evidence — designing a future
   test is `/experiment-design`. But **do** close out a `Running` guide once
   its interview has actually happened (flip it in place, don't duplicate

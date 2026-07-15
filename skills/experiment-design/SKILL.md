@@ -2,8 +2,8 @@
 name: experiment-design
 description: >-
   Phased, gated designer for the Experiments register — turns an untested
-  assumption into the right, falsifiable test. Picks an assumption off the
-  test-next queue (Risk-sorted) or one you name, recommends the target
+  assumption into the right, falsifiable test. Picks the riskiest testable
+  assumption (Risk-ranked) or one you name, recommends the target
   evidence rung (Type) weighed against Feasibility upfront, pre-registers a
   concrete "We're right if" pass bar + a "We're wrong if" kill bar, drafts
   the rung-specific protocol into the record body, then creates + links the
@@ -52,7 +52,7 @@ work the register through the active connector (`connectors/SPEC.md`).
 
 - **Experiments** — work here. One assumption per experiment; evidence is
   captured on this record (`Type` + `Result`).
-- **Assumptions** — the test-next queue source and the relation target. Read
+- **Assumptions** — the candidate source and the relation target. Read
   Description, body *Metric for truth*, Lens, Risk, Status, Confidence.
   **Read-only** — creating the `Running` experiment is what moves the row
   into the derived Testing view; no assumption field is written here.
@@ -63,17 +63,22 @@ work the register through the active connector (`connectors/SPEC.md`).
 Two axes, kept separate: the experiment's **`Result`** = the verdict axis;
 assumption **`Confidence`** = how strongly known (derived from experiments).
 This skill sets the experiment `Result` = Running, nothing further — the
-assumption's `Status` never moves here. (A record not in the derived
-test-next queue isn't ready yet — still `Draft` needs grill close-out from
-`/assumptions`, an already-running experiment means it's mid-test — send it
-there first, or note the exception.)
+assumption's `Status` never moves here. (A record that isn't a testable
+candidate isn't ready yet — still `Draft` needs grill close-out from
+`/assumptions`, an already-running experiment means it's mid-test, and
+Confidence ≤ −50 is the kill lane, not the test lane — send it there first,
+or note the exception.)
 
 ## Seed (pick or detect)
 
-- **Test-next queue (default).** Compute the derived queue — `Status =
-  Live` (`Gaps` empty by invariant), no linked `Running` experiment, Risk ≥
-  the working threshold — sort by Risk descending, recommend the top record.
-  Goal-agnostic: every `Live` row is eligible, linked or not.
+- **Riskiest testable belief (default).** Compute the candidates — `Status
+  = Live` (`Gaps` empty by invariant), no linked `Running` experiment, not
+  in the kill lane, Risk ≥ the working threshold — sort by Risk descending,
+  recommend the top record. Goal-agnostic: every `Live` row is eligible,
+  linked or not. (The standing **test-next surface** ranks designed
+  experiments by Feasibility × linked-assumption Risk — `registry-schema.md
+  §Status & derived views`; this seed step is upstream of it, choosing
+  which belief gets a test designed at all.)
 - **Named assumption.** User names one — load that record.
 - **Already-chosen approach.** User says "interview to test X" — skip the
   recommendation in step 2, but still validate it maps to the right `Type`
@@ -99,17 +104,18 @@ before opening the next; the write is gated at the end.
    unfalsifiable belief.
 2. **Choose the `Type` rung + `Feasibility` — upfront**
    (`experiment-guardrails.md §2`). Weigh two axes: (a) **strength** — the
-   8-rung ladder, 🔴 Stated (`Opinion` ~5 → `Pitch-deck reaction` ~10 →
-   `Anecdotal` ~15) → 🟡 Researched (`Desk research` ~25 → `Survey at scale`
-   ~40) → 🟢 Revealed (`Signed intent` ~60 → `Prototype usage` ~80 →
-   `Paying users` ~99); and (b) **feasibility** — High/Medium/Low for
-   access, cost, time. **Recommend the highest-strength rung that's still
-   genuinely runnable**, one-line why ("`Signed intent` ideal but no buyer
-   access yet → `Desk research`, `High` feasibility, this week"). `Type` is
-   the Confidence the assumption *will* gain if the test clears its bar —
-   choosing it is choosing how much the test is worth — so don't settle low
-   without a feasibility reason. A high-Risk belief can take several
-   records: a feasible weak test now, a stronger one when access opens.
+   8-rung ladder, 🧪 Testing (`Opinion` ±3 → `Pitch-deck reaction` ±6 →
+   `Anecdotal` ±10 → `Desk research` ±15 → `Survey at scale` ±25 →
+   `Prototype usage` ±30) → 🎯 Goals (`Signed intent` ±55/68/80 →
+   `Paying users` ±75/88/99 — two pre-registered bars, closed by the
+   market); and (b) **feasibility** — High/Medium/Low for access, cost,
+   time. **Recommend the highest-strength rung that's still genuinely
+   runnable**, one-line why ("`Signed intent` ideal but no buyer access yet
+   → `Desk research`, `High` feasibility, this week"). `Type` sets the
+   reading's signed value if the test concludes — choosing it is choosing
+   how much the test is worth — so don't settle low without a feasibility
+   reason. A high-Risk belief can take several records: a feasible cheap
+   test now, a stronger one when access opens.
 3. **Carry the bar forward** (`§4`). **`We're right if`** is the
    assumption's *Metric for truth*, copied forward and made countable if it
    isn't already (`≥N of M`, `≥X%`) — not re-derived. If your pass bar would

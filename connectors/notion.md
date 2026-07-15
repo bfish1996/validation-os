@@ -24,17 +24,18 @@ Create three databases (or run `/setup-validation-os`, which walks you through
 it) with properties matching the schema's field maps:
 
 - **Assumptions** — title, Description (text), Lens (select — your list),
-  Theme (multi-select), Impact (number), Risk (**formula**:
-  `Impact * (1 - Confidence / 100)`), Confidence (**rollup**: max of linked
-  Experiments' Strength — see note below on the corroboration bump),
-  Corroboration count (number), Status (select), Owner (person), Gaps
+  Theme (multi-select), Impact (number), Derived Impact (number,
+  script-written), Risk (number, script-written:
+  `Derived Impact * (1 - max(0, Confidence) / 100)`), Confidence (number,
+  script-written: signed weighted average — see note below),
+  Status (select), Owner (person), Gaps
   (multi-select), Depends on / Enables (self-relation), Contradicts
   (self-relation), Experiments (relation → Experiments).
 - **Experiments** — title, Assumption (relation → Assumptions, many-to-many),
-  Type (select: the 8 rungs), Source quality (select), Feasibility (select),
-  We're right if (text), Result (select), Strength (**formula**: rung band ×
-  source-quality modifier, returning 0 unless Result is Validated/Invalidated),
-  Owner (person).
+  Type (select: the 8 rungs), Source quality (number: Rep × Cred),
+  Feasibility (select), We're right if (text), Result (select), Strength
+  (number, script-written: signed rung anchor × sign(Result), 0 unless Result
+  is Validated/Invalidated), Owner (person).
 - **Decisions & Terminology** (one DB) — title, Type (select:
   Terminology/Decision), Status (select), Area (select — your list), Related
   tension (self-relation), Owner, Agreed by (person multi), Unanimity score
@@ -43,10 +44,11 @@ it) with properties matching the schema's field maps:
   (self-relation), Based on assumption (relation → Assumptions), Resolves
   assumption (relation → Assumptions, **a second, separate relation**).
 
-Grab each database's data source ID into the config. If Notion can't express
-the capped corroboration bump in the Confidence rollup, keep the rollup as the
-plain `max` and let the skill state the bumped figure in prose when it matters
-— never hand-edit the rollup.
+Grab each database's data source ID into the config. Notion formulas and
+rollups can't express the signed Confidence average or the Derived Impact DAG
+pass — keep those properties as plain numbers the skills/weekly script write
+(`experiment-guardrails.md §2`, `assumption-guardrails.md §3`); never hand-edit
+them.
 
 ## Operations
 
@@ -61,10 +63,13 @@ plain `max` and let the skill state the bumped figure in prose when it matters
 - **Link** — set relation properties. Two-way self-relations without an
   auto-inverse (Contradicts): set both rows.
 
-## Derived fields — Notion computes them
+## Derived fields — script-computed, plain numbers
 
-Risk, Confidence, and Strength are formulas/rollups here. **Never write to
-them.** If one reads wrong, the fix is the formula or the inputs — flag it.
+Risk, Confidence, Strength, and Derived Impact are plain number properties the
+evidence skills and the weekly recompute script write — Notion formulas can't
+express the signed average, the bar-read sign, or the DAG pass. **Never
+hand-edit them.** If one reads wrong, the fix is the inputs or a recompute —
+flag it.
 
 ## Cautions
 

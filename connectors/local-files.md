@@ -44,9 +44,9 @@ Relations are ID references (`ASM-002`), comma-separated. Example
 - **Lens**: Adopter
 - **Themes**: Distribution
 - **Impact**: 70
+- **Derived Impact**: 70    <!-- derived -->
 - **Confidence**: 25        <!-- derived -->
 - **Risk**: 52.5            <!-- derived -->
-- **Corroboration count**: 0
 - **Status**: Live
 - **Owner**: you
 - **Gaps**: (none)

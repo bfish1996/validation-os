@@ -77,8 +77,10 @@ never invisible because nobody happened to write a goal near it.
 Goal-linkage survives as three softer things:
 
 - **The Impact anchor** — a belief a standing goal rests on is, by
-  construction, one the business is acting on; that anchors the human's
-  Impact score (`assumption-guardrails.md §3`), checked both ways by audit.
+  construction, one the business is acting on. The goal enters the Derived
+  Impact propagation as a flat dependent node (`assumption-guardrails.md
+  §3`): the lift is mechanical, applied by the weekly recompute, and dies
+  with the goal — the hand-scored seed stays purely intrinsic.
 - **A per-goal queue view** — "what does *this* goal rest on?" is a filter
   worth having, not a membership condition.
 - **The anchor-dilution watch** — when most open assumptions link to some
@@ -137,8 +139,9 @@ activates. They could equally have tested first; the OS doesn't care which,
 only that the choice was made with the numbers in view.
 
 **Same week.** Both beliefs clear grill close-out (`Draft → Live`). ASM-15's
-Impact 40 is flagged inconsistent against its goal anchor and re-scored 85 —
-Risk 76, top of the queue. It would have been eligible for the queue with or
+seed stays 40 — intrinsic severity didn't change — but the goal's node in
+the propagation lifts its Derived Impact to 70 at the recompute, and its
+test lands at the top of the surface. It would have been eligible with or
 without the goal; the goal is why it's *first*.
 
 **July 25.** `/find-evidence` closes the ASM-15 interviews: sign-off is 8–12
@@ -148,9 +151,10 @@ signature needs a deal starting now. The team supersedes: "2 signed pilots +
 this in the last week of the quarter; the register said it in July.
 
 **Sept 30.** Attio shows 2 pilots + 4 LOIs. `Closed: Achieved`, decomposed
-per belief: 2 paying customers → ASM-12 gets a strong positive reading,
-Confidence +95. Q4's goal conversation starts from what is now the register's
-riskiest surviving belief.
+per belief: 2 paying customers → ASM-12 takes a `Paying users` positive
+reading (magnitude Low — 2 pilots at £500/mo) and Confidence jumps to ≈ +40;
+the ceiling takes a series, by design. Q4's goal conversation starts from
+what is now the register's riskiest surviving belief.
 
 Nobody typed a KR percentage or maintained a goals dashboard: the CRM kept
 score, the goal was the instrument, the register did the thinking.
@@ -161,11 +165,12 @@ score, the goal was the instrument, the register did the thinking.
   to commit against its own evidence can — on the record, with a date.
 - **Track KR progress.** "1 of 3 signed" lives in the CRM; mirroring it is
   duplicated state that goes stale.
-- **Derive Impact from goals.** Goals churn every cycle; the venture's
-  dependency structure doesn't. Deriving Impact from goal links would hide
-  unlinked existential beliefs and let an ambitious goal manufacture
-  importance for the beliefs under it. Goals *anchor* the hand score; they
-  never compute it.
+- **Let goals dominate Impact.** Goals churn every cycle; the venture's
+  dependency structure doesn't. A standing goal is one flat node in the
+  Derived Impact propagation — bounded, floored at the intrinsic seed, gone
+  when the goal dies. It can lift a belief for review; it can never
+  manufacture importance past the ceiling, touch the hand-scored seed, or
+  hide unlinked existential beliefs (every `Live` row competes regardless).
 - **Auto-conclude anything.** Verdicts — experiment results and goal outcomes
   alike — are human.
 - **Cap or schedule goals.** No limit on standing goals; no imposed cadence.

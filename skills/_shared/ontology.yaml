@@ -45,7 +45,12 @@ vocabularies:
      Unfalsifiable, Hyperbole, Lens check, Duplicate, Contradiction,
      Human review]
   experiment_result: [Running, Validated, Invalidated, Inconclusive]
-  source_quality: [High, Medium, Low]
+  # Source quality is a number, not a select: Representativeness × Credibility,
+  # each picked from {1.0, 0.7, 0.5} (experiment-guardrails.md §2). Legal
+  # stored values are the five product anchors (0.49 rounds to 0.5).
+  source_quality:
+    picks: [1.0, 0.7, 0.5]
+    anchors: [0.25, 0.35, 0.5, 0.7, 1.0]
   feasibility: [High, Medium, Low]
   decision_terminology_status: [Active, Provisional, Superseded, Reversed]
   reversibility: [Two-way door, One-way door]
@@ -56,17 +61,21 @@ vocabularies:
   # not defined here yet (registry-schema.md §The three registers).
   decision_kind: [Direction, Operating]
 
-  # The 8-rung activity-and-strength ladder (experiment-guardrails.md §2).
-  # Order = strength, weakest first. `base` feeds the Strength derivation.
+  # The 8-rung activity-and-strength ladder (experiment-guardrails.md §2,
+  # docs/evidence-ladder.md). Order = strength, weakest first. Two categories:
+  # Testing (recruited-sample instruments, plateau ±30) and Goals (open-world
+  # targets, two pre-registered bars). `anchor` feeds the Strength derivation
+  # (signed by Result); Goal rungs carry magnitude bands (Low/Typical/High,
+  # picked from the absolute outcome, never %-of-target).
   experiment_type:
-    - { value: Opinion,             tier: Stated,     base: 5 }
-    - { value: Pitch-deck reaction, tier: Stated,     base: 10 }
-    - { value: Anecdotal,           tier: Stated,     base: 15 }
-    - { value: Desk research,       tier: Researched, base: 25 }
-    - { value: Survey at scale,     tier: Researched, base: 40 }
-    - { value: Signed intent,       tier: Revealed,   base: 60 }
-    - { value: Prototype usage,     tier: Revealed,   base: 80 }
-    - { value: Paying users,        tier: Revealed,   base: 99 }
+    - { value: Opinion,             category: Testing, anchor: 3 }
+    - { value: Pitch-deck reaction, category: Testing, anchor: 6 }
+    - { value: Anecdotal,           category: Testing, anchor: 10 }
+    - { value: Desk research,       category: Testing, anchor: 15 }
+    - { value: Survey at scale,     category: Testing, anchor: 25 }
+    - { value: Prototype usage,     category: Testing, anchor: 30 }
+    - { value: Signed intent,       category: Goals,   anchor: { Low: 55, Typical: 68, High: 80 } }
+    - { value: Paying users,        category: Goals,   anchor: { Low: 75, Typical: 88, High: 99 } }
 
   # Theme is an example set, not fixed — workspaces may extend it.
   theme:
@@ -81,25 +90,43 @@ vocabularies:
 # recompute these on every touching write.
 # ─────────────────────────────────────────────────────────────────────────────
 derivations:
+  derived_impact:
+    field: assumptions.Derived Impact
+    formula: >-
+      seed + (100 - seed) × S / (S + 100), where seed = the hand-scored
+      Impact and S = Σ Derived Impact of assumptions whose Depends on names
+      this row, + 100 per standing decision (Provisional/Active) or goal
+      (Draft/Active) naming it via Based on assumption. One
+      reverse-topological pass (dependents first); moot rows pin to 0 and
+      contribute nothing. Written by the weekly recompute script — stale
+      between runs by design (assumption-guardrails.md §3).
+    range: [0, 100]
   risk:
     field: assumptions.Risk
-    formula: "Impact * (1 - Confidence / 100)"
+    formula: "Derived Impact * (1 - max(0, Confidence) / 100)"
+    # Full-precision sort, rounded display/storage rounds last.
     range: [0, 100]
   confidence:
     field: assumptions.Confidence
     formula: >-
-      max(Strength of linked Experiments with a conclusive Result) plus a
-      capped corroboration bump held below the next rung's floor
-      (experiment-guardrails.md §2)
-    range: [0, 100]
+      (w0·0 + Σ wi·si) / (w0 + Σ wi), w0 = 100 (hard floor ≥ 98),
+      wi = |si| × Source quality, si = the reading's signed Strength. Only
+      concluded Validated/Invalidated readings enter; readings sharing a
+      source against one belief dedupe to the strongest (largest |si|, most
+      recent on ties). No corroboration bump. ≤ -50 = kill zone: audit
+      prompts a human kill verdict, never an auto-flip
+      (experiment-guardrails.md §2).
+    range: [-100, 100]
   strength:
     field: experiments.Strength
     formula: >-
-      round(rung base × source-quality modifier), capped at 99; 0 unless
-      Result is Validated or Invalidated
-    rung_base: vocabularies.experiment_type[].base
-    source_quality_modifier: { High: 1.15, Medium: 1.0, Low: 0.85 }
-    range: [0, 99]
+      rung anchor (Goal rungs: × magnitude band, Low/Typical/High from the
+      absolute outcome) × sign(Result) — Validated positive, Invalidated
+      negative; 0 unless Result is Validated or Invalidated. Goal-rung sign
+      reads the two pre-registered bars: hit/beat We're right if → positive,
+      at/below We're wrong if → negative, between → interpolated.
+    rung_anchor: vocabularies.experiment_type[].anchor
+    range: [-99, 99]
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Entities — the record types and their properties. `hand_scored: true` marks
@@ -117,9 +144,9 @@ entities:
       - { name: Lens, type: select, options: vocabularies.lens, required: true }
       - { name: Theme, type: multi_select, options: vocabularies.theme }
       - { name: Impact, type: number, range: [0, 100], hand_scored: true }
+      - { name: Derived Impact, type: number, derived: derivations.derived_impact }
       - { name: Risk, type: number, derived: derivations.risk }
       - { name: Confidence, type: number, derived: derivations.confidence }
-      - { name: Corroboration count, type: number }
       - { name: Status, type: select, options: vocabularies.assumption_status,
           machine: status_machines.assumption_status }
       - { name: Owner, type: person }
@@ -131,7 +158,7 @@ entities:
     properties:
       - { name: Title, type: title, required: true }
       - { name: Type, type: select, options: vocabularies.experiment_type, required: true }
-      - { name: Source quality, type: select, options: vocabularies.source_quality }
+      - { name: Source quality, type: number, options: vocabularies.source_quality }
       - { name: Feasibility, type: select, options: vocabularies.feasibility }
       - { name: We're right if, type: text, required: true }
       - { name: Result, type: select, options: vocabularies.experiment_result,
@@ -261,7 +288,7 @@ status_machines:
           trigger: "a new gap lands on the row — audit finding, contradiction, staleness flag" }
       - { from: Live, to: Invalidated,
           by: "evidence skills + human verdict", gate: gated,
-          trigger: "a linked experiment concludes Invalidated at a rung ≥ the row's strongest validating rung, and a human affirms the kill against the pre-registered bar" }
+          trigger: "the evidence turns decisively against the belief — signed Confidence in the kill zone (≤ -50, reachable only by a series of missed Goal-rung readings) — and a human affirms the kill" }
       - { from: Invalidated, to: Live,
           by: "gated reopen session", gate: gated,
           trigger: "the killing experiment is re-judged flawed, or the world has changed enough that the kill no longer holds — human re-verdict" }
@@ -301,20 +328,28 @@ status_machines:
 derived_views:
   goal_linked: >-
     A standing (Draft/Active) Goal record links the row via Based on
-    assumption. An Impact anchor and a per-goal queue view ONLY — never a
-    condition of test_next_queue membership, never a Confidence or Risk input
-    (docs/goals.md).
+    assumption. An Impact anchor (a propagation node in derived_impact) and a
+    per-goal queue view ONLY — never a condition of test-next membership,
+    never a Confidence input (docs/goals.md).
   testing: "Status = Live AND a linked experiment has Result = Running."
-  test_next_queue: >-
-    Status = Live AND no linked Running experiment AND Risk ≥ the working
-    threshold — sorted by Risk descending. Goal-agnostic: every Live row is
-    eligible on its own merits, linked or not (docs/goals.md).
+  test_next_surface: >-
+    Experiments, not assumptions — there is no Risk-ranked belief queue.
+    Candidate/designed experiments on Live rows, ranked by Feasibility × the
+    linked assumption's Risk; tie-break = most-negative linked signed
+    Confidence first. Goal-agnostic: every Live row is eligible on its own
+    merits, linked or not (docs/goals.md). The exact ruleset and top-N cut
+    are the experiment-prioritisation layer's.
+  kill_lane: >-
+    Status = Live AND Confidence ≤ -50 — surfaced for a human kill verdict
+    (integrity rule kill-zone-unreviewed), out of the test-next surface.
   proven_set: >-
-    Status = Live AND the strongest concluded linked experiment is Validated —
-    "what we currently know"; provisional, always (docs/validated.md).
+    Status = Live AND the strongest (largest |Strength|) concluded linked
+    reading is Validated — "what we currently know"; provisional, always
+    (docs/validated.md).
   moot: >-
-    Impact = 0 via a standing decision's Resolves assumption action — drops
-    out of every ranking; reversal restores the prior Impact.
+    Seed Impact = 0 via a standing decision's Resolves assumption action —
+    Derived Impact pins to 0, drops out of every ranking; reversal restores
+    the prior Impact.
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Integrity rules — derivable defects no single-record grill can see. Each is
@@ -349,15 +384,47 @@ integrity_rules:
   - id: derived-field-stale
     severity: error
     surfaced_by: ["/assumptions audit"]
-    check: Stored Risk/Confidence/Strength differs from recomputing its derivation (formula-less backends).
+    check: >-
+      Stored Confidence/Strength/Risk differs from recomputing its derivation
+      (formula-less backends). Derived Impact is exempt between weekly
+      recompute runs — it is stale by design; flag only a value no run could
+      have produced (below seed, or > 100).
   - id: strength-not-gated
     severity: error
     surfaced_by: ["/assumptions audit"]
     check: Strength ≠ 0 while Result is Running or Inconclusive.
-  - id: corroboration-count-mismatch
+  - id: reading-ungraded
     severity: warn
     surfaced_by: ["/assumptions audit"]
-    check: Corroboration count ≠ the number of independent proven experiments agreeing at the assumption's top proven rung.
+    check: >-
+      A concluded Validated/Invalidated reading whose body lacks the grading
+      block — rung + (Goal rungs) magnitude anchor + Representativeness ×
+      Credibility picks with one-line justifications + the source the
+      independence dedupe keys off (experiment-guardrails.md §2). An ungraded
+      reading's weight can't be audited.
+  - id: goal-rung-no-floor
+    severity: error
+    surfaced_by: ["/assumptions audit"]
+    check: >-
+      A Goal-rung (Signed intent / Paying users) reading concluded
+      Invalidated with no pre-registered We're wrong if bar in its body — no
+      floor, no negative: an uncontrolled absence of the outcome is
+      Inconclusive (experiment-guardrails.md §2).
+  - id: kill-zone-unreviewed
+    severity: error
+    surfaced_by: ["/assumptions audit"]
+    check: >-
+      A Live assumption whose Confidence ≤ -50 with no logged human kill
+      review — the kill prompt fired and nobody answered it. Surface for a
+      human-affirmed verdict; never auto-flip (docs/validated.md).
+  - id: stale-representativeness
+    severity: warn
+    surfaced_by: ["/assumptions audit"]
+    check: >-
+      The ICP/Lens definition changed after a reading's Representativeness
+      was graded — the stored Source quality reads a retired ICP and the
+      recompute silently uses it. Flag every reading graded under the old
+      definition for re-grade (experiment-guardrails.md §2).
 
   # Graph health (assumptions)
   - id: dependency-cycle
@@ -385,7 +452,7 @@ integrity_rules:
   - id: unrolled-verdict
     severity: warn
     surfaced_by: ["/assumptions audit"]
-    check: A linked experiment concluded Invalidated at a rung ≥ the row's strongest validating rung while the assumption still sits Live — the kill was never rolled up; flag for a gated close-out (human verdict).
+    check: A concluded Invalidated reading was never folded into the row's stored Confidence (the score predates the verdict) — the miss was never rolled up; recompute, and if the result lands in the kill zone, flag for a gated close-out (human verdict).
   - id: moot-without-resolver
     severity: error
     surfaced_by: ["/assumptions audit", "/decisions audit"]
@@ -403,7 +470,7 @@ integrity_rules:
   - id: contradicts-both-validated
     severity: error
     surfaced_by: ["/assumptions audit"]
-    check: Both ends of a Contradicts edge carry a validating strongest concluded experiment — the tension the edge marks was never real, or one verdict is wrong.
+    check: Both ends of a Contradicts edge sit at solidly positive Confidence (strongest concluded reading Validated on each) — the tension the edge marks was never real, or one verdict is wrong.
   - id: stale-rationale
     severity: warn                # error when the decision is a One-way door
     surfaced_by: ["/decisions audit"]
@@ -450,7 +517,13 @@ integrity_rules:
   - id: stale-goal-anchor
     severity: warn
     surfaced_by: ["/assumptions audit", "/goals audit"]
-    check: An assumption whose Impact scoring justification cites a goal that is no longer standing (Draft/Active) — the anchor is stale; re-justify or re-score (assumption-guardrails.md §3).
+    check: >-
+      An assumption whose hand-scored seed justification leans on a goal or
+      decision ("scored high because the Q3 goal rests on it") — the seed
+      must be purely intrinsic; goal/decision weight is the propagation's
+      job and dies with the link (assumption-guardrails.md §3). Re-justify
+      the seed on severity alone. (Derived Impact needs no staleness check:
+      a dead link's push vanishes at the next recompute.)
   - id: anchor-dilution
     severity: warn                # lens health only — linkage no longer gates anything
     surfaced_by: ["/goals audit"]
