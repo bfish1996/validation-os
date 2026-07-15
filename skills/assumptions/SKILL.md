@@ -90,7 +90,8 @@ norm.
 ## Guardrail summary
 
 See `../_shared/assumption-guardrails.md §6`. Reject a candidate that fails
-any: Atomic · Falsifiable · Plain (no hyperbole) · 5 Whys + therefore-test ·
+any: Atomic · Falsifiable · Plain (no hyperbole, no unneeded verbosity) ·
+5 Whys + therefore-test ·
 Scored with justification (Impact anchored to goals *and* dependent count) ·
 Not a duplicate (or merged, with the redundant dimension named) · Distinct
 from its nearest neighbours, with the discriminating dimension named in the

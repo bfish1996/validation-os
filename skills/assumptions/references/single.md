@@ -137,24 +137,33 @@ Rules come from `../../_shared/assumption-guardrails.md`; this file is the
      means the two are one assumption → merge.
    - Write the connective chain + therefore-test into the body (substance
      lives in the referenced records).
-9. **Language & glossary** (runs last, once the wording is stable) → grill
-   the *vocabulary*, not just the claim, so the register speaks one
-   language.
+9. **Language, glossary & concision** (runs last, once the wording is
+   stable) → grill the *vocabulary* and the *phrasing*, not just the claim,
+   so the register speaks one language and says it in as few plain words
+   as possible.
    - Run the terminology check (`../../_shared/ubiquitous-language.md`) over
      the **final** title + Description + *Metric for truth*, audience =
      Internal.
+   - Run the concision check (`../../_shared/assumption-guardrails.md §1`)
+     over the same text: one core clause + one reason clause, no stacked
+     subordinate clauses, no jargon outside the glossary, no redundant
+     hedging. Apply the rewrite test per clause.
    - Walk findings one at a time (recommend + one-line why):
-     - **must-fix / should-fix** → reword the assumption to the canonical
-       term. Reflect it into the field; re-read to confirm the claim still
-       says the same thing.
+     - **must-fix / should-fix (terminology)** → reword the assumption to
+       the canonical term. Reflect it into the field; re-read to confirm
+       the claim still says the same thing.
      - **note (unknown term)** → the concept has no glossary record. Grill
        the user to a plain internal **definition**, then add it to the
        glossary following `/decisions`' Terminology Build procedure:
        `Status: Provisional` (suggest, don't hard-enforce — the vocab owner
        promotes to Active later). Gated write.
+     - **verbose/overwrought** → propose a plain rewrite that keeps every
+       load-bearing word and drops the rest; confirm it still says the same
+       claim before reflecting it into the field.
    - This phase has no `Gaps` tag of its own; it always runs at the tail of
-     a grill. Clears when the check is clean (zero outstanding must-fix) and
-     any unknown term is either added or consciously left.
+     a grill. Clears when both checks are clean (zero outstanding
+     must-fix/verbose findings) and any unknown term is either added or
+     consciously left.
 
 ## Log existing (historic) evidence → Experiments (optional, retrospective)
 
