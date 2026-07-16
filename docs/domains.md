@@ -19,6 +19,12 @@ detail, not an assumption.** Register the belief once; run the variants
 as experiments linked to it. This is what keeps a high-volume function
 like outreach from drowning the register.
 
+The same altitude rule draws the register's *lower* boundary: a belief
+below it — one whose falsity wouldn't change what you build, who you sell
+to, or how you reach them — belongs to the build pipeline, not here. Where
+the OS hands off to its neighbours, and what crosses each seam, is
+`seams.md`.
+
 ## Sales & outreach
 
 The function that tempts people to think the OS is product-only — and the
