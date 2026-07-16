@@ -62,11 +62,9 @@ export function RelationEditor({
   };
 
   return (
-    <section className="border-t border-neutral-200 p-5 dark:border-neutral-800">
-      <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-neutral-400">
-        Link a record
-      </h3>
-      <div className="space-y-3">
+    <section className="vos-relation">
+      <h3 className="vos-sectitle">Link a record</h3>
+      <div className="vos-field-stack">
         <select
           aria-label="Relation"
           value={relation}
@@ -100,15 +98,14 @@ export function RelationEditor({
           </select>
         ) : null}
 
-        {error ? (
-          <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
-        ) : null}
+        {error ? <p className="vos-error">{error}</p> : null}
 
         <button
           type="button"
           onClick={onLink}
           disabled={!active || !targetId || linking}
-          className="rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+          className="vos-btn vos-btn-sm"
+          style={{ alignSelf: "flex-start" }}
         >
           {linking ? "Linking…" : "Link"}
         </button>

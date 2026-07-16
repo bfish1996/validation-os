@@ -3,6 +3,7 @@ import type { AnyRecord, Collection } from "@validation-os/core";
 import { DrawerShell } from "./drawer-shell.js";
 import { REGISTER_LABEL } from "./labels.js";
 import { derivedLabel, fieldLabel, formatValue, primaryLabel } from "./columns.js";
+import { derivedTone, formatSigned, heroToneClass } from "./primitives.js";
 import {
   buildPatch,
   draftFrom,
@@ -35,15 +36,26 @@ export interface RecordDrawerProps {
 /** Provider-owned/meta fields are shown in the footer, not as content rows. */
 const META_FIELDS = new Set(["id", "version", "createdAt", "updatedAt", "derived"]);
 
+/** Sub-captions under the derived numbers — the formula, in plain language. */
+const DERIVED_SUB: Record<string, string> = {
+  confidence: "Signed average of concluded readings",
+  risk: "Impact × (1 − Confidence⁺/100)",
+  derivedImpact: "Impact re-weighted by links",
+  impact: "Impact re-weighted by links",
+  strength: "of the evidence base",
+  sourceQuality: "of the source",
+};
+
 /**
- * A record drawer that reads and edits, and wires relations. Derived numbers
- * always lead as the hero, explicitly marked computed and never editable (spec
- * user story 4) — a "Why?" affordance on Confidence explains how the number was
- * earned. Editing recomputes those numbers server-side on save (story 11); a
- * concurrent edit surfaces as a gentle, jargon-free prompt with a re-fetch path
- * (story 12). In read mode the drawer also hosts the relation editor (`children`,
- * story 14). The slide-over chrome is shared with the create drawer via
- * `DrawerShell`.
+ * A record drawer that reads and edits, and wires relations. The derived
+ * numbers lead as a visually distinct "computed — not editable" hero (spec
+ * stories 4/10): a bordered box, each number big and mono, Confidence toned by
+ * sign and Risk by threshold, with a "Why?" reveal opening the understanding
+ * layer in the same accent/pill language (story 11). Editing recomputes those
+ * numbers server-side on save; a concurrent edit surfaces as a gentle, jargon-
+ * free prompt with a re-fetch path (story 12). In read mode the drawer hosts
+ * the relation editor (`children`). Chrome is shared via `DrawerShell`; styled
+ * with the package's own token sheet, no host Tailwind.
  */
 export function RecordDrawer({
   register,
@@ -135,83 +147,77 @@ export function RecordDrawer({
       onClose={onClose}
       ariaLabel={`${REGISTER_LABEL[register]} record`}
     >
-      <header className="flex items-start justify-between gap-4 border-b border-neutral-200 p-5 dark:border-neutral-800">
-        <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-neutral-400">
-            {REGISTER_LABEL[register]}
-          </p>
-          <h2 className="mt-1 text-lg font-semibold text-neutral-900 dark:text-neutral-50">
+      <header className="vos-drawer-header">
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p className="vos-drawer-eyebrow">{REGISTER_LABEL[register]}</p>
+          <h2 className="vos-drawer-title">
             {record ? primaryLabel(record) : loading ? "Loading…" : "—"}
           </h2>
         </div>
-        <div className="flex items-center gap-2">
-          {record && !editing ? (
-            <button
-              type="button"
-              onClick={startEditing}
-              className="rounded-md border border-neutral-300 px-2.5 py-1 text-sm font-medium text-neutral-700 hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-900"
-            >
-              Edit
-            </button>
-          ) : null}
+        {record ? (
+          <span className="vos-verbadge">v{formatValue(record.version)}</span>
+        ) : null}
+        {record && !editing ? (
           <button
             type="button"
-            onClick={onClose}
-            className="rounded-md px-2 py-1 text-sm text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-900"
+            onClick={startEditing}
+            className="vos-btn vos-btn-ghost vos-btn-sm"
           >
-            Close
+            Edit
           </button>
-        </div>
+        ) : null}
+        <button
+          type="button"
+          onClick={onClose}
+          className="vos-iconbtn"
+          aria-label="Close"
+        >
+          ✕
+        </button>
       </header>
 
-      <div className="flex-1 p-5">
+      <div className="vos-drawer-body">
         {loading ? (
-          <p className="text-sm text-neutral-500">Loading record…</p>
+          <p className="vos-muted">Loading record…</p>
         ) : error ? (
-          <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+          <p className="vos-error">{error}</p>
         ) : !record ? (
-          <p className="text-sm text-neutral-500">No record.</p>
+          <p className="vos-muted">No record.</p>
         ) : (
           <>
             {derived ? (
-              <section className="mb-6">
-                <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-neutral-400">
-                  Computed · not editable
-                </h3>
-                <dl className="grid grid-cols-3 gap-3">
-                  {Object.entries(derived).map(([key, value]) => (
-                    <div
-                      key={key}
-                      className="rounded-lg border border-neutral-200 bg-neutral-50 p-3 dark:border-neutral-800 dark:bg-neutral-900"
-                    >
-                      <dt className="text-xs text-neutral-500 dark:text-neutral-400">
-                        {derivedLabel(key)}
-                      </dt>
-                      <dd className="mt-1 text-xl font-semibold tabular-nums text-neutral-900 dark:text-neutral-50">
-                        {formatValue(value)}
-                      </dd>
-                    </div>
-                  ))}
-                </dl>
-                {"confidence" in derived ? (
-                  <WhyReveal
-                    open={why}
-                    onToggle={() => setWhy((w) => !w)}
-                    assumption={record}
-                    basePath={basePath}
-                  />
+              <div>
+                <div className="vos-derived">
+                  <div className="vos-derived-head">
+                    Derived
+                    <span className="vos-lock">🔒 computed on write — not editable</span>
+                  </div>
+                  <div className="vos-dgrid">
+                    {Object.entries(derived).map(([key, value]) => (
+                      <DerivedCell
+                        key={key}
+                        field={key}
+                        value={value}
+                        showWhy={key === "confidence"}
+                        whyOpen={why}
+                        onWhy={() => setWhy((w) => !w)}
+                      />
+                    ))}
+                  </div>
+                </div>
+                {"confidence" in derived && why ? (
+                  <div className="vos-why-panel">
+                    <UnderstandingPanel assumption={record} basePath={basePath} />
+                  </div>
                 ) : null}
-              </section>
+              </div>
             ) : null}
 
             {conflict ? (
               <ConflictBanner message={conflict} onReload={reloadLatest} />
             ) : null}
             {saveError ? (
-              <p
-                role="alert"
-                className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300"
-              >
+              <p role="alert" className="vos-banner vos-banner-crit">
                 {saveError}
               </p>
             ) : null}
@@ -223,18 +229,16 @@ export function RecordDrawer({
                 onField={setField}
               />
             ) : (
-              <dl className="divide-y divide-neutral-100 dark:divide-neutral-900">
+              <div className="vos-detail-list">
                 {fields.map((key) => (
-                  <div key={key} className="grid grid-cols-3 gap-3 py-2.5">
-                    <dt className="text-sm text-neutral-500 dark:text-neutral-400">
-                      {fieldLabel(key)}
-                    </dt>
-                    <dd className="col-span-2 text-sm text-neutral-800 dark:text-neutral-200">
+                  <div key={key} className="vos-detail-row">
+                    <span className="vos-detail-k">{fieldLabel(key)}</span>
+                    <span className="vos-detail-v">
                       {formatValue(record[key])}
-                    </dd>
+                    </span>
                   </div>
                 ))}
-              </dl>
+              </div>
             )}
           </>
         )}
@@ -244,12 +248,12 @@ export function RecordDrawer({
       {record && !loading && !error && !editing ? children : null}
 
       {record && editing ? (
-        <footer className="flex items-center justify-end gap-2 border-t border-neutral-200 p-5 dark:border-neutral-800">
+        <footer className="vos-drawer-footer">
           <button
             type="button"
             onClick={cancelEditing}
             disabled={saving}
-            className="rounded-md px-3 py-1.5 text-sm text-neutral-600 hover:bg-neutral-100 disabled:opacity-50 dark:text-neutral-300 dark:hover:bg-neutral-900"
+            className="vos-btn vos-btn-ghost vos-btn-sm"
           >
             Cancel
           </button>
@@ -257,13 +261,13 @@ export function RecordDrawer({
             type="button"
             onClick={onSave}
             disabled={saving}
-            className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-neutral-700 disabled:opacity-50 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-300"
+            className="vos-btn vos-btn-sm"
           >
             {saving ? "Saving…" : "Save"}
           </button>
         </footer>
       ) : record ? (
-        <footer className="border-t border-neutral-200 p-5 text-xs text-neutral-400 dark:border-neutral-800">
+        <footer className="vos-drawer-footer">
           {record.id} · updated {formatValue(record.updatedAt)}
         </footer>
       ) : null}
@@ -271,34 +275,47 @@ export function RecordDrawer({
   );
 }
 
-/** The "Why?" affordance on Confidence — the understanding-layer Reveal
- * (OPS-1276). Confidence is the signed, weighted average of concluded readings;
- * opening this shows which experiments move the number, how close each running
- * experiment is to concluding, and the trajectory over time. The panel mounts
- * only when open, so it loads the evidence lazily and never crowds the hero. */
-function WhyReveal({
-  open,
-  onToggle,
-  assumption,
-  basePath,
+/** One number in the derived hero: label (+ "Why?" on Confidence), the big
+ * mono value toned by meaning, and the formula sub-caption. */
+function DerivedCell({
+  field,
+  value,
+  showWhy,
+  whyOpen,
+  onWhy,
 }: {
-  open: boolean;
-  onToggle: () => void;
-  assumption: AnyRecord;
-  basePath?: string;
+  field: string;
+  value: unknown;
+  showWhy: boolean;
+  whyOpen: boolean;
+  onWhy: () => void;
 }) {
+  const num = typeof value === "number" ? value : null;
+  let toneClass = "";
+  let display = formatValue(value);
+  if (num !== null) {
+    toneClass = heroToneClass(derivedTone(field, num));
+    // Confidence is signed; the other numbers read as whole counts.
+    display = field === "confidence" ? formatSigned(num) : String(Math.round(num));
+  }
   return (
-    <div className="mt-3">
-      <button
-        type="button"
-        onClick={onToggle}
-        aria-expanded={open}
-        className="text-xs font-medium text-neutral-500 underline underline-offset-2 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-100"
-      >
-        Why?
-      </button>
-      {open ? (
-        <UnderstandingPanel assumption={assumption} basePath={basePath} />
+    <div className="vos-dcell">
+      <div className="vos-dcell-k">
+        {derivedLabel(field)}
+        {showWhy ? (
+          <button
+            type="button"
+            className="vos-why"
+            onClick={onWhy}
+            aria-expanded={whyOpen}
+          >
+            Why? {whyOpen ? "▴" : "▾"}
+          </button>
+        ) : null}
+      </div>
+      <div className={`vos-dcell-v ${toneClass}`}>{display}</div>
+      {DERIVED_SUB[field] ? (
+        <div className="vos-dcell-sub">{DERIVED_SUB[field]}</div>
       ) : null}
     </div>
   );
@@ -312,17 +329,12 @@ function ConflictBanner({
   onReload: () => void;
 }) {
   return (
-    <div
-      role="alert"
-      className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-900 dark:bg-amber-950/40"
-    >
-      <p className="text-sm text-amber-800 dark:text-amber-200">{message}</p>
-      <button
-        type="button"
-        onClick={onReload}
-        className="mt-2 rounded-md border border-amber-300 px-2.5 py-1 text-xs font-medium text-amber-900 hover:bg-amber-100 dark:border-amber-800 dark:text-amber-100 dark:hover:bg-amber-900/40"
-      >
-        Reload the latest
+    <div role="alert" className="vos-banner vos-banner-warn">
+      <div className="vos-banner-body">
+        <span>{message}</span>
+      </div>
+      <button type="button" onClick={onReload}>
+        Review the latest
       </button>
     </div>
   );
@@ -338,7 +350,7 @@ function EditFields({
   onField: (key: string, value: string) => void;
 }) {
   return (
-    <div className="space-y-4">
+    <div className="vos-field-stack">
       {editableFields(register).map((field) => (
         <FieldInput
           key={field.key}
@@ -350,9 +362,6 @@ function EditFields({
     </div>
   );
 }
-
-const INPUT_CLASS =
-  "w-full rounded-md border border-neutral-300 bg-white px-2.5 py-1.5 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-50";
 
 function FieldInput({
   field,
@@ -366,27 +375,22 @@ function FieldInput({
   // Field keys can contain spaces ("5 Whys"); slugify for a valid DOM id.
   const id = `field-${field.key.replace(/\s+/g, "-")}`;
   return (
-    <div>
-      <label
-        htmlFor={id}
-        className="mb-1 block text-xs font-medium text-neutral-500 dark:text-neutral-400"
-      >
-        {field.label}
-      </label>
+    <div className="vos-field">
+      <label htmlFor={id}>{field.label}</label>
       {field.kind === "textarea" ? (
         <textarea
           id={id}
           value={String(value ?? "")}
           onChange={(e) => onChange(e.target.value)}
           rows={3}
-          className={INPUT_CLASS}
+          className="vos-input"
         />
       ) : field.kind === "select" ? (
         <select
           id={id}
           value={String(value ?? "")}
           onChange={(e) => onChange(e.target.value)}
-          className={INPUT_CLASS}
+          className="vos-input"
         >
           {field.nullable ? <option value="">—</option> : null}
           {field.options?.map((opt) => (
@@ -401,7 +405,7 @@ function FieldInput({
           type={field.kind === "number" ? "number" : "text"}
           value={String(value ?? "")}
           onChange={(e) => onChange(e.target.value)}
-          className={INPUT_CLASS}
+          className="vos-input"
         />
       )}
     </div>

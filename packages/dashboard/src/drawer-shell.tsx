@@ -6,26 +6,20 @@ export interface DrawerShellProps {
   onClose: () => void;
   /** Accessible name for the dialog. */
   ariaLabel: string;
-  /**
-   * When true the whole panel scrolls (the read drawer); when false the panel
-   * clips and an inner element scrolls, so a sticky footer stays put (the
-   * create form). Defaults to true.
-   */
-  scroll?: boolean;
   children: ReactNode;
 }
 
 /**
  * The right-hand slide-over chrome shared by the record drawer and the create
- * drawer: a click-to-dismiss overlay, an `aria-modal` panel, Escape-to-close,
- * and focus moved into the panel on open so keyboard users aren't stranded
- * behind the modal. Everything inside is the caller's content.
+ * drawer: a click-to-dismiss scrim, an `aria-modal` panel, Escape-to-close, and
+ * focus moved into the panel on open so keyboard users aren't stranded behind
+ * the modal. Everything inside is the caller's content. Styled with the
+ * package's own token sheet — no host Tailwind.
  */
 export function DrawerShell({
   open,
   onClose,
   ariaLabel,
-  scroll = true,
   children,
 }: DrawerShellProps) {
   const panelRef = useRef<HTMLDivElement>(null);
@@ -43,26 +37,24 @@ export function DrawerShell({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end">
-      {/* Overlay — click to dismiss. */}
+    <>
+      {/* Scrim — click to dismiss. */}
       <button
         type="button"
         aria-label="Close"
         onClick={onClose}
-        className="absolute inset-0 bg-neutral-950/30 backdrop-blur-sm"
+        className="vos-scrim"
       />
-      <div
+      <aside
         ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-label={ariaLabel}
         tabIndex={-1}
-        className={`relative flex h-full w-full max-w-md flex-col border-l border-neutral-200 bg-white shadow-xl outline-none dark:border-neutral-800 dark:bg-neutral-950 ${
-          scroll ? "overflow-y-auto" : "overflow-hidden"
-        }`}
+        className="vos-drawer"
       >
         {children}
-      </div>
-    </div>
+      </aside>
+    </>
   );
 }

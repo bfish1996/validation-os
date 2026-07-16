@@ -1,5 +1,12 @@
 import type { AnyRecord, Collection } from "@validation-os/core";
-import { cellValue, columnsFor, formatValue, primaryLabel } from "./columns.js";
+import {
+  cellValue,
+  columnsFor,
+  formatValue,
+  primaryLabel,
+  type ColumnDef,
+} from "./columns.js";
+import { ConfidenceCell, RiskBar, StatusPill } from "./primitives-view.js";
 
 export interface RegisterTableProps {
   register: Collection;
@@ -12,9 +19,11 @@ export interface RegisterTableProps {
 
 /**
  * A list table for one register — a row per record, the register's key fields
- * as columns (assumptions show Impact, Confidence and Risk). Presentational:
- * the caller supplies the rows. Clicking a row opens the read-only drawer.
- * Styled with Tailwind utilities the host app provides.
+ * as columns. Assumptions read their state at a glance: a colored Status pill, a
+ * signed Confidence, and a threshold-toned Risk bar (spec stories 4–6). Which
+ * cells render as pills/bars/sparklines is declared on the column (`kind`), so
+ * the treatment stays testable at the columns seam and this component stays a
+ * dumb renderer. Presentational: the caller supplies the rows.
  */
 export function RegisterTable({
   register,
@@ -25,25 +34,19 @@ export function RegisterTable({
   const columns = columnsFor(register);
 
   if (records.length === 0) {
-    return (
-      <p className="rounded-xl border border-dashed border-neutral-300 p-8 text-center text-sm text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
-        No records yet.
-      </p>
-    );
+    return <p className="vos-empty">No records yet.</p>;
   }
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-neutral-200 dark:border-neutral-800">
-      <table className="w-full border-collapse text-left text-sm">
+    <div className="vos-card vos-table-scroll">
+      <table className="vos-table">
         <thead>
-          <tr className="border-b border-neutral-200 bg-neutral-50 dark:border-neutral-800 dark:bg-neutral-900">
+          <tr>
             {columns.map((c) => (
               <th
                 key={c.key}
                 scope="col"
-                className={`px-4 py-2.5 font-medium text-neutral-500 dark:text-neutral-400 ${
-                  c.align === "right" ? "text-right tabular-nums" : "text-left"
-                }`}
+                className={c.align === "right" ? "vos-r" : undefined}
               >
                 {c.header}
               </th>
@@ -69,39 +72,16 @@ export function RegisterTable({
                 }
                 tabIndex={onRowClick ? 0 : undefined}
                 aria-selected={isSelected}
-                className={`border-b border-neutral-100 last:border-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500 dark:border-neutral-900 ${
-                  onRowClick ? "cursor-pointer" : ""
-                } ${
-                  isSelected
-                    ? "bg-blue-50 dark:bg-blue-950/40"
-                    : "hover:bg-neutral-50 dark:hover:bg-neutral-900/60"
-                }`}
+                className={isSelected ? "is-selected" : undefined}
               >
-                {columns.map((c, i) => {
-                  const raw = cellValue(c, record);
-                  // The headline cell falls back to the record's id so a row is
-                  // never blank; other cells show an em dash when empty.
-                  const text =
-                    i === 0 && (raw === null || raw === undefined || raw === "")
-                      ? primaryLabel(record)
-                      : formatValue(raw);
-                  return (
-                    <td
-                      key={c.key}
-                      className={`px-4 py-2.5 ${
-                        c.align === "right"
-                          ? "text-right tabular-nums text-neutral-700 dark:text-neutral-300"
-                          : "text-left"
-                      } ${
-                        i === 0
-                          ? "font-medium text-neutral-900 dark:text-neutral-100"
-                          : "text-neutral-600 dark:text-neutral-400"
-                      }`}
-                    >
-                      {text}
-                    </td>
-                  );
-                })}
+                {columns.map((c, i) => (
+                  <td
+                    key={c.key}
+                    className={c.align === "right" ? "vos-r" : undefined}
+                  >
+                    <Cell column={c} record={record} headline={i === 0} />
+                  </td>
+                ))}
               </tr>
             );
           })}
@@ -109,4 +89,42 @@ export function RegisterTable({
       </table>
     </div>
   );
+}
+
+/** One cell, rendered per its column's `kind`. The headline column falls back
+ * to the record's id so a row is never blank. */
+function Cell({
+  column,
+  record,
+  headline,
+}: {
+  column: ColumnDef;
+  record: AnyRecord;
+  headline: boolean;
+}) {
+  const raw = cellValue(column, record);
+
+  if (column.kind === "status") {
+    return <StatusPill status={raw == null ? null : String(raw)} />;
+  }
+  if (column.kind === "risk") {
+    return typeof raw === "number" ? (
+      <RiskBar risk={raw} />
+    ) : (
+      <span className="vos-muted">—</span>
+    );
+  }
+  if (column.kind === "confidence") {
+    return typeof raw === "number" ? (
+      <ConfidenceCell confidence={raw} />
+    ) : (
+      <span className="vos-muted">—</span>
+    );
+  }
+
+  const text =
+    headline && (raw === null || raw === undefined || raw === "")
+      ? primaryLabel(record)
+      : formatValue(raw);
+  return <span className={headline ? "vos-ttl" : undefined}>{text}</span>;
 }

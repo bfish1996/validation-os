@@ -13,15 +13,24 @@ const rec = (data: Partial<AnyRecord>): AnyRecord =>
   ({ id: "X-1", version: 0, createdAt: "", updatedAt: "", ...data }) as AnyRecord;
 
 describe("columnsFor", () => {
-  it("surfaces Impact, Confidence and Risk on assumptions", () => {
+  it("surfaces Status, Impact, Confidence and Risk on assumptions", () => {
     const keys = columnsFor("assumptions").map((c) => c.key);
-    expect(keys).toEqual(["Title", "Impact", "confidence", "risk", "Status"]);
+    expect(keys).toEqual(["Title", "Status", "Impact", "confidence", "risk"]);
   });
 
   it("marks the derived columns as computed and right-aligned", () => {
     const risk = columnsFor("assumptions").find((c) => c.key === "risk");
     expect(risk?.derived).toBe(true);
     expect(risk?.align).toBe("right");
+  });
+
+  it("tags the pill/bar/sparkline columns with a render kind", () => {
+    const by = (key: string) =>
+      columnsFor("assumptions").find((c) => c.key === key);
+    expect(by("Status")?.kind).toBe("status");
+    expect(by("confidence")?.kind).toBe("confidence");
+    expect(by("risk")?.kind).toBe("risk");
+    expect(by("Impact")?.kind).toBeUndefined(); // plain text
   });
 
   it("gives people a Name/Role/Segment shape", () => {
@@ -49,7 +58,9 @@ describe("columnsFor", () => {
 
 describe("cellValue", () => {
   it("reads derived numbers through the column accessor", () => {
-    const [, , confidence, risk] = columnsFor("assumptions");
+    const cols = columnsFor("assumptions");
+    const confidence = cols.find((c) => c.key === "confidence");
+    const risk = cols.find((c) => c.key === "risk");
     const record = rec({ Impact: 50, derived: { confidence: 6.92, risk: 46.54 } });
     expect(cellValue(confidence!, record)).toBe(6.92);
     expect(cellValue(risk!, record)).toBe(46.54);

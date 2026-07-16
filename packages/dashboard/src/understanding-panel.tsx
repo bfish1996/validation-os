@@ -2,6 +2,8 @@ import type { ReactNode } from "react";
 import type { AnyRecord } from "@validation-os/core";
 import type { TrajectoryPoint } from "@validation-os/core/derivation";
 import { useList } from "./use-records.js";
+import { Sparkline } from "./primitives-view.js";
+import { confidenceTone, formatSigned } from "./primitives.js";
 import {
   buildUnderstanding,
   type ExperimentView,
@@ -11,11 +13,12 @@ import {
 /**
  * The understanding layer behind the Confidence "Why?" (OPS-1276): which
  * experiments move the number (ranked by push) and how close each running
- * experiment is to concluding, the goal/direct evidence that also moves it,
- * and Confidence over time. It lazy-loads the readings + experiments registers
- * (it only mounts when the Reveal is open), then derives everything through the
- * shared derivation module. The derived box stays the hero; this is the tucked-
- * away detail.
+ * experiment is to concluding, the goal/direct evidence that also moves it, and
+ * Confidence over time. It lazy-loads the readings + experiments registers (it
+ * only mounts when the Reveal is open), then derives everything through the
+ * shared derivation module. Restyled into the drawer's accent/pill language
+ * (spec story 11): signed push tracks and a signed trajectory sparkline, in the
+ * package's own token sheet — no host Tailwind.
  */
 export function UnderstandingPanel({
   assumption,
@@ -57,162 +60,119 @@ export function UnderstandingPanel({
   );
 
   return (
-    <div className="mt-2 space-y-4 rounded-lg bg-neutral-50 p-3 dark:bg-neutral-900">
+    <>
       {u.experiments.length ? (
         <section>
-          <Heading>What's moving Confidence</Heading>
-          <ul className="space-y-2.5">
-            {u.experiments.map((e) => (
-              <li key={e.experimentId}>
-                <PushRow
-                  label={e.title ?? `Experiment ${e.experimentId}`}
-                  contribution={e.contribution}
-                  magnitude={e.magnitude}
-                  max={maxMagnitude}
-                />
-                <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-                  {experimentDetail(e)}
-                </p>
-              </li>
-            ))}
-          </ul>
+          <div className="vos-why-section-title">What's moving Confidence</div>
+          {u.experiments.map((e) => (
+            <PushRow
+              key={e.experimentId}
+              label={e.title ?? `Experiment ${e.experimentId}`}
+              note={experimentDetail(e)}
+              contribution={e.contribution}
+              magnitude={e.magnitude}
+              max={maxMagnitude}
+              done={e.done}
+            />
+          ))}
         </section>
       ) : null}
 
       {u.otherMovers.length ? (
         <section>
-          <Heading>Other evidence</Heading>
-          <ul className="space-y-2.5">
-            {u.otherMovers.map((m) => (
-              <li key={m.key}>
-                <PushRow
-                  label={otherMoverLabel(m)}
-                  contribution={m.contribution}
-                  magnitude={m.magnitude}
-                  max={maxMagnitude}
-                />
-              </li>
-            ))}
-          </ul>
+          <div className="vos-why-section-title">Other evidence</div>
+          {u.otherMovers.map((m) => (
+            <PushRow
+              key={m.key}
+              label={otherMoverLabel(m)}
+              contribution={m.contribution}
+              magnitude={m.magnitude}
+              max={maxMagnitude}
+            />
+          ))}
         </section>
       ) : null}
 
-      <section>
-        <Heading>Confidence over time</Heading>
-        <Trajectory points={u.trajectory} />
-      </section>
-    </div>
+      <Trajectory points={u.trajectory} />
+    </>
   );
 }
 
-/** A labelled row with a signed contribution and a push bar (width ∝ push). */
+/** A labelled row with a signed contribution and a signed push bar (fill left
+ * for negative, right for positive; width ∝ push). */
 function PushRow({
   label,
+  note,
   contribution,
   magnitude,
   max,
+  done,
 }: {
   label: string;
+  note?: string;
   contribution: number;
   magnitude: number;
   max: number;
+  done?: boolean;
 }) {
   const up = contribution >= 0;
   const moving = magnitude > 0;
+  const width = Math.round((magnitude / max) * 50);
+  const fill = up
+    ? { left: "50%", width: `${width}%`, background: "var(--vos-good)" }
+    : { right: "50%", width: `${width}%`, background: "var(--vos-crit)" };
   return (
-    <>
-      <div className="flex items-baseline justify-between gap-2">
-        <span className="truncate text-sm text-neutral-800 dark:text-neutral-200">
-          {label}
+    <div className="vos-mover">
+      <span className="vos-mover-name">{label}</span>
+      {note ? (
+        <span className={`vos-mover-note ${done ? "vos-text-good" : "vos-text-warn"}`}>
+          {note}
         </span>
-        {moving ? (
-          <span
-            className={`shrink-0 text-sm font-semibold tabular-nums ${
-              up
-                ? "text-emerald-600 dark:text-emerald-400"
-                : "text-rose-600 dark:text-rose-400"
-            }`}
-          >
-            {up ? "+" : ""}
-            {contribution}
-          </span>
-        ) : (
-          <span className="shrink-0 text-xs text-neutral-400">no readings yet</span>
-        )}
-      </div>
-      <div className="mt-1 h-1.5 rounded-full bg-neutral-200 dark:bg-neutral-800">
-        <div
-          className={`h-full rounded-full ${
-            up ? "bg-emerald-500" : "bg-rose-500"
-          }`}
-          style={{ width: `${(magnitude / max) * 100}%` }}
-        />
-      </div>
-    </>
+      ) : null}
+      <span className="vos-track vos-signed">
+        {moving ? <i style={fill} /> : null}
+      </span>
+      <span
+        className="vos-mover-val"
+        style={{ color: up ? "var(--vos-good)" : "var(--vos-crit)" }}
+      >
+        {moving ? formatSigned(contribution) : "—"}
+      </span>
+    </div>
   );
 }
 
 function Trajectory({ points }: { points: TrajectoryPoint[] }) {
   if (points.length < 2) {
     return (
-      <p className="text-xs text-neutral-500 dark:text-neutral-400">
+      <p className="vos-hint">
         {points.length === 1
-          ? `One dated reading so far — Confidence ${points[0]!.confidence} on ${points[0]!.date}.`
+          ? `One dated reading so far — Confidence ${formatSigned(points[0]!.confidence)} on ${points[0]!.date}.`
           : "No dated readings yet to chart a trajectory."}
       </p>
     );
   }
-  return <Sparkline points={points} />;
-}
-
-const SPARK_W = 260;
-const SPARK_H = 44;
-
-/** A tiny signed sparkline: confidence −100…100 with a zero baseline. */
-function Sparkline({ points }: { points: TrajectoryPoint[] }) {
-  const n = points.length;
-  const x = (i: number) => (i / (n - 1)) * SPARK_W;
-  const y = (c: number) => ((100 - c) / 200) * SPARK_H; // +100 top, −100 bottom
-  const path = points.map((p, i) => `${x(i)},${y(p.confidence)}`).join(" ");
   const first = points[0]!;
-  const last = points[n - 1]!;
+  const last = points[points.length - 1]!;
+  const values = points.map((p) => p.confidence);
   return (
-    <div>
-      <svg
-        viewBox={`0 0 ${SPARK_W} ${SPARK_H}`}
-        className="w-full"
-        role="img"
-        aria-label={`Confidence moved from ${first.confidence} to ${last.confidence}`}
-      >
-        <line
-          x1={0}
-          x2={SPARK_W}
-          y1={y(0)}
-          y2={y(0)}
-          className="stroke-neutral-300 dark:stroke-neutral-700"
-          strokeWidth={1}
-          strokeDasharray="3 3"
-        />
-        <polyline
-          points={path}
-          fill="none"
-          className="stroke-neutral-700 dark:stroke-neutral-200"
-          strokeWidth={1.5}
-          strokeLinejoin="round"
-          strokeLinecap="round"
-        />
-        <circle
-          cx={x(n - 1)}
-          cy={y(last.confidence)}
-          r={2.5}
-          className="fill-neutral-900 dark:fill-neutral-50"
-        />
-      </svg>
-      <div className="mt-1 flex justify-between text-[11px] text-neutral-400">
+    <div className="vos-traj">
+      <div className="vos-traj-head">
+        <span className="vos-lbl">Confidence over time</span>
+      </div>
+      <Sparkline
+        values={values}
+        width={260}
+        height={44}
+        min={-100}
+        max={100}
+        tone={confidenceTone(last.confidence)}
+        fill
+        ariaLabel={`Confidence moved from ${formatSigned(first.confidence)} to ${formatSigned(last.confidence)}`}
+      />
+      <div className="vos-traj-foot">
         <span>{first.date}</span>
-        <span className="tabular-nums text-neutral-600 dark:text-neutral-300">
-          now {last.confidence}
-        </span>
+        <span className="vos-num">now {formatSigned(last.confidence)}</span>
       </div>
     </div>
   );
@@ -238,18 +198,6 @@ function otherMoverLabel(m: OtherMover): string {
   return m.readingCount === 1 ? "A direct reading" : "Direct readings";
 }
 
-function Heading({ children }: { children: ReactNode }) {
-  return (
-    <h4 className="mb-2 text-xs font-medium uppercase tracking-wide text-neutral-400">
-      {children}
-    </h4>
-  );
-}
-
 function Muted({ children }: { children: ReactNode }) {
-  return (
-    <p className="mt-2 rounded-lg bg-neutral-50 p-3 text-xs leading-relaxed text-neutral-600 dark:bg-neutral-900 dark:text-neutral-300">
-      {children}
-    </p>
-  );
+  return <p className="vos-hint">{children}</p>;
 }
