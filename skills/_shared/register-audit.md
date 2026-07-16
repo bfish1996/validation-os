@@ -2,7 +2,9 @@
 
 The canonical **detection** shape for scanning the whole Assumption Registry
 at once: what's non-compliant, what's duplicated/contradictory, where the
-dependency graph is unhealthy. Cited by `/assumptions`:
+dependency graph is unhealthy, and — with the linked experiments loaded —
+which plans need killing or closing (Phase E). Cited by `/assumptions` and by
+the weekly ritual's experiment sweep (`docs/weekly-ritual.md`):
 
 - **audit mode** runs it **read-only** → a findings report; fixes stay gated
   inline.
@@ -93,15 +95,62 @@ Two of these deserve their mechanics spelled out:
   (or being told of) an ICP/Lens change, flag all such readings for a
   Rep re-grade, dated.
 
+## Phase E — Experiment lifecycle sweeps (needs the plans + their readings)
+
+The plan-side hygiene the assumption phases don't reach — implementing
+`experiment-guardrails.md §0/§6`. Load the Experiments register (plans and
+their readings) alongside the assumptions, as Phase D already does. Every
+finding here **surfaces a candidate**: the kill and the closure verdict stay
+the **human closure gate** (`experiment-guardrails.md §6`) — never an
+autonomous flip, in either mode.
+
+- **Kill prompts (`§6`).** Surface each `Running` plan matching a kill
+  trigger, tagged with which one, for a human kill-or-continue call:
+  - **stale `Running`** — no reading activity logged against the plan (last
+    reading older than the cadence);
+  - **belief mooted or merged** — the plan's underlying assumption went
+    `Derived Impact` 0 (mooted) or was merged away
+    (`assumption-guardrails.md §4`);
+  - **superseded** — a cheaper same-belief design now exists;
+  - **cost ballooned** — the run has outgrown its design-time `Feasibility`.
+
+  A kill closes the plan `Inconclusive` on unmet bars; already-concluded
+  readings survive (`§6`).
+
+- **Closure audits (`§6`).** Two shapes:
+  - a plan whose pre-registered **N is met but that was never closed** — the
+    evidence is in and the human closure act is owed;
+  - a **closed** plan missing a per-belief **bar verdict** or its **rollup
+    report** — closure done sloppily; the report is what the register reads
+    back, so a gap is a finding.
+
+- **Source canonical-link drift (`§0`).** Over every reading's source link:
+  - **two spellings of one artifact** — links that normalize to the same
+    stable resource URL (scheme + host + path/id, with query strings,
+    fragments, and tracking parameters stripped) but are stored as different
+    strings; they must collapse to one exact string, or the independence
+    dedupe (`experiment-guardrails.md §2`) counts one source as two;
+  - **pasted-artifact primaries** — a reading whose primary copy is pasted
+    inline rather than living at a link in the designated **"Raw evidence"**
+    Drive home (`§0`); flag to re-home and reference.
+
+Whether any of these should harden into `ontology.yaml §integrity_rules` is
+the registry-schema rewrite's call, deferred with the physical schema
+(`experiment-guardrails.md §0` pending note); they stay sweep prompts here
+until then.
+
 ## Synthesis
 
 One ranked report: violations by record (with proposed fixes),
-merge/contradiction clusters, graph gaps, and integrity-rule findings (by
-rule `id`).
+merge/contradiction clusters, graph gaps, integrity-rule findings (by rule
+`id`), and experiment-lifecycle candidates (kill / closure / link-drift).
 
 - **Audit mode:** read it back to the user; then walk fixes one at a time,
   gated, through the single-record grill. This harness itself mutates
   nothing.
 - **Loop mode:** feed the clusters/violations straight into the autonomous
   convergence loop, which applies them and logs every mutation to the
-  run-log.
+  run-log. **Phase E is the exception**: a kill or closure verdict is the
+  human closure gate and is never auto-applied — the loop surfaces the
+  candidate and stops. Link-drift normalization is a mechanical fix and may
+  run gated like any other.
