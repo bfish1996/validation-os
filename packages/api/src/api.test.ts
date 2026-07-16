@@ -66,6 +66,22 @@ describe("createApi CRUD", () => {
     expect(body.counts.readings).toBe(0);
   });
 
+  it("recomputes Risk and Derived Impact server-side when Impact is edited", async () => {
+    const provider = seededProvider();
+    const api = createApi({ provider, authenticate: ALLOW });
+    const res = await api.update(
+      new Request("http://test/api", {
+        method: "PATCH",
+        body: JSON.stringify({ version: 0, Impact: 80 }),
+      }),
+      ctx({ register: "assumptions", id: "ASM-1" }),
+    );
+    expect(res.status).toBe(200);
+    // The client's derived values are never trusted — the API recomputes.
+    const asm = await provider.get("assumptions", "ASM-1");
+    expect(asm.derived).toEqual({ confidence: 0, derivedImpact: 80, risk: 80 });
+  });
+
   it("surfaces a stale write as a friendly 409", async () => {
     const api = createApi({ provider: seededProvider(), authenticate: ALLOW });
     const res = await api.update(

@@ -13,17 +13,23 @@ export interface RegisterBrowserProps {
 
 /**
  * The browse-and-open surface for one register: a list table that opens a
- * read-only drawer on row click. Reads over HTTP through the Clerk-gated API
- * read routes (list + get), so the browser never touches Firestore directly.
- * The thin host app renders this with a `register` — that's the whole page.
+ * record drawer on row click. Reads and writes go over HTTP through the
+ * Clerk-gated API, so the browser never touches Firestore directly. After an
+ * edit saves, both the drawer's record and the list re-fetch so the recomputed
+ * derived numbers show everywhere. The thin host app renders this with a
+ * `register` — that's the whole page.
  */
 export function RegisterBrowser({ register, basePath }: RegisterBrowserProps) {
-  const { records, loading, error } = useList(register, basePath);
+  const { records, loading, error, refresh: refreshList } = useList(
+    register,
+    basePath,
+  );
   const [openId, setOpenId] = useState<string | null>(null);
   const {
     record,
     loading: recordLoading,
     error: recordError,
+    refresh: refreshRecord,
   } = useRecord(register, openId, basePath);
 
   return (
@@ -50,6 +56,11 @@ export function RegisterBrowser({ register, basePath }: RegisterBrowserProps) {
         error={recordError}
         open={openId !== null}
         onClose={() => setOpenId(null)}
+        basePath={basePath}
+        onChanged={() => {
+          refreshRecord();
+          refreshList();
+        }}
       />
     </div>
   );
