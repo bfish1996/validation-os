@@ -16,9 +16,9 @@ false, how much of the solution breaks?) and traced to its roots with a
 disciplined **5 Whys** (every "why" answer is either another assumption in
 the register or a ✅ ground truth, so the register self-completes into a
 dependency graph with shared foundations). The hand score is a pure
-intrinsic seed; a weekly script propagates what depends on each belief —
-dependents and standing decisions — into a **Derived Impact**, so
-load-bearing beliefs rank by structure, not by re-scoring
+intrinsic seed; the recompute propagates what depends on each belief —
+dependents and standing decisions — into a **Derived Impact** on every
+touching write, so load-bearing beliefs rank by structure, not by re-scoring
 (`skills/_shared/assumption-guardrails.md §3`).
 
 An assumption that can't be proven wrong isn't an assumption — it's a

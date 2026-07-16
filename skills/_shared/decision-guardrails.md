@@ -123,15 +123,16 @@ assumptions.**
   touches the linked assumption's truth: never its Confidence, never its
   Status. What it does move is **stakes** — a standing decision enters the
   Impact propagation as a flat dependent node, lifting the belief's Derived
-  Impact at the next weekly recompute (`assumption-guardrails.md §3`); the
-  push dies with the decision. Citing an assumption never resolves it.
+  Impact on the next touching write's recompute (`assumption-guardrails.md
+  §3`); the push dies with the decision. Citing an assumption never resolves
+  it.
 - **`Resolves assumption`** — a separate, deliberate human judgment that this
   decision **settles** the open question the assumption was testing, without
   needing an experiment (e.g. the business chose to proceed regardless of
   what turns out to be true, or the decision makes the question moot).
   Setting this relation (gated, human-affirmed) makes the linked assumption
   **moot**: its Impact drops to 0 in the same gated write, with a dated line
-  in its `## Scoring justification` recording the prior score and citing
+  in its `Scoring justification` field recording the prior score and citing
   this decision. `Status` is untouched
   (`registry-schema.md §Status & derived views`).
 

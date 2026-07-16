@@ -44,10 +44,14 @@ vocabularies:
   # Testing, goal linkage, and mootness are derived views (derived_views:),
   # never stored values (docs/validated.md).
   assumption_status: [Draft, Live, Invalidated]
+  # Judgment-type gaps only — the semantic findings the /assumptions audit
+  # raises and a human resolves. The former presence-type gaps (5 Whys, Metric
+  # for truth, Scoring justification) were promoted to first-class fields
+  # (entities.assumptions) whose presence is a structural check, not a gap tag
+  # (OPS-1273 / OPS-1251).
   gaps:
-    [5 Whys, Metric for truth, Scoring justification, Non-atomic,
-     Unfalsifiable, Hyperbole, Lens check, Duplicate, Contradiction,
-     Human review]
+    [Non-atomic, Unfalsifiable, Hyperbole, Lens check, Duplicate,
+     Contradiction, Human review]
 
   # Experiment (the plan) lifecycle + why it closed.
   experiment_status: [Running, Closed]
@@ -123,9 +127,10 @@ derivations:
       this row, + 100 per standing decision (Provisional/Active) naming it
       via Based on assumption. Goals never contribute — a goal never touches
       Impact (docs/goals.md). One reverse-topological pass (dependents
-      first); moot rows pin to 0 and contribute nothing. Written by the
-      weekly recompute script — stale between runs by design
-      (assumption-guardrails.md §3).
+      first); moot rows pin to 0 and contribute nothing. Recomputed on every
+      touching write together with Confidence and Risk (OPS-1251) — no
+      deliberate staleness; the batch pass is only a backstop for writes that
+      bypass the dashboard (assumption-guardrails.md §3).
     range: [0, 100]
   risk:
     field: assumptions.Risk
@@ -156,10 +161,13 @@ derivations:
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Entities — the record types and their properties. `hand_scored: true` marks
-# the only numbers a human types. Body headings are verbatim names; the
-# heading *level* is connector-specific (local files nest them one level under
-# the record heading). `composed_into` marks a sub-structure realized inside
-# its parent record backend-natively, not a register of its own.
+# the only numbers a human types. `presence_gate: Live` marks a long-form field
+# whose *presence* (non-empty) is a structural, blocking check — required to
+# move the record to `Live` (checked by `presence-field-missing`), not a
+# semantic gap. Body headings are verbatim names; the heading *level* is
+# connector-specific (local files nest them one level under the record
+# heading). `composed_into` marks a sub-structure realized inside its parent
+# record backend-natively, not a register of its own.
 # ─────────────────────────────────────────────────────────────────────────────
 entities:
   assumptions:
@@ -177,7 +185,13 @@ entities:
           machine: status_machines.assumption_status }
       - { name: Owner, type: person }
       - { name: Gaps, type: multi_select, options: vocabularies.gaps }
-    body_headings: [5 Whys, Metric for truth, Scoring justification, Provenance & notes]
+      # Presence-gap fields — promoted from body sections to first-class fields
+      # (OPS-1273). Non-empty is required to go Live (presence_gate: Live); may
+      # be empty while Draft. Long-form prose the audit no longer parses.
+      - { name: 5 Whys, type: text, presence_gate: Live }
+      - { name: Metric for truth, type: text, presence_gate: Live }
+      - { name: Scoring justification, type: text, presence_gate: Live }
+    body_headings: [Provenance & notes]
 
   experiments:
     description: One row per designed test PLAN. Carries no rung and no strength — those live on the Readings the run produces. Bundles one-or-more beliefs through composed bar lines.
@@ -395,7 +409,7 @@ relations:
     cardinality: many-to-many
     side_effects: >-
       Lowers the target's Impact to 0 (moot), gated and human-affirmed: a
-      dated line in the assumption's ## Scoring justification records the
+      dated line in the assumption's Scoring justification field records the
       prior Impact and cites this decision; reversal restores it
       (decision-guardrails.md §8). Never touches Status — closure is reserved
       for true invalidation (docs/validated.md).
@@ -411,7 +425,7 @@ status_machines:
     transitions:
       - { from: Draft, to: Live,
           by: "/assumptions (single|seed)", gate: gated,
-          trigger: "grill close-out: the last Gaps tag (including Human review) clears in a gated session" }
+          trigger: "grill close-out: the last Gaps tag (including Human review) clears AND every presence field (5 Whys / Metric for truth / Scoring justification) is non-empty, in a gated session" }
       - { from: Live, to: Draft,
           by: "/assumptions (gated session)", gate: gated,
           trigger: "a new gap lands on the row — audit finding, contradiction, staleness flag" }
@@ -423,7 +437,7 @@ status_machines:
           trigger: "the killing reading is re-judged flawed, or the world has changed enough that the kill no longer holds — human re-verdict" }
     forbidden:
       - There is no Validated status. Validation is only ever Confidence rising and Risk falling — "validated at <rung>" is prose, never a stored state (docs/validated.md).
-      - Draft ⇔ Gaps non-empty, always (integrity rule draft-live-gaps-invariant). Batch/loop modes tag the Human review gap — which keeps or returns the row to Draft — and never flip Status directly.
+      - Draft ⇔ open work, always (integrity rule draft-live-gaps-invariant): a non-empty Gap OR an empty presence field (5 Whys / Metric for truth / Scoring justification). A Live row has empty Gaps AND complete presence. Batch/loop modes tag the Human review gap — which keeps or returns the row to Draft — and never flip Status directly.
       - Logging a Reading never flips Status (Confidence-only). Only a human-affirmed kill does.
       - Testing, queue membership, goal linkage, and mootness are derived views (derived_views:), never stored.
 
@@ -546,11 +560,12 @@ integrity_rules:
     severity: error
     surfaced_by: ["/assumptions audit"]
     check: >-
-      Stored Confidence/Risk (assumptions) or Strength/Source quality
-      (readings) differs from recomputing its derivation (formula-less
-      backends). Derived Impact is exempt between weekly recompute runs — it is
-      stale by design; flag only a value no run could have produced (below
-      seed, or > 100).
+      Stored Confidence/Risk/Derived Impact (assumptions) or Strength/Source
+      quality (readings) differs from recomputing its derivation (formula-less
+      backends). All four assumption derivations are recomputed on every
+      touching write (OPS-1251), so a mismatch is a real defect — no field is
+      stale by design. A Derived Impact below its seed or > 100 is always a
+      finding.
   - id: strength-not-gated
     severity: error
     surfaced_by: ["/assumptions audit"]
@@ -603,7 +618,24 @@ integrity_rules:
   - id: draft-live-gaps-invariant
     severity: error
     surfaced_by: ["/assumptions audit"]
-    check: Status = Draft with empty Gaps, or Status = Live with non-empty Gaps — the Draft ⇔ Gaps invariant is broken; fix in a gated session.
+    check: >-
+      Status = Live with non-empty Gaps, or Status = Draft with BOTH empty Gaps
+      AND every presence field complete — the Draft ⇔ open-work invariant is
+      broken (a Draft must have open work: a Gap or an empty presence field).
+      Since the presence gaps became first-class fields (OPS-1273), open work is
+      "Gaps non-empty OR presence incomplete"; the Live-side presence half is
+      enforced separately by `presence-field-missing`. Fix in a gated session.
+  - id: presence-field-missing
+    severity: error
+    surfaced_by: ["/assumptions audit", validate_backend]
+    check: >-
+      A Live assumption with an empty 5 Whys, Metric for truth, or Scoring
+      justification field — the presence half of the Draft→Live gaps invariant
+      (OPS-1251). Now that these are first-class fields (not body prose) this is
+      a cheap structural check: the write model is to block a Draft→Live
+      promotion while any is empty (write-time enforcement lands with the CRUD
+      write slice, OPS-1256), and the audit confirms it meanwhile. A Draft may
+      legally leave them empty.
   - id: unrolled-verdict
     severity: warn
     surfaced_by: ["/assumptions audit"]

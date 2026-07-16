@@ -23,12 +23,15 @@ registers:
       - {canonical: Lens, backend: lens, type: TEXT, derived: false, options_source: vocabulary.lens}
       - {canonical: Theme, backend: themes, type: JSON, derived: false, options_source: registry-schema}
       - {canonical: Impact, backend: impact, type: INTEGER, derived: false}
-      - {canonical: Derived Impact, backend: derived_impact, type: NUMERIC, derived: true, formula: "seed + (100 - seed) × S/(S + 100) over the dependency DAG, S = dependents' Derived Impact + 100 per standing decision Based on; goals never contribute (assumption-guardrails.md §3); weekly script"}
+      - {canonical: Derived Impact, backend: derived_impact, type: NUMERIC, derived: true, formula: "seed + (100 - seed) × S/(S + 100) over the dependency DAG, S = dependents' Derived Impact + 100 per standing decision Based on; goals never contribute (assumption-guardrails.md §3); recomputed on every touching write (OPS-1251)"}
       - {canonical: Risk, backend: risk, type: NUMERIC, derived: true, formula: "derived_impact * (1 - max(0, confidence) / 100); skill-computed"}
       - {canonical: Confidence, backend: confidence, type: NUMERIC, derived: true, formula: "signed weighted average of concluded readings with neutral prior w0=100, deduped by source (experiment-guardrails.md §2); skill-computed"}
       - {canonical: Status, backend: status, type: TEXT, derived: false, options_source: registry-schema}
       - {canonical: Owner, backend: owner, type: TEXT, derived: false}
       - {canonical: Gaps, backend: gaps, type: JSON, derived: false, options_source: registry-schema}
+      - {canonical: 5 Whys, backend: five_whys, type: TEXT, derived: false, presence_gate: Live}
+      - {canonical: Metric for truth, backend: metric_for_truth, type: TEXT, derived: false, presence_gate: Live}
+      - {canonical: Scoring justification, backend: scoring_justification, type: TEXT, derived: false, presence_gate: Live}
     relations:
       - {canonical: Depends on / Enables, backend: assumption_dependencies, target: assumptions, cardinality: many, self: true}
       - {canonical: Contradicts, backend: assumption_contradictions, target: assumptions, cardinality: many, self: true}
@@ -196,10 +199,13 @@ sql:
 | Status | `status` | TEXT | no |
 | Owner | `owner` | TEXT | no |
 | Gaps | `gaps` | JSON (array of strings) | no |
+| 5 Whys | `five_whys` | TEXT | no (presence required to go Live) |
+| Metric for truth | `metric_for_truth` | TEXT | no (presence required to go Live) |
+| Scoring justification | `scoring_justification` | TEXT | no (presence required to go Live) |
 | Depends on / Enables | junction `assumption_dependencies` | — (see Relations) | no |
 | Contradicts | junction `assumption_contradictions` | — (see Relations) | no |
 | Readings | inverse of `readings.assumption_id` | — (queried, not stored) | no |
-| Body | `body` | TEXT (Markdown) | no |
+| Body | `body` | TEXT (Markdown; `## Provenance & notes`) | no |
 
 There is no stored `Experiments` relation on this table. "Which experiments
 test this belief" is a query over `experiment_bar_lines.assumption_id`
@@ -209,9 +215,9 @@ joined back to `experiments` — never a stored column here.
 
 - `derived_impact` = `seed + (100 - seed) × S/(S + 100)`, where `S` sums
 dependents' Derived Impact plus 100 per standing decision naming the row via
-`Based on assumption`; goals never contribute. Written by the weekly
-recompute script — stale between runs by design (`assumption-guardrails.md
-§3`).
+`Based on assumption`; goals never contribute. Recomputed on every touching
+write alongside `risk`/`confidence` — no deliberate staleness (`OPS-1251`;
+`assumption-guardrails.md §3`).
 - `risk` = `derived_impact * (1 - max(0, confidence) / 100)`.
 - `confidence` is the signed weighted average of concluded, source-deduped
 `readings` against this row, with neutral prior `w0 = 100`

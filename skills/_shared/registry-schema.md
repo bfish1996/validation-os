@@ -50,12 +50,15 @@ file defines the fields those records carry, whatever the backend.
 | Lens | select | The one audience whose decision this drives. **Single** — spans two → it's two assumptions; split. Define your own lens list in setup (example set: Commercial / Consumer / Investor). |
 | Theme | multi-select | Topic; orthogonal to Lens. Example set: Go-to-market, Product, UX, Business model, Technology, Regulatory, Market & competition, Trust & data. |
 | Impact | number 0–100 | **The intrinsic seed — the only hand-scored number.** Pure severity-if-false on anchored bands; never folds in dependents, goals, or decisions — the seed is purely intrinsic. `assumption-guardrails.md §3`. |
-| Derived Impact | derived | **Never hand-write.** = seed + (100 − seed) × S/(S + 100), where S sums the dependents' pull (dependent assumptions' Derived Impact + 100 per standing decision `Based on` node; a goal never contributes). Written by the weekly recompute script; stale between runs by design. `assumption-guardrails.md §3`. |
+| Derived Impact | derived | **Never hand-write.** = seed + (100 − seed) × S/(S + 100), where S sums the dependents' pull (dependent assumptions' Derived Impact + 100 per standing decision `Based on` node; a goal never contributes). **Recomputed on every touching write** alongside Confidence and Risk — no deliberate staleness (`OPS-1251`); the batch pass is only a backstop for writes that bypass the dashboard. `assumption-guardrails.md §3`. |
 | Risk | derived | **Never hand-write.** = Derived Impact × (1 − max(0, Confidence)/100), ranges 0 to Derived Impact. Full-precision sort, rounded display. |
 | Confidence | derived | **Never hand-type.** Signed −100…100, 0 = no evidence: strength-weighted average of concluded linked **Readings** with neutral prior w₀ = 100, deduped by source. ≤ −50 = the kill zone (human review prompt). Full rule: `experiment-guardrails.md §2`. |
 | Status | select | The **lifecycle** and nothing else: `Draft` (Gaps non-empty — record not yet trustworthy) → `Live` (the default forever-state, ranked by Risk) → `Invalidated` (rare, human-gated kill). There is **no `Validated`** — `docs/validated.md`. Testing, queue membership, goal linkage, mootness: derived views, §Status & derived views. |
 | Owner | person | Who voiced / champions the belief and is accountable for testing it. |
-| Gaps | multi-select | What's missing/wrong: `5 Whys`, `Metric for truth`, `Scoring justification`, `Non-atomic`, `Unfalsifiable`, `Hyperbole`, `Lens check`, `Duplicate`, `Contradiction`, `Human review`. **Drives the grill queues.** Empty Gaps = guardrail-complete. `Human review` is the machine-grill sign-off gap: batch modes set it on every row they auto-grill and never clear it; only a gated session with the row's Owner clears it. |
+| Gaps | multi-select | What's missing/wrong — the **judgment-type** findings only: `Non-atomic`, `Unfalsifiable`, `Hyperbole`, `Lens check`, `Duplicate`, `Contradiction`, `Human review`. **Drives the grill queues.** Empty Gaps = semantically guardrail-complete (presence of `5 Whys` / `Metric for truth` / `Scoring justification` is a separate structural check, below). `Human review` is the machine-grill sign-off gap: batch modes set it on every row they auto-grill and never clear it; only a gated session with the row's Owner clears it. |
+| 5 Whys | text | **First-class presence-gap field** (promoted from a body section, `OPS-1273`). The root-cause chain behind the belief. Its **presence** (non-empty) is a structural, blocking check — required to move to `Live`, the presence half of the Draft→Live gaps invariant (`OPS-1251`). May be empty while `Draft`. |
+| Metric for truth | text | **First-class presence-gap field.** The number/observation that would settle the belief. Presence required to go `Live` (structural check). |
+| Scoring justification | text | **First-class presence-gap field.** Why the seed `Impact` was scored as it was, incl. dated moot lines when a decision `Resolves` the belief (`decision-guardrails.md §8`). Presence required to go `Live` (structural check). |
 | Depends on / Enables | self-relation | The dependency graph. Relationships live HERE, not in the body. |
 | Contradicts | self-relation | Links two rows in **tension** (distinct claims that can't both hold). Set it on **both** rows; pairs with the `Contradiction` gap and a provenance note. Not for negation-duplicates — those merge (`assumption-guardrails.md §4`). |
 | Readings | relation | The concluded Readings scored against this belief — **every Confidence input**, whatever its origin (experiment run, goal close, or bare). Inverse of the Reading's `Assumption` link. **Replaces the old `Experiments` relation** — the assumption never links an Experiment directly. |
@@ -76,9 +79,11 @@ membership**: every `Live` row is queue-eligible on its own merits, linked
 or not (§Status & derived views, `docs/goals.md`). A `Draft` goal counts,
 not only `Active`, so a goal's own beliefs can be tested before it commits.
 
-Record **body** holds the long-form the fields can't: `## 5 Whys`,
-`## Metric for truth`, `## Scoring justification`, `## Provenance & notes`
-(per-row caveats, merge/dedup outcomes, source provenance).
+`5 Whys`, `Metric for truth`, and `Scoring justification` are **first-class
+fields** (above), not body sections — so their presence is a cheap structural
+check rather than markdown the audit has to parse (`OPS-1273`). Record
+**body** now holds only `## Provenance & notes` (per-row caveats, merge/dedup
+outcomes, source provenance).
 
 ## Status & derived views — Assumptions (canonical; every skill enforces the same triggers)
 
@@ -96,11 +101,13 @@ Draft ──(grill close-out: the last Gaps tag──▶ Live ──(evidence ne
                                                       flawed, or world changed)◀┘
 ```
 
-- **`Draft`** — `Gaps` non-empty, always (`draft-live-gaps-invariant`). The
-  record isn't trustworthy yet — its Impact and Metric for truth are unproofed
-  — so it is neither ranked nor queued. Seed default. Batch/loop modes tag
-  `Human review`, which keeps (or returns) the row here; only a gated session
-  with the Owner promotes it.
+- **`Draft`** — has open work, always (`draft-live-gaps-invariant`): a
+  non-empty `Gaps`, **and/or** an empty presence field (`5 Whys` /
+  `Metric for truth` / `Scoring justification`). The record isn't trustworthy
+  yet — its Impact and Metric for truth are unproofed — so it is neither
+  ranked nor queued. Seed default. Batch/loop modes tag `Human review`, which
+  keeps (or returns) the row here; only a gated session with the Owner
+  promotes it (`Gaps` cleared **and** all presence fields present).
 - **`Live`** — the default forever-state. Ranked by Risk continuously; never
   "done". Evidence, Impact changes, and goal links move its Risk and its
   derived views — never its Status.
@@ -136,8 +143,8 @@ Draft ──(grill close-out: the last Gaps tag──▶ Live ──(evidence ne
   Risk. Linkage remains a per-goal view only, never an Impact anchor
   (`docs/goals.md`).
 - **Mootness, not closure, for decisions.** A resolving decision lowers the
-  assumption's Impact to 0 in the same gated write, with a dated line in
-  `## Scoring justification` recording the prior score and citing the
+  assumption's Impact to 0 in the same gated write, with a dated line in the
+  `Scoring justification` field recording the prior score and citing the
   decision; reversal restores it (`decision-guardrails.md §8`). There is no
   `Closed by decision` status.
 - **The working Risk threshold** is a prioritisation setting, not a record

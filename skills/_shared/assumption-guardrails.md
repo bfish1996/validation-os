@@ -153,7 +153,7 @@ propagation at all (a goal never touches Impact — see below).
 `Depends on` (it bottoms out a 5-Whys chain, §2) is normal; don't inflate
 the seed because a record has nothing further to trace.
 
-**Derived Impact (derived — the weekly script writes it, Risk reads it).**
+**Derived Impact (derived — recomputed on every touching write, Risk reads it).**
 What depends on a belief is load it carries, and the graph already knows it:
 
 ```
