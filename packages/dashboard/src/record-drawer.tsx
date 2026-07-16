@@ -1,5 +1,6 @@
-import { useEffect, useRef } from "react";
+import { type ReactNode } from "react";
 import type { AnyRecord, Collection } from "@validation-os/core";
+import { DrawerShell } from "./drawer-shell.js";
 import { REGISTER_LABEL } from "./labels.js";
 import { derivedLabel, fieldLabel, formatValue, primaryLabel } from "./columns.js";
 
@@ -13,6 +14,8 @@ export interface RecordDrawerProps {
   /** Whether the drawer is open (a row is selected). */
   open: boolean;
   onClose: () => void;
+  /** Extra content below the fields — e.g. the relation editor. */
+  children?: ReactNode;
 }
 
 /** Provider-owned/meta fields are shown in the footer, not as content rows. */
@@ -31,23 +34,8 @@ export function RecordDrawer({
   error,
   open,
   onClose,
+  children,
 }: RecordDrawerProps) {
-  const closeButtonRef = useRef<HTMLButtonElement>(null);
-
-  // Escape closes the drawer; focus lands inside it when it opens so keyboard
-  // users aren't left behind an aria-modal dialog.
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", onKey);
-    closeButtonRef.current?.focus();
-    return () => document.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
-
-  if (!open) return null;
-
   const derived =
     record && record.derived && typeof record.derived === "object"
       ? (record.derived as Record<string, unknown>)
@@ -58,21 +46,12 @@ export function RecordDrawer({
     : [];
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end">
-      {/* Overlay — click to dismiss. */}
-      <button
-        type="button"
-        aria-label="Close"
-        onClick={onClose}
-        className="absolute inset-0 bg-neutral-950/30 backdrop-blur-sm"
-      />
-      <aside
-        role="dialog"
-        aria-modal="true"
-        aria-label={`${REGISTER_LABEL[register]} record`}
-        className="relative flex h-full w-full max-w-md flex-col overflow-y-auto border-l border-neutral-200 bg-white shadow-xl dark:border-neutral-800 dark:bg-neutral-950"
-      >
-        <header className="flex items-start justify-between gap-4 border-b border-neutral-200 p-5 dark:border-neutral-800">
+    <DrawerShell
+      open={open}
+      onClose={onClose}
+      ariaLabel={`${REGISTER_LABEL[register]} record`}
+    >
+      <header className="flex items-start justify-between gap-4 border-b border-neutral-200 p-5 dark:border-neutral-800">
           <div>
             <p className="text-xs font-medium uppercase tracking-wide text-neutral-400">
               {REGISTER_LABEL[register]}
@@ -82,7 +61,6 @@ export function RecordDrawer({
             </h2>
           </div>
           <button
-            ref={closeButtonRef}
             type="button"
             onClick={onClose}
             className="rounded-md px-2 py-1 text-sm text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-900"
@@ -139,13 +117,14 @@ export function RecordDrawer({
           )}
         </div>
 
+        {record && !loading && !error ? children : null}
+
         {record ? (
           <footer className="border-t border-neutral-200 p-5 text-xs text-neutral-400 dark:border-neutral-800">
             {record.id} · version {String(record.version)} · updated{" "}
             {formatValue(record.updatedAt)}
           </footer>
         ) : null}
-      </aside>
-    </div>
+    </DrawerShell>
   );
 }

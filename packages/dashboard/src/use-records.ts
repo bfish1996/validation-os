@@ -85,11 +85,13 @@ export interface UseRecordResult {
   record: AnyRecord | null;
   loading: boolean;
   error: string | null;
+  refresh: () => void;
 }
 
 /**
  * Fetch one record by id. `id` may be null (nothing open) — the hook stays
  * idle until an id is supplied, so it drives a drawer that opens on row click.
+ * `refresh` re-fetches (e.g. after linking, so the drawer shows the new edge).
  */
 export function useRecord(
   register: Collection,
@@ -99,6 +101,6 @@ export function useRecord(
   const url = id
     ? `${basePath}/${register}/${encodeURIComponent(id)}`
     : null;
-  const { data, loading, error } = useJsonResource<AnyRecord>(url);
-  return { record: data, loading, error };
+  const { data, loading, error, refresh } = useJsonResource<AnyRecord>(url);
+  return { record: data, loading, error, refresh };
 }
