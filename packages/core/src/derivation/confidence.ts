@@ -1,0 +1,76 @@
+/**
+ * Confidence — signed −100…100, 0 = no evidence.
+ *
+ * Formula (`ontology.yaml` → `derivations.confidence`):
+ *   (w0·0 + Σ wi·si) / (w0 + Σ wi),  w0 = 100,
+ *   wi = |si| × Source quality,  si = the reading's signed Strength.
+ *
+ * Only concluded Validated/Invalidated readings enter. Readings sharing a
+ * Source against one belief dedupe to the strongest (largest |si|, most
+ * recent on ties). Goal-rung readings never dedupe (each closed goal is its
+ * own unit). No corroboration bump.
+ */
+import type { MagnitudeBand, Result, Rung } from "../types.js";
+import { round2 } from "./round.js";
+import { isGoalRung } from "./rung.js";
+import { sourceQuality } from "./source-quality.js";
+import { readingStrength } from "./strength.js";
+
+/** The neutral prior weight — a hard floor per the guardrails. */
+export const W0 = 100;
+
+export interface ConfidenceReadingInput {
+  id: string;
+  /** The independence-dedupe key. Null falls back to the reading's own id. */
+  source: string | null;
+  rung: Rung;
+  result: Result;
+  representativeness: number;
+  credibility: number;
+  /** ISO date; used only as the dedupe tie-break (most recent wins). */
+  date?: string | null;
+  magnitudeBand?: MagnitudeBand;
+}
+
+interface Scored {
+  input: ConfidenceReadingInput;
+  strength: number;
+  sq: number;
+}
+
+export function confidence(readings: ConfidenceReadingInput[]): number {
+  const scored: Scored[] = readings
+    .filter((r) => r.result === "Validated" || r.result === "Invalidated")
+    .map((r) => ({
+      input: r,
+      strength: readingStrength(r),
+      sq: sourceQuality(r.representativeness, r.credibility),
+    }))
+    .filter((x) => x.strength !== 0);
+
+  // Dedupe by Source; goal rungs never dedupe.
+  const best = new Map<string, Scored>();
+  for (const x of scored) {
+    if (isGoalRung(x.input.rung)) {
+      best.set(x.input.id, x);
+      continue;
+    }
+    const key = x.input.source || x.input.id;
+    const cur = best.get(key);
+    const better =
+      !cur ||
+      Math.abs(x.strength) > Math.abs(cur.strength) ||
+      (Math.abs(x.strength) === Math.abs(cur.strength) &&
+        (x.input.date || "") > (cur.input.date || ""));
+    if (better) best.set(key, x);
+  }
+
+  let num = 0;
+  let den = W0;
+  for (const x of best.values()) {
+    const w = Math.abs(x.strength) * x.sq;
+    num += w * x.strength;
+    den += w;
+  }
+  return den > 0 ? round2(num / den) : 0;
+}

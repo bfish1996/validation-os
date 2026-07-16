@@ -1,0 +1,5 @@
+# The code monorepo lives under packages/. The markdown registry, skills,
+# docs, and Python validators (this repo's original plugin surface) are not
+# workspace members — they ship via the Claude plugin release, not npm.
+packages:
+  - "packages/*"
