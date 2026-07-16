@@ -53,15 +53,17 @@ transcript.
    truth or an assumption. A load-bearing belief with no record gets proposed
    as a new row (hand off to `/assumptions` single mode), then linked via
    `Based on assumption` and **named in the rationale prose** — a bare
-   relation with no reasoning behind it inflates the target's Impact anchor
-   for free (`goal-link-uncited`, `../../_shared/ontology.yaml`).
+   relation with no reasoning behind it is noise in the per-goal view and
+   unaudited rationale (`goal-link-uncited`, `../../_shared/ontology.yaml`).
 
    **A `Draft` goal's links count.** This is what lets a goal's own beliefs
    be tested before it commits — grill a linked row clean (Gaps empty,
    `Draft → Live`) and it competes in the test-next queue like any other row.
-   It does **not** need the goal to get there: queue membership is
-   goal-agnostic. The goal's contribution is the Impact anchor
-   (`../../_shared/assumption-guardrails.md §3`), which is what moves it up.
+   It does **not** need the goal to get there, and the goal doesn't move it
+   up the ranking either: a goal never touches Impact
+   (`../../_shared/assumption-guardrails.md §3`). What the goal gives is the
+   per-goal view onto which beliefs it rests on (`../../../docs/goals.md
+   §Through`).
 
 5. **Read the bands.** Per linked belief, report its Confidence band and what
    the band means (`../../../docs/goals.md §In`):

@@ -95,11 +95,12 @@ derivations:
     formula: >-
       seed + (100 - seed) × S / (S + 100), where seed = the hand-scored
       Impact and S = Σ Derived Impact of assumptions whose Depends on names
-      this row, + 100 per standing decision (Provisional/Active) or goal
-      (Draft/Active) naming it via Based on assumption. One
-      reverse-topological pass (dependents first); moot rows pin to 0 and
-      contribute nothing. Written by the weekly recompute script — stale
-      between runs by design (assumption-guardrails.md §3).
+      this row, + 100 per standing decision (Provisional/Active) naming it
+      via Based on assumption. Goals never contribute — a goal never touches
+      Impact (docs/goals.md). One reverse-topological pass (dependents
+      first); moot rows pin to 0 and contribute nothing. Written by the
+      weekly recompute script — stale between runs by design
+      (assumption-guardrails.md §3).
     range: [0, 100]
   risk:
     field: assumptions.Risk
@@ -328,9 +329,9 @@ status_machines:
 derived_views:
   goal_linked: >-
     A standing (Draft/Active) Goal record links the row via Based on
-    assumption. An Impact anchor (a propagation node in derived_impact) and a
-    per-goal queue view ONLY — never a condition of test-next membership,
-    never a Confidence input (docs/goals.md).
+    assumption. A per-goal queue view ONLY — never an Impact anchor (a goal
+    is not a node in derived_impact), never a condition of test-next
+    membership, never a Confidence input (docs/goals.md).
   testing: "Status = Live AND a linked experiment has Result = Running."
   test_next_surface: >-
     Experiments, not assumptions — there is no Risk-ranked belief queue.
@@ -460,7 +461,7 @@ integrity_rules:
   - id: goal-link-uncited
     severity: warn
     surfaced_by: ["/goals audit"]
-    check: A Goal record's Based on assumption link whose target assumption is not named anywhere in the goal's rationale prose — a relation with no reasoning behind it. Now an anchor-hygiene check only. With the queue gate retired there is nothing to "unlock" by linking, but an uncited link still inflates the target's Impact anchor without justification (docs/goals.md).
+    check: A Goal record's Based on assumption link whose target assumption is not named anywhere in the goal's rationale prose — a relation with no reasoning behind it. A hygiene check only — goals don't touch Impact and the queue gate is retired, so an uncited link unlocks nothing; it is just noise in the per-goal view and unaudited rationale (docs/goals.md).
 
   # Propagation (cross-register — a verdict in one place invalidates state in another)
   - id: invalidated-dependency
@@ -520,11 +521,12 @@ integrity_rules:
     check: >-
       An assumption whose hand-scored seed justification leans on a goal or
       decision ("scored high because the Q3 goal rests on it") — the seed
-      must be purely intrinsic; goal/decision weight is the propagation's
-      job and dies with the link (assumption-guardrails.md §3). Re-justify
-      the seed on severity alone. (Derived Impact needs no staleness check:
-      a dead link's push vanishes at the next recompute.)
+      must be purely intrinsic. A standing decision's weight is the
+      propagation's job (S) and dies with the link; a goal never touches
+      Impact at all (assumption-guardrails.md §3). Re-justify the seed on
+      severity alone. (Derived Impact needs no staleness check: a dead
+      decision link's push vanishes at the next recompute.)
   - id: anchor-dilution
     severity: warn                # lens health only — linkage no longer gates anything
     surfaced_by: ["/goals audit"]
-    check: Report the count of standing (Draft+Active) Goal records and the share of open assumptions linked to one; when most open assumptions link to some goal, the Impact anchor and the per-goal view have stopped discriminating. Informational — with the queue gate retired this dilutes a lens, not prioritisation (docs/goals.md §Through).
+    check: Report the count of standing (Draft+Active) Goal records and the share of open assumptions linked to one; when most open assumptions link to some goal, the per-goal view has stopped discriminating. Informational — a goal touches neither Impact nor queue membership, so this dilutes a lens, not prioritisation (docs/goals.md §Through).

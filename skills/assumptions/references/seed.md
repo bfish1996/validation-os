@@ -64,8 +64,8 @@ that's **loop mode** — seeding included, no gates.
   top-down, stop when Risk gets low. Empty `Gaps` = guardrail-complete → the
   close-out write flips `Status` `Draft` → `Live`, and the record enters
   the derived **test-next** queue on its own — no goal link required. A
-  goal link anchors Impact and so moves the row *up* the queue, but every
-  `Live` row competes (`../../../docs/goals.md`).
+  goal link never moves the row in the queue — a goal doesn't touch Impact;
+  every `Live` row competes on its own Risk (`../../../docs/goals.md`).
 - **5 Whys timing.** Mandatory **at creation** (do it up front, so no
   backlog forms). For a retrofit backlog, prioritise by `Risk × gap-count`,
   not all at once — the low-Risk tail sits as clean scaffold until it's

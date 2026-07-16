@@ -19,8 +19,8 @@ numbers before ranking, then read the two surfaces the register computes.
 
 1. **Recompute.** Run the weekly Impact-propagation script: it walks the
    dependency graph and writes each row's `Derived Impact` (seed +
-   propagated pull from dependents, standing goals, and decisions);
-   Confidence and Risk recompute off it. Derived Impact is stale between
+   propagated pull from dependents and standing decisions; goals never
+   contribute); Confidence and Risk recompute off it. Derived Impact is stale between
    runs *by design* — re-run on demand after any seed-Impact override or
    graph edit (`../skills/_shared/assumption-guardrails.md` §3).
 2. **Read the test-next surface** — candidate experiments on `Live` rows,
@@ -39,9 +39,9 @@ numbers before ranking, then read the two surfaces the register computes.
 4. **Check against active goals.** For each `Active` Goal record, are the
    beliefs it rests on actually surfacing near the top and being tested? An
    active goal whose beliefs nobody is testing is a quiet gamble
-   (`goals.md`). The goal already anchors their Derived Impact upward, so if
-   their experiments still rank low, re-read the seed anchor — don't skip
-   them.
+   (`goals.md`). A goal doesn't lift its beliefs in the queue — it never
+   touches Impact — so use the per-goal view to pull them up and test them
+   deliberately; don't wait for the global ranking to surface them.
 5. **Commit the week's tests.** For the top 1–3 experiments, run
    `/experiment-design` (or confirm the already-`Running` ones are actually
    moving).
@@ -80,9 +80,9 @@ for a read-only health report: duplicates, contradictions, orphaned records,
 incomplete decisions, stale tensions — plus goal health: overdue
 risk-acceptance revisit dates, gambles taken with no line written down,
 tripwires nobody answered, goals past their deadline still open, outcomes
-closed without being decomposed, Impact scores anchored to goals that are no
-longer standing, and anchor dilution. Fix the top findings through the gated
-flows.
+closed without being decomposed, seed Impact justifications that lean on a
+goal (a goal never anchors Impact), and anchor dilution. Fix the top findings
+through the gated flows.
 
 The point of the cadence: **the register reorders itself.** Evidence *for* a
 belief lifts its Confidence and lowers its Risk; evidence *against* it lowers

@@ -70,26 +70,38 @@ its beliefs there are exactly as untested.
 
 ## Through — a lens, never a gate
 
-**Every `Live` assumption is queue-eligible.** A belief no goal has touched
-competes on its merits like any other; the riskiest thing in the register is
-never invisible because nobody happened to write a goal near it.
+**Every `Live` assumption is queue-eligible, and a goal never moves the
+queue.** A belief no goal has touched competes on its merits like any other;
+the riskiest thing in the register is never invisible because nobody happened
+to write a goal near it — and a belief a goal *does* rest on gets no lift for
+it either.
 
-Goal-linkage survives as three softer things:
+A goal never affects Impact — not the hand-scored seed, not the Derived
+Impact propagation (`assumption-guardrails.md §3`). The business *acting on*
+a belief is already carried by the **decision** behind the pursuit, which
+anchors Impact; a goal is the measuring instrument for that pursuit, not a
+second importance signal, and anchoring both would double-count. Goals churn
+every cycle; the dependency structure doesn't. A goal still reaches Impact,
+but only transitively and correctly: goal → evidence → Confidence on the
+beliefs underneath → informs a **decision** → the decision anchors Impact.
+Never a direct node.
 
-- **The Impact anchor** — a belief a standing goal rests on is, by
-  construction, one the business is acting on. The goal enters the Derived
-  Impact propagation as a flat dependent node (`assumption-guardrails.md
-  §3`): the lift is mechanical, applied by the weekly recompute, and dies
-  with the goal — the hand-scored seed stays purely intrinsic.
+Goal-linkage survives as two softer things:
+
 - **A per-goal queue view** — "what does *this* goal rest on?" is a filter
-  worth having, not a membership condition.
+  worth having, not a membership condition, and the way you find a goal's
+  beliefs when they don't rank high globally.
 - **The anchor-dilution watch** — when most open assumptions link to some
-  goal, the anchor has stopped discriminating. Now a lens-health signal, not
-  a queue problem.
+  goal, the per-goal view has stopped discriminating. A lens-health signal,
+  not a queue problem.
 
-Focus was the old gate's job, and focus is already carried: Impact anchors
-what matters, and the queue orders by Risk. A goal shapes the queue by moving
-Impact, which is exactly as much power as it should have.
+**Accepted tradeoff:** a low-seed belief that matters only because an active
+goal rests on it no longer rises in the global queue; it's found via the
+per-goal view instead. Focus is the view's job, not the queue's — consistent
+with the whole "lens, never a gate" line. Confidence and Impact stay
+orthogonal: a goal closing raises the Confidence of a low-Impact belief it
+decomposes onto (§Out), which simply lowers that belief's already-low Risk —
+correct, no special case.
 
 A goal is one **entry point** into the loop, alongside a call transcript or a
 grilling session: drafting one surfaces assumptions, the queue reorders,
@@ -139,10 +151,12 @@ activates. They could equally have tested first; the OS doesn't care which,
 only that the choice was made with the numbers in view.
 
 **Same week.** Both beliefs clear grill close-out (`Draft → Live`). ASM-15's
-seed stays 40 — intrinsic severity didn't change — but the goal's node in
-the propagation lifts its Derived Impact to 70 at the recompute, and its
-test lands at the top of the surface. It would have been eligible with or
-without the goal; the goal is why it's *first*.
+seed stays 40 — intrinsic severity didn't change, and the goal adds nothing
+to it: a goal never touches Impact. Its own Risk ranks it on the global
+surface like any other belief; the goal doesn't push it up. What the goal
+gives is the **per-goal view** — "what does the Q3 pilot rest on?" — so the
+team can pull ASM-15 up and test it deliberately even when the global queue
+would sit it lower.
 
 **July 25.** `/find-evidence` closes the ASM-15 interviews: sign-off is 8–12
 weeks, not 4 — **Invalidated**. The tripwire surfaces the goal: a September
@@ -165,12 +179,13 @@ score, the goal was the instrument, the register did the thinking.
   to commit against its own evidence can — on the record, with a date.
 - **Track KR progress.** "1 of 3 signed" lives in the CRM; mirroring it is
   duplicated state that goes stale.
-- **Let goals dominate Impact.** Goals churn every cycle; the venture's
-  dependency structure doesn't. A standing goal is one flat node in the
-  Derived Impact propagation — bounded, floored at the intrinsic seed, gone
-  when the goal dies. It can lift a belief for review; it can never
-  manufacture importance past the ceiling, touch the hand-scored seed, or
-  hide unlinked existential beliefs (every `Live` row competes regardless).
+- **Touch Impact at all.** A goal never enters the Derived Impact
+  propagation and never touches the hand-scored seed — not as a flat node,
+  not in any diluted form. Goals churn every cycle; the venture's dependency
+  structure doesn't, so importance is anchored by standing **decisions** and
+  the dependency graph alone. A goal reaches Impact only transitively — goal
+  → evidence → Confidence → a decision that anchors Impact — never as a
+  direct node (`assumption-guardrails.md §3`).
 - **Auto-conclude anything.** Verdicts — experiment results and goal outcomes
   alike — are human.
 - **Cap or schedule goals.** No limit on standing goals; no imposed cadence.

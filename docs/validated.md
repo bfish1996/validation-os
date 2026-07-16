@@ -81,7 +81,7 @@ threshold, which happens when:
 
 - **New evidence lands against it** — a concluded negative reading lowers
   the signed Confidence, raising Risk in the same recompute.
-- **Impact rises** — a new goal or decision leans on it, or new dependents
+- **Impact rises** — a new decision leans on it, or new dependents
   accrue in the graph, lifting its Derived Impact at the next propagation
   run, so the old Confidence no longer covers the new stakes.
 - **A resolving decision is reversed** — its Impact is restored and

@@ -76,8 +76,9 @@ Drafting mines the rationale: ASM-31 *"ops leads at 20–50-person logistics
 firms feel the pain weekly"* and ASM-32 *"cold email reaches them"* — both
 untested. `/goals` reads both back in the gamble band and asks for a dated
 risk-acceptance; the team writes one and commits anyway, which is a
-supported answer. Both beliefs anchor Impact high and rise up the queue —
-they were always eligible for it, goal or no goal.
+supported answer. Both are high-Impact on their own and climb the queue on
+their own Risk — the goal doesn't lift them; they were always eligible,
+goal or no goal.
 
 **Test.** `/experiment-design` turns ASM-32 into a pre-registered
 campaign — *"we're right if ≥5% of 100 sends book a meeting"*, one Survey

@@ -227,11 +227,10 @@ without it are untyped; Audit nudges, never blocks. There is **no `Goal
 commitment` kind**; a legacy row still carrying one is migrated to a Goal
 record, not re-typed.
 
-Goal-linkage is not a Decision concept either. An assumption's Impact anchor
-(the goal's node in the Derived Impact propagation) and its per-goal queue
-view are read from the **Goal record's** `Based on assumption` links
-(`docs/goals.md`, `assumption-guardrails.md §3`) — no `Kind` of Decision row
-confers them, and linkage is a lens, never a queue-membership condition.
+Goal-linkage is not a Decision concept either. An assumption's per-goal queue
+view is read from the **Goal record's** `Based on assumption` links
+(`docs/goals.md`) — no `Kind` of Decision row confers it, a goal never
+anchors Impact, and linkage is a lens, never a queue-membership condition.
 
 ## 10. Guardrail summary (reject a Capture/Sweep write that fails any)
 

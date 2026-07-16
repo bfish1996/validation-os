@@ -127,7 +127,7 @@ flowchart LR
   end
 
   subgraph gate["② Prioritise"]
-    D["/goals<br>the team commits to a goal; its rationale<br>names the beliefs the goal rests on —<br>anchoring their Impact, gating nothing"]:::skill
+    D["/goals<br>the team commits to a goal; its rationale<br>names the beliefs the goal rests on —<br>a lens onto them, anchoring nothing, gating nothing"]:::skill
     Q["test-next surface<br>candidate experiments on Live beliefs, ranked<br>by Feasibility × the belief's Risk — cheapest<br>honest test of the riskiest belief on top"]:::record
   end
 
@@ -143,7 +143,7 @@ flowchart LR
   end
 
   A -->|"1 · the one gate:<br>grill until Gaps is empty"| Q
-  D -.->|"2 · Impact anchor: a goal rests on<br>the belief → it ranks higher (never<br>a condition of entry)"| Q
+  D -.->|"2 · a lens onto the surface: which<br>beliefs does *this* goal rest on? —<br>never moves the ranking, never gates entry"| Q
   D -.->|"a goal's 'because' with no<br>record yet → new assumption"| A
   Q -->|"3 · cheapest honest test<br>of the riskiest belief"| E
   E -->|"4 · Running experiment"| RUN
@@ -159,9 +159,10 @@ After step 7 the loop closes: the cheapest honest test of the now-riskiest
 belief is already sitting on top of the surface.
 
 **One gate, not two.** Grilling is the only thing standing between a belief
-and the surface — a goal moves *where* a belief ranks, never *whether* it
-competes. The goal has a lifecycle of its own, and its verdict at the end
-flows back in as evidence. Same colours:
+and the surface. A goal touches neither *where* a belief ranks nor *whether*
+it competes — it's a lens onto the beliefs it rests on. The goal has a
+lifecycle of its own, and its verdict at the end flows back in as evidence.
+Same colours:
 
 ```mermaid
 flowchart LR
@@ -174,7 +175,7 @@ flowchart LR
     B["/goals reads each belief's Confidence back<br>as an advisory band — ready · gamble ·<br>betting against your evidence · kill lane"]:::skill
   end
   subgraph g2["② De-risk — optional"]
-    T["its beliefs run the main loop above.<br>They were always surface-eligible; the goal<br>anchors their Derived Impact so they rank higher"]:::record
+    T["its beliefs run the main loop above —<br>always surface-eligible, ranked on their own Risk.<br>The goal doesn't lift them; it's a lens onto which<br>ones it rests on, so you can test them deliberately"]:::record
   end
   subgraph g3["③ Commit"]
     C["human commits: Draft → Active.<br>Nothing blocks this — a gamble just needs<br>a dated risk-acceptance line on the record"]:::human
@@ -237,7 +238,7 @@ row's data:
 
 | Derived view (never stored) | Computed from |
 |---|---|
-| Goal-linked | a standing Goal record cites it via `Based on assumption` — an Impact anchor and a view, never a queue condition |
+| Goal-linked | a standing Goal record cites it via `Based on assumption` — a per-goal view only, never an Impact anchor or a queue condition |
 | Testing | a linked experiment is `Running` |
 | Test-next surface | experiments on Live rows, ranked by Feasibility × the linked belief's Risk |
 | Kill lane | Live + Confidence ≤ −50 — surfaced for a human kill verdict |

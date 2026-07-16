@@ -38,17 +38,19 @@ left open. None of it overrides a human's choice to commit.
      Achieved/Missed with no per-belief reading against any linked
      assumption. The outcome was evidence and nobody read it.
    - **Uncited links** (`goal-link-uncited`) — a `Based on assumption` link
-     whose target isn't named in the goal's rationale. Anchor hygiene: an
-     uncited link inflates the target's Impact anchor for free.
-   - **Stale goal anchors** (`stale-goal-anchor`) — assumptions whose Impact
-     scoring justification cites a goal that is no longer standing
-     (`Draft`/`Active`). `../../_shared/assumption-guardrails.md §3` runs the
-     check from the other side.
+     whose target isn't named in the goal's rationale. Hygiene only: a goal
+     doesn't touch Impact, so the link unlocks nothing — it's just noise in
+     the per-goal view and unaudited rationale.
+   - **Stale goal anchors** (`stale-goal-anchor`) — assumptions whose seed
+     Impact justification leans on a goal. A goal never anchors Impact, so
+     re-justify on intrinsic severity alone.
+     `../../_shared/assumption-guardrails.md §3` runs the check from the
+     other side.
    - **Anchor dilution** (`anchor-dilution`) — report the count of standing
      (`Draft`+`Active`) goals and the share of open assumptions linked to
-     one. When most open assumptions link to some goal, the Impact anchor and
-     the per-goal view have stopped discriminating. **Informational** — with
-     the queue gate retired this dilutes a lens, not prioritisation.
+     one. When most open assumptions link to some goal, the per-goal view has
+     stopped discriminating. **Informational** — a goal touches neither
+     Impact nor queue membership, so this dilutes a lens, not prioritisation.
    - **Incomplete bars** — a missing `We're wrong if`, an unnamed instrument,
      no Owner, no deadline. Common on goals drafted in a hurry; each one
      makes the close-out less readable.
