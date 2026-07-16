@@ -1,7 +1,8 @@
 # Connector — NoSQL
 
-A document-store backend for the registry. Worked through the NoSQL MCP server
-or any agent-accessible client (e.g., MongoDB, Firestore, DynamoDB). Field
+A document-store backend for the registry. Worked through whatever client the
+backend offers — its API, CLI, or SDK (e.g., MongoDB, Firestore, DynamoDB); for
+Firestore, the Admin SDK with a service-account key in the harness env. Field
 semantics: `skills/_shared/registry-schema.md`.
 
 ## Config
@@ -9,7 +10,7 @@ semantics: `skills/_shared/registry-schema.md`.
 ```yaml
 connector: nosql
 nosql:
-  connection_name: ""         # harness-provided connection / MCP server name
+  connection_name: ""         # harness-provided connection name (API/CLI/SDK client)
   database: validation_os       # database / namespace name
   assumptions_collection: assumptions
   experiments_collection: experiments

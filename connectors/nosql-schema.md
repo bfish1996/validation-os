@@ -3,16 +3,16 @@ connector: nosql
 setup_operations:
   validate_backend:
     status: supported
-    tool_namespace: nosql-mcp
+    tool_namespace: nosql-client
   create_backend:
     status: supported
-    tool_namespace: nosql-mcp
+    tool_namespace: nosql-client
   seed_starter_records:
     status: supported
-    tool_namespace: nosql-mcp
+    tool_namespace: nosql-client
   migrate_schema:
     status: supported
-    tool_namespace: nosql-mcp
+    tool_namespace: nosql-client
 registers:
   assumptions:
     source: collection
