@@ -1,5 +1,93 @@
 # @validation-os/dashboard
 
+## 0.4.0
+
+### Minor Changes
+
+- 50e3b93: Edit slice (OPS-1274): edit a record from the drawer under optimistic
+  concurrency, with derived fields recomputed server-side on write.
+
+  - `RecordDrawer` gains an edit mode: an Edit button opens per-register field
+    inputs; Save PATCHes a version-guarded patch through the API. The computed
+    box (Confidence, Risk, Derived Impact, Strength) stays the hero and is never
+    editable — after a save the recomputed numbers flow back in and the list
+    re-fetches. A "Why?" affordance on Confidence explains how the number is
+    earned (per-experiment movers land in OPS-1275).
+  - A concurrent edit is surfaced as a gentle, jargon-free prompt with a
+    "Reload the latest" re-fetch path (spec user story 12) — never version
+    jargon; the editor's in-progress draft is kept, not overwritten.
+  - A concurrent-edit re-fetch is safe by construction: the drawer diffs the
+    draft against the record as it was when editing began, so a save only writes
+    the fields this editor changed — a teammate's change to an untouched field is
+    never clobbered on reload-then-save.
+  - New exports: `useUpdate` hook (`save`/`saving`/`conflict`/`error`), the pure
+    `interpretSave` response mapper, and the pure edit-logic seam —
+    `editableFields`, `draftFrom`, `buildPatch`, `hasEdits`, `CONFLICT_MESSAGE`,
+    plus `Draft` / `FieldEditor` / `FieldKind` and `SaveResult` /
+    `UseUpdateResult` types. `useRecord` now exposes `refresh`.
+
+  The API's derive-on-write and the adapter's version guard (→ 409) already
+  shipped with the OPS-1270 foundation; this slice adds the editing surface over
+  them and the behaviour test that an Impact edit recomputes Risk / Derived
+  Impact server-side.
+
+- 88751a2: Create & link records (OPS-1275): new records and two-way relations, end to end.
+
+  - `@validation-os/core`: each `RelationSpec` now carries a `targetRegister`, so
+    the register a relation points at is known even when its inverse is a derived
+    view (the 5 null-`to` relations). The `DataProvider` `create`/`link` contract
+    and the in-memory fake were already in place; this names the target end for
+    the API and dashboard to consume.
+  - `@validation-os/api`: new `link` route (`POST /api/link`, body
+    `{ relation, from, to }`) — validates the relation and both endpoint
+    registers against the config, sets both ends through the adapter, and runs the
+    derive-on-write backstop when the edge can move a derived number (a reading
+    joins a belief, a standing decision lands, a dependency edge appears).
+  - `@validation-os/dashboard`: a "new record" form per register (own scalar
+    fields only — derived numbers are computed server-side, relations wired
+    separately), a relation editor in the record drawer, and the `useCreate` /
+    `useLink` mutation hooks. New pure helpers `formFieldsFor` / `emptyDraft` /
+    `missingRequired` / `toCreatePayload` and `linkChoicesFrom` back them and are
+    unit-tested.
+
+- ea59431: Understanding layer (OPS-1276): the Confidence "Why?" now tells the story of
+  the number — the reason a dashboard beats Notion, not polish.
+
+  - `@validation-os/core` derivation gains three pure functions, all decomposing
+    the very Confidence the derived box shows:
+    - `confidenceAttribution` — which experiments (and goals / direct readings)
+      move Confidence, each as a signed contribution `= weight·strength / den`,
+      grouped and ranked by how hard it pushes. The movers sum to the Confidence
+      number, so the reveal literally adds up to the hero. Reuses the shared
+      `scoreAndDedupe` so attribution always agrees with `confidence()`.
+    - `experimentProgress` — progress-to-conclusion from an experiment's
+      pre-registered bar lines: `settled / total`, `toGo`, and `concluded` once
+      every bar has a verdict. Bar verdict is a report, never a Confidence input.
+    - `confidenceTrajectory` — Confidence over time, replaying concluded readings
+      by date through `confidence()`; undated readings are folded into every
+      point so the last point equals today's number.
+    - New: `BarLine` type + `barLines` on `ExperimentRecord` (the embedded array
+      the schema already defines); `scoreAndDedupe`/`Scored`, `isConcluded`, and
+      the shared record→input mapper `toReadingInput` exposed — the latter is now
+      the single mapping site both the server-side recompute pass and the
+      dashboard read a reading through.
+  - `@validation-os/dashboard`: the Confidence "Why?" reveal is now live. It
+    mounts only when opened (lazy-loading readings + experiments), then renders
+    every experiment testing the belief — ranked by how hard it pushes, each with
+    its progress-to-conclusion (a running experiment with no reading yet still
+    shows, so it's clear whether finishing is worth it; concluded ones read as
+    done) — the goal/direct evidence that also moves the number, and a Confidence-
+    over-time sparkline. Tucked behind the tap so the derived box stays the hero
+    (the Reveal pattern). New pure `buildUnderstanding` join + `UnderstandingPanel`
+    component, with `Understanding` / `ExperimentView` / `OtherMover` types
+    exported.
+
+### Patch Changes
+
+- Updated dependencies [88751a2]
+- Updated dependencies [ea59431]
+  - @validation-os/core@0.4.0
+
 ## 0.3.0
 
 ### Patch Changes

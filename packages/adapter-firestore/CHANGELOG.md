@@ -1,5 +1,13 @@
 # @validation-os/adapter-firestore
 
+## 0.4.0
+
+### Patch Changes
+
+- Updated dependencies [88751a2]
+- Updated dependencies [ea59431]
+  - @validation-os/core@0.4.0
+
 ## 0.3.0
 
 ### Patch Changes
