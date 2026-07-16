@@ -7,4 +7,5 @@ export * from "./provider.js";
 export * from "./presence.js";
 export * from "./relations.js";
 export * from "./recompute.js";
+export * from "./reading-input.js";
 export * as derivation from "./derivation/index.js";

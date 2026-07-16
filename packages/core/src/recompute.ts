@@ -5,17 +5,14 @@
  * write and writes the results back; a batch pass is the backstop for
  * non-dashboard writes.
  *
- * This is the one place that maps stored record shapes → the derivation
- * module's typed inputs, so the pure functions stay decoupled from field
- * names.
+ * The stored-record → derivation-input mapping lives in `reading-input.ts`
+ * (`toReadingInput`), shared with the dashboard's understanding layer so a
+ * reading is read identically wherever Confidence is derived or explained.
  */
-import {
-  confidence,
-  derivedImpacts,
-  risk,
-  type ConfidenceReadingInput,
-} from "./derivation/index.js";
+import { confidence, derivedImpacts, risk } from "./derivation/index.js";
+import { toReadingInput } from "./reading-input.js";
 import type {
+  AnyRecord,
   AssumptionDerived,
   AssumptionRecord,
   DecisionRecord,
@@ -24,19 +21,6 @@ import type {
 
 /** Standing decisions (Provisional/Active) contribute to Derived Impact. */
 const STANDING_DECISION = new Set(["Active", "Provisional"]);
-
-function toConfidenceInput(r: ReadingRecord): ConfidenceReadingInput {
-  return {
-    id: r.id,
-    source: r.Source,
-    rung: r.Rung,
-    result: r.Result,
-    representativeness: r.Representativeness,
-    credibility: r.Credibility,
-    date: r.Date,
-    magnitudeBand: r.magnitudeBand,
-  };
-}
 
 export interface RecomputeInput {
   assumptions: AssumptionRecord[];
@@ -58,7 +42,10 @@ export function recomputeDerived(
   const confidenceById = new Map<string, number>();
   for (const a of assumptions) {
     const rs = readingsByAssumption.get(a.id) ?? [];
-    confidenceById.set(a.id, confidence(rs.map(toConfidenceInput)));
+    confidenceById.set(
+      a.id,
+      confidence(rs.map((r) => toReadingInput(r as unknown as AnyRecord))),
+    );
   }
 
   // Derived Impact: standing-decision `Based on` links count +100 each.

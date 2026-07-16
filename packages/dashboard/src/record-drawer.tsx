@@ -11,6 +11,7 @@ import {
   type FieldEditor,
 } from "./edit.js";
 import { useUpdate } from "./use-records.js";
+import { UnderstandingPanel } from "./understanding-panel.js";
 
 export interface RecordDrawerProps {
   register: Collection;
@@ -193,7 +194,12 @@ export function RecordDrawer({
                   ))}
                 </dl>
                 {"confidence" in derived ? (
-                  <WhyReveal open={why} onToggle={() => setWhy((w) => !w)} />
+                  <WhyReveal
+                    open={why}
+                    onToggle={() => setWhy((w) => !w)}
+                    assumption={record}
+                    basePath={basePath}
+                  />
                 ) : null}
               </section>
             ) : null}
@@ -265,10 +271,22 @@ export function RecordDrawer({
   );
 }
 
-/** The "Why?" affordance on Confidence. Confidence is the signed, weighted
- * average of concluded readings; a per-experiment movers breakdown lands with
- * the understanding layer, so this states the principle and reserves the space. */
-function WhyReveal({ open, onToggle }: { open: boolean; onToggle: () => void }) {
+/** The "Why?" affordance on Confidence — the understanding-layer Reveal
+ * (OPS-1276). Confidence is the signed, weighted average of concluded readings;
+ * opening this shows which experiments move the number, how close each running
+ * experiment is to concluding, and the trajectory over time. The panel mounts
+ * only when open, so it loads the evidence lazily and never crowds the hero. */
+function WhyReveal({
+  open,
+  onToggle,
+  assumption,
+  basePath,
+}: {
+  open: boolean;
+  onToggle: () => void;
+  assumption: AnyRecord;
+  basePath?: string;
+}) {
   return (
     <div className="mt-3">
       <button
@@ -280,12 +298,7 @@ function WhyReveal({ open, onToggle }: { open: boolean; onToggle: () => void }) 
         Why?
       </button>
       {open ? (
-        <p className="mt-2 rounded-lg bg-neutral-50 p-3 text-xs leading-relaxed text-neutral-600 dark:bg-neutral-900 dark:text-neutral-300">
-          Confidence is the signed, weighted average of this assumption's
-          concluded readings on the evidence ladder — evidence against the
-          belief counts negative. Risk then follows from Impact and Confidence.
-          A per-experiment breakdown of what moves the number is coming soon.
-        </p>
+        <UnderstandingPanel assumption={assumption} basePath={basePath} />
       ) : null}
     </div>
   );

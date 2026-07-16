@@ -4,7 +4,9 @@
  * register-counts panel is the walking-skeleton surface; the browse tables +
  * record drawer are the Read/Edit slices (the drawer edits under optimistic
  * concurrency with server-side derive-on-write); the create form + relation
- * editor are the Create/Link slice. Deeper understanding-layer views land later.
+ * editor are the Create/Link slice. The Confidence "Why?" reveals the
+ * understanding layer — per-experiment movers, progress-to-conclusion, and the
+ * Confidence-over-time trajectory.
  */
 export { RegisterCounts } from "./register-counts.js";
 export type { RegisterCountsProps } from "./register-counts.js";
@@ -16,6 +18,13 @@ export { RecordForm } from "./record-form.js";
 export type { RecordFormProps } from "./record-form.js";
 export { RelationEditor } from "./relation-editor.js";
 export type { RelationEditorProps } from "./relation-editor.js";
+export { UnderstandingPanel } from "./understanding-panel.js";
+export { buildUnderstanding } from "./understanding.js";
+export type {
+  Understanding,
+  ExperimentView,
+  OtherMover,
+} from "./understanding.js";
 export { RegisterBrowser } from "./register-browser.js";
 export type { RegisterBrowserProps } from "./register-browser.js";
 export { useCounts } from "./use-counts.js";

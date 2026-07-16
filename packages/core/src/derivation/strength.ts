@@ -14,6 +14,13 @@ export function sign(result: Result): -1 | 0 | 1 {
   return 0;
 }
 
+/** A reading counts toward Confidence only once concluded either way; an
+ * Inconclusive reading carries no signal. The single definition the whole
+ * derivation module (and its record→input mappers) share. */
+export function isConcluded(result: Result): boolean {
+  return result === "Validated" || result === "Invalidated";
+}
+
 export interface StrengthInput {
   rung: Rung;
   result: Result;

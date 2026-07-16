@@ -117,6 +117,20 @@ export interface ReadingRecord extends BaseRecord {
   derived: { sourceQuality: number; strength: number };
 }
 
+/**
+ * A pre-registered bar line — the per-belief pass/fail test on an experiment,
+ * stored as an embedded array on the experiment (no identity of its own; see
+ * `connectors/nosql-schema.md`). `barVerdict` is set once at closure and is a
+ * report only — never folded into Confidence.
+ */
+export interface BarLine {
+  assumptionId: string;
+  rightIf: string;
+  wrongIf?: string | null;
+  plannedRung: Rung;
+  barVerdict?: Result | null;
+}
+
 export interface ExperimentRecord extends BaseRecord {
   Title: string;
   Instrument: string | null;
@@ -125,6 +139,9 @@ export interface ExperimentRecord extends BaseRecord {
   closureReason: "Completed" | "Early-stop" | "Kill" | null;
   Owner: string[];
   Date: string | null;
+  /** The embedded pre-registered bar lines; drives progress-to-conclusion. */
+  barLines: BarLine[];
+  /** Convenience projection: the assumptions the bar lines test. */
   barLineAssumptionIds: string[];
 }
 
