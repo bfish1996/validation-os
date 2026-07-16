@@ -13,7 +13,10 @@ nosql:
   database: validation_os       # database / namespace name
   assumptions_collection: assumptions
   experiments_collection: experiments
+  readings_collection: readings
+  goals_collection: goals
   decisions_collection: decisions
+  glossary_collection: glossary
 ```
 
 Connection credentials live in the harness, never in this file. If the
@@ -21,10 +24,11 @@ configured connection is unavailable, stop and tell the user how to provide it.
 
 ## Setup
 
-Create a database and the three collections/documents with shapes matching
-`connectors/nosql-schema.md`. Then run `/setup-validation-os`, which will
-validate the schema, create missing collections/indexes, and optionally seed
-starter records.
+Create a database and the six collections with shapes matching
+`connectors/nosql-schema.md` (bar lines are an embedded array on each
+experiment document, not their own collection). Then run
+`/setup-validation-os`, which will validate the schema, create missing
+collections/indexes, and optionally seed starter records.
 
 ## Operations
 
@@ -43,8 +47,8 @@ NoSQL has no native formulas, so the skill recomputes and rewrites them on
 every touching edit, using the canonical computation in
 `skills/_shared/experiment-guardrails.md` §2:
 
-- Logging or concluding an experiment → recompute that document's `Strength`,
-  then every linked assumption's `Confidence` and `Risk`.
+- Logging a **Reading** → compute its `Strength`, then the linked assumption's
+  `Confidence` and `Risk`.
 - Re-scoring Impact → recompute that assumption's `Risk`.
 
 Derived fields live in a `derived` sub-object (`derived.risk`,

@@ -21,11 +21,17 @@ resolved against the working directory.
 
 ```
 registry/
-  assumptions/      # one file per assumption   (ASM-###.md)
-  experiments/      # one file per experiment   (EXP-###.md)
-  decisions/        # one file per decision     (DEC-###.md)
-  terminology/      # one file per term         (TERM-###.md)
+  assumptions/      # one file per assumption      (ASM-###.md)
+  experiments/      # one file per experiment plan (EXP-###.md)
+  readings/         # one file per reading         (RDG-###.md)
+  goals/            # one file per goal            (GOAL-###.md)
+  decisions/        # one file per decision        (DEC-###.md)
+  glossary/         # one file per term            (GLO-###.md)
 ```
+
+Experiment **bar lines** (per-belief pre-registration) are not their own
+directory — they live as a nested block inside each `EXP-###.md`, keyed by
+assumption ID (see `connectors/local-files-schema.md`).
 
 ## Record format
 
@@ -53,7 +59,7 @@ Relations are ID references (`ASM-002`), comma-separated. Example
 - **Depends on**: ASM-001
 - **Enables**: (none)
 - **Contradicts**: (none)
-- **Experiments**: EXP-001
+- **Readings**: RDG-001
 
 ### 5 Whys
 ### Metric for truth
@@ -73,16 +79,17 @@ Relations are ID references (`ASM-002`), comma-separated. Example
 - **Update** — edit the record's file in place; leave untouched fields and
   sections intact.
 - **Link** — write the ID into both records' relation bullets (two-way
-  relations: both ends; the Assumption↔Experiment pair: `Experiments:` on the
-  assumption and `Assumption:` on the experiment).
+  relations: both ends; the Reading→Assumption link is `Assumption:` on the
+  reading, mirrored by `Readings:` on the assumption; a reading's origin sets
+  at most one of `Experiment:` / `Goal:`).
 
 ## Derived fields — the skill computes them here
 
 This backend has no formulas, so **every write that could move a derived value
 recomputes and rewrites it** in the same gated edit:
 
-- Logging or concluding an experiment → recompute that row's **Strength**, then
-  every linked assumption's **Confidence** and **Risk**.
+- Logging a **Reading** → compute its **Strength**, then the linked
+  assumption's **Confidence** and **Risk**.
 - Re-scoring Impact → recompute that assumption's **Risk**.
 
 Derived bullets carry the `<!-- derived -->` marker so a human editing the file

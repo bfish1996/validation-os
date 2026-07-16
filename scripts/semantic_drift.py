@@ -16,7 +16,9 @@ import urllib.request
 
 ONTOLOGY = "skills/_shared/ontology.yaml"
 
-files = [f for f in sys.argv[1:] if f != ONTOLOGY]
+# Skip the ontology itself and any file deleted in the PR — `git diff
+# --name-only` lists deletions, which have nothing left to read for drift.
+files = [f for f in sys.argv[1:] if f != ONTOLOGY and os.path.exists(f)]
 model = os.environ.get("OLLAMA_MODEL", "gpt-oss:120b")
 
 ontology = open(ONTOLOGY).read()

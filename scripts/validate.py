@@ -134,6 +134,8 @@ if ontology is not None:
             fail(guide, "frontmatter missing `registers` mapping")
             continue
         for entity, spec in entities.items():
+            if spec.get("composed_into"):
+                continue  # composed sub-structure (e.g. bar_line), not a register
             reg = registers.get(entity)
             if reg is None:
                 fail(guide, f"register `{entity}` not mapped")
