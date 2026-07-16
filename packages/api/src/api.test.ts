@@ -98,6 +98,112 @@ describe("createApi CRUD", () => {
   });
 });
 
+describe("createApi link", () => {
+  function linkReq(body: unknown) {
+    return new Request("http://test/api/link", {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+  }
+
+  it("rejects unauthenticated link requests with 401", async () => {
+    const api = createApi({ provider: seededProvider(), authenticate: DENY });
+    const res = await api.link(
+      linkReq({
+        relation: "assumption-reading",
+        from: { register: "assumptions", id: "ASM-1" },
+        to: { register: "readings", id: "RDG-1" },
+      }),
+    );
+    expect(res.status).toBe(401);
+  });
+
+  it("rejects an unknown relation with 400", async () => {
+    const api = createApi({ provider: seededProvider(), authenticate: ALLOW });
+    const res = await api.link(
+      linkReq({
+        relation: "not-a-relation",
+        from: { register: "assumptions", id: "ASM-1" },
+        to: { register: "readings", id: "RDG-1" },
+      }),
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it("rejects a from-register that does not match the relation with 400", async () => {
+    const api = createApi({ provider: seededProvider(), authenticate: ALLOW });
+    const res = await api.link(
+      linkReq({
+        relation: "assumption-reading",
+        from: { register: "readings", id: "RDG-1" },
+        to: { register: "assumptions", id: "ASM-1" },
+      }),
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it("sets both ends of a two-ended relation", async () => {
+    const provider = seededProvider();
+    await provider.create("readings", {
+      id: "RDG-1",
+      Title: "A reading",
+      assumptionId: "",
+    });
+    const api = createApi({ provider, authenticate: ALLOW });
+    const res = await api.link(
+      linkReq({
+        relation: "assumption-reading",
+        from: { register: "assumptions", id: "ASM-1" },
+        to: { register: "readings", id: "RDG-1" },
+      }),
+    );
+    expect(res.status).toBe(200);
+    const asm = await provider.get("assumptions", "ASM-1");
+    const rdg = await provider.get("readings", "RDG-1");
+    expect(asm.readingIds).toContain("RDG-1");
+    expect(rdg.assumptionId).toBe("ASM-1");
+  });
+
+  it("recomputes derived numbers after linking a concluded reading", async () => {
+    const provider = seededProvider();
+    // A concluded reading whose assumptionId is not yet wired.
+    await provider.create("readings", {
+      id: "RDG-1",
+      Source: "proto-1",
+      assumptionId: "",
+      Rung: "Prototype usage",
+      Result: "Validated",
+      Representativeness: 1.0,
+      Credibility: 1.0,
+      derived: { sourceQuality: 1, strength: 30 },
+    });
+    const api = createApi({ provider, authenticate: ALLOW });
+    await api.link(
+      linkReq({
+        relation: "assumption-reading",
+        from: { register: "assumptions", id: "ASM-1" },
+        to: { register: "readings", id: "RDG-1" },
+      }),
+    );
+    const asm = await provider.get("assumptions", "ASM-1");
+    const derived = asm.derived as { confidence: number; risk: number };
+    expect(derived.confidence).toBeGreaterThan(0);
+    expect(derived.risk).toBeLessThan(50);
+  });
+
+  it("returns 404 when an endpoint record is missing", async () => {
+    const api = createApi({ provider: seededProvider(), authenticate: ALLOW });
+    const res = await api.link(
+      linkReq({
+        relation: "assumption-reading",
+        from: { register: "assumptions", id: "ASM-1" },
+        to: { register: "readings", id: "GHOST" },
+      }),
+    );
+    expect(res.status).toBe(404);
+  });
+});
+
 describe("derive-on-write", () => {
   it("stamps a reading's Source quality and Strength on create", async () => {
     const provider = seededProvider();
