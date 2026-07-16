@@ -58,17 +58,29 @@ numbers before ranking, then read the two surfaces the register computes.
    validating verdict moves nothing but Confidence; only a kill — a
    conclusive Invalidated at a rung at or above the row's strongest
    validating rung, human-affirmed — flips the row `Live → Invalidated`.
-2. **Log the week's stray evidence.** Anything heard in calls, threads, or
+2. **Sweep for stale, mooted, and unclosed experiments.** Run the
+   experiment-lifecycle sweeps (`../skills/_shared/register-audit.md`
+   Phase E). Surface **kill candidates** — a plan stuck `Running` with no
+   reading activity, one whose belief went `Derived Impact` 0 or merged away,
+   one superseded by a cheaper same-belief design, or one whose cost
+   ballooned past its design-time `Feasibility` — and walk each to a human
+   kill-or-continue call (a kill closes unmet bars `Inconclusive`; concluded
+   readings survive). Then the **closure audit**: any plan whose
+   pre-registered N is met but never closed, and any closed plan missing a
+   per-belief bar verdict or its rollup report. The sweep only surfaces; the
+   kill and the closure verdict stay human
+   (`../skills/_shared/experiment-guardrails.md` §6).
+3. **Log the week's stray evidence.** Anything heard in calls, threads, or
    research that bears on an open assumption: `/find-evidence`.
-3. **Log the week's decisions.** Anything the team actually decided:
+4. **Log the week's decisions.** Anything the team actually decided:
    `/decisions` (Capture for the ones you remember; an occasional Sweep
    over the week's transcripts catches the rest).
-4. **Tend the goals.** Any goal past its deadline gets closed out via
+5. **Tend the goals.** Any goal past its deadline gets closed out via
    `/goals` — human verdict against the pre-registered bars, decomposed per
    belief into evidence (`goals.md`). Any risk-acceptance past its
    `revisit by` date with the belief still untested gets walked with the
    goal's owner: test now, re-accept with a new date, or re-cut the goal.
-5. **Clear the human-review queue.** If a loop/batch run grilled records
+6. **Clear the human-review queue.** If a loop/batch run grilled records
    this week, walk the `Human review` gaps with each record's owner — the
    gap holds machine-grilled records in `Draft`, and only a gated sign-off
    promotes them to `Live` (and so onto the surface).
@@ -81,8 +93,13 @@ incomplete decisions, stale tensions — plus goal health: overdue
 risk-acceptance revisit dates, gambles taken with no line written down,
 tripwires nobody answered, goals past their deadline still open, outcomes
 closed without being decomposed, seed Impact justifications that lean on a
-goal (a goal never anchors Impact), and anchor dilution. Fix the top findings
-through the gated flows.
+goal (a goal never anchors Impact), and anchor dilution. `/assumptions`
+(audit) also runs the experiment-lifecycle sweeps
+(`../skills/_shared/register-audit.md` Phase E) with the plans loaded, so this
+is where the lower-churn **source canonical-link drift** sweep lands: two
+spellings of one artifact against the normalization rule, and pasted-artifact
+primaries that belong at a link in the "Raw evidence" home. Fix the top
+findings through the gated flows.
 
 The point of the cadence: **the register reorders itself.** Evidence *for* a
 belief lifts its Confidence and lowers its Risk; evidence *against* it lowers
