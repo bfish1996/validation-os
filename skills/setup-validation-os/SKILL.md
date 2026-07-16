@@ -73,11 +73,24 @@ the user asks.
    configured databases) and write the resulting IDs into the config — with
    the user's confirmation, never silently.
 
-5. **Declare evidence sources.** Ask which of these the user's agent can
-   actually reach, and list only those under `evidence_sources:`:
-   `web` (default — desk research), `fireflies` (call transcripts), `slack`,
-   `gmail`, `attio` (CRM). An empty list is fine — `/find-evidence` and
-   `/meeting-prep` fall back to web research and pasted notes.
+5. **Declare evidence sources, the source-map, and analytics.**
+   - **`evidence_sources:`** — ask which of these the user's agent can
+     actually reach, and list only those: `web` (default — desk research),
+     `fireflies` (call transcripts), `slack`, `gmail`, `attio` (CRM). An empty
+     list is fine — `/find-evidence` and `/meeting-prep` fall back to web
+     research and pasted notes.
+   - **`source_map:`** — for each artifact kind the workspace uses (interview,
+     prototype, customer, raw), record its home and how to fetch it
+     (`skills/_shared/experiment-guardrails.md §0`); this is how the evidence
+     skills locate and fetch artifacts by canonical link, and it names the
+     **"Raw evidence"** home where pasted material is filed. Omit kinds the
+     workspace doesn't use.
+   - **`analytics:`** — **only** if a product-analytics platform (PostHog,
+     Mixpanel, …) is connected. It is **Goals-side, not an `evidence_sources`
+     flavour**: record `platform` (free text) and `glossary_file` (default
+     `analytics-glossary.md`) as a top-level block `/goals` reads
+     (`docs/goals.md §Found numbers`). No platform connected → omit it
+     entirely.
 
 6. **Set the vocabulary.** The schema leaves two lists to the user
    (`skills/_shared/registry-schema.md`):
