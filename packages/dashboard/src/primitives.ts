@@ -74,6 +74,28 @@ export function confidenceTone(confidence: number): Tone {
   return confidence < 0 ? "crit" : "good";
 }
 
+/**
+ * The tone for a derived-hero number. Confidence reads crit when negative; Risk
+ * reads by threshold; Derived Impact, Strength and anything else read neutral.
+ * Pure, so the drawer's hero doesn't hand-roll this branching.
+ */
+export function derivedTone(field: string, value: number): Tone {
+  if (field === "confidence") return confidenceTone(value);
+  if (field === "risk") return riskLevel(value);
+  return "neutral";
+}
+
+/**
+ * Tone → the text-colour class for a derived-hero number. Only warn/crit are
+ * tinted; a good or neutral number stays the default text colour (the hero
+ * doesn't paint every number green the way the in-row cells do).
+ */
+export function heroToneClass(tone: Tone): string {
+  if (tone === "crit") return "vos-text-crit";
+  if (tone === "warn") return "vos-text-warn";
+  return "";
+}
+
 /** A signed number rendered with an explicit sign: `+6`, `-3`, `0`. */
 export function formatSigned(n: number): string {
   const r = Math.round(n);

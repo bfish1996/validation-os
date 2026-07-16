@@ -3,7 +3,7 @@ import type { AnyRecord, Collection } from "@validation-os/core";
 import { DrawerShell } from "./drawer-shell.js";
 import { REGISTER_LABEL } from "./labels.js";
 import { derivedLabel, fieldLabel, formatValue, primaryLabel } from "./columns.js";
-import { confidenceTone, formatSigned, riskLevel } from "./primitives.js";
+import { derivedTone, formatSigned, heroToneClass } from "./primitives.js";
 import {
   buildPatch,
   draftFrom,
@@ -293,19 +293,10 @@ function DerivedCell({
   const num = typeof value === "number" ? value : null;
   let toneClass = "";
   let display = formatValue(value);
-  if (field === "confidence" && num !== null) {
-    toneClass =
-      confidenceTone(num) === "crit" ? "vos-text-crit" : "";
-    display = formatSigned(num);
-  } else if ((field === "risk" || field === "derivedImpact") && num !== null) {
-    const level = field === "risk" ? riskLevel(num) : "good";
-    toneClass =
-      level === "crit"
-        ? "vos-text-crit"
-        : level === "warn"
-          ? "vos-text-warn"
-          : "";
-    display = String(Math.round(num));
+  if (num !== null) {
+    toneClass = heroToneClass(derivedTone(field, num));
+    // Confidence is signed; the other numbers read as whole counts.
+    display = field === "confidence" ? formatSigned(num) : String(Math.round(num));
   }
   return (
     <div className="vos-dcell">

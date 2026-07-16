@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   confidenceTone,
+  derivedTone,
   formatCount,
   formatSigned,
+  heroToneClass,
   riskFraction,
   riskLevel,
   sparklinePath,
@@ -70,6 +72,31 @@ describe("confidenceTone", () => {
     expect(confidenceTone(12)).toBe("good");
     expect(confidenceTone(0)).toBe("good");
     expect(confidenceTone(-4)).toBe("crit");
+  });
+});
+
+describe("derivedTone", () => {
+  it("tones Confidence by sign and Risk by threshold", () => {
+    expect(derivedTone("confidence", 8)).toBe("good");
+    expect(derivedTone("confidence", -8)).toBe("crit");
+    expect(derivedTone("risk", 20)).toBe("good");
+    expect(derivedTone("risk", 45)).toBe("warn");
+    expect(derivedTone("risk", 80)).toBe("crit");
+  });
+
+  it("leaves Derived Impact, Strength and unknowns neutral", () => {
+    expect(derivedTone("derivedImpact", 90)).toBe("neutral");
+    expect(derivedTone("strength", 70)).toBe("neutral");
+    expect(derivedTone("sourceQuality", 50)).toBe("neutral");
+  });
+});
+
+describe("heroToneClass", () => {
+  it("tints only warn and crit; good/neutral stay default text", () => {
+    expect(heroToneClass("crit")).toBe("vos-text-crit");
+    expect(heroToneClass("warn")).toBe("vos-text-warn");
+    expect(heroToneClass("good")).toBe("");
+    expect(heroToneClass("neutral")).toBe("");
   });
 });
 
