@@ -47,9 +47,12 @@ the rung reflects what the signal **cost the prospect**:
 
 Rules that bite hardest here:
 
-- **One assumption per experiment** (the ontology enforces it). A
-  campaign tempts you to test ICP *and* message at once — pick the
-  primary belief, hold the other constant, or the result moves neither.
+- **One bar per belief, honestly failable** (the grouping rule,
+  `skills/_shared/experiment-guardrails.md §1b`). A campaign tempts you to
+  test ICP *and* message at once — bundle both only if each keeps its own
+  pre-registered bar and one measurement can't poison the other; otherwise
+  pick the primary belief and hold the other constant, or the result moves
+  neither.
 - **Pre-register the bar** like anything else: *"We're right if ≥5% of
   100 cold emails to segment X book a meeting."* Open rates are noise;
   replies are stated; meetings and money are where rungs climb.

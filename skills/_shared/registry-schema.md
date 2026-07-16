@@ -22,9 +22,13 @@ whatever the backend.
 
 - **Assumptions** — every belief the business depends on, as a falsifiable
   sentence, scored and ranked by Risk. Built by `/assumptions`.
-- **Experiments** — one row per test designed against an assumption; evidence
-  rows and experiment rows are the same thing. Created by `/experiment-design`,
-  concluded by `/find-evidence` and the humans running the test.
+- **Experiments** — the Testing-side pre-registered container and its
+  evidence. Conceptually an experiment is the **plan** (instrument by
+  canonical link, protocol, one Feasibility, per-belief bar lines with
+  planned rungs) and evidence arrives as **readings** — one per artifact ×
+  belief actually addressed (`experiment-guardrails.md §0`). Created by
+  `/experiment-design`, concluded by `/find-evidence` and the humans running
+  the test.
 - **Decisions & Terminology** — the decision log and the shared glossary.
   Owned by `/decisions`. Goals are **not** decisions
   (`decision-guardrails.md §9`).
@@ -38,6 +42,17 @@ whatever the backend.
 > and which register it lives in are not decided here yet** — they land with
 > the registry-schema rewrite, alongside the migration rule for legacy
 > `Kind: Goal commitment` rows.
+
+> **Experiment/reading split — schema pending.** The concept is settled
+> (`experiment-guardrails.md §0, §1b, §6`): an experiment is the
+> pre-registered plan; readings are the evidence, one per artifact × belief,
+> each bundled belief carrying its own bar pair and planned rung; off-plan
+> readings keep the experiment link as provenance. The **field map below
+> still describes the live single-row encoding** — one row per belief under
+> test, the row doubling as that belief's bar line and its reading, a shared
+> run expressed by the shared instrument link + protocol, every new round a
+> new row. The split's field map, relation shapes, and where the planned
+> rung sits land with the registry-schema rewrite.
 
 > ⚠️ **Always query the full register, never a filtered view or subset.**
 > Auditing or looping a filtered slice silently skips rows.
@@ -143,10 +158,10 @@ Draft ──(grill close-out: the last Gaps tag──▶ Live ──(evidence ne
 | Field | Type | Rule |
 |---|---|---|
 | Title | title | The specific question being tested — a question, not a topic. |
-| Assumption | relation | **One** assumption per experiment. A test that would also inform another belief → a second experiment record, never two beliefs blurred into one. |
-| Type | select | The single 8-rung activity-and-strength ladder — `experiment-guardrails.md §2`. 🧪 Testing: Opinion · Pitch-deck reaction · Anecdotal · Desk research · Survey at scale · Prototype usage. 🎯 Goals: Signed intent · Paying users (two pre-registered bars, magnitude bands). |
+| Assumption | relation | **One** assumption per row. Beliefs that honestly share one run *bundle* — each with its own bar pair and planned rung (`experiment-guardrails.md §1b`); in the live encoding a bundled run is one row per belief, sharing the instrument link + protocol. Never two beliefs blurred into one bar. |
+| Type | select | The single 8-rung activity-and-strength ladder — `experiment-guardrails.md §2`. 🧪 Testing: Opinion · Pitch-deck reaction · Anecdotal · Desk research · Survey at scale · Prototype usage. 🎯 Goals: Signed intent · Paying users (two pre-registered bars, magnitude bands). Conceptually **per belief** — the row's value is its belief's planned rung; there is no run-level rung (`experiment-guardrails.md §0`). |
 | Source quality | number | How much *this* source's word is worth: `Representativeness × Credibility`, each from {1.0, 0.7, 0.5} — anchors {0.25, 0.35, 0.5, 0.7, 1.0}. Scales the reading's *weight* in the Confidence average, within its rung, never across. Picks + justifications live in the body's grading block (`experiment-guardrails.md §2`). |
-| Feasibility | select High/Medium/Low | How hard the test is to actually run (access, cost, time). Set at design time. |
+| Feasibility | select High/Medium/Low | How hard the run is to actually execute (access, cost, time). Set at design time; **one value per run** — rows sharing a run carry the same value (`experiment-guardrails.md §0`). |
 | We're right if | text | The pre-registered pass bar. Concrete and countable. |
 | Result | select | `Running` → `Validated` / `Invalidated` / `Inconclusive`. Design sets Running; conclusion is human-gated. |
 | Strength | derived | **Never hand-write.** The signed reading value `s`: rung anchor (× magnitude band on 🎯 Goal rungs), positive on `Validated`, negative on `Invalidated`, **gated to a conclusive Result** — 0 while Running or Inconclusive. The assumption's Confidence reads this. |
@@ -155,11 +170,13 @@ Draft ──(grill close-out: the last Gaps tag──▶ Live ──(evidence ne
 | Interviewee | relation/text (optional) | Who was spoken to — useful for spotting repeat conversations. Set when known. |
 
 Record **body** holds the protocol: the per-method template
-(`experiment-guardrails.md §3`), `We're wrong if` (the kill bar), and results
-notes — including, once concluded, the **grading block** (rung, magnitude
-anchor on Goal rungs, Representativeness × Credibility picks with one-line
-justifications, and the source the independence dedupe keys off —
-`experiment-guardrails.md §2`).
+(`experiment-guardrails.md §3` — for interviews, the guide *is* the
+protocol, with the instrument slot holding only the stimulus asset's
+canonical link), `We're wrong if` (the kill bar), and results notes —
+including, once concluded, the **grading block** (rung, magnitude anchor on
+Goal rungs, Representativeness × Credibility picks with one-line
+justifications, and the source artifact's canonical link the independence
+dedupe keys off — `experiment-guardrails.md §2`).
 
 ## Field map — Decisions & Terminology
 

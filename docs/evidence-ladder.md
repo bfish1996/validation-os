@@ -89,7 +89,16 @@ Signed, ranging −100…100; no evidence = 0. Full operational ruleset:
   `source_quality = Representativeness × Credibility` scales the reading's
   *weight*; a high-credibility Opinion is still worth ±3.
 - **Independence keys off the source.** Same-source readings against one
-  belief don't compound as independent mass — aggregation dedupes by source.
+  belief don't compound as independent mass — aggregation dedupes by the
+  artifact's canonical link. Goal readings are the deliberate exception:
+  **each closed goal is its own unit** — successive cycles on the same
+  instrument never dedupe (a series of misses could otherwise never
+  accumulate); the rising kill floor, not dedupe, stops an unchanged world
+  being re-counted (`goals.md §Found numbers`).
+- **Goal rungs enter goal-first, always.** A found scoreboard number is
+  never logged as evidence — it prompts minting a *forward* goal with bars
+  calibrated off it (`goals.md §Found numbers`). No bare Goals-side
+  readings, no retro-registered bars.
 - **Only concluded readings count.** `Running` and `Inconclusive` contribute
   nothing — excluded from the sum entirely, not counted as zeros.
 - **Base rate ≠ validation.** Desk research can tell you the world's

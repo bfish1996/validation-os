@@ -114,16 +114,16 @@ its work.
 ### 3. Set the record, per piece
 
 - **`Type`** = the rung matching the evidence's strength
-  (`experiment-guardrails.md §2`): a hypothetical "I'd use that" → 🧪
-  `Opinion`; users describing something they **actually did**, unprompted →
-  🧪 `Anecdotal`; a structured questionnaire already run → 🧪
-  `Survey at scale`; regulation / published data / competitor fact → 🧪
-  `Desk research`; unpaid real use → 🧪 `Prototype usage`; payment / signed
-  commitment observed → 🎯 `Signed intent` / `Paying users`. A *measured*
-  product metric that bears on the Metric for truth is real behaviour —
-  Goal-category, with the analytics view as the source. Mind the structural
-  guard on retrospective 🎯 negatives: with no pre-registered kill floor, an
-  absence of sales/signups is `Inconclusive`, never an Invalidated reading.
+  (`experiment-guardrails.md §2`) — **Testing rungs only**: a hypothetical
+  "I'd use that" → 🧪 `Opinion`; users describing something they **actually
+  did**, unprompted → 🧪 `Anecdotal`; a structured questionnaire already
+  run → 🧪 `Survey at scale`; regulation / published data / competitor
+  fact → 🧪 `Desk research`; unpaid real use → 🧪 `Prototype usage`.
+  **Found evidence never mints a 🎯 Goal-rung reading** — there are no bare
+  Goals-side readings (`experiment-guardrails.md §6`). A measured scoreboard
+  number (product metric, CRM level) is Goals-side: don't log it — surface
+  it and route to `/goals` draft to mint a forward goal calibrated off it
+  (`docs/goals.md §Found numbers`).
 - **`Source quality`** = Representativeness × Credibility, each picked from
   {1.0, 0.7, 0.5} (`experiment-guardrails.md §2`). Scales the reading's
   weight **within** the rung, never its value across rungs. Record both
