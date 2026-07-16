@@ -1,6 +1,6 @@
 {
   "name": "@validation-os/adapter-firestore",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Firestore (Admin SDK) DataProvider adapter for validation-os — the first nosql-family backend. Version-guarded writes.",
   "license": "MIT",
   "type": "module",
@@ -13,7 +13,9 @@
       "import": "./dist/index.js"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "sideEffects": false,
   "publishConfig": {
     "access": "public"
