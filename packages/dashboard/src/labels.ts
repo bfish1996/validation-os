@@ -12,6 +12,18 @@ export const REGISTER_LABEL: Record<Collection, string> = {
   people: "People",
 };
 
+/** Singular labels — for "New {thing}" affordances (never a naive de-pluralise
+ * that would read "New Peopl" / "New Glossary"). */
+export const REGISTER_SINGULAR: Record<Collection, string> = {
+  assumptions: "Assumption",
+  experiments: "Experiment",
+  readings: "Reading",
+  goals: "Goal",
+  decisions: "Decision",
+  glossary: "Glossary term",
+  people: "Person",
+};
+
 /** The order tiles read left-to-right, top-to-bottom. */
 export const REGISTER_ORDER: Collection[] = [
   "assumptions",
