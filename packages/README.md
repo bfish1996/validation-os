@@ -36,8 +36,9 @@ RUN_EMULATOR_TESTS=1 FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 pnpm test
 ## Release
 
 `pnpm changeset` to record a change; merging the resulting "Version Packages"
-PR publishes to npm (see `.github/workflows/publish.yml`). Requires the
-`NPM_TOKEN` secret.
+PR publishes to npm (see `.github/workflows/publish.yml`). Publishing uses npm
+Trusted Publishing (OIDC) — no npm token is stored; GitHub proves the workflow's
+identity and provenance is stamped automatically.
 
 ## The seam
 

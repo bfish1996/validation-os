@@ -27,6 +27,9 @@ jobs:
           node-version: 20
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm -r --filter "./packages/**" typecheck
+      # Build first: packages typecheck against each other's compiled dist/
+      # .d.ts (e.g. dashboard/api import @validation-os/core), so those type
+      # declarations must exist before tsc runs.
       - run: pnpm build
+      - run: pnpm -r --filter "./packages/**" typecheck
       - run: pnpm test
