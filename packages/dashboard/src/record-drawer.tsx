@@ -1,8 +1,16 @@
-import { type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import type { AnyRecord, Collection } from "@validation-os/core";
 import { DrawerShell } from "./drawer-shell.js";
 import { REGISTER_LABEL } from "./labels.js";
 import { derivedLabel, fieldLabel, formatValue, primaryLabel } from "./columns.js";
+import {
+  buildPatch,
+  draftFrom,
+  editableFields,
+  type Draft,
+  type FieldEditor,
+} from "./edit.js";
+import { useUpdate } from "./use-records.js";
 
 export interface RecordDrawerProps {
   register: Collection;
@@ -14,7 +22,12 @@ export interface RecordDrawerProps {
   /** Whether the drawer is open (a row is selected). */
   open: boolean;
   onClose: () => void;
-  /** Extra content below the fields — e.g. the relation editor. */
+  /** API base path (default `/api`). */
+  basePath?: string;
+  /** Re-fetch the record + its list — called after a save, and the re-fetch
+   * path offered when a concurrent edit is detected. */
+  onChanged?: () => void;
+  /** Extra content below the fields in read mode — e.g. the relation editor. */
   children?: ReactNode;
 }
 
@@ -22,10 +35,14 @@ export interface RecordDrawerProps {
 const META_FIELDS = new Set(["id", "version", "createdAt", "updatedAt", "derived"]);
 
 /**
- * A read-only drawer for one record. Any derived numbers lead as the hero,
- * explicitly marked computed — not editable (spec user story 4), so a reader
- * trusts they follow the formulas; the record's own fields follow. This slice
- * is read-only; editing lands in a later slice.
+ * A record drawer that reads and edits, and wires relations. Derived numbers
+ * always lead as the hero, explicitly marked computed and never editable (spec
+ * user story 4) — a "Why?" affordance on Confidence explains how the number was
+ * earned. Editing recomputes those numbers server-side on save (story 11); a
+ * concurrent edit surfaces as a gentle, jargon-free prompt with a re-fetch path
+ * (story 12). In read mode the drawer also hosts the relation editor (`children`,
+ * story 14). The slide-over chrome is shared with the create drawer via
+ * `DrawerShell`.
  */
 export function RecordDrawer({
   register,
@@ -34,8 +51,32 @@ export function RecordDrawer({
   error,
   open,
   onClose,
+  basePath,
+  onChanged,
   children,
 }: RecordDrawerProps) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState<Draft>({});
+  // The record as it was when editing began. Diffing the draft against this
+  // (not the live `record`) is what makes a conflict re-fetch safe: only the
+  // fields the editor actually changed are written, on top of the latest
+  // version — so a teammate's concurrent change to an untouched field survives.
+  const [baseline, setBaseline] = useState<AnyRecord | null>(null);
+  const [why, setWhy] = useState(false);
+  const { save, saving, conflict, error: saveError, reset } = useUpdate(
+    register,
+    basePath,
+  );
+
+  // Opening a different record drops any in-progress edit and clears banners.
+  const recordId = record?.id ?? null;
+  useEffect(() => {
+    setEditing(false);
+    setBaseline(null);
+    setWhy(false);
+    reset();
+  }, [recordId, reset]);
+
   const derived =
     record && record.derived && typeof record.derived === "object"
       ? (record.derived as Record<string, unknown>)
@@ -45,6 +86,48 @@ export function RecordDrawer({
     ? Object.keys(record).filter((k) => !META_FIELDS.has(k))
     : [];
 
+  function startEditing() {
+    if (!record) return;
+    setBaseline(record);
+    setDraft(draftFrom(register, record));
+    reset();
+    setEditing(true);
+  }
+
+  function cancelEditing() {
+    setEditing(false);
+    reset();
+  }
+
+  async function onSave() {
+    if (!record || !baseline) return;
+    // Diff against the baseline (the fields the editor changed), but write
+    // against the freshest known version so a reloaded record rebases cleanly.
+    const patch = buildPatch(register, baseline, draft);
+    patch.version = record.version;
+    if (Object.keys(patch).length <= 1) {
+      setEditing(false); // only `version` present — nothing actually changed
+      return;
+    }
+    const result = await save(record.id, patch);
+    if (result.ok) {
+      setEditing(false);
+      onChanged?.(); // pull the recomputed record + refreshed list back in
+    }
+    // On conflict/error the hook holds the message; we stay in edit mode with
+    // the draft intact so nothing the editor typed is lost.
+  }
+
+  function reloadLatest() {
+    reset();
+    // Re-fetch the latest record; the baseline is kept, so the next save still
+    // writes only the fields this editor changed — never the teammate's edits.
+    onChanged?.();
+  }
+
+  const setField = (key: string, value: string) =>
+    setDraft((d) => ({ ...d, [key]: value }));
+
   return (
     <DrawerShell
       open={open}
@@ -52,14 +135,24 @@ export function RecordDrawer({
       ariaLabel={`${REGISTER_LABEL[register]} record`}
     >
       <header className="flex items-start justify-between gap-4 border-b border-neutral-200 p-5 dark:border-neutral-800">
-          <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-neutral-400">
-              {REGISTER_LABEL[register]}
-            </p>
-            <h2 className="mt-1 text-lg font-semibold text-neutral-900 dark:text-neutral-50">
-              {record ? primaryLabel(record) : loading ? "Loading…" : "—"}
-            </h2>
-          </div>
+        <div>
+          <p className="text-xs font-medium uppercase tracking-wide text-neutral-400">
+            {REGISTER_LABEL[register]}
+          </p>
+          <h2 className="mt-1 text-lg font-semibold text-neutral-900 dark:text-neutral-50">
+            {record ? primaryLabel(record) : loading ? "Loading…" : "—"}
+          </h2>
+        </div>
+        <div className="flex items-center gap-2">
+          {record && !editing ? (
+            <button
+              type="button"
+              onClick={startEditing}
+              className="rounded-md border border-neutral-300 px-2.5 py-1 text-sm font-medium text-neutral-700 hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-900"
+            >
+              Edit
+            </button>
+          ) : null}
           <button
             type="button"
             onClick={onClose}
@@ -67,40 +160,63 @@ export function RecordDrawer({
           >
             Close
           </button>
-        </header>
+        </div>
+      </header>
 
-        <div className="flex-1 p-5">
-          {loading ? (
-            <p className="text-sm text-neutral-500">Loading record…</p>
-          ) : error ? (
-            <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
-          ) : !record ? (
-            <p className="text-sm text-neutral-500">No record.</p>
-          ) : (
-            <>
-              {derived ? (
-                <section className="mb-6">
-                  <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-neutral-400">
-                    Computed · not editable
-                  </h3>
-                  <dl className="grid grid-cols-3 gap-3">
-                    {Object.entries(derived).map(([key, value]) => (
-                      <div
-                        key={key}
-                        className="rounded-lg border border-neutral-200 bg-neutral-50 p-3 dark:border-neutral-800 dark:bg-neutral-900"
-                      >
-                        <dt className="text-xs text-neutral-500 dark:text-neutral-400">
-                          {derivedLabel(key)}
-                        </dt>
-                        <dd className="mt-1 text-xl font-semibold tabular-nums text-neutral-900 dark:text-neutral-50">
-                          {formatValue(value)}
-                        </dd>
-                      </div>
-                    ))}
-                  </dl>
-                </section>
-              ) : null}
+      <div className="flex-1 p-5">
+        {loading ? (
+          <p className="text-sm text-neutral-500">Loading record…</p>
+        ) : error ? (
+          <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+        ) : !record ? (
+          <p className="text-sm text-neutral-500">No record.</p>
+        ) : (
+          <>
+            {derived ? (
+              <section className="mb-6">
+                <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-neutral-400">
+                  Computed · not editable
+                </h3>
+                <dl className="grid grid-cols-3 gap-3">
+                  {Object.entries(derived).map(([key, value]) => (
+                    <div
+                      key={key}
+                      className="rounded-lg border border-neutral-200 bg-neutral-50 p-3 dark:border-neutral-800 dark:bg-neutral-900"
+                    >
+                      <dt className="text-xs text-neutral-500 dark:text-neutral-400">
+                        {derivedLabel(key)}
+                      </dt>
+                      <dd className="mt-1 text-xl font-semibold tabular-nums text-neutral-900 dark:text-neutral-50">
+                        {formatValue(value)}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+                {"confidence" in derived ? (
+                  <WhyReveal open={why} onToggle={() => setWhy((w) => !w)} />
+                ) : null}
+              </section>
+            ) : null}
 
+            {conflict ? (
+              <ConflictBanner message={conflict} onReload={reloadLatest} />
+            ) : null}
+            {saveError ? (
+              <p
+                role="alert"
+                className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300"
+              >
+                {saveError}
+              </p>
+            ) : null}
+
+            {editing ? (
+              <EditFields
+                register={register}
+                draft={draft}
+                onField={setField}
+              />
+            ) : (
               <dl className="divide-y divide-neutral-100 dark:divide-neutral-900">
                 {fields.map((key) => (
                   <div key={key} className="grid grid-cols-3 gap-3 py-2.5">
@@ -113,18 +229,168 @@ export function RecordDrawer({
                   </div>
                 ))}
               </dl>
-            </>
-          )}
-        </div>
+            )}
+          </>
+        )}
+      </div>
 
-        {record && !loading && !error ? children : null}
+      {/* Relation editor (read mode only) — editing keeps the drawer focused. */}
+      {record && !loading && !error && !editing ? children : null}
 
-        {record ? (
-          <footer className="border-t border-neutral-200 p-5 text-xs text-neutral-400 dark:border-neutral-800">
-            {record.id} · version {String(record.version)} · updated{" "}
-            {formatValue(record.updatedAt)}
-          </footer>
-        ) : null}
+      {record && editing ? (
+        <footer className="flex items-center justify-end gap-2 border-t border-neutral-200 p-5 dark:border-neutral-800">
+          <button
+            type="button"
+            onClick={cancelEditing}
+            disabled={saving}
+            className="rounded-md px-3 py-1.5 text-sm text-neutral-600 hover:bg-neutral-100 disabled:opacity-50 dark:text-neutral-300 dark:hover:bg-neutral-900"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={onSave}
+            disabled={saving}
+            className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-neutral-700 disabled:opacity-50 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-300"
+          >
+            {saving ? "Saving…" : "Save"}
+          </button>
+        </footer>
+      ) : record ? (
+        <footer className="border-t border-neutral-200 p-5 text-xs text-neutral-400 dark:border-neutral-800">
+          {record.id} · updated {formatValue(record.updatedAt)}
+        </footer>
+      ) : null}
     </DrawerShell>
+  );
+}
+
+/** The "Why?" affordance on Confidence. Confidence is the signed, weighted
+ * average of concluded readings; a per-experiment movers breakdown lands with
+ * the understanding layer, so this states the principle and reserves the space. */
+function WhyReveal({ open, onToggle }: { open: boolean; onToggle: () => void }) {
+  return (
+    <div className="mt-3">
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={open}
+        className="text-xs font-medium text-neutral-500 underline underline-offset-2 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-100"
+      >
+        Why?
+      </button>
+      {open ? (
+        <p className="mt-2 rounded-lg bg-neutral-50 p-3 text-xs leading-relaxed text-neutral-600 dark:bg-neutral-900 dark:text-neutral-300">
+          Confidence is the signed, weighted average of this assumption's
+          concluded readings on the evidence ladder — evidence against the
+          belief counts negative. Risk then follows from Impact and Confidence.
+          A per-experiment breakdown of what moves the number is coming soon.
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+function ConflictBanner({
+  message,
+  onReload,
+}: {
+  message: string;
+  onReload: () => void;
+}) {
+  return (
+    <div
+      role="alert"
+      className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-900 dark:bg-amber-950/40"
+    >
+      <p className="text-sm text-amber-800 dark:text-amber-200">{message}</p>
+      <button
+        type="button"
+        onClick={onReload}
+        className="mt-2 rounded-md border border-amber-300 px-2.5 py-1 text-xs font-medium text-amber-900 hover:bg-amber-100 dark:border-amber-800 dark:text-amber-100 dark:hover:bg-amber-900/40"
+      >
+        Reload the latest
+      </button>
+    </div>
+  );
+}
+
+function EditFields({
+  register,
+  draft,
+  onField,
+}: {
+  register: Collection;
+  draft: Draft;
+  onField: (key: string, value: string) => void;
+}) {
+  return (
+    <div className="space-y-4">
+      {editableFields(register).map((field) => (
+        <FieldInput
+          key={field.key}
+          field={field}
+          value={draft[field.key]}
+          onChange={(v) => onField(field.key, v)}
+        />
+      ))}
+    </div>
+  );
+}
+
+const INPUT_CLASS =
+  "w-full rounded-md border border-neutral-300 bg-white px-2.5 py-1.5 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-50";
+
+function FieldInput({
+  field,
+  value,
+  onChange,
+}: {
+  field: FieldEditor;
+  value: string | undefined;
+  onChange: (value: string) => void;
+}) {
+  // Field keys can contain spaces ("5 Whys"); slugify for a valid DOM id.
+  const id = `field-${field.key.replace(/\s+/g, "-")}`;
+  return (
+    <div>
+      <label
+        htmlFor={id}
+        className="mb-1 block text-xs font-medium text-neutral-500 dark:text-neutral-400"
+      >
+        {field.label}
+      </label>
+      {field.kind === "textarea" ? (
+        <textarea
+          id={id}
+          value={String(value ?? "")}
+          onChange={(e) => onChange(e.target.value)}
+          rows={3}
+          className={INPUT_CLASS}
+        />
+      ) : field.kind === "select" ? (
+        <select
+          id={id}
+          value={String(value ?? "")}
+          onChange={(e) => onChange(e.target.value)}
+          className={INPUT_CLASS}
+        >
+          {field.nullable ? <option value="">—</option> : null}
+          {field.options?.map((opt) => (
+            <option key={opt} value={opt}>
+              {opt}
+            </option>
+          ))}
+        </select>
+      ) : (
+        <input
+          id={id}
+          type={field.kind === "number" ? "number" : "text"}
+          value={String(value ?? "")}
+          onChange={(e) => onChange(e.target.value)}
+          className={INPUT_CLASS}
+        />
+      )}
+    </div>
   );
 }

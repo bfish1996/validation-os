@@ -11,8 +11,12 @@ import {
   TESTING_RUNGS,
   type Collection,
 } from "@validation-os/core";
+import type { FieldKind } from "./edit.js";
 
-export type FieldKind = "text" | "textarea" | "number" | "select" | "boolean";
+// The create form and the edit form speak the same field-kind vocabulary
+// (`FieldKind` lives in `edit.js`); the create-side spec adds `required` (a
+// blank blocks submit) and numeric `coerce` (a labelled numeric select → a
+// number), which the edit side doesn't need.
 
 export interface FormField {
   /** Record field key (what the create payload uses). */
@@ -158,8 +162,6 @@ export function toCreatePayload(
     if (f.kind === "number" || f.coerce === "number") {
       const n = Number(raw);
       if (!Number.isNaN(n)) out[f.key] = n;
-    } else if (f.kind === "boolean") {
-      out[f.key] = raw === "true";
     } else {
       out[f.key] = raw;
     }

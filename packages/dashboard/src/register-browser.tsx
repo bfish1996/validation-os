@@ -15,15 +15,20 @@ export interface RegisterBrowserProps {
 }
 
 /**
- * The browse-and-edit surface for one register: a list table that opens a
- * read-only drawer on row click, a "New" button that opens the create form, and
- * a relation editor in the drawer for wiring links. All writes go over HTTP
- * through the Clerk-gated API (which recomputes derived fields on write), so the
- * browser never touches Firestore directly. The thin host app renders this with
- * a `register` — that's the whole page.
+ * The browse-create-edit surface for one register: a list table that opens a
+ * record drawer on row click, a "New" button that opens the create form, and a
+ * relation editor in the drawer for wiring links. All reads and writes go over
+ * HTTP through the Clerk-gated API (which recomputes derived fields on write),
+ * so the browser never touches Firestore directly. After an edit saves, both
+ * the drawer's record and the list re-fetch so recomputed derived numbers show
+ * everywhere. The thin host app renders this with a `register` — that's the
+ * whole page.
  */
 export function RegisterBrowser({ register, basePath }: RegisterBrowserProps) {
-  const { records, loading, error, refresh } = useList(register, basePath);
+  const { records, loading, error, refresh: refreshList } = useList(
+    register,
+    basePath,
+  );
   const [openId, setOpenId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const {
@@ -33,13 +38,11 @@ export function RegisterBrowser({ register, basePath }: RegisterBrowserProps) {
     refresh: refreshRecord,
   } = useRecord(register, openId, basePath);
 
-  const label = REGISTER_LABEL[register];
-
   return (
     <div>
       <div className="mb-3 flex items-center justify-between">
         <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">
-          {label}
+          {REGISTER_LABEL[register]}
         </h1>
         <button
           type="button"
@@ -52,7 +55,7 @@ export function RegisterBrowser({ register, basePath }: RegisterBrowserProps) {
 
       {loading && !records ? (
         <p className="text-sm text-neutral-500">
-          Loading {label.toLowerCase()}…
+          Loading {REGISTER_LABEL[register].toLowerCase()}…
         </p>
       ) : error ? (
         <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
@@ -72,13 +75,21 @@ export function RegisterBrowser({ register, basePath }: RegisterBrowserProps) {
         error={recordError}
         open={openId !== null}
         onClose={() => setOpenId(null)}
+        basePath={basePath}
+        onChanged={() => {
+          refreshRecord();
+          refreshList();
+        }}
       >
         {openId ? (
           <RelationEditor
             register={register}
             recordId={openId}
             basePath={basePath}
-            onLinked={refreshRecord}
+            onLinked={() => {
+              refreshRecord();
+              refreshList();
+            }}
           />
         ) : null}
       </RecordDrawer>
@@ -102,7 +113,7 @@ export function RegisterBrowser({ register, basePath }: RegisterBrowserProps) {
           basePath={basePath}
           onCreated={(id) => {
             setCreating(false);
-            refresh();
+            refreshList();
             setOpenId(id);
           }}
           onCancel={() => setCreating(false)}
