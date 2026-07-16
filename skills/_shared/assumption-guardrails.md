@@ -146,7 +146,9 @@ bands:
 
 **The seed is purely intrinsic severity.** Don't fold in what depends on the
 record — no bump for dependents, goals, or decisions; the propagation below
-applies those mechanically, and hand-anchoring them too would double-count.
+applies dependents and standing decisions mechanically, and hand-anchoring
+them too would double-count. A goal never enters the seed *or* the
+propagation at all (a goal never touches Impact — see below).
 **Being a root is not itself a signal** — a record with no outgoing
 `Depends on` (it bottoms out a 5-Whys chain, §2) is normal; don't inflate
 the seed because a record has nothing further to trace.
@@ -160,8 +162,9 @@ Derived Impact = seed + (100 − seed) × S / (S + 100)
 
 where `S` = the sum of the record's **dependents' pull**: the `Derived
 Impact` of every assumption whose `Depends on` names this record, **plus 100
-per standing decision or goal** that names it via `Based on assumption` (a
-flat, max-severity node — no per-Kind grading, no signed push, upward only).
+per standing decision** that names it via `Based on assumption` (a flat,
+max-severity node — no per-Kind grading, no signed push, upward only).
+**Goals are not in `S`** — a goal never affects Impact (see below).
 Computed in one reverse-topological pass over the DAG (dependents first;
 cycles are impossible by §2's merge rule). Properties, by construction:
 
@@ -170,10 +173,10 @@ cycles are impossible by §2's merge rule). Properties, by construction:
 - bounded ≤ 100 and **floored at the seed** — propagation can never lower a
   score, and a catastrophic-but-leaf belief keeps its hand floor;
 - one max-severity dependent lifts a record halfway to the ceiling — a
-  goal-critical leaf surfaces for review instead of hiding under-ranked;
-- only **standing** (`Provisional`/`Active` decisions, `Draft`/`Active`
-  goals) nodes count — reverse or supersede one and its push vanishes at the
-  next recompute, no stored state to clean up;
+  decision-critical leaf surfaces for review instead of hiding under-ranked;
+- only **standing** `Provisional`/`Active` decisions count — reverse or
+  supersede one and its push vanishes at the next recompute, no stored state
+  to clean up;
 - a **moot** row (see below) is pinned at Derived Impact 0 and contributes
   nothing to its own `Depends on` targets.
 
@@ -184,13 +187,26 @@ relation-derived and immediate. **Review by exception:** eyeball only the
 queue top; disagree → edit the **seed band** or fix a wrong **graph edge**,
 never the derived total.
 
-**Goal and decision links are propagation nodes, not scoring prompts.** A
-standing goal or decision that leans on a belief (`Based on assumption`)
-raises that belief's Derived Impact through `S` — mechanically, flat, and
-auditable. Don't also nudge the seed for it. Linkage is never a Confidence
+**A standing decision is a propagation node, not a scoring prompt.** A
+standing decision that leans on a belief (`Based on assumption`) raises that
+belief's Derived Impact through `S` — mechanically, flat, and auditable.
+Don't also nudge the seed for it. Decision linkage is never a Confidence
 input (deciding is not evidence) and never a queue condition: every `Live`
 row competes on its own merits, linked or not (`registry-schema.md §Status
-& derived views`, `docs/goals.md`).
+& derived views`).
+
+**A goal never affects Impact — not the seed, not the propagation.** The
+business *acting on* a belief is already carried by the **decision** behind
+the pursuit, which anchors Impact; a goal is the measuring instrument for
+that pursuit, not a second importance signal, and anchoring both would
+double-count. Goals churn every cycle; the dependency structure doesn't. A
+goal reaches Impact only transitively and correctly: goal → evidence →
+Confidence on the beliefs it decomposes onto (`docs/goals.md §Out`) →
+informs a **decision** → the decision anchors Impact. Never a direct node.
+Goal linkage stays a per-goal view and an entry point, never a propagation
+node. Accepted tradeoff: a low-seed belief that matters only because an
+active goal rests on it no longer rises in the global queue — it's found via
+the per-goal view (`docs/goals.md §Through`).
 
 **Decision anchor (downward).** Decisions never close assumptions — they
 change what's staked on them. A standing decision that carries a `Resolves
@@ -208,7 +224,7 @@ that no longer stands is stale; audit flags it for a gated restore.
 **Scoring justification carries three parts**, so the derived number stays
 auditable: the hand-owned intrinsic reason ("scored 60: the GTM motion dies
 if false"), the script-written propagation provenance ("Derived 82 = seed 60
-+ pull from 6 dependents incl. Q3 pilot goal"), and any dated
++ pull from 6 dependents incl. the Q3 pricing decision"), and any dated
 override/mootness lines.
 
 **Risk (derived, never hand-written).**

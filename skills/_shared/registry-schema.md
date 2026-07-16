@@ -50,8 +50,8 @@ whatever the backend.
 | Description | text | One-sentence falsifiable statement: `We assume [user/system] will [behavior] because [reason]`. Plain, no hyperbole. |
 | Lens | select | The one audience whose decision this drives. **Single** — spans two → it's two assumptions; split. Define your own lens list in setup (example set: Commercial / Consumer / Investor). |
 | Theme | multi-select | Topic; orthogonal to Lens. Example set: Go-to-market, Product, UX, Business model, Technology, Regulatory, Market & competition, Trust & data. |
-| Impact | number 0–100 | **The intrinsic seed — the only hand-scored number.** Pure severity-if-false on anchored bands; never folds in dependents, goals, or decisions (the propagation does). `assumption-guardrails.md §3`. |
-| Derived Impact | derived | **Never hand-write.** = seed + (100 − seed) × S/(S + 100), where S sums the dependents' pull (dependent assumptions' Derived Impact + 100 per standing decision/goal `Based on` node). Written by the weekly recompute script; stale between runs by design. `assumption-guardrails.md §3`. |
+| Impact | number 0–100 | **The intrinsic seed — the only hand-scored number.** Pure severity-if-false on anchored bands; never folds in dependents, goals, or decisions — the seed is purely intrinsic. `assumption-guardrails.md §3`. |
+| Derived Impact | derived | **Never hand-write.** = seed + (100 − seed) × S/(S + 100), where S sums the dependents' pull (dependent assumptions' Derived Impact + 100 per standing decision `Based on` node; a goal never contributes). Written by the weekly recompute script; stale between runs by design. `assumption-guardrails.md §3`. |
 | Risk | derived | **Never hand-write.** = Derived Impact × (1 − max(0, Confidence)/100), ranges 0 to Derived Impact. Full-precision sort, rounded display. |
 | Confidence | derived | **Never hand-type.** Signed −100…100, 0 = no evidence: strength-weighted average of concluded linked readings with neutral prior w₀ = 100, deduped by source. ≤ −50 = the kill zone (human review prompt). Full rule: `experiment-guardrails.md §2`. |
 | Status | select | The **lifecycle** and nothing else: `Draft` (Gaps non-empty — record not yet trustworthy) → `Live` (the default forever-state, ranked by Risk) → `Invalidated` (rare, human-gated kill). There is **no `Validated`** — `docs/validated.md`. Testing, queue membership, goal linkage, mootness: derived views, §Status & derived views. |
@@ -64,13 +64,13 @@ whatever the backend.
 There is **no separate Goals field**: an assumption is *goal-linked* when a
 standing (`Draft` or `Active`) Goal record links it via `Based on
 assumption` — the linkage is that relation read backwards, computed, never
-stored. It is an **Impact anchor** (the goal enters the Derived Impact
-propagation as a flat node — `assumption-guardrails.md §3`) and a **queue
-view** ("what does this goal rest on?") — **never** a Confidence input, and
-**never a condition of queue membership**: every `Live` row is
-queue-eligible on its own merits, linked or not (§Status & derived views,
-`docs/goals.md`). A `Draft` goal counts, not only `Active`, so a goal's own
-beliefs can be tested before it commits.
+stored. It is a **per-goal queue view** ("what does this goal rest on?") and
+nothing more — **never an Impact anchor** (a goal never enters the Derived
+Impact propagation and never touches the seed — `assumption-guardrails.md
+§3`), **never a Confidence input**, and **never a condition of queue
+membership**: every `Live` row is queue-eligible on its own merits, linked
+or not (§Status & derived views, `docs/goals.md`). A `Draft` goal counts,
+not only `Active`, so a goal's own beliefs can be tested before it commits.
 
 Record **body** holds the long-form the fields can't: `## 5 Whys`,
 `## Metric for truth`, `## Scoring justification`, `## Provenance & notes`
@@ -111,7 +111,7 @@ Draft ──(grill close-out: the last Gaps tag──▶ Live ──(evidence ne
 
 | View | Definition |
 |---|---|
-| Goal-linked | a standing (`Draft`/`Active`) Goal record links the row via `Based on assumption`. An Impact anchor (propagation node) and a queue **view** — never a membership condition (`docs/goals.md`) |
+| Goal-linked | a standing (`Draft`/`Active`) Goal record links the row via `Based on assumption`. A per-goal queue **view** only — never an Impact anchor or a membership condition (`docs/goals.md`) |
 | Testing | `Live` + a linked experiment with `Result: Running` |
 | Test-next surface | **experiments, not assumptions** (there is no Risk-ranked belief queue): candidate/designed experiments on `Live` rows, ranked by `Feasibility` × the linked assumption's Risk, **goal-agnostic**. The exact ruleset, tie-breaks (most-negative signed Confidence first), and top-N cut are the experiment-prioritisation layer's |
 | Kill lane | `Live` + Confidence ≤ −50 — surfaced by audit for a human kill verdict, out of the test-next surface |
@@ -128,7 +128,7 @@ Draft ──(grill close-out: the last Gaps tag──▶ Live ──(evidence ne
   register is never invisible because no goal happens to sit near it. When a
   linking goal dies, nothing changes mechanically on the row: no status
   flips, no Impact edits, no reopen session; it keeps competing on its own
-  Risk. Linkage remains an Impact anchor and a per-goal view only
+  Risk. Linkage remains a per-goal view only, never an Impact anchor
   (`docs/goals.md`).
 - **Mootness, not closure, for decisions.** A resolving decision lowers the
   assumption's Impact to 0 in the same gated write, with a dated line in
@@ -182,7 +182,7 @@ Decision rows (the decision log). Terminology enforcement rules live in
 | Decided date | date | Decision only | When it was decided; may differ from row creation. |
 | Reversibility | select | Decision only | `Two-way door` / `One-way door`. Unclear = one-way. Sets the evidence bar for `Based on` links — `decision-guardrails.md §8`. |
 | Supersedes / Superseded by | self-relation, two-way | Decision only | Resolved, intentional override — distinct from `Related tension` (unresolved). |
-| Based on assumption | relation → Assumptions | Decision only | Rationale. Never touches the assumption, on any `Kind`. (The Goal record carries a relation of the same name — that one, read backwards, is the goal linkage: an Impact anchor and a view, never a queue condition.) |
+| Based on assumption | relation → Assumptions | Decision only | Rationale. Never touches the assumption, on any `Kind`. (The Goal record carries a relation of the same name — that one, read backwards, is the goal linkage: a per-goal view only, never an Impact anchor or a queue condition.) |
 | Resolves assumption | relation → Assumptions | Decision only | **Separate** relation from `Based on assumption` — never reuse one for the other. Setting it (gated) makes the linked assumption **moot**: Impact drops to 0, with a dated line recording the prior score; Status untouched. `decision-guardrails.md §6`. |
 
 ### Decision row body template

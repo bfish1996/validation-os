@@ -17,7 +17,7 @@ disciplined **5 Whys** (every "why" answer is either another assumption in
 the register or a ✅ ground truth, so the register self-completes into a
 dependency graph with shared foundations). The hand score is a pure
 intrinsic seed; a weekly script propagates what depends on each belief —
-dependents, standing goals and decisions — into a **Derived Impact**, so
+dependents and standing decisions — into a **Derived Impact**, so
 load-bearing beliefs rank by structure, not by re-scoring
 (`skills/_shared/assumption-guardrails.md §3`).
 
@@ -116,9 +116,10 @@ measuring instrument named in advance. The OS never becomes an OKR tracker
 — the team commits to what it chooses. Three joints connect the two machines:
 **in** — the beliefs a goal rests on are surfaced and their Confidence read
 back as **advisory bands**, which ask for a dated risk-acceptance when you're
-gambling but never block; **through** — those beliefs anchor Impact and get a
-queue view, but linkage is never a queue-membership condition: every `Live`
-assumption is eligible on its own merits; **out** — a verdict landing on a
+gambling but never block; **through** — those beliefs get a per-goal view,
+but linkage never anchors Impact (a goal never touches Impact) and never
+gates queue membership: every `Live` assumption is eligible on its own
+merits; **out** — a verdict landing on a
 linked belief trips a review of the goal, and at the deadline the outcome is
 decomposed per belief into evidence (a hit is top-rung proof; a miss usually
 invalidates something specific). Full treatment and a worked example:

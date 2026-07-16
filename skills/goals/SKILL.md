@@ -36,8 +36,8 @@ work the register through the active connector (`connectors/SPEC.md`).
 > The goal model — what a goal is, the three joints, and why the gate is gone
 > — lives in `../../docs/goals.md`; read it first, every mode. The register's
 > field map lives in `../_shared/registry-schema.md`. The risk-acceptance
-> line format is `../_shared/decision-guardrails.md §8`. Impact anchoring:
-> `../_shared/assumption-guardrails.md §3`. Gate discipline:
+> line format is `../_shared/decision-guardrails.md §8`. Why a goal never
+> anchors Impact: `../_shared/assumption-guardrails.md §3`. Gate discipline:
 > `../_shared/gated-writes.md`.
 
 > ⚠️ **Goal records are not Decision rows.** Never write a goal as `Type:
@@ -99,9 +99,10 @@ one silently is the failure it exists to prevent.
 
 ## How other skills reach goals
 
-- `/assumptions` reads goal linkage as an **Impact anchor**
-  (`../_shared/assumption-guardrails.md §3`) and nothing more. Linkage never
-  gates the test-next queue — every `Live` row is eligible on its own merits
+- `/assumptions` reads goal linkage as a **per-goal view** and nothing more —
+  never an Impact anchor, never a Confidence input
+  (`../_shared/assumption-guardrails.md §3`). Linkage never gates the
+  test-next queue — every `Live` row is eligible on its own merits
   (`../_shared/registry-schema.md §Status & derived views`).
 - `/find-evidence` does the decomposition Close depends on, and fires the
   **tripwire**: a conclusive verdict on a linked belief surfaces every
