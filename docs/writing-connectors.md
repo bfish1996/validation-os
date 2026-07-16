@@ -6,6 +6,19 @@ documents, not code: the **runtime connector** doc translates abstract registry
 operations into your backend's concrete tool calls, and the **schema guide**
 doc tells `/setup-validation-os` how to build or validate the backend.
 
+> **Note — this doc is for registry storage backends only.** Product
+> analytics tools (PostHog, Mixpanel, BigQuery, warehouse SQL) are
+> deliberately **not** modeled as a connector — their event/property schemas
+> are workspace-defined and discovered at runtime, not a fixed field list a
+> maintainer could map once (the schema-guide contract below assumes the
+> latter). Analytics is **Goals-side**: a scoreboard number is read at a
+> goal's deadline, not stored as a register field (`docs/goals.md §Found
+> numbers`). It's wired in through `/goals` — `skills/goals/references/draft.md`
+> names the instrument, `skills/goals/references/close.md` reads it — sharing
+> `skills/_shared/analytics-metric-resolution.md` and
+> `skills/_shared/quant-analytics-rubric.md`. Don't build a
+> `connectors/posthog.md` — there's no stable schema to map.
+
 ## Before you start
 
 Read, in order:

@@ -9,16 +9,25 @@ decides; the record remembers.
 
 ## Read first
 
-`../../../docs/goals.md` (the model — all of it). Field map:
-`../../_shared/registry-schema.md`. Risk-acceptance line format:
-`../../_shared/decision-guardrails.md §8`. Terminology check:
-`../../_shared/ubiquitous-language.md`. Gate: `../../_shared/gated-writes.md`.
+`../../../docs/goals.md` (the model — all of it, incl. §Found numbers). Field
+map: `../../_shared/registry-schema.md`. Risk-acceptance line format:
+`../../_shared/decision-guardrails.md §8`. When the instrument is a
+product-analytics / telemetry number: `../../_shared/analytics-metric-resolution.md`.
+Terminology check: `../../_shared/ubiquitous-language.md`. Gate:
+`../../_shared/gated-writes.md`.
 
 ## Entry
 
 The user states a goal, or asks to set one. No source document is required —
 unlike a decision, a goal is being *made* here, not recovered from a
 transcript.
+
+One entry is the **found number**: a scoreboard reading surfaced by a
+`/find-evidence` sweep or by the user ("24 of 34 are paying — mint a goal on
+this?"). Analytics is Goals-side and there is **no retro path** — a found
+number is never logged as evidence; it *prompts minting a forward goal*
+calibrated off it (`../../../docs/goals.md §Found numbers`). Draft it like any
+other goal, with the found-number calibration and ratchet below.
 
 ## Phases
 
@@ -37,7 +46,13 @@ transcript.
    - **Specific** — an outcome, never an activity. "Run 10 interviews" is an
      experiment plan; route it to `/experiment-design`.
    - **Measurable, instrument named in advance** — which number, read from
-     where. Unambiguous at the deadline.
+     where. Unambiguous at the deadline. **If the instrument is a
+     product-analytics / telemetry number**, resolve it to one concrete,
+     queryable event/metric *now*, via `../../_shared/analytics-metric-resolution.md`
+     (platform + `glossary_file` from the config `analytics:` block) —
+     delegate to the platform's own skill, never assume an event name exists.
+     A number nobody can query unambiguously isn't named. The resolved
+     definition is what the deadline read (`close.md`) re-validates and runs.
    - **Assignable** — exactly one Owner.
    - **Realistic — challenge the target number.** It must cite calibration
      evidence: a register Confidence, a current metric, a comparable. A
@@ -94,6 +109,32 @@ transcript.
 
 7. **Terminology check.** Run `../../_shared/ubiquitous-language.md` over the
    bars and rationale, audience = Internal.
+
+## Found-number mint & the ratchet
+
+When the goal is minted off a **found scoreboard number**
+(`../../../docs/goals.md §Found numbers`):
+
+- **A short first cycle is legitimate** — "read on Aug 31" a few weeks out is
+  fine; the point is a *real future deadline*, not a long one.
+- **Both bars pre-registered at mint, calibrated off the found number** — on
+  **absolute anchors, never %-of-target**. "15 customers today → we're right
+  if ≥20, wrong if <15" — not "wrong if we miss target by 25%". Sandbagging
+  buys nothing: magnitude keys to what materialises, not to how the target
+  was set.
+- **The ratchet.** Each next mint re-prices "no progress" **from the current
+  level**, so the kill floor rises: "5 new customers; wrong if 0 new". An
+  unchanged world then reads at the kill floor — a commitment-grade negative —
+  instead of re-banking the same standing number. This is what prevents
+  re-counting an unchanged world; dedupe doesn't (each closed goal is its own
+  aggregation unit, `close.md`).
+- **The discovered truth banks once, at the first close** — an interpolated
+  positive at the magnitude of what actually materialised. That's `close.md`'s
+  job, not draft's; draft only sets the bars that let it happen.
+
+Draft-time mining of the beliefs underneath (phase 4) is the ordinary
+machinery — a found-number goal births missing belief rows exactly like any
+other goal. No new rule.
 
 ## Re-cuts
 

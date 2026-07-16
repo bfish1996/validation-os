@@ -203,10 +203,14 @@ the skill must leave a Running interview-guide record behind; writes 2–3
 support it:
 
 1. **Create the interview-guide Experiment record** (verdict *New needed*):
-   title, `Result = Running`, `Type` = the honest rung, `Feasibility`,
-   `Assumption` relation → the target assumption(s), and body = recruit
-   criteria + questions + pre-registered `We're right if` (and kill bar),
-   per `../experiment-design/references/interview-guide.md`'s skeleton.
+   title, `Result = Running`, `Feasibility`, `Assumption` relation → the
+   target belief(s), and body = recruit criteria + questions tagged per belief
+   + **one signal→bar block per bundled belief** (planned rung + pre-registered
+   `We're right if` and kill bar), per
+   `../experiment-design/references/interview-guide.md`'s skeleton. Most
+   single-conversation prep tests one belief; when the same conversation
+   honestly bundles more, read and write each belief's block separately
+   (`../_shared/experiment-guardrails.md §1b`).
 2. **Interviewee** on the chosen/created record → the person (on Notion,
    take the interviewee field's name and relation target from the live
    schema — don't hardcode either; create a minimal person record if none

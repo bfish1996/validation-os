@@ -45,10 +45,13 @@ scoring, no vocabulary pass. If the record needs that, it's an
 `/assumptions` (single mode) job.
 
 Read `validation-os.config.yaml` (walk up from the working directory): the
-connector for register access, and `evidence_sources` for what's sweepable.
-Per-source search guidance lives in `references/` (one file per source
-type). No internal sources configured → the internal flavour still works by
-asking the user to paste or point at material.
+connector for register access, `evidence_sources` for what's sweepable, and
+the `source_map` for where each artifact kind lives and how to fetch it
+(`../_shared/experiment-guardrails.md §0`). Per-source search guidance lives
+in `references/` (one file per source type). No internal sources configured →
+the internal flavour still works by asking the user to paste or point at
+material — pasted material is filed into the "Raw evidence" home first, so a
+canonical link exists to store on the reading.
 
 ## When to reach for this vs. its siblings
 
@@ -98,11 +101,15 @@ thread. Call transcripts are the primary internal source when available.
   research can set a *base rate* but can't validate it, and there may be no
   internal signal yet → say so and point to `/experiment-design`. Log a
   base rate as context only (`Inconclusive`), never as validation.
-- **Your own product metrics** — the raw dashboards live in your analytics
-  tool, not this skill. **But** a *measured* metric value that bears on an
-  assumption's Metric for truth is real behaviour → revealed-tier evidence:
-  log it as an Experiment record (`Prototype usage` / `Paying users` rung,
-  source = the analytics view).
+- **Your own product metrics / scoreboard numbers** (a PostHog cohort, a CRM
+  stage count, a product-DB figure) are **Goals-side, never logged here.** A
+  measured scoreboard number is a *goal reading* — degree of achievement
+  against pre-set bars — not a Testing rung, and there is no retro path
+  (`docs/goals.md §Found numbers`). Surface it and route to `/goals` draft
+  ("24 of 34 are paying — mint a goal on this?"): a forward goal calibrated
+  off the found number. A discovery sweep of analytics **writes nothing** —
+  it only surfaces and routes. World-facts (market size, regulation) are
+  unaffected: those stay Testing-side desk research.
 
 You may run **both** flavours for one assumption when both bear on it —
 each qualifying piece becomes its own record.
@@ -159,13 +166,11 @@ the read is auditable. Search the disconfirming case too.
   to judge evidence against, that's a grill problem — flag it and point at
   `/assumptions` (single mode); don't fix it here.
 
-**Goal close-outs land here too**: when `/goals` closes a goal, the
-decomposition of the result into **per-belief** evidence readings (a hit →
-revealed-tier proof of the beliefs underneath; a miss → a specific
-invalidation) runs through this skill's procedure, same gates, and each
-reading links back to the closing goal. `/goals` cannot close a goal as
-Achieved/Missed until those readings exist — this skill is the gate's
-other half. A `Dropped` goal emits nothing; there is nothing to decompose.
+**Goal close-out decomposition does *not* run here.** When `/goals` closes a
+goal, it decomposes the outcome into per-belief readings **in-skill** (`/goals`
+close — `docs/goals.md §Out`); this skill no longer owns that step. What
+`/find-evidence` still does for goals is fire the **tripwire** above: a
+conclusive verdict surfaces the standing goals resting on the belief.
 
 ## Never
 
