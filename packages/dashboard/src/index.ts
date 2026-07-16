@@ -1,9 +1,10 @@
 /**
  * @validation-os/dashboard — React components + hooks for the validation-os
- * dashboard, consuming the register through the Clerk-gated API read routes.
- * The register-counts panel is the walking-skeleton surface; the browse tables
- * + read-only record drawer are the Read slice. Write + the understanding-layer
- * views land in later slices.
+ * dashboard, consuming the register through the Clerk-gated API. The
+ * register-counts panel is the walking-skeleton surface; the browse tables +
+ * record drawer are the Read/Edit slices. The drawer edits under optimistic
+ * concurrency with server-side derive-on-write. Deeper understanding-layer
+ * views (per-experiment movers, trajectory) land in later slices.
  */
 export { RegisterCounts } from "./register-counts.js";
 export type { RegisterCountsProps } from "./register-counts.js";
@@ -15,8 +16,21 @@ export { RegisterBrowser } from "./register-browser.js";
 export type { RegisterBrowserProps } from "./register-browser.js";
 export { useCounts } from "./use-counts.js";
 export type { Counts, UseCountsResult } from "./use-counts.js";
-export { useList, useRecord } from "./use-records.js";
-export type { UseListResult, UseRecordResult } from "./use-records.js";
+export { useList, useRecord, useUpdate, interpretSave } from "./use-records.js";
+export type {
+  UseListResult,
+  UseRecordResult,
+  UseUpdateResult,
+  SaveResult,
+} from "./use-records.js";
+export {
+  CONFLICT_MESSAGE,
+  buildPatch,
+  draftFrom,
+  editableFields,
+  hasEdits,
+} from "./edit.js";
+export type { Draft, FieldEditor, FieldKind } from "./edit.js";
 export {
   cellValue,
   columnsFor,
