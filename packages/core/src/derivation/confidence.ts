@@ -14,7 +14,7 @@ import type { MagnitudeBand, Result, Rung } from "../types.js";
 import { round2 } from "./round.js";
 import { isGoalRung } from "./rung.js";
 import { sourceQuality } from "./source-quality.js";
-import { readingStrength } from "./strength.js";
+import { isConcluded, readingStrength } from "./strength.js";
 
 /** The neutral prior weight — a hard floor per the guardrails. */
 export const W0 = 100;
@@ -32,23 +32,31 @@ export interface ConfidenceReadingInput {
   magnitudeBand?: MagnitudeBand;
 }
 
-interface Scored {
+export interface Scored {
   input: ConfidenceReadingInput;
   strength: number;
   sq: number;
+  /** The reading's weight in the average: |strength| × Source quality. */
+  weight: number;
 }
 
-export function confidence(readings: ConfidenceReadingInput[]): number {
+/**
+ * Score every concluded reading and resolve the Source dedupe — the shared
+ * front half of the Confidence average. `confidence()` reduces the winners to
+ * a number; `confidenceAttribution()` reuses the same winners so the movers it
+ * reports always decompose the very number the drawer shows. Goal rungs never
+ * dedupe (each closed goal is its own unit).
+ */
+export function scoreAndDedupe(readings: ConfidenceReadingInput[]): Scored[] {
   const scored: Scored[] = readings
-    .filter((r) => r.result === "Validated" || r.result === "Invalidated")
-    .map((r) => ({
-      input: r,
-      strength: readingStrength(r),
-      sq: sourceQuality(r.representativeness, r.credibility),
-    }))
+    .filter((r) => isConcluded(r.result))
+    .map((r) => {
+      const strength = readingStrength(r);
+      const sq = sourceQuality(r.representativeness, r.credibility);
+      return { input: r, strength, sq, weight: Math.abs(strength) * sq };
+    })
     .filter((x) => x.strength !== 0);
 
-  // Dedupe by Source; goal rungs never dedupe.
   const best = new Map<string, Scored>();
   for (const x of scored) {
     if (isGoalRung(x.input.rung)) {
@@ -64,13 +72,16 @@ export function confidence(readings: ConfidenceReadingInput[]): number {
         (x.input.date || "") > (cur.input.date || ""));
     if (better) best.set(key, x);
   }
+  return [...best.values()];
+}
 
+export function confidence(readings: ConfidenceReadingInput[]): number {
+  const winners = scoreAndDedupe(readings);
   let num = 0;
   let den = W0;
-  for (const x of best.values()) {
-    const w = Math.abs(x.strength) * x.sq;
-    num += w * x.strength;
-    den += w;
+  for (const x of winners) {
+    num += x.weight * x.strength;
+    den += x.weight;
   }
   return den > 0 ? round2(num / den) : 0;
 }
