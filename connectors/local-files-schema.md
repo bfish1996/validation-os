@@ -23,12 +23,15 @@ registers:
       - {canonical: Lens, backend: Lens, type: text, derived: false, options_source: vocabulary.lens}
       - {canonical: Theme, backend: Themes, type: text, derived: false, options_source: registry-schema}
       - {canonical: Impact, backend: Impact, type: number, derived: false}
-      - {canonical: Derived Impact, backend: Derived Impact, type: number, derived: true, formula: "seed + (100 - seed) × S/(S + 100), S = Σ dependents' Derived Impact + 100 per standing decision Based on this row; goals never contribute (assumption-guardrails.md §3); weekly script, bullet marked <!-- derived -->"}
+      - {canonical: Derived Impact, backend: Derived Impact, type: number, derived: true, formula: "seed + (100 - seed) × S/(S + 100), S = Σ dependents' Derived Impact + 100 per standing decision Based on this row; goals never contribute (assumption-guardrails.md §3); recomputed on every touching write (OPS-1251), bullet marked <!-- derived -->"}
       - {canonical: Risk, backend: Risk, type: number, derived: true, formula: "Derived Impact * (1 - max(0, Confidence) / 100); skill-computed, bullet marked <!-- derived -->"}
       - {canonical: Confidence, backend: Confidence, type: number, derived: true, formula: "signed weighted average of concluded Validated/Invalidated Readings, weight = |Strength| × Source quality, neutral prior w0=100 (hard floor ≥98), deduped by source to the strongest/most-recent (experiment-guardrails.md §2); skill-computed, bullet marked <!-- derived -->"}
       - {canonical: Status, backend: Status, type: text, derived: false, options_source: registry-schema}
       - {canonical: Owner, backend: Owner, type: text, derived: false}
       - {canonical: Gaps, backend: Gaps, type: text, derived: false, options_source: registry-schema}
+      - {canonical: 5 Whys, backend: "### 5 Whys section", type: text, derived: false, presence_gate: Live}
+      - {canonical: Metric for truth, backend: "### Metric for truth section", type: text, derived: false, presence_gate: Live}
+      - {canonical: Scoring justification, backend: "### Scoring justification section", type: text, derived: false, presence_gate: Live}
     relations:
       - {canonical: Depends on / Enables, backend: "Depends on / Enables bullets", target: assumptions, cardinality: many, self: true}
       - {canonical: Contradicts, backend: Contradicts, target: assumptions, cardinality: many, self: true}
@@ -161,6 +164,9 @@ per record named by ID (`<ID>.md`):
 | Status | `- **Status**: ...` | text | no |
 | Owner | `- **Owner**: ...` | text | no |
 | Gaps | `- **Gaps**: ...` | text | no |
+| 5 Whys | `### 5 Whys` section | text | no (presence required to go Live) |
+| Metric for truth | `### Metric for truth` section | text | no (presence required to go Live) |
+| Scoring justification | `### Scoring justification` section | text | no (presence required to go Live) |
 | Depends on / Enables | `- **Depends on**: ...` / `- **Enables**: ...` | text (IDs) | no |
 | Contradicts | `- **Contradicts**: ...` | text (IDs) | no |
 | Readings | `- **Readings**: ...` | text (IDs) | no |
@@ -174,9 +180,9 @@ derived view over the Experiments' bar lines, never a stored bullet here.
 
 - **Derived Impact** = `seed + (100 - seed) × S/(S + 100)`, where `S` sums
 linked dependents' Derived Impact plus 100 per standing decision naming this
-row via `Based on assumption`. Goals never contribute. Written by the weekly
-recompute script; stale between runs by design (`assumption-guardrails.md
-§3`).
+row via `Based on assumption`. Goals never contribute. Recomputed on every
+touching write alongside Risk/Confidence — no deliberate staleness
+(`OPS-1251`; `assumption-guardrails.md §3`).
 - **Risk** = `Derived Impact * (1 - max(0, Confidence) / 100)`.
 - **Confidence** = signed weighted average of concluded Validated/Invalidated
 Readings, weight `|Strength| × Source quality`, neutral prior w₀ = 100,
@@ -184,15 +190,17 @@ deduped by source to the strongest/most-recent (`experiment-guardrails.md
 §2`).
 
 Canonical formulas live in `experiment-guardrails.md §2` and
-`assumption-guardrails.md §3`; skills (or the weekly script) compute and
-write them — never hand-edit.
+`assumption-guardrails.md §3`; the recompute pass computes and writes them on
+every touching write (`OPS-1251`) — never hand-edit.
 
 ### Body subheadings
 
+`5 Whys`, `Metric for truth`, and `Scoring justification` are **first-class
+fields** (above), each realized as its own `###` section so that presence is a
+structural check, not a semantic gap (`OPS-1273`). The only free-form body
+section left is:
+
 ```markdown
-### 5 Whys
-### Metric for truth
-### Scoring justification
 ### Provenance & notes
 ```
 

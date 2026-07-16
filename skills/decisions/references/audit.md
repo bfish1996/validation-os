@@ -39,7 +39,7 @@ time, gated, through Capture mode.
      flag each for a gated restore of the prior Impact from the dated
      mootness line.
    - **Moot without a resolver**: assumptions at Impact 0 whose mootness
-     line in `## Scoring justification` cites a resolving decision that is
+     line in the `Scoring justification` field cites a resolving decision that is
      no longer standing — same fix, from the assumption side; flag for the
      gated restore.
    - **Stale rationale**: `Active` decisions whose `Based on assumption`

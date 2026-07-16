@@ -23,12 +23,15 @@ registers:
       - {canonical: Lens, backend: lens, type: string, derived: false, options_source: vocabulary.lens}
       - {canonical: Theme, backend: themes, type: "string[]", derived: false, options_source: registry-schema}
       - {canonical: Impact, backend: impact, type: number, derived: false}
-      - {canonical: Derived Impact, backend: derived.impact, type: number, derived: true, formula: "seed + (100 - seed) × S/(S + 100), S = Σ dependents' Derived Impact + 100 per standing decision Based on assumption; goals never contribute (assumption-guardrails.md §3); weekly script"}
+      - {canonical: Derived Impact, backend: derived.impact, type: number, derived: true, formula: "seed + (100 - seed) × S/(S + 100), S = Σ dependents' Derived Impact + 100 per standing decision Based on assumption; goals never contribute (assumption-guardrails.md §3); recomputed on every touching write (OPS-1251)"}
       - {canonical: Risk, backend: derived.risk, type: number, derived: true, formula: "derived.impact * (1 - max(0, derived.confidence) / 100); skill-computed"}
       - {canonical: Confidence, backend: derived.confidence, type: number, derived: true, formula: "(w0·0 + Σ wi·si) / (w0 + Σ wi), w0=100, wi=|si|×Source quality, si=the reading's signed Strength; concluded Readings only, deduped by Source (experiment-guardrails.md §2); skill-computed"}
       - {canonical: Status, backend: status, type: string, derived: false, options_source: registry-schema}
       - {canonical: Owner, backend: owner, type: string, derived: false}
       - {canonical: Gaps, backend: gaps, type: "string[]", derived: false, options_source: registry-schema}
+      - {canonical: 5 Whys, backend: fiveWhys, type: string, derived: false, presence_gate: Live}
+      - {canonical: Metric for truth, backend: metricForTruth, type: string, derived: false, presence_gate: Live}
+      - {canonical: Scoring justification, backend: scoringJustification, type: string, derived: false, presence_gate: Live}
     relations:
       - {canonical: Depends on / Enables, backend: "dependsOn, enables", target: assumptions, cardinality: many, self: true}
       - {canonical: Contradicts, backend: contradicts, target: assumptions, cardinality: many, self: true}
@@ -195,10 +198,13 @@ is no shared `type` field splitting one collection into two record kinds.
 | Status | `status` | string | no |
 | Owner | `owner` | string | no |
 | Gaps | `gaps` | string[] | no |
+| 5 Whys | `fiveWhys` | string | no (presence required to go Live) |
+| Metric for truth | `metricForTruth` | string | no (presence required to go Live) |
+| Scoring justification | `scoringJustification` | string | no (presence required to go Live) |
 | Depends on / Enables | `dependsOn`, `enables` | string[] (IDs) | no |
 | Contradicts | `contradicts` | string[] (IDs) | no |
 | Readings | `readings` | string[] (IDs) | no |
-| Body | `body` | string (Markdown) | no |
+| Body | `body` | string (Markdown; `## Provenance & notes`) | no |
 
 There is **no `experiments` array** on the assumption document. "Which
 experiments test this belief" is a derived view over the Experiments'
@@ -209,8 +215,9 @@ never stored.
 
 - `derived.impact` = seed + (100 − seed) × S/(S + 100), S = Σ dependents'
   Derived Impact + 100 per standing decision naming the row via `Based on
-  assumption`; goals never contribute. Written by the weekly recompute script
-  — stale between runs by design (`assumption-guardrails.md §3`).
+  assumption`; goals never contribute. Recomputed on every touching write
+  alongside `derived.risk`/`derived.confidence` — no deliberate staleness
+  (`OPS-1251`; `assumption-guardrails.md §3`).
 - `derived.risk` = `derived.impact * (1 - max(0, derived.confidence) / 100)`.
 - `derived.confidence` = the signed weighted average of concluded linked
   Readings, neutral prior w₀ = 100, deduped by `Source`. Canonical formula:

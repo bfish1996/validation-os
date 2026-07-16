@@ -82,6 +82,16 @@ export interface AssumptionRecord extends BaseRecord {
   Owner: string[];
   Gaps: string[];
   moot: boolean;
+  /**
+   * Presence-gap fields — long-form prose promoted from body sections to
+   * first-class fields (OPS-1273). Their PRESENCE is a structural, blocking
+   * check (see `presence.ts`): non-empty is required to move Status to `Live`
+   * (the presence half of the Draft→Live gaps invariant, OPS-1251). May be
+   * empty ("") while `Draft`.
+   */
+  "5 Whys": string;
+  "Metric for truth": string;
+  "Scoring justification": string;
   dependsOnIds: string[];
   enablesIds: string[];
   contradictsIds: string[];
