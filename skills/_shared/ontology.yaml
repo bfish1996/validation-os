@@ -322,35 +322,26 @@ relations:
     nullable: true
     meaning: The originating goal container. Null for experiment and bare readings. Exactly one of {Experiment, Goal} is set, or neither (integrity rule reading-two-origins).
 
-  - name: Experiment / Assumption (bar line)
-    kind: directed
-    forward: bar line            # the edge-with-attributes, composed into the experiment
-    source: experiments
-    target: assumptions
-    cardinality: many-to-many
-    via: bar_line
-    meaning: >-
-      An Experiment bundles one-or-more beliefs; each is a bar line (We're
-      right if / We're wrong if / Planned rung / closure Bar verdict). The
-      bar verdict is a report, never a Confidence input. "Which experiments
-      test this belief" (derived_views.experiments_testing_me) reads these
-      edges — never a stored field on the assumption.
+# The Experiment↔belief link is NOT a top-level relation: it is the composed
+# `bar_line` sub-structure (entities.bar_line, references: assumptions), realized
+# backend-natively inside each Experiment. "Which experiments test this belief"
+# (derived_views.experiments_testing_me) reads those composed bar lines.
 
-  - name: Related tension (Decision)
+  - name: Related tension
     kind: symmetric
     source: decisions
     target: decisions
     cardinality: many-to-many
     meaning: "Decision↔Decision: unresolved contradiction — actionability inferred from each row's Status (decision-guardrails.md §4). Resolved via Supersedes."
 
-  - name: Related tension (Glossary)
+  - name: Related tension
     kind: symmetric
     source: glossary
     target: glossary
     cardinality: many-to-many
     meaning: "Glossary↔Glossary: confusable-neighbour pairing (informational; pairs with the ## How it differs bullets)."
 
-  - name: Supersedes / Superseded by (Decision)
+  - name: Supersedes / Superseded by
     kind: directed
     forward: Supersedes
     inverse: Superseded by
@@ -359,7 +350,7 @@ relations:
     cardinality: many-to-many
     meaning: Resolved, intentional override; the superseded row's Status flips to Superseded. Distinct from Related tension (unresolved) — never both for the same counterpart at once.
 
-  - name: Supersedes / Superseded by (Goal)
+  - name: Supersedes / Superseded by
     kind: directed
     forward: Supersedes
     inverse: Superseded by
@@ -368,7 +359,7 @@ relations:
     cardinality: many-to-many
     meaning: Re-cut supersedes the prior goal; the superseded goal goes Closed / Dropped and emits no reading (docs/goals.md).
 
-  - name: Based on assumption (Decision)
+  - name: Based on assumption
     kind: directed
     forward: Based on assumption
     source: decisions
@@ -384,7 +375,7 @@ relations:
       goal linkage (derived_views.goal_linked) — a per-goal view that never
       touches Impact.
 
-  - name: Based on assumption (Goal)
+  - name: Based on assumption
     kind: directed
     forward: Based on assumption
     source: goals
@@ -498,9 +489,9 @@ derived_views:
     is not a node in derived_impact), never a condition of test-next
     membership, never a Confidence input (docs/goals.md).
   experiments_testing_me: >-
-    The Experiments whose bar lines name this belief — read over the bar-line
-    edges (relations: Experiment / Assumption (bar line)), never a stored
-    relation on the assumption. Feeds Testing and the test-next surface.
+    The Experiments whose composed bar lines name this belief — read over the
+    experiments' bar lines (each bar_line references one assumption), never a
+    stored relation on the assumption. Feeds Testing and the test-next surface.
   testing: "Status = Live AND a linked Experiment (plan) has Status = Running with an open bar line on this belief."
   test_next_surface: >-
     Experiments, not assumptions — there is no Risk-ranked belief queue.

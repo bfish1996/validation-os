@@ -69,9 +69,9 @@ opencode — [70+ harnesses](https://skills.sh)). Then, in your workspace:
 Setup asks where your registry should live and writes a
 `validation-os.config.yaml`. **Zero-dependency default:** plain markdown
 files in a `registry/` directory — git-tracked, no API keys, working in
-under a minute. Already run your product work in Notion? Choose the Notion
-connector and point the config at your own databases
-([connectors/notion.md](connectors/notion.md)).
+under a minute. Prefer a database? Point the config at a SQL or NoSQL
+backend ([connectors/sql.md](connectors/sql.md),
+[connectors/nosql.md](connectors/nosql.md)).
 
 Update later with `npx skills update`. Versioned releases are tagged
 (`vX.Y.Z`) with notes in [CHANGELOG.md](CHANGELOG.md).
@@ -279,8 +279,8 @@ paste-your-notes.
 
 **Storage backends** are pluggable connectors:
 [local-files](connectors/local-files.md) (default) ·
-[notion](connectors/notion.md) · [sql](connectors/sql.md) ·
-[nosql](connectors/nosql.md) · [write your own](docs/writing-connectors.md)
+[sql](connectors/sql.md) · [nosql](connectors/nosql.md) ·
+[write your own](docs/writing-connectors.md)
 against [the spec](connectors/SPEC.md). Each ships with a schema guide
 (`connectors/<name>-schema.md`) that `/setup-validation-os` uses to validate
 or build the backend for you — validate-first, every change gated.

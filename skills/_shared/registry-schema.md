@@ -203,7 +203,7 @@ on the assumption.
 | Assumption | relation | **Exactly one** belief this Reading bears on. Inverse of the assumption's `Readings`. |
 | Experiment | relation (nullable) | The originating plan, as provenance. Null for goal and bare/found Readings. |
 | Goal | relation (nullable) | The originating goal container. Null for experiment and bare Readings. |
-| Rung | select | The ladder rung this Reading sits on — inherited from the bar line at logging, or set directly for goal/bare Readings. The 8-rung activity-and-strength ladder (`experiment-guardrails.md §2`). |
+| Rung | select | The ladder rung this Reading sits on — inherited from the bar line at logging, or set directly for goal/bare Readings. The single 8-rung activity-and-strength ladder (`experiment-guardrails.md §2`): 🧪 Testing — `Opinion` · `Pitch-deck reaction` · `Anecdotal` · `Desk research` · `Survey at scale` · `Prototype usage`; 🎯 Goals — `Signed intent` · `Paying users` (two pre-registered bars, magnitude bands). |
 | Representativeness | select {1.0, 0.7, 0.5} | How well the source represents the ICP/Lens. |
 | Credibility | select {1.0, 0.7, 0.5} | How much *this* source's word is worth. |
 | Source quality | derived | **Never hand-write.** = `Representativeness × Credibility` — anchors {0.25, 0.35, 0.5, 0.7, 1.0}. Scales the Reading's *weight* in the Confidence average, within its rung, never across. |
