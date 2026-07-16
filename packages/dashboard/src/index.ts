@@ -39,6 +39,8 @@ export {
   RISK_WARN,
 } from "./primitives.js";
 export type { Tone } from "./primitives.js";
+export { RegisterNav } from "./register-nav.js";
+export type { RegisterNavProps } from "./register-nav.js";
 export { RegisterCounts } from "./register-counts.js";
 export type { RegisterCountsProps } from "./register-counts.js";
 export { RegisterTable } from "./register-table.js";

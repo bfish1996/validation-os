@@ -1,15 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import type { Collection } from "@validation-os/core";
-import {
-  REGISTER_GROUPS,
-  REGISTER_ICON,
-  REGISTER_LABEL,
-  REGISTER_ORDER,
-  REGISTER_SUBTITLE,
-} from "./labels.js";
+import { REGISTER_ORDER, REGISTER_SUBTITLE } from "./labels.js";
 import { RegisterBrowser } from "./register-browser.js";
+import { RegisterNav } from "./register-nav.js";
 import { useCounts } from "./use-counts.js";
-import { formatCount } from "./primitives.js";
 
 /**
  * Everything the instance passes — config only, never secrets. The API base
@@ -29,6 +23,8 @@ export interface DashboardConfig {
     name?: string;
     /** One or two letters for the square mark (default "V"). */
     initials?: string;
+    /** A logo image for the square mark; overrides `initials` when set. */
+    logoUrl?: string;
   };
   /** Optional agent label shown in the topbar, e.g. "Claude Code". */
   agentLabel?: string;
@@ -113,15 +109,18 @@ export function ValidationOSDashboard({ config = {} }: ValidationOSDashboardProp
 
   const brandName = branding?.name ?? "Validation-OS";
   const brandMark = branding?.initials ?? "V";
-  const groups = REGISTER_GROUPS.map((g) => ({
-    ...g,
-    registers: g.registers.filter((r) => registers.includes(r)),
-  })).filter((g) => g.registers.length > 0);
 
   return (
     <div className="vos-app">
       <div className="vos-brand">
-        <span className="vos-brand-dot">{brandMark}</span> {brandName}
+        <span className="vos-brand-dot">
+          {branding?.logoUrl ? (
+            <img src={branding.logoUrl} alt="" />
+          ) : (
+            brandMark
+          )}
+        </span>{" "}
+        {brandName}
       </div>
 
       <div className="vos-topbar">
@@ -150,32 +149,12 @@ export function ValidationOSDashboard({ config = {} }: ValidationOSDashboardProp
         ) : null}
       </div>
 
-      <nav className="vos-nav" aria-label="Registers">
-        {groups.map((group) => (
-          <div key={group.label}>
-            <div className="vos-nav-group">{group.label}</div>
-            {group.registers.map((register) => (
-              <button
-                key={register}
-                type="button"
-                className={`vos-nav-item ${register === active ? "is-active" : ""}`}
-                aria-current={register === active ? "page" : undefined}
-                onClick={() => select(register)}
-              >
-                <span className="vos-nav-ic" aria-hidden="true">
-                  {REGISTER_ICON[register]}
-                </span>
-                {REGISTER_LABEL[register]}
-                <span className="vos-nav-count vos-num">
-                  {counts?.[register] !== undefined
-                    ? formatCount(counts[register] ?? 0)
-                    : "·"}
-                </span>
-              </button>
-            ))}
-          </div>
-        ))}
-      </nav>
+      <RegisterNav
+        active={active}
+        onSelect={select}
+        counts={counts}
+        registers={registers}
+      />
 
       <main className="vos-main">
         <RegisterBrowser
