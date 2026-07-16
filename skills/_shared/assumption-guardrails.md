@@ -273,20 +273,24 @@ the record's own severity (e.g. "the thesis dies" scored 10) is a flag.
 - **Atomicity.** One assumption = one falsifiable claim. If the statement has
   "and"/"or"/";" joining separable claims, or needs two different metrics to
   disprove, **split it**.
-- **Duplicate test (merge).** Two assumptions are duplicates if **one single
-  experiment would validate/invalidate both**. Merge; keep the most specific
-  wording.
+- **Duplicate test (merge).** Two assumptions are duplicates if **the same
+  pre-registered bar — the same reading — would resolve both**. Merge; keep
+  the most specific wording. ("One experiment tests both" is *not* the
+  test: one experiment legitimately bundles several distinct beliefs, each
+  with its own bar — `experiment-guardrails.md §1b`.)
 - **Distinctness test (keep).** They're distinct if their truth values are
-  **independent** — one can be true while the other is false.
+  **independent** — one can be true while the other is false — i.e. each
+  needs its own bar to fail independently. Distinct beliefs may still share
+  a run.
 - **Dependency ≠ duplicate.** "A builds on B" is a `Depends on` edge, not an
   overlap. Chains (need→feasibility, behaviour→why→threat) are kept, wired,
   not merged.
 - **Contradictions.** Two flavours — the test that separates them is *"could
-  one experiment's result speak to both?"*
+  one reading resolve both?"*
   - **(a) Direct contradiction (merge).** Two records asserting opposite
     truth values of the *same* proposition ("X IS a driver" / "X is NOT a
     driver") are **not two assumptions** — reconcile into **one**. The same
-    experiment resolves both, so this is a duplicate-by-negation: merge.
+    bar resolves both, so this is a duplicate-by-negation: merge.
   - **(b) Tension (keep both, wire it).** Two *distinct, both-stated* claims
     that can't both hold in practice ("users want simplicity" / "users want
     deep customization") have **independent truth values resolved by

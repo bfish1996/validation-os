@@ -20,3 +20,14 @@ vocabulary:
 
 evidence_sources:
   - web
+
+# Source-map — artifact kind → home → how to fetch, one line per kind
+# (skills/_shared/experiment-guardrails.md §0). Identity is the artifact's
+# canonical link; the register references homes, never mirrors them. This
+# repo logs desk evidence only, so no homes are declared yet. Example:
+#
+# source_map:
+#   interview: { home: Fireflies, fetch: transcript URL }
+#   prototype: { home: <prototype repo>, fetch: repo/deploy URL }
+#   customer:  { home: Attio, fetch: record URL }
+#   raw:       { home: Google Drive "Raw evidence" folder, fetch: file URL }

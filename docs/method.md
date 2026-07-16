@@ -31,13 +31,23 @@ Skills: `/assumptions` (build, grill, audit). Rules:
 
 ## Habit 2 — Buy down risk with evidence
 
-An **Experiment** is designed per assumption — falsifiable, pre-registered
-(`We're right if` / `We're wrong if` fixed before running), and bought at
-the lowest rung of the **evidence ladder** that can honestly move the
-belief (see `evidence-ladder.md`: 8 rungs in two categories — **Testing**,
+An **Experiment** is a pre-registered plan — one instrument, one protocol
+run, one Lens-matched population — that may honestly test **several**
+beliefs at once, each bundled belief carrying its own `We're right if` /
+`We're wrong if` pair and its own planned rung, all fixed before running
+(`skills/_shared/experiment-guardrails.md §1b`). Each rung is bought at the
+lowest step of the **evidence ladder** that can honestly move that belief
+(see `evidence-ladder.md`: 8 rungs in two categories — **Testing**,
 recruited-sample instruments from Opinion ±3 to Prototype usage ±30, and
 **Goals**, market-closed targets from Signed intent up to Paying users
-±99).
+±99). Evidence arrives as **readings** — one per artifact × belief it
+actually addressed — born exactly three ways: from an Experiment (forward
+design), from a Goal at its deadline, or bare (found evidence: desk
+research, sweeps). Never retroactively: found evidence gets no wrapper
+experiment, and a found scoreboard number prompts a *forward* goal
+(`goals.md`). An experiment closes (or is killed — same gate) by one human
+act: a bar verdict per belief plus a rollup summary, which are **reports,
+never Confidence inputs** — the readings already carried the evidence.
 
 Two derived numbers close the loop, and **neither is ever typed by hand**:
 
@@ -55,12 +65,14 @@ Two derived numbers close the loop, and **neither is ever typed by hand**:
 The loop:
 
 ```
-Assumption → (grill/score) → Experiment (pre-registered bars)
-    → Evidence → Confidence moves → Risk follows → next test surfaces
+Assumption → (grill/score) → Experiment (pre-registered per-belief bars)
+    → Readings land rolling → Confidence moves → Risk follows
+    → next test surfaces → closure: human bar verdicts (a report)
 ```
 
 Skills: `/experiment-design` (forward tests), `/find-evidence`
-(retrospective evidence — internal record + desk research),
+(retrospective evidence — internal record + desk research; Testing-side
+only — scoreboard numbers are `/goals`' side, `goals.md`),
 `/meeting-prep` (person → assumption matching: work backward from who
 you're meeting to what they can uniquely prove or disprove). Rules:
 `skills/_shared/experiment-guardrails.md`,
@@ -127,9 +139,13 @@ invalidates something specific). Full treatment and a worked example:
 
 ## Verdicts are human
 
-Experiments conclude with a human rendering **Validated / Invalidated /
-Inconclusive** against the pre-registered bar — never auto-flipped by a
-threshold, never by a batch job. On the assumption, any verdict moves
+Readings conclude with a human rendering **Validated / Invalidated /
+Inconclusive** against the pre-registered bar — rolling, as evidence is
+logged; never auto-flipped by a threshold, never by a batch job. Closing an
+experiment (or killing it — the same gate, a different reason code) is one
+further human act: a bar verdict per bundled belief plus a rollup summary,
+recorded as a report, never re-counted into Confidence
+(`skills/_shared/experiment-guardrails.md §6`). On the assumption, any verdict moves
 nothing but Confidence — an invalidating one lowers it, which is a re-test
 signal, and Confidence sinking past −50 raises a kill prompt; only a
 human-affirmed kill touches the row (`Live → Invalidated`) — there is no

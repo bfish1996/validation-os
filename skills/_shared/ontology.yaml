@@ -155,7 +155,12 @@ entities:
     body_headings: [5 Whys, Metric for truth, Scoring justification, Provenance & notes]
 
   experiments:
-    description: One row per test designed against an assumption; evidence rows and experiment rows are the same thing.
+    description: >-
+      Live encoding of the Testing-side pre-registered container: one row per
+      belief under test — the row doubles as that belief's bar line (plan)
+      and its reading (evidence). The plan/reading split is settled
+      conceptually (experiment-guardrails.md §0); its physical schema is
+      pending the registry-schema rewrite.
     properties:
       - { name: Title, type: title, required: true }
       - { name: Type, type: select, options: vocabularies.experiment_type, required: true }
@@ -223,8 +228,8 @@ relations:
     inverse: Experiments         # on the assumption row
     source: experiments
     target: assumptions
-    cardinality: many-to-one     # exactly one assumption per experiment
-    meaning: The tests designed against a belief. One assumption per experiment, always.
+    cardinality: many-to-one     # exactly one assumption per row
+    meaning: The tests designed against a belief. One assumption per row, always; beliefs sharing one honest run bundle as one row per belief with a shared instrument link + protocol (experiment-guardrails.md §1b).
 
   - name: Related tension
     kind: symmetric
