@@ -1,13 +1,44 @@
 /**
- * @validation-os/dashboard — React components + hooks for the validation-os
- * dashboard, consuming the register through the Clerk-gated API. The
- * register-counts panel is the walking-skeleton surface; the browse tables +
- * record drawer are the Read/Edit slices (the drawer edits under optimistic
- * concurrency with server-side derive-on-write); the create form + relation
- * editor are the Create/Link slice. The Confidence "Why?" reveals the
- * understanding layer — per-experiment movers, progress-to-conclusion, and the
- * Confidence-over-time trajectory.
+ * @validation-os/dashboard — the whole styled dashboard as a mountable app, plus
+ * the bricks it composes (OPS-1280). Two levels of entry:
+ *
+ *  - the assembled app: `<ValidationOSDashboard config={…} />` renders the frame
+ *    (sidebar nav + counts, topbar, in-app navigation) and every register view.
+ *    An instance mounts this at one route, imports `styles.css` once, supplies
+ *    config/secrets, and builds no UI.
+ *  - the presentational bricks: `RegisterTable`, `RecordDrawer`,
+ *    `UnderstandingPanel`, and the primitives (`StatusPill`, `RiskBar`,
+ *    `Sparkline`, `StatTile`) for anyone assembling their own surface.
+ *
+ * All reads/writes go over HTTP through the Clerk-gated API (which recomputes
+ * derived fields on write), so nothing here touches the backend directly.
+ * Styling is the package's own token sheet — import `@validation-os/dashboard/
+ * styles.css` once; no host Tailwind.
  */
+export { ValidationOSDashboard } from "./dashboard-app.js";
+export type {
+  DashboardConfig,
+  ValidationOSDashboardProps,
+} from "./dashboard-app.js";
+export {
+  ConfidenceCell,
+  RiskBar,
+  Sparkline,
+  StatTile,
+  StatusPill,
+} from "./primitives-view.js";
+export {
+  confidenceTone,
+  formatCount,
+  formatSigned,
+  riskFraction,
+  riskLevel,
+  sparklinePath,
+  statusTone,
+  RISK_CRIT,
+  RISK_WARN,
+} from "./primitives.js";
+export type { Tone } from "./primitives.js";
 export { RegisterCounts } from "./register-counts.js";
 export type { RegisterCountsProps } from "./register-counts.js";
 export { RegisterTable } from "./register-table.js";
@@ -56,7 +87,7 @@ export {
   formatValue,
   primaryLabel,
 } from "./columns.js";
-export type { ColumnDef } from "./columns.js";
+export type { CellKind, ColumnDef } from "./columns.js";
 export {
   emptyDraft,
   formFieldsFor,
@@ -66,4 +97,11 @@ export {
 export type { FormField } from "./form-fields.js";
 export { linkChoicesFrom } from "./link-choices.js";
 export type { LinkChoice } from "./link-choices.js";
-export { REGISTER_LABEL, REGISTER_ORDER, REGISTER_SINGULAR } from "./labels.js";
+export {
+  REGISTER_GROUPS,
+  REGISTER_ICON,
+  REGISTER_LABEL,
+  REGISTER_ORDER,
+  REGISTER_SINGULAR,
+  REGISTER_SUBTITLE,
+} from "./labels.js";

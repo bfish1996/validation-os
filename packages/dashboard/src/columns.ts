@@ -6,6 +6,15 @@
  */
 import type { AnyRecord, Collection } from "@validation-os/core";
 
+/**
+ * How a cell renders. `text` is plain formatted text; `status` is a colored
+ * pill; `risk` is a threshold-toned bar + number; `confidence` is a signed
+ * number (with a sparkline when a trajectory is available). Keeping this on the
+ * column — not branching by key in the table — is what makes the visual
+ * treatment declarative and testable at this seam (spec story 13).
+ */
+export type CellKind = "text" | "status" | "risk" | "confidence";
+
 export interface ColumnDef {
   /** Stable key; also the default field read from the record. */
   key: string;
@@ -17,6 +26,8 @@ export interface ColumnDef {
   align?: "left" | "right";
   /** Marks a column whose value is computed, never hand-typed (spec story 4). */
   derived?: boolean;
+  /** How the cell renders; defaults to `text`. */
+  kind?: CellKind;
 }
 
 /** Read a nested `derived` number off a record, tolerating a missing tuple. */
@@ -31,13 +42,19 @@ function derivedField(field: string): (r: AnyRecord) => unknown {
  */
 const COLUMNS: Record<Collection, ColumnDef[]> = {
   assumptions: [
-    { key: "Title", header: "Assumption" },
+    { key: "Title", header: "Belief" },
+    {
+      key: "Status",
+      header: "Status",
+      kind: "status",
+    },
     { key: "Impact", header: "Impact", align: "right" },
     {
       key: "confidence",
       header: "Confidence",
       align: "right",
       derived: true,
+      kind: "confidence",
       accessor: derivedField("confidence"),
     },
     {
@@ -45,13 +62,13 @@ const COLUMNS: Record<Collection, ColumnDef[]> = {
       header: "Risk",
       align: "right",
       derived: true,
+      kind: "risk",
       accessor: derivedField("risk"),
     },
-    { key: "Status", header: "Status" },
   ],
   experiments: [
     { key: "Title", header: "Experiment" },
-    { key: "Status", header: "Status" },
+    { key: "Status", header: "Status", kind: "status" },
     { key: "Feasibility", header: "Feasibility" },
   ],
   readings: [
@@ -68,16 +85,16 @@ const COLUMNS: Record<Collection, ColumnDef[]> = {
   ],
   goals: [
     { key: "Title", header: "Goal" },
-    { key: "Status", header: "Status" },
+    { key: "Status", header: "Status", kind: "status" },
     { key: "Outcome", header: "Outcome" },
   ],
   decisions: [
     { key: "Title", header: "Decision" },
-    { key: "Status", header: "Status" },
+    { key: "Status", header: "Status", kind: "status" },
   ],
   glossary: [
     { key: "Title", header: "Term" },
-    { key: "Status", header: "Status" },
+    { key: "Status", header: "Status", kind: "status" },
   ],
   people: [
     { key: "Name", header: "Name" },

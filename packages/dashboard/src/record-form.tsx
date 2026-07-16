@@ -54,8 +54,8 @@ export function RecordForm({
   };
 
   return (
-    <form onSubmit={onSubmit} className="flex h-full flex-col">
-      <div className="flex-1 space-y-4 overflow-y-auto p-5">
+    <form onSubmit={onSubmit} className="vos-form">
+      <div className="vos-form-body">
         {fields.map((field) => (
           <Field
             key={field.key}
@@ -64,17 +64,11 @@ export function RecordForm({
             onChange={(v) => set(field.key, v)}
           />
         ))}
-        {error ? (
-          <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
-        ) : null}
+        {error ? <p className="vos-error">{error}</p> : null}
       </div>
 
-      <footer className="flex items-center justify-end gap-2 border-t border-neutral-200 p-5 dark:border-neutral-800">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="rounded-md px-3 py-2 text-sm text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-900"
-        >
+      <footer className="vos-drawer-footer">
+        <button type="button" onClick={onCancel} className="vos-btn vos-btn-ghost vos-btn-sm">
           Cancel
         </button>
         <button
@@ -83,7 +77,7 @@ export function RecordForm({
           title={
             missing.length > 0 ? `Fill in: ${missing.join(", ")}` : undefined
           }
-          className="rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+          className="vos-btn vos-btn-sm"
         >
           {saving ? "Creating…" : `Create ${REGISTER_LABEL[register]}`}
         </button>
@@ -103,10 +97,10 @@ function Field({
 }) {
   const id = `field-${field.key}`;
   return (
-    <div>
+    <div className="vos-field">
       <label htmlFor={id} className={FIELD_LABEL_CLASS}>
         {field.label}
-        {field.required ? <span className="text-red-500"> *</span> : null}
+        {field.required ? <span className="vos-req"> *</span> : null}
       </label>
       {field.kind === "textarea" ? (
         <textarea

@@ -12,6 +12,8 @@ export interface RegisterBrowserProps {
   register: Collection;
   /** API base path (default `/api`). */
   basePath?: string;
+  /** A one-line description under the register title (spec story 7/9). */
+  subtitle?: string;
 }
 
 /**
@@ -24,7 +26,11 @@ export interface RegisterBrowserProps {
  * everywhere. The thin host app renders this with a `register` — that's the
  * whole page.
  */
-export function RegisterBrowser({ register, basePath }: RegisterBrowserProps) {
+export function RegisterBrowser({
+  register,
+  basePath,
+  subtitle,
+}: RegisterBrowserProps) {
   const { records, loading, error, refresh: refreshList } = useList(
     register,
     basePath,
@@ -40,25 +46,34 @@ export function RegisterBrowser({ register, basePath }: RegisterBrowserProps) {
 
   return (
     <div>
-      <div className="mb-3 flex items-center justify-between">
-        <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">
-          {REGISTER_LABEL[register]}
-        </h1>
+      <div className="vos-head">
+        <div>
+          <h1>{REGISTER_LABEL[register]}</h1>
+          {subtitle ? <p>{subtitle}</p> : null}
+        </div>
+        <div className="vos-spacer" />
+        <button
+          type="button"
+          onClick={() => refreshList()}
+          className="vos-btn vos-btn-ghost"
+        >
+          ↻ Refresh
+        </button>
         <button
           type="button"
           onClick={() => setCreating(true)}
-          className="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-500"
+          className="vos-btn"
         >
-          New {REGISTER_SINGULAR[register]}
+          + New {REGISTER_SINGULAR[register]}
         </button>
       </div>
 
       {loading && !records ? (
-        <p className="text-sm text-neutral-500">
+        <p className="vos-muted">
           Loading {REGISTER_LABEL[register].toLowerCase()}…
         </p>
       ) : error ? (
-        <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+        <p className="vos-error">{error}</p>
       ) : (
         <RegisterTable
           register={register}
@@ -98,15 +113,12 @@ export function RegisterBrowser({ register, basePath }: RegisterBrowserProps) {
         open={creating}
         onClose={() => setCreating(false)}
         ariaLabel={`New ${REGISTER_SINGULAR[register]} record`}
-        scroll={false}
       >
-        <header className="border-b border-neutral-200 p-5 dark:border-neutral-800">
-          <p className="text-xs font-medium uppercase tracking-wide text-neutral-400">
-            New
-          </p>
-          <h2 className="mt-1 text-lg font-semibold text-neutral-900 dark:text-neutral-50">
-            {REGISTER_SINGULAR[register]}
-          </h2>
+        <header className="vos-drawer-header">
+          <div>
+            <p className="vos-drawer-eyebrow">New</p>
+            <h2 className="vos-drawer-title">{REGISTER_SINGULAR[register]}</h2>
+          </div>
         </header>
         <RecordForm
           register={register}

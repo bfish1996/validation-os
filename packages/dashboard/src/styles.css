@@ -1,0 +1,971 @@
+/*
+ * @validation-os/dashboard — the dashboard's own styling.
+ *
+ * The styling seam (OPS-1280): the package ships this token sheet + the
+ * semantic classes its components render, so the whole dashboard is
+ * self-contained. A thin instance imports it once
+ * (`import "@validation-os/dashboard/styles.css"`) and provides no Tailwind, no
+ * design token, no CSS of its own. Tokens are the signed-off prototype's:
+ * accent + semantic good/warn/crit, surfaces/borders, radius/shadow, mono/sans,
+ * covering both light and dark.
+ *
+ * Theme: the OS preference drives it by default (`prefers-color-scheme`); the
+ * topbar toggle stamps `data-theme` on the document element, which wins in both
+ * directions.
+ *
+ * Class prefix is `vos-` throughout so nothing collides with a host's own CSS.
+ */
+
+:root {
+  --vos-bg: #f7f8fa;
+  --vos-surface: #fff;
+  --vos-surface-2: #f1f3f6;
+  --vos-border: #e4e7ec;
+  --vos-border-strong: #d3d8e0;
+  --vos-text: #171a1f;
+  --vos-muted: #667085;
+  --vos-faint: #98a2b3;
+  --vos-accent: #4a43d6;
+  --vos-accent-weak: #ece9fb;
+  --vos-accent-text: #4a43d6;
+  --vos-good: #0e9f6e;
+  --vos-good-weak: #e3f5ed;
+  --vos-warn: #c77700;
+  --vos-warn-weak: #fbf0dc;
+  --vos-crit: #d64550;
+  --vos-crit-weak: #fbe6e8;
+  --vos-radius: 8px;
+  --vos-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --vos-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --vos-shadow: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.1);
+  --vos-shadow-lg: 0 8px 32px rgba(16, 24, 40, 0.14);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --vos-bg: #0c0e12;
+    --vos-surface: #14171d;
+    --vos-surface-2: #1b1f27;
+    --vos-border: #262b34;
+    --vos-border-strong: #333a45;
+    --vos-text: #e7e9ee;
+    --vos-muted: #98a2b3;
+    --vos-faint: #6b7484;
+    --vos-accent: #8b83f5;
+    --vos-accent-weak: #201d3a;
+    --vos-accent-text: #a9a2fb;
+    --vos-good: #38c793;
+    --vos-good-weak: #10261e;
+    --vos-warn: #e6a23c;
+    --vos-warn-weak: #2a2010;
+    --vos-crit: #f0656f;
+    --vos-crit-weak: #2c1417;
+    --vos-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --vos-shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.5);
+  }
+}
+
+:root[data-theme="light"] {
+  --vos-bg: #f7f8fa;
+  --vos-surface: #fff;
+  --vos-surface-2: #f1f3f6;
+  --vos-border: #e4e7ec;
+  --vos-border-strong: #d3d8e0;
+  --vos-text: #171a1f;
+  --vos-muted: #667085;
+  --vos-faint: #98a2b3;
+  --vos-accent: #4a43d6;
+  --vos-accent-weak: #ece9fb;
+  --vos-accent-text: #4a43d6;
+  --vos-good: #0e9f6e;
+  --vos-good-weak: #e3f5ed;
+  --vos-warn: #c77700;
+  --vos-warn-weak: #fbf0dc;
+  --vos-crit: #d64550;
+  --vos-crit-weak: #fbe6e8;
+  --vos-shadow: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.1);
+  --vos-shadow-lg: 0 8px 32px rgba(16, 24, 40, 0.14);
+}
+
+:root[data-theme="dark"] {
+  --vos-bg: #0c0e12;
+  --vos-surface: #14171d;
+  --vos-surface-2: #1b1f27;
+  --vos-border: #262b34;
+  --vos-border-strong: #333a45;
+  --vos-text: #e7e9ee;
+  --vos-muted: #98a2b3;
+  --vos-faint: #6b7484;
+  --vos-accent: #8b83f5;
+  --vos-accent-weak: #201d3a;
+  --vos-accent-text: #a9a2fb;
+  --vos-good: #38c793;
+  --vos-good-weak: #10261e;
+  --vos-warn: #e6a23c;
+  --vos-warn-weak: #2a2010;
+  --vos-crit: #f0656f;
+  --vos-crit-weak: #2c1417;
+  --vos-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --vos-shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+
+/* Everything the dashboard renders lives under .vos-app; scoping the reset
+ * there keeps the package from touching a host's own elements. */
+.vos-app,
+.vos-app *,
+.vos-drawer,
+.vos-drawer *,
+.vos-scrim {
+  box-sizing: border-box;
+}
+
+.vos-app {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  grid-template-rows: 52px 1fr;
+  grid-template-areas:
+    "brand topbar"
+    "nav main";
+  height: 100vh;
+  background: var(--vos-bg);
+  color: var(--vos-text);
+  font-family: var(--vos-sans);
+  font-size: 14px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+
+.vos-num {
+  font-variant-numeric: tabular-nums;
+  font-family: var(--vos-mono);
+}
+
+/* ── frame ─────────────────────────────────────────────────────────────── */
+.vos-brand {
+  grid-area: brand;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 16px;
+  border-right: 1px solid var(--vos-border);
+  border-bottom: 1px solid var(--vos-border);
+  font-weight: 640;
+  letter-spacing: -0.01em;
+}
+.vos-brand-dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: var(--vos-accent);
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  overflow: hidden;
+}
+.vos-brand-dot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.vos-topbar {
+  grid-area: topbar;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--vos-border);
+  background: var(--vos-surface);
+}
+.vos-backend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--vos-muted);
+  background: var(--vos-surface-2);
+  border: 1px solid var(--vos-border);
+  border-radius: 999px;
+  padding: 4px 11px;
+}
+.vos-backend b {
+  color: var(--vos-text);
+  font-weight: 600;
+}
+.vos-live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--vos-good);
+  box-shadow: 0 0 0 3px var(--vos-good-weak);
+}
+.vos-spacer {
+  flex: 1;
+}
+.vos-iconbtn {
+  border: 1px solid var(--vos-border);
+  background: var(--vos-surface);
+  color: var(--vos-muted);
+  border-radius: 7px;
+  height: 32px;
+  padding: 0 10px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+}
+.vos-iconbtn:hover {
+  border-color: var(--vos-border-strong);
+  color: var(--vos-text);
+}
+.vos-user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.vos-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--vos-accent), #b6b1f7);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 700;
+}
+.vos-user-name {
+  font-weight: 600;
+}
+.vos-user small {
+  color: var(--vos-faint);
+  font-size: 11px;
+  display: block;
+  line-height: 1.1;
+}
+
+.vos-nav {
+  grid-area: nav;
+  border-right: 1px solid var(--vos-border);
+  background: var(--vos-surface);
+  padding: 8px;
+  overflow-y: auto;
+}
+.vos-nav-group {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--vos-faint);
+  padding: 12px 10px 5px;
+}
+.vos-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 7px 10px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--vos-text);
+  text-align: left;
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+.vos-nav-item:hover {
+  background: var(--vos-surface-2);
+}
+.vos-nav-item.is-active {
+  background: var(--vos-accent-weak);
+  color: var(--vos-accent-text);
+  font-weight: 600;
+}
+.vos-nav-item:focus-visible {
+  outline: 2px solid var(--vos-accent);
+  outline-offset: -2px;
+}
+.vos-nav-ic {
+  width: 16px;
+  text-align: center;
+  opacity: 0.7;
+}
+.vos-nav-item.is-active .vos-nav-ic {
+  opacity: 1;
+}
+.vos-nav-count {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--vos-faint);
+}
+.vos-nav-item.is-active .vos-nav-count {
+  color: var(--vos-accent-text);
+}
+
+.vos-main {
+  grid-area: main;
+  overflow-y: auto;
+  padding: 20px 24px;
+}
+.vos-head {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.vos-head h1 {
+  margin: 0;
+  font-size: 21px;
+  letter-spacing: -0.02em;
+}
+.vos-head p {
+  margin: 3px 0 0;
+  color: var(--vos-muted);
+  font-size: 13px;
+}
+
+/* ── buttons ───────────────────────────────────────────────────────────── */
+.vos-btn {
+  border: 1px solid var(--vos-accent);
+  background: var(--vos-accent);
+  color: #fff;
+  border-radius: 7px;
+  height: 34px;
+  padding: 0 14px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.vos-btn:hover {
+  filter: brightness(1.06);
+}
+.vos-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.vos-btn-ghost {
+  background: var(--vos-surface);
+  color: var(--vos-text);
+  border-color: var(--vos-border-strong);
+}
+.vos-btn-ghost:hover {
+  background: var(--vos-surface-2);
+  filter: none;
+}
+.vos-btn-sm {
+  height: 28px;
+  padding: 0 10px;
+  font-size: 12.5px;
+}
+
+/* ── card + table ──────────────────────────────────────────────────────── */
+.vos-card {
+  background: var(--vos-surface);
+  border: 1px solid var(--vos-border);
+  border-radius: var(--vos-radius);
+  box-shadow: var(--vos-shadow);
+  overflow: hidden;
+}
+.vos-table-scroll {
+  overflow-x: auto;
+}
+.vos-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.vos-table thead th {
+  text-align: left;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--vos-faint);
+  font-weight: 600;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--vos-border);
+  background: var(--vos-surface-2);
+}
+.vos-table thead th.vos-r,
+.vos-table td.vos-r {
+  text-align: right;
+}
+.vos-table tbody td {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--vos-border);
+  vertical-align: middle;
+}
+.vos-table tbody tr {
+  cursor: pointer;
+}
+.vos-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.vos-table tbody tr:hover td {
+  background: var(--vos-surface-2);
+}
+.vos-table tbody tr.is-selected td {
+  background: var(--vos-accent-weak);
+}
+.vos-table tbody tr:focus-visible {
+  outline: 2px solid var(--vos-accent);
+  outline-offset: -2px;
+}
+.vos-rid {
+  font-family: var(--vos-mono);
+  font-size: 12px;
+  color: var(--vos-muted);
+}
+.vos-ttl {
+  font-weight: 550;
+  max-width: 400px;
+  color: var(--vos-text);
+}
+.vos-empty {
+  padding: 40px;
+  text-align: center;
+  color: var(--vos-muted);
+  border: 1px dashed var(--vos-border-strong);
+  border-radius: var(--vos-radius);
+}
+
+/* ── pill ──────────────────────────────────────────────────────────────── */
+.vos-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 2px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+  color: var(--vos-muted);
+  background: var(--vos-surface-2);
+}
+.vos-pill::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.vos-pill-good {
+  color: var(--vos-good);
+  background: var(--vos-good-weak);
+}
+.vos-pill-warn {
+  color: var(--vos-warn);
+  background: var(--vos-warn-weak);
+}
+.vos-pill-crit {
+  color: var(--vos-crit);
+  background: var(--vos-crit-weak);
+}
+.vos-pill-accent {
+  color: var(--vos-accent-text);
+  background: var(--vos-accent-weak);
+}
+.vos-pill-neutral {
+  color: var(--vos-muted);
+  background: var(--vos-surface-2);
+}
+
+/* ── risk bar + in-row confidence ──────────────────────────────────────── */
+.vos-metric-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  justify-content: flex-end;
+}
+.vos-risk-bar {
+  width: 46px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--vos-surface-2);
+  overflow: hidden;
+  position: relative;
+}
+.vos-risk-bar i {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  border-radius: 3px;
+}
+.vos-fill-good {
+  background: var(--vos-good);
+}
+.vos-fill-warn {
+  background: var(--vos-warn);
+}
+.vos-fill-crit {
+  background: var(--vos-crit);
+}
+.vos-metric-num {
+  font-family: var(--vos-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  min-width: 30px;
+  text-align: right;
+}
+.vos-text-good {
+  color: var(--vos-good);
+}
+.vos-text-warn {
+  color: var(--vos-warn);
+}
+.vos-text-crit {
+  color: var(--vos-crit);
+}
+.vos-spark {
+  vertical-align: middle;
+  display: inline-block;
+}
+
+/* ── stat tile (counts landing / glanceable) ───────────────────────────── */
+.vos-tile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+.vos-tile {
+  display: block;
+  text-align: left;
+  text-decoration: none;
+  color: inherit;
+  background: var(--vos-surface);
+  border: 1px solid var(--vos-border);
+  border-radius: var(--vos-radius);
+  box-shadow: var(--vos-shadow);
+  padding: 16px;
+  font: inherit;
+  cursor: default;
+}
+a.vos-tile,
+button.vos-tile {
+  cursor: pointer;
+}
+a.vos-tile:hover,
+button.vos-tile:hover {
+  border-color: var(--vos-border-strong);
+  background: var(--vos-surface-2);
+}
+.vos-tile-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--vos-muted);
+}
+.vos-tile-value {
+  margin-top: 4px;
+  font-family: var(--vos-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--vos-text);
+}
+.vos-tile-sub {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--vos-faint);
+}
+
+/* ── drawer ────────────────────────────────────────────────────────────── */
+.vos-scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(16, 24, 40, 0.36);
+  z-index: 40;
+}
+.vos-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  width: 500px;
+  max-width: 96vw;
+  background: var(--vos-surface);
+  border-left: 1px solid var(--vos-border);
+  box-shadow: var(--vos-shadow-lg);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  color: var(--vos-text);
+  font-family: var(--vos-sans);
+  font-size: 14px;
+  outline: none;
+}
+.vos-drawer-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--vos-border);
+}
+.vos-drawer-eyebrow {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--vos-faint);
+  font-weight: 600;
+}
+.vos-drawer-title {
+  margin: 2px 0 0;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.vos-drawer-body {
+  padding: 18px;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.vos-drawer-footer {
+  padding: 12px 16px;
+  border-top: 1px solid var(--vos-border);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-end;
+  font-size: 12px;
+  color: var(--vos-faint);
+}
+.vos-verbadge {
+  font-family: var(--vos-mono);
+  font-size: 11px;
+  color: var(--vos-muted);
+  background: var(--vos-surface-2);
+  border: 1px solid var(--vos-border);
+  border-radius: 5px;
+  padding: 2px 7px;
+}
+
+/* ── derived hero ──────────────────────────────────────────────────────── */
+.vos-derived {
+  border: 1px solid var(--vos-border);
+  border-radius: var(--vos-radius);
+  overflow: hidden;
+}
+.vos-derived-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  background: var(--vos-surface-2);
+  border-bottom: 1px solid var(--vos-border);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--vos-muted);
+  font-weight: 700;
+}
+.vos-lock {
+  font-size: 11px;
+  color: var(--vos-faint);
+  text-transform: none;
+  letter-spacing: 0;
+  margin-left: auto;
+  font-weight: 500;
+}
+.vos-dgrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+.vos-dcell {
+  padding: 12px;
+  border-right: 1px solid var(--vos-border);
+  border-bottom: 1px solid var(--vos-border);
+}
+.vos-dcell:nth-child(2n) {
+  border-right: none;
+}
+.vos-dcell:nth-last-child(-n + 2) {
+  border-bottom: none;
+}
+.vos-dcell-k {
+  font-size: 11px;
+  color: var(--vos-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.vos-why {
+  font-size: 10.5px;
+  color: var(--vos-accent-text);
+  cursor: pointer;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  border: none;
+  background: none;
+  padding: 0;
+}
+.vos-dcell-v {
+  font-family: var(--vos-mono);
+  font-size: 22px;
+  font-weight: 700;
+  margin-top: 3px;
+  letter-spacing: -0.02em;
+}
+.vos-dcell-sub {
+  font-size: 11px;
+  color: var(--vos-muted);
+  margin-top: 2px;
+}
+
+/* ── understanding / movers ────────────────────────────────────────────── */
+.vos-why-panel {
+  border: 1px solid var(--vos-border);
+  border-top: none;
+  border-radius: 0 0 var(--vos-radius) var(--vos-radius);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--vos-bg);
+  margin-top: -16px;
+}
+.vos-why-section-title {
+  font-size: 11px;
+  color: var(--vos-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 700;
+}
+.vos-mover {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 12.5px;
+}
+.vos-mover-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.vos-mover-note {
+  font-size: 11px;
+  color: var(--vos-muted);
+}
+.vos-mover-note.vos-text-warn {
+  color: var(--vos-warn);
+  font-weight: 600;
+}
+.vos-mover-note.vos-text-good {
+  color: var(--vos-good);
+  font-weight: 600;
+}
+.vos-track {
+  flex: 0 0 90px;
+  height: 7px;
+  background: var(--vos-surface-2);
+  border-radius: 4px;
+  position: relative;
+}
+.vos-track.vos-signed::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -2px;
+  bottom: -2px;
+  width: 1px;
+  background: var(--vos-border-strong);
+}
+.vos-track i {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 4px;
+}
+.vos-mover-val {
+  font-family: var(--vos-mono);
+  font-size: 12px;
+  font-weight: 700;
+  width: 40px;
+  text-align: right;
+}
+
+/* ── trajectory ────────────────────────────────────────────────────────── */
+.vos-traj {
+  border: 1px solid var(--vos-border);
+  border-radius: var(--vos-radius);
+  padding: 12px;
+}
+.vos-traj-head {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.vos-traj-head .vos-lbl {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--vos-faint);
+  font-weight: 700;
+}
+.vos-traj-foot {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--vos-faint);
+}
+
+/* ── fields (edit + create) ────────────────────────────────────────────── */
+.vos-field label,
+.vos-field-label {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--vos-faint);
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+.vos-req {
+  color: var(--vos-crit);
+}
+.vos-form {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.vos-form-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.vos-input {
+  width: 100%;
+  border: 1px solid var(--vos-border-strong);
+  background: var(--vos-bg);
+  color: var(--vos-text);
+  border-radius: 7px;
+  padding: 8px 10px;
+  font: inherit;
+}
+textarea.vos-input {
+  resize: vertical;
+  min-height: 52px;
+}
+.vos-input:focus {
+  outline: 2px solid var(--vos-accent);
+  outline-offset: -1px;
+  border-color: var(--vos-accent);
+}
+.vos-row2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.vos-field-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.vos-sectitle {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--vos-faint);
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.vos-relation {
+  border-top: 1px solid var(--vos-border);
+  padding: 16px 18px;
+}
+
+/* ── banners ───────────────────────────────────────────────────────────── */
+.vos-banner {
+  padding: 11px 12px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+}
+.vos-banner-warn {
+  background: var(--vos-warn-weak);
+  color: var(--vos-warn);
+  border: 1px solid var(--vos-warn);
+}
+.vos-banner-crit {
+  background: var(--vos-crit-weak);
+  color: var(--vos-crit);
+  border: 1px solid var(--vos-crit);
+}
+.vos-banner-ok {
+  background: var(--vos-good-weak);
+  color: var(--vos-good);
+  border: 1px solid var(--vos-good);
+}
+.vos-banner b {
+  font-weight: 700;
+}
+.vos-banner-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+.vos-banner button {
+  border: 1px solid currentColor;
+  background: transparent;
+  color: inherit;
+  border-radius: 6px;
+  padding: 4px 10px;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  white-space: nowrap;
+  align-self: center;
+}
+
+/* ── misc ──────────────────────────────────────────────────────────────── */
+.vos-hint {
+  font-size: 12px;
+  color: var(--vos-muted);
+}
+.vos-muted {
+  color: var(--vos-muted);
+  font-size: 13px;
+}
+.vos-error {
+  color: var(--vos-crit);
+  font-size: 13px;
+}
+.vos-detail-list {
+  display: flex;
+  flex-direction: column;
+}
+.vos-detail-row {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--vos-border);
+}
+.vos-detail-row:last-child {
+  border-bottom: none;
+}
+.vos-detail-k {
+  font-size: 13px;
+  color: var(--vos-muted);
+}
+.vos-detail-v {
+  font-size: 13px;
+  color: var(--vos-text);
+}
