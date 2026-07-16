@@ -14,8 +14,13 @@
 #   in guide frontmatter resolves to `vocabularies:` here.
 # - `/setup-validation-os` checks schema-guide completeness against this file
 #   before automated setup.
-# - `/assumptions` (audit + loop, via `register-audit.md`) and `/decisions`
-#   (Audit) run the `integrity_rules:` whose `surfaced_by` names them.
+# - `/assumptions` (audit + loop, via `register-audit.md`), `/goals` (audit),
+#   and `/decisions` (Audit) run the `integrity_rules:` whose `surfaced_by`
+#   names them.
+#
+# Six registers: assumptions, experiments (the plan, with composed bar lines),
+# readings (the Confidence atom), goals (the commitment container), decisions,
+# glossary.
 #
 # Changing this file is a schema change: update `registry-schema.md` prose and
 # every connector schema guide in the same commit — they must never disagree.
@@ -35,7 +40,6 @@ vocabularies:
   # Canonical fixed lists. Values are exact strings; writing a value not
   # listed is illegal (integrity rule `illegal-select-value`). Adding a value
   # is a gated schema change.
-  record_type: [Decision, Terminology]
   # Small on purpose: there is no Validated status, and queue membership,
   # Testing, goal linkage, and mootness are derived views (derived_views:),
   # never stored values (docs/validated.md).
@@ -44,30 +48,51 @@ vocabularies:
     [5 Whys, Metric for truth, Scoring justification, Non-atomic,
      Unfalsifiable, Hyperbole, Lens check, Duplicate, Contradiction,
      Human review]
-  experiment_result: [Running, Validated, Invalidated, Inconclusive]
+
+  # Experiment (the plan) lifecycle + why it closed.
+  experiment_status: [Running, Closed]
+  experiment_closure_reason: [Completed, Early-stop, Kill]
+
+  # Reading (the evidence atom): the sign of the evidence, set at logging.
+  # No `Running` — a reading exists only once observed (registry-schema.md
+  # §Field map — Readings).
+  reading_result: [Validated, Invalidated, Inconclusive]
+
+  # Bar-line closure verdict — a per-belief REPORT judged against the full
+  # pre-registered N, never a Confidence input (readings carry the value).
+  bar_verdict: [Validated, Invalidated, Inconclusive]
+
+  # Goal (the commitment container) lifecycle + terminal outcome. Outcome is
+  # null until Status = Closed.
+  goal_status: [Draft, Active, Closed]
+  goal_outcome: [Achieved, Missed, Dropped]
+
+  # Magnitude bands for Goal-rung readings — picked from the absolute outcome
+  # against the Goal's ## Pre-registration anchors, never %-of-target.
+  magnitude_band: [Low, Typical, High]
+
   # Source quality is a number, not a select: Representativeness × Credibility,
   # each picked from {1.0, 0.7, 0.5} (experiment-guardrails.md §2). Legal
-  # stored values are the five product anchors (0.49 rounds to 0.5).
+  # stored values are the five product anchors (0.49 rounds to 0.5). Lives on
+  # the Reading.
   source_quality:
     picks: [1.0, 0.7, 0.5]
     anchors: [0.25, 0.35, 0.5, 0.7, 1.0]
   feasibility: [High, Medium, Low]
-  decision_terminology_status: [Active, Provisional, Superseded, Reversed]
+
+  # Decision and Glossary are two separate registers (no shared Type select).
+  # Their status vocabularies diverge: a term is superseded, never reversed.
+  decision_status: [Active, Provisional, Superseded, Reversed]
+  glossary_status: [Active, Provisional, Superseded]
   reversibility: [Two-way door, One-way door]
-  # Optional on Decision rows; absent = untyped legacy (nudge, never a block).
-  # No `Goal commitment`: a goal is its own Goal record, not a Decision row
-  # (decision-guardrails.md §9, docs/goals.md). Legacy rows carrying the
-  # retired value migrate to a Goal record; the Goal record's own schema is
-  # not defined here yet (registry-schema.md §The three registers).
-  decision_kind: [Direction, Operating]
 
   # The 8-rung activity-and-strength ladder (experiment-guardrails.md §2,
   # docs/evidence-ladder.md). Order = strength, weakest first. Two categories:
   # Testing (recruited-sample instruments, plateau ±30) and Goals (open-world
-  # targets, two pre-registered bars). `anchor` feeds the Strength derivation
-  # (signed by Result); Goal rungs carry magnitude bands (Low/Typical/High,
-  # picked from the absolute outcome, never %-of-target).
-  experiment_type:
+  # targets, two pre-registered bars). Lives on the Reading (`Rung`) and on the
+  # bar line (`Planned rung`). `anchor` feeds the Strength derivation (signed
+  # by Result); Goal rungs carry magnitude bands (Low/Typical/High).
+  rung:
     - { value: Opinion,             category: Testing, anchor: 3 }
     - { value: Pitch-deck reaction, category: Testing, anchor: 6 }
     - { value: Anecdotal,           category: Testing, anchor: 10 }
@@ -112,29 +137,29 @@ derivations:
     formula: >-
       (w0·0 + Σ wi·si) / (w0 + Σ wi), w0 = 100 (hard floor ≥ 98),
       wi = |si| × Source quality, si = the reading's signed Strength. Only
-      concluded Validated/Invalidated readings enter; readings sharing a
+      concluded Validated/Invalidated Readings enter; Readings sharing a
       source against one belief dedupe to the strongest (largest |si|, most
       recent on ties). No corroboration bump. ≤ -50 = kill zone: audit
       prompts a human kill verdict, never an auto-flip
       (experiment-guardrails.md §2).
     range: [-100, 100]
   strength:
-    field: experiments.Strength
+    field: readings.Strength
     formula: >-
       rung anchor (Goal rungs: × magnitude band, Low/Typical/High from the
       absolute outcome) × sign(Result) — Validated positive, Invalidated
       negative; 0 unless Result is Validated or Invalidated. Goal-rung sign
-      reads the two pre-registered bars: hit/beat We're right if → positive,
-      at/below We're wrong if → negative, between → interpolated.
-    rung_anchor: vocabularies.experiment_type[].anchor
+      reads the goal's two pre-registered bars: hit/beat We're right if →
+      positive, at/below We're wrong if → negative, between → interpolated.
+    rung_anchor: vocabularies.rung[].anchor
     range: [-99, 99]
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Entities — the record types and their properties. `hand_scored: true` marks
-# the only numbers a human types. `applies_to` scopes a property to one
-# record_type in the merged register. Body headings are verbatim names; the
+# the only numbers a human types. Body headings are verbatim names; the
 # heading *level* is connector-specific (local files nest them one level under
-# the record heading).
+# the record heading). `composed_into` marks a sub-structure realized inside
+# its parent record backend-natively, not a register of its own.
 # ─────────────────────────────────────────────────────────────────────────────
 entities:
   assumptions:
@@ -155,50 +180,98 @@ entities:
     body_headings: [5 Whys, Metric for truth, Scoring justification, Provenance & notes]
 
   experiments:
-    description: One row per test designed against an assumption; evidence rows and experiment rows are the same thing.
+    description: One row per designed test PLAN. Carries no rung and no strength — those live on the Readings the run produces. Bundles one-or-more beliefs through composed bar lines.
     properties:
       - { name: Title, type: title, required: true }
-      - { name: Type, type: select, options: vocabularies.experiment_type, required: true }
-      - { name: Source quality, type: number, options: vocabularies.source_quality }
+      - { name: Instrument, type: link, required: true }   # interview or dataset only
       - { name: Feasibility, type: select, options: vocabularies.feasibility }
+      - { name: Status, type: select, options: vocabularies.experiment_status,
+          machine: status_machines.experiment_status }
+      - { name: Closure reason, type: select, options: vocabularies.experiment_closure_reason, required: false }
+      - { name: Owner, type: person }
+      - { name: Date, type: date }
+    body_headings: [Method protocol, Closure rollup]
+
+  bar_line:
+    description: >-
+      The per-belief pre-registration on an Experiment — an
+      association-with-attributes between one Experiment and one Assumption,
+      written before any Reading exists. NOT a register: each bar line belongs
+      to exactly one Experiment and is realized backend-natively (child table /
+      embedded array / nested block; see connector guides). The closure
+      bar verdict is a report, never a Confidence input.
+    composed_into: experiments
+    references: assumptions   # one assumption per bar line
+    properties:
       - { name: We're right if, type: text, required: true }
-      - { name: Result, type: select, options: vocabularies.experiment_result,
-          machine: status_machines.experiment_result }
+      - { name: We're wrong if, type: text, required: false }   # no kill bar is legal
+      - { name: Planned rung, type: select, options: vocabularies.rung }
+      - { name: Bar verdict, type: select, options: vocabularies.bar_verdict, required: false }
+
+  readings:
+    description: One artifact × one belief — the atomic unit Confidence reads. Exists only once observed (no draft/running state). Origin (Experiment | Goal | none) lives here, never on the assumption.
+    properties:
+      - { name: Title, type: title, required: true }
+      - { name: Source, type: link, required: true }   # first-class independence-dedupe key
+      - { name: Rung, type: select, options: vocabularies.rung, required: true }
+      - { name: Representativeness, type: select, options: vocabularies.source_quality.picks, required: true }
+      - { name: Credibility, type: select, options: vocabularies.source_quality.picks, required: true }
+      - { name: Source quality, type: number, derived: true }   # = Representativeness × Credibility
+      - { name: Result, type: select, options: vocabularies.reading_result,
+          machine: status_machines.reading_result, required: true }
       - { name: Strength, type: number, derived: derivations.strength }
       - { name: Date, type: date }
-      - { name: Owner, type: person }
-      - { name: Interviewee, type: text, required: false }
-    body_headings: [Method protocol, We're wrong if, Results notes]
+      - { name: Owner, type: person, required: false }
+    body_headings: [Grading, Notes]
 
-  decisions_terminology:
-    description: One register split by Type — the decision log and the shared glossary.
-    split_by: Type
+  goals:
+    description: The Goals-side evidence container — pre-registration (two bars, deadline, instrument); closing it emits per-belief Readings. One goal-level bar pair, decomposed per belief only at close (docs/goals.md).
     properties:
       - { name: Title, type: title, required: true }
-      - { name: Type, type: select, options: vocabularies.record_type, required: true }
-      - { name: Kind, type: select, options: vocabularies.decision_kind,
-          applies_to: Decision, required: false }
-      - { name: Status, type: select, options: vocabularies.decision_terminology_status,
-          machine: status_machines.decision_terminology_status }
+      - { name: We're right if, type: text, required: true }
+      - { name: We're wrong if, type: text, required: false }   # no floor → no negative reading
+      - { name: Instrument, type: text, required: true }   # CRM stage / analytics cohort / payment event
+      - { name: Deadline, type: date }
+      - { name: Owner, type: person }
+      - { name: Status, type: select, options: vocabularies.goal_status,
+          machine: status_machines.goal_status }
+      - { name: Outcome, type: select, options: vocabularies.goal_outcome, required: false }
+      - { name: Date, type: date }
+    body_headings: [Pre-registration, Rationale, Closure]
+    # No Rung field — rung lands on the Reading at close, guardrail-enforced.
+
+  decisions:
+    description: The decision log. A row here IS a decision (the register is the discriminator — no Type field). No Kind field.
+    properties:
+      - { name: Title, type: title, required: true }
+      - { name: Status, type: select, options: vocabularies.decision_status,
+          machine: status_machines.decision_status }
       - { name: Area, type: select, options: vocabularies.area }
-      - { name: Owner, type: person, applies_to: Decision }
-      - { name: Agreed by, type: people, applies_to: Decision }
-      - { name: Unanimity score, type: number, range: [0, 100], hand_scored: true,
-          applies_to: Decision }
-      - { name: Source, type: text, applies_to: Decision }
-      - { name: Decided date, type: date, applies_to: Decision }
-      - { name: Reversibility, type: select, options: vocabularies.reversibility,
-          applies_to: Decision }
-    body_headings:
-      Decision: [Decision, Rationale, Alternatives considered, Source]
-      # Verbatim names the terminology check keys off (ubiquitous-language.md).
-      Terminology: [Definition, Avoid / don't say, How it differs]
+      - { name: Owner, type: person }
+      - { name: Agreed by, type: people }
+      - { name: Unanimity score, type: number, range: [0, 100], hand_scored: true }
+      - { name: Source, type: text }
+      - { name: Decided date, type: date }
+      - { name: Reversibility, type: select, options: vocabularies.reversibility }
+    body_headings: [Decision, Rationale, Alternatives considered, Source]
+
+  glossary:
+    description: The shared glossary (the ubiquitous-language discipline; only the register is "Glossary"). No Type field; Status has no Reversed.
+    properties:
+      - { name: Title, type: title, required: true }
+      - { name: Status, type: select, options: vocabularies.glossary_status,
+          machine: status_machines.glossary_status }
+      - { name: Area, type: select, options: vocabularies.area }
+    # Verbatim names the terminology check keys off (ubiquitous-language.md).
+    body_headings: [Definition, Avoid / don't say, How it differs]
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Relations — the edges between records. `kind: symmetric` means one relation
 # set identically on both rows; `kind: directed` has a forward name and an
 # inverse. On backends that don't auto-sync, both ends are written explicitly
-# (integrity rule `two-way-relation-one-ended`).
+# (integrity rule `two-way-relation-one-ended`). A Reading's `Source` is a
+# link PROPERTY to an artifact home, not a register relation — the artifact is
+# never a record (OPS-1183: reference, never mirror).
 # ─────────────────────────────────────────────────────────────────────────────
 relations:
   - name: Depends on / Enables
@@ -217,54 +290,118 @@ relations:
     cardinality: many-to-many
     meaning: Two distinct claims in tension that can't both hold. Pairs with the Contradiction gap and a provenance note naming the resolving experiment. Never for negation-duplicates — those merge (assumption-guardrails.md §4).
 
-  - name: Assumption / Experiments
+  - name: Assumption / Readings
     kind: directed
-    forward: Assumption          # on the experiment row
-    inverse: Experiments         # on the assumption row
+    forward: Assumption          # on the reading row (exactly one)
+    inverse: Readings            # on the assumption row
+    source: readings
+    target: assumptions
+    cardinality: many-to-one
+    meaning: >-
+      The concluded Readings scored against a belief — EVERY Confidence input,
+      whatever the origin. Replaces the old Assumption / Experiments relation;
+      the assumption never links an Experiment directly.
+
+  - name: Reading / Experiment
+    kind: directed
+    forward: Experiment          # on the reading row, nullable
+    inverse: Readings            # queried on the experiment, not stored
+    source: readings
+    target: experiments
+    cardinality: many-to-one
+    nullable: true
+    meaning: The originating plan, as provenance. Null for goal and bare/found readings. Exactly one of {Experiment, Goal} is set, or neither (integrity rule reading-two-origins).
+
+  - name: Reading / Goal
+    kind: directed
+    forward: Goal                # on the reading row, nullable
+    inverse: Readings            # queried on the goal, not stored
+    source: readings
+    target: goals
+    cardinality: many-to-one
+    nullable: true
+    meaning: The originating goal container. Null for experiment and bare readings. Exactly one of {Experiment, Goal} is set, or neither (integrity rule reading-two-origins).
+
+  - name: Experiment / Assumption (bar line)
+    kind: directed
+    forward: bar line            # the edge-with-attributes, composed into the experiment
     source: experiments
     target: assumptions
-    cardinality: many-to-one     # exactly one assumption per experiment
-    meaning: The tests designed against a belief. One assumption per experiment, always.
-
-  - name: Related tension
-    kind: symmetric
-    source: decisions_terminology
-    target: decisions_terminology
     cardinality: many-to-many
-    meaning: "Terminology↔Terminology: confusable-neighbour pairing (informational). Decision↔Decision: unresolved contradiction — actionability inferred from each row's Status (decision-guardrails.md §4)."
+    via: bar_line
+    meaning: >-
+      An Experiment bundles one-or-more beliefs; each is a bar line (We're
+      right if / We're wrong if / Planned rung / closure Bar verdict). The
+      bar verdict is a report, never a Confidence input. "Which experiments
+      test this belief" (derived_views.experiments_testing_me) reads these
+      edges — never a stored field on the assumption.
 
-  - name: Supersedes / Superseded by
+  - name: Related tension (Decision)
+    kind: symmetric
+    source: decisions
+    target: decisions
+    cardinality: many-to-many
+    meaning: "Decision↔Decision: unresolved contradiction — actionability inferred from each row's Status (decision-guardrails.md §4). Resolved via Supersedes."
+
+  - name: Related tension (Glossary)
+    kind: symmetric
+    source: glossary
+    target: glossary
+    cardinality: many-to-many
+    meaning: "Glossary↔Glossary: confusable-neighbour pairing (informational; pairs with the ## How it differs bullets)."
+
+  - name: Supersedes / Superseded by (Decision)
     kind: directed
     forward: Supersedes
     inverse: Superseded by
-    source: decisions_terminology
-    target: decisions_terminology
+    source: decisions
+    target: decisions
     cardinality: many-to-many
-    applies_to: Decision
     meaning: Resolved, intentional override; the superseded row's Status flips to Superseded. Distinct from Related tension (unresolved) — never both for the same counterpart at once.
 
-  - name: Based on assumption
+  - name: Supersedes / Superseded by (Goal)
+    kind: directed
+    forward: Supersedes
+    inverse: Superseded by
+    source: goals
+    target: goals
+    cardinality: many-to-many
+    meaning: Re-cut supersedes the prior goal; the superseded goal goes Closed / Dropped and emits no reading (docs/goals.md).
+
+  - name: Based on assumption (Decision)
     kind: directed
     forward: Based on assumption
-    source: decisions_terminology
+    source: decisions
     target: assumptions
     cardinality: many-to-many
-    applies_to: Decision
     side_effects: >-
-      None, on any Kind — this edge never touches Status.
+      None — this edge never touches the assumption's Status, and it feeds
+      Derived Impact only as a standing-decision node (+100 in S), never the
+      seed.
     meaning: >-
-      Why we decided this (decision-guardrails.md §6). Decision rows only. The
-      Goal record carries a same-named relation which, read backwards, is the
-      goal linkage (derived_views.goal_linked) — that one is not this one, and
-      no Kind of Decision row confers goal linkage.
+      Why we decided this (decision-guardrails.md §6). Decision rows only.
+      Distinct from the Goal's same-named relation, which read backwards is the
+      goal linkage (derived_views.goal_linked) — a per-goal view that never
+      touches Impact.
+
+  - name: Based on assumption (Goal)
+    kind: directed
+    forward: Based on assumption
+    source: goals
+    target: assumptions
+    cardinality: many-to-many
+    side_effects: >-
+      None — a goal NEVER touches Impact, Confidence, or queue membership.
+    meaning: >-
+      The beliefs the goal is bet on. Read backwards it is the goal linkage
+      (derived_views.goal_linked) — a per-goal queue view only (docs/goals.md).
 
   - name: Resolves assumption
     kind: directed
     forward: Resolves assumption
-    source: decisions_terminology
+    source: decisions
     target: assumptions
     cardinality: many-to-many
-    applies_to: Decision
     side_effects: >-
       Lowers the target's Impact to 0 (moot), gated and human-affirmed: a
       dated line in the assumption's ## Scoring justification records the
@@ -292,24 +429,42 @@ status_machines:
           trigger: "the evidence turns decisively against the belief — signed Confidence in the kill zone (≤ -50, reachable only by a series of missed Goal-rung readings) — and a human affirms the kill" }
       - { from: Invalidated, to: Live,
           by: "gated reopen session", gate: gated,
-          trigger: "the killing experiment is re-judged flawed, or the world has changed enough that the kill no longer holds — human re-verdict" }
+          trigger: "the killing reading is re-judged flawed, or the world has changed enough that the kill no longer holds — human re-verdict" }
     forbidden:
       - There is no Validated status. Validation is only ever Confidence rising and Risk falling — "validated at <rung>" is prose, never a stored state (docs/validated.md).
       - Draft ⇔ Gaps non-empty, always (integrity rule draft-live-gaps-invariant). Batch/loop modes tag the Human review gap — which keeps or returns the row to Draft — and never flip Status directly.
-      - Logging evidence never flips Status (Confidence-only). Only a human-affirmed kill does.
+      - Logging a Reading never flips Status (Confidence-only). Only a human-affirmed kill does.
       - Testing, queue membership, goal linkage, and mootness are derived views (derived_views:), never stored.
 
-  experiment_result:
-    initial: "Running (forward design) | conclusive at creation (retrospective evidence)"
+  experiment_status:
+    initial: Running
     transitions:
-      - { from: Running, to: [Validated, Invalidated, Inconclusive],
+      - { from: Running, to: Closed,
           by: "/find-evidence close-out or human conclusion", gate: gated,
-          trigger: "judged against the pre-registered We're right if / We're wrong if bar" }
+          trigger: "the run ends — a Closure reason (Completed / Early-stop / Kill) is set and each bar line takes its Bar verdict" }
     forbidden:
-      - Never auto-flip on a threshold; the verdict is human-gated.
-      - A conclusive record is never reverted to Running.
+      - A Closed experiment is never reverted to Running.
+      - The plan carries no rung and no strength — those are on the Readings it produced.
 
-  decision_terminology_status:
+  reading_result:
+    initial: "conclusive at logging (Validated | Invalidated | Inconclusive)"
+    transitions: []   # set once at logging; a reading has no Running state
+    forbidden:
+      - No Running — a reading exists only once observed (registry-schema.md §Field map — Readings).
+      - Strength must be 0 while Result is Inconclusive (integrity rule strength-not-gated).
+
+  goal_status:
+    initial: Draft
+    transitions:
+      - { from: Draft, to: Active, by: "/goals", gate: gated,
+          trigger: "the commitment is made — bars and instrument fixed" }
+      - { from: Active, to: Closed, by: "/goals", gate: gated,
+          trigger: "the deadline is judged — Outcome (Achieved/Missed/Dropped) set; Achieved/Missed decompose into per-belief Readings" }
+    forbidden:
+      - Outcome is null until Closed.
+      - Re-cut is a Supersedes edge to a fresh Goal, not an edit of a committed bar.
+
+  decision_status:
     initial: "Active (agreed) | Provisional (still forming)"
     transitions:
       - { from: Provisional, to: Active, by: "/decisions", gate: gated }
@@ -319,6 +474,16 @@ status_machines:
       - { from: [Active, Provisional], to: Reversed,
           by: "/decisions", gate: gated,
           trigger: "abandoned outright, no successor" }
+
+  glossary_status:
+    initial: "Active (agreed) | Provisional (still forming)"
+    transitions:
+      - { from: Provisional, to: Active, by: "/decisions", gate: gated }
+      - { from: [Active, Provisional], to: Superseded,
+          by: "/decisions", gate: gated,
+          trigger: "a better term replaces it — flag-if-used thereafter" }
+    forbidden:
+      - No Reversed — a term is superseded by a better one, never reversed.
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Derived views — assumption states read from data, never stored. Boards and
@@ -332,7 +497,11 @@ derived_views:
     assumption. A per-goal queue view ONLY — never an Impact anchor (a goal
     is not a node in derived_impact), never a condition of test-next
     membership, never a Confidence input (docs/goals.md).
-  testing: "Status = Live AND a linked experiment has Result = Running."
+  experiments_testing_me: >-
+    The Experiments whose bar lines name this belief — read over the bar-line
+    edges (relations: Experiment / Assumption (bar line)), never a stored
+    relation on the assumption. Feeds Testing and the test-next surface.
+  testing: "Status = Live AND a linked Experiment (plan) has Status = Running with an open bar line on this belief."
   test_next_surface: >-
     Experiments, not assumptions — there is no Risk-ranked belief queue.
     Candidate/designed experiments on Live rows, ranked by Feasibility × the
@@ -345,7 +514,7 @@ derived_views:
     (integrity rule kill-zone-unreviewed), out of the test-next surface.
   proven_set: >-
     Status = Live AND the strongest (largest |Strength|) concluded linked
-    reading is Validated — "what we currently know"; provisional, always
+    Reading is Validated — "what we currently know"; provisional, always
     (docs/validated.md).
   moot: >-
     Seed Impact = 0 via a standing decision's Resolves assumption action —
@@ -371,58 +540,52 @@ integrity_rules:
   - id: body-template-missing-heading
     severity: warn
     surfaced_by: ["/assumptions audit", "/decisions audit"]
-    check: A record is missing one of its type's verbatim body_headings. A Terminology row without "Avoid / don't say" silently escapes the terminology check — always flag it.
+    check: A record is missing one of its type's verbatim body_headings. A Glossary row without "Avoid / don't say", or a Reading without "Grading", silently escapes its check — always flag it.
   - id: two-way-relation-one-ended
     severity: error
     surfaced_by: ["/assumptions audit", "/decisions audit"]
     check: A symmetric or inverse relation written on one end only, on a backend that doesn't auto-sync.
-  - id: untyped-record
+  - id: reading-two-origins
     severity: error
-    surfaced_by: ["/decisions audit", validate_backend]
-    check: A decisions_terminology row with no Type value. Invisible to every Type-filtered fetch (Terminology Lookup/Build dedup, Decision Audit/Sweep) — only an unfiltered full-register pass catches it. Back-fill Type immediately; until fixed, treat as neither Decision nor Terminology for any other rule.
+    surfaced_by: ["/assumptions audit"]
+    check: A Reading with both its Experiment and Goal links set — a reading has exactly one container origin, or none (bare). Sets neither is legal; sets both is not.
 
   # Derived-field discipline
   - id: derived-field-stale
     severity: error
     surfaced_by: ["/assumptions audit"]
     check: >-
-      Stored Confidence/Strength/Risk differs from recomputing its derivation
-      (formula-less backends). Derived Impact is exempt between weekly
-      recompute runs — it is stale by design; flag only a value no run could
-      have produced (below seed, or > 100).
+      Stored Confidence/Risk (assumptions) or Strength/Source quality
+      (readings) differs from recomputing its derivation (formula-less
+      backends). Derived Impact is exempt between weekly recompute runs — it is
+      stale by design; flag only a value no run could have produced (below
+      seed, or > 100).
   - id: strength-not-gated
     severity: error
     surfaced_by: ["/assumptions audit"]
-    check: Strength ≠ 0 while Result is Running or Inconclusive.
+    check: A Reading's Strength ≠ 0 while its Result is Inconclusive.
   - id: reading-ungraded
     severity: warn
     surfaced_by: ["/assumptions audit"]
     check: >-
-      A concluded Validated/Invalidated reading whose body lacks the grading
-      block — rung + (Goal rungs) magnitude anchor + Representativeness ×
-      Credibility picks with one-line justifications + the source the
+      A concluded Validated/Invalidated Reading whose body lacks the ##
+      Grading block — rung + (Goal rungs) magnitude anchor + Representativeness
+      × Credibility picks with one-line justifications + the source the
       independence dedupe keys off (experiment-guardrails.md §2). An ungraded
       reading's weight can't be audited.
   - id: goal-rung-no-floor
     severity: error
-    surfaced_by: ["/assumptions audit"]
+    surfaced_by: ["/assumptions audit", "/goals audit"]
     check: >-
-      A Goal-rung (Signed intent / Paying users) reading concluded
-      Invalidated with no pre-registered We're wrong if bar in its body — no
+      A Goal-rung (Signed intent / Paying users) Reading concluded Invalidated
+      whose originating Goal has no pre-registered We're wrong if bar — no
       floor, no negative: an uncontrolled absence of the outcome is
       Inconclusive (experiment-guardrails.md §2).
-  - id: kill-zone-unreviewed
-    severity: error
-    surfaced_by: ["/assumptions audit"]
-    check: >-
-      A Live assumption whose Confidence ≤ -50 with no logged human kill
-      review — the kill prompt fired and nobody answered it. Surface for a
-      human-affirmed verdict; never auto-flip (docs/validated.md).
   - id: stale-representativeness
     severity: warn
     surfaced_by: ["/assumptions audit"]
     check: >-
-      The ICP/Lens definition changed after a reading's Representativeness
+      The ICP/Lens definition changed after a Reading's Representativeness
       was graded — the stored Source quality reads a retired ICP and the
       recompute silently uses it. Flag every reading graded under the old
       definition for re-grade (experiment-guardrails.md §2).
@@ -445,7 +608,7 @@ integrity_rules:
     surfaced_by: ["/assumptions audit"]
     check: Two records asserting opposite truth values of the same proposition — a negation-duplicate; merge (assumption-guardrails.md §4a).
 
-  # Status coherence (assumptions × experiments)
+  # Status coherence (assumptions × readings)
   - id: draft-live-gaps-invariant
     severity: error
     surfaced_by: ["/assumptions audit"]
@@ -453,7 +616,7 @@ integrity_rules:
   - id: unrolled-verdict
     severity: warn
     surfaced_by: ["/assumptions audit"]
-    check: A concluded Invalidated reading was never folded into the row's stored Confidence (the score predates the verdict) — the miss was never rolled up; recompute, and if the result lands in the kill zone, flag for a gated close-out (human verdict).
+    check: A concluded Invalidated Reading was never folded into the linked assumption's stored Confidence (the score predates the verdict) — the miss was never rolled up; recompute, and if the result lands in the kill zone, flag for a gated close-out (human verdict).
   - id: moot-without-resolver
     severity: error
     surfaced_by: ["/assumptions audit", "/decisions audit"]
@@ -471,7 +634,7 @@ integrity_rules:
   - id: contradicts-both-validated
     severity: error
     surfaced_by: ["/assumptions audit"]
-    check: Both ends of a Contradicts edge sit at solidly positive Confidence (strongest concluded reading Validated on each) — the tension the edge marks was never real, or one verdict is wrong.
+    check: Both ends of a Contradicts edge sit at solidly positive Confidence (strongest concluded Reading Validated on each) — the tension the edge marks was never real, or one verdict is wrong.
   - id: stale-rationale
     severity: warn                # error when the decision is a One-way door
     surfaced_by: ["/decisions audit"]
@@ -514,7 +677,7 @@ integrity_rules:
   - id: ungated-outcome
     severity: error
     surfaced_by: ["/goals audit"]
-    check: A Goal record Closed as Achieved/Missed whose outcome was never decomposed — no per-belief reading against any linked assumption. The outcome IS the evidence; closing without reading it back is the one thing the joint exists to prevent. Dropped is exempt, emitting no evidence.
+    check: A Goal record Closed as Achieved/Missed whose outcome was never decomposed — no per-belief Reading against any linked assumption. The outcome IS the evidence; closing without reading it back is the one thing the joint exists to prevent. Dropped is exempt, emitting no evidence.
   - id: stale-goal-anchor
     severity: warn
     surfaced_by: ["/assumptions audit", "/goals audit"]

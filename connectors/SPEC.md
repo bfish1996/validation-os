@@ -23,7 +23,7 @@ in `connectors/<name>-schema.md`.
 1. Walk up from the working directory to find `validation-os.config.yaml`.
 2. Read `connector:` — the value names two docs in this directory:
    - runtime contract: `<name>.md` (`local-files` → `local-files.md`,
-     `notion` → `notion.md`)
+     `sql` → `sql.md`)
    - schema guide (optional): `<name>-schema.md`
 3. No config file → the local-files connector with defaults
    (`registry_dir: registry`).
@@ -36,7 +36,7 @@ in `connectors/<name>-schema.md`.
 
 | Operation | Contract |
 |---|---|
-| **Query all** | Return every record of a register (assumptions / experiments / decisions & terminology). Never a filtered subset unless the skill asked for a filter. |
+| **Query all** | Return every record of a register (assumptions / experiments / readings / goals / decisions / glossary). Never a filtered subset unless the skill asked for a filter. |
 | **Fetch one** | Return a single record — all fields plus body — by its identifier. |
 | **Search** | Find records semantically related to a phrase (dedupe checks, convergence checks). Best effort per backend; document what "search" means here. |
 | **Create** | Add a record with the given fields and body. Return its identifier so the skill can link it. |
@@ -46,10 +46,10 @@ in `connectors/<name>-schema.md`.
 ## Rules that bind every connector
 
 - **Derived fields are computed, never trusted from input.** Confidence, Risk,
-  and Strength follow the formulas in `registry-schema.md`. A backend with
-  native formulas (Notion) computes them itself — never write to them. A backend
-  without (local files) has the *skill* compute and write them at every touch,
-  and the connector doc must say so.
+  Derived Impact (assumptions) and Source quality, Strength (readings) follow
+  the formulas in `registry-schema.md`. No supported backend (local Markdown,
+  SQL, NoSQL) carries them as native formulas, so the *skill* computes and
+  writes them at every touch, and the connector doc must say so.
 - **Gated writes.** Every create/update is proposed to the user and confirmed
   before it lands. The runtime connector doc defines what a "proposed write"
   looks like for its backend (diff of a file edit, preview of API properties).
@@ -83,10 +83,13 @@ the live backend against it, never against the prose. Required blocks:
 - `setup_operations:` — each of the four canonical operations
   (`validate_backend`, `create_backend`, `seed_starter_records`,
   `migrate_schema`) with `status: supported | manual` and `tool_namespace:`
-  (the harness tool family setup needs, e.g. `notion-mcp`, `file-system`).
-- `registers:` — `assumptions`, `experiments`, `decisions_terminology`, each
-  with a `source:` (backend container type) and connector-specific container
-  keys (`config_key`, `file`, …). Every canonical property and relation in
+  (the harness tool family setup needs, e.g. `sql-mcp`, `file-system`).
+- `registers:` — `assumptions`, `experiments`, `readings`, `goals`,
+  `decisions`, `glossary`, each with a `source:` (backend container type) and
+  connector-specific container keys (`config_key`, `file`, …). The experiment's
+  per-belief **bar lines** are composed into the experiments register
+  backend-natively (child table / embedded array / nested block), not a
+  seventh register. Every canonical property and relation in
   `skills/_shared/ontology.yaml §entities/§relations` must appear:
   - `properties:` entries carry mandatory `canonical`, `backend`, `type`,
     `derived`. `formula` is required when `derived: true`. `options_source`
@@ -94,7 +97,9 @@ the live backend against it, never against the prose. Required blocks:
     `vocabulary.area`) or `registry-schema`, which resolves to the canonical
     fixed lists in `ontology.yaml §vocabularies` (never restate the options;
     that would fork the semantics). `required` defaults to true; only
-    inherently optional canonical fields (Kind, Interviewee) set it false.
+    inherently optional canonical fields (Experiment's Closure reason, a
+    Reading's Owner, a Goal's Outcome, a bar line's Bar verdict / We're wrong
+    if) set it false.
   - `relations:` entries carry mandatory `canonical`, `backend`, `target`,
     `cardinality`; `inverse` and `self` where they apply.
 

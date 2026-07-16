@@ -17,16 +17,17 @@ Read, in order:
    and `skills/_shared/ontology.yaml`, its machine-readable form: the
    canonical property/relation list your schema guide's `registers:` block is
    checked against. You map these; you never redefine them.
-3. `connectors/local-files.md` and `connectors/notion.md` — the runtime
-   reference implementations, one formula-less, one with native formulas.
-4. `connectors/local-files-schema.md` and `connectors/notion-schema.md` — the
+3. `connectors/local-files.md` and `connectors/sql.md` — the runtime
+   reference implementations (Markdown and relational).
+4. `connectors/local-files-schema.md` and `connectors/sql-schema.md` — the
    schema-guide reference implementations.
 
 ## The decisions your runtime connector must make
 
-- **Structure mapping.** Where do the three registers live (tables? projects?
-  labeled issues?), and how does a record's *body* (5 Whys, protocols,
-  provenance notes) coexist with its fields?
+- **Structure mapping.** Where do the six registers live (tables? collections?
+  directories?), how are an experiment's per-belief bar lines composed in, and
+  how does a record's *body* (5 Whys, protocols, provenance notes) coexist with
+  its fields?
 - **Derived fields.** Does your backend compute Risk / Confidence / Strength
   natively (formulas, rollups)? If yes, document the formulas and forbid
   writes. If no, state that skills recompute and rewrite them on every touching
@@ -40,7 +41,7 @@ Read, in order:
 
 ## The decisions your schema guide must make
 
-- **Source containers.** Where do the three registers live, and what are they
+- **Source containers.** Where do the six registers live, and what are they
   called in your backend?
 - **Field mapping.** For every canonical field in `registry-schema.md`, what
   is the backend property/column/document-path name and type? Which are

@@ -13,7 +13,10 @@ sql:
   schema: validation_os       # database schema / namespace
   assumptions_table: assumptions
   experiments_table: experiments
+  readings_table: readings
+  goals_table: goals
   decisions_table: decisions
+  glossary_table: glossary
 ```
 
 Connection credentials live in the harness, never in this file. If the
@@ -21,7 +24,8 @@ configured connection is unavailable, stop and tell the user how to provide it.
 
 ## Setup
 
-Create a schema and the three tables with columns matching
+Create a schema and the six tables (plus the `experiment_bar_lines` child
+table and the relation junction tables) with columns matching
 `connectors/sql-schema.md`. Then run `/setup-validation-os`, which will
 validate the schema, create missing tables/indexes, and optionally seed starter
 records.
@@ -35,8 +39,9 @@ records.
 - **Create** — `INSERT` a row; return the generated `id`.
 - **Update** — `UPDATE` named columns for one row by `id`; untouched columns
   stay intact.
-- **Link** — insert/delete junction-table rows (or set
-  `experiments.assumption_id`). Two-way relations get both junction rows in one
+- **Link** — insert/delete junction-table rows (or set a reading's
+  `assumption_id` / nullable `experiment_id` / nullable `goal_id` FK, or a bar
+  line's `assumption_id`). Two-way relations get both junction rows in one
   transaction.
 
 ## Derived fields — the skill computes them here
@@ -45,8 +50,8 @@ SQL has no native formulas, so the skill recomputes and rewrites them on every
 touching edit, using the canonical computation in
 `skills/_shared/experiment-guardrails.md` §2:
 
-- Logging or concluding an experiment → recompute that row's `Strength`, then
-  every linked assumption's `Confidence` and `Risk`.
+- Logging a **Reading** → compute its `Strength`, then the linked assumption's
+  `Confidence` and `Risk`.
 - Re-scoring Impact → recompute that assumption's `Risk`.
 
 Derived columns are marked with a comment or naming convention so humans know
