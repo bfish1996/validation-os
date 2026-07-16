@@ -1,0 +1,32 @@
+name: Packages
+
+# Build, typecheck, and test the code monorepo under packages/. The markdown
+# registry/skills are covered by ci.yml; this is the JS/TS side.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    paths:
+      - "packages/**"
+      - "package.json"
+      - "pnpm-workspace.yaml"
+      - "pnpm-lock.yaml"
+      - "tsconfig.base.json"
+      - "vitest.config.ts"
+      - ".changeset/**"
+      - ".github/workflows/packages.yml"
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm -r --filter "./packages/**" typecheck
+      - run: pnpm build
+      - run: pnpm test

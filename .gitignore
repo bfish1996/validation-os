@@ -4,9 +4,9 @@
 # Scratch
 *.bak
 
-# Personal tooling — the dashboard views my registry, not part of the
-# published repo.
-dashboard/
+# Personal tooling — the Python dashboard views my registry, not part of the
+# published repo. Anchored to root so it does NOT match packages/dashboard/.
+/dashboard/
 
 # The live register is local-only for now — versioned in its own nested git
 # repo (registry/.git) until we decide what, if anything, gets published.
@@ -19,3 +19,9 @@ registry/
 .git/hooks/*
 !.git/hooks/*.sample
 __pycache__/
+
+# Node / pnpm monorepo (packages/)
+node_modules/
+packages/*/dist/
+*.tsbuildinfo
+.turbo/
