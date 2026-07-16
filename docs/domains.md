@@ -19,6 +19,12 @@ detail, not an assumption.** Register the belief once; run the variants
 as experiments linked to it. This is what keeps a high-volume function
 like outreach from drowning the register.
 
+The same altitude rule draws the register's *lower* boundary: a belief
+below it — one whose falsity wouldn't change what you build, who you sell
+to, or how you reach them — belongs to the build pipeline, not here. Where
+the OS hands off to its neighbours, and what crosses each seam, is
+`seams.md`.
+
 ## Sales & outreach
 
 The function that tempts people to think the OS is product-only — and the
@@ -47,9 +53,12 @@ the rung reflects what the signal **cost the prospect**:
 
 Rules that bite hardest here:
 
-- **One assumption per experiment** (the ontology enforces it). A
-  campaign tempts you to test ICP *and* message at once — pick the
-  primary belief, hold the other constant, or the result moves neither.
+- **One bar per belief, honestly failable** (the grouping rule,
+  `skills/_shared/experiment-guardrails.md §1b`). A campaign tempts you to
+  test ICP *and* message at once — bundle both only if each keeps its own
+  pre-registered bar and one measurement can't poison the other; otherwise
+  pick the primary belief and hold the other constant, or the result moves
+  neither.
 - **Pre-register the bar** like anything else: *"We're right if ≥5% of
   100 cold emails to segment X book a meeting."* Open rates are noise;
   replies are stated; meetings and money are where rungs climb.

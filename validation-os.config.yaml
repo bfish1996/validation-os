@@ -20,3 +20,24 @@ vocabulary:
 
 evidence_sources:
   - web
+
+# Source-map — artifact kind → home → how to fetch, one line per kind
+# (skills/_shared/experiment-guardrails.md §0). Identity is the artifact's
+# canonical link; the register references homes, never mirrors them. This
+# repo logs desk evidence only, so no homes are declared yet. Example:
+#
+# source_map:
+#   interview: { home: Fireflies, fetch: transcript URL }
+#   prototype: { home: <prototype repo>, fetch: repo/deploy URL }
+#   customer:  { home: Attio, fetch: record URL }
+#   raw:       { home: Google Drive "Raw evidence" folder, fetch: file URL }
+
+# Analytics — Goals-side, NOT an evidence_sources flavour. A scoreboard
+# number is read at a goal's deadline, never logged as Testing evidence
+# (docs/goals.md §Found numbers). Read by /goals (draft names the instrument,
+# close reads it), sharing skills/_shared/analytics-metric-resolution.md. This
+# repo has no analytics platform wired, so the block is absent. Example:
+#
+# analytics:
+#   platform: mixpanel            # free text — the connected platform skill
+#   glossary_file: analytics-glossary.md   # resolved event/metric mappings

@@ -91,6 +91,16 @@ to running, so a transcript or note you find may be *the run of that guide*
 rather than fresh evidence. Reconciling against the open record (§5) is what
 stops the register filling with duplicates for the same interview.
 
+**Routing — use the config `source_map`.** Locate and fetch artifacts through
+the `source_map` (artifact kind → home → how to fetch —
+`experiment-guardrails.md §0`): interviews from their transcript home,
+prototype sessions from the prototype home, CRM records from Attio, and so on.
+The register only ever stores the artifact's **canonical link**, never a
+mirror of its contents. Material that arrives by copy-paste (an email thread,
+a screenshot, unrecorded-call notes) is filed into the designated **"Raw
+evidence"** home first — that mints its canonical link — before it can be
+cited on a reading.
+
 - **Internal**: cast wide across the configured sources — call transcripts
   (the primary internal source when available), notes, chat, email, CRM.
 - **Desk / web**: decompose the `metric_for_truth` into document-answerable
@@ -114,16 +124,16 @@ its work.
 ### 3. Set the record, per piece
 
 - **`Type`** = the rung matching the evidence's strength
-  (`experiment-guardrails.md §2`): a hypothetical "I'd use that" → 🧪
-  `Opinion`; users describing something they **actually did**, unprompted →
-  🧪 `Anecdotal`; a structured questionnaire already run → 🧪
-  `Survey at scale`; regulation / published data / competitor fact → 🧪
-  `Desk research`; unpaid real use → 🧪 `Prototype usage`; payment / signed
-  commitment observed → 🎯 `Signed intent` / `Paying users`. A *measured*
-  product metric that bears on the Metric for truth is real behaviour —
-  Goal-category, with the analytics view as the source. Mind the structural
-  guard on retrospective 🎯 negatives: with no pre-registered kill floor, an
-  absence of sales/signups is `Inconclusive`, never an Invalidated reading.
+  (`experiment-guardrails.md §2`) — **Testing rungs only**: a hypothetical
+  "I'd use that" → 🧪 `Opinion`; users describing something they **actually
+  did**, unprompted → 🧪 `Anecdotal`; a structured questionnaire already
+  run → 🧪 `Survey at scale`; regulation / published data / competitor
+  fact → 🧪 `Desk research`; unpaid real use → 🧪 `Prototype usage`.
+  **Found evidence never mints a 🎯 Goal-rung reading** — there are no bare
+  Goals-side readings (`experiment-guardrails.md §6`). A measured scoreboard
+  number (product metric, CRM level) is Goals-side: don't log it — surface
+  it and route to `/goals` draft to mint a forward goal calibrated off it
+  (`docs/goals.md §Found numbers`).
 - **`Source quality`** = Representativeness × Credibility, each picked from
   {1.0, 0.7, 0.5} (`experiment-guardrails.md §2`). Scales the reading's
   weight **within** the rung, never its value across rungs. Record both
@@ -133,7 +143,8 @@ its work.
 - **`Date`** = when the evidence occurred (historic internal) or the
   research date (desk), never a future date.
 - **`Interviewee` / `Owner`** if known.
-- **Body** = a short evidence summary, the **source link(s)**, what it
+- **Body** = a short evidence summary, the **source artifact's canonical
+  link** (normalization rule, `experiment-guardrails.md §0`), what it
   shows vs. the claim, and the **grading block** (rung + magnitude anchor on
   Goal rungs + the Rep×Cred picks with one-line justifications + the source
   the independence dedupe keys off — `experiment-guardrails.md §2`). For
@@ -146,13 +157,16 @@ its work.
 No pass/kill bar was pre-registered, so the read is exposed to post-hoc fit.
 Counter it deliberately — both flavours:
 
-> **Exception — closing out a `Running` guide (§5).** When the evidence is
-> the run of an existing `Running` record that already carries a
-> pre-registered `We're right if` / `We're wrong if` bar in its body, judge
-> `Result` against **that bar**, not this retrospective rail. The bar
-> predates the evidence, so post-hoc fit isn't a risk — this is the
-> *stronger* read. Fall back to the rail below only when the record has no
-> bar written in it.
+> **Exception — the run of a `Running` plan (§5).** When the evidence is the
+> run of an existing `Running` plan that carries a pre-registered `We're right
+> if` / `We're wrong if` bar for a belief, judge that belief's reading against
+> **that bar**, not this retrospective rail. The bar predates the evidence, so
+> post-hoc fit isn't a risk — this is the *stronger* read. One artifact yields
+> one reading **per bundled belief it actually addressed**, each judged
+> against its own bar; signal on a belief the plan didn't bundle is an
+> **off-plan reading** (no bar, experiment link as provenance —
+> `experiment-guardrails.md §0`). Fall back to the rail below only for a
+> belief with no bar written in the plan.
 
 - Judge against the `metric_for_truth` **as written** — don't reshape the
   bar to fit the hit you found.
@@ -176,16 +190,24 @@ Counter it deliberately — both flavours:
 "Swept with no qualifying hit" is a valid, complete outcome — record the
 absence; don't manufacture a weak record to fill space.
 
-**Closing out an open experiment instead of duplicating it.** When a found
-piece of evidence is *the run of* one of the `Running` records pulled in §1,
-close **that** record out in place rather than creating a new one — flip
-`Result` to the verdict (judged against its pre-registered bar per §4), set
-the outcome `Date` / `Interviewee`, and write the findings into its body.
-The match is **proposed, never assumed**: surface the candidate `Running`
-record alongside the matching signals (interviewee, a date after the guide
-was created, topic overlap) and let the caller confirm *close this out* vs
-*log a new record*. If nothing plausibly matches, create a new conclusive
-record as normal — never overwrite a `Running` record on a weak match.
+**Logging a reading against an open plan instead of duplicating it.** When a
+found artifact is *the run of* one of the `Running` plans pulled in §1,
+conclude a **reading per bundled belief it addressed** against that plan —
+judged against each belief's pre-registered bar (§4) — rather than minting a
+fresh record; set the outcome `Date` / `Interviewee` and write the findings
+into the body. The match is **proposed, never assumed**: surface the candidate
+`Running` plan alongside the matching signals (interviewee, a date after the
+plan was created, topic overlap) and let the caller confirm *log against this*
+vs *log a new record*. If nothing plausibly matches, create a new conclusive
+record as normal — never overwrite on a weak match.
+
+**A concluded reading is not a closed plan.** Logging the reading concludes
+the *reading*; **closure of the plan** — rendering each per-belief bar verdict
+against the full pre-registered N and writing the rollup report — is a
+separate **human** act (`experiment-guardrails.md §6`), and those verdicts are
+reports, never Confidence inputs (the readings already carried the evidence).
+When the readings you just logged bring the plan to its pre-registered N,
+**offer** closure — never perform it silently.
 
 ### 6. After writing
 

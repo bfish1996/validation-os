@@ -104,7 +104,10 @@ one silently is the failure it exists to prevent.
   (`../_shared/assumption-guardrails.md §3`). Linkage never gates the
   test-next queue — every `Live` row is eligible on its own merits
   (`../_shared/registry-schema.md §Status & derived views`).
-- `/find-evidence` does the decomposition Close depends on, and fires the
-  **tripwire**: a conclusive verdict on a linked belief surfaces every
-  `Draft`/`Active` goal resting on it.
+- `/find-evidence` no longer decomposes goal outcomes — Close does that
+  in-skill now (`references/close.md`). What `/find-evidence` still does is
+  fire the **tripwire** (a conclusive verdict on a linked belief surfaces
+  every `Draft`/`Active` goal resting on it) and route **found scoreboard
+  numbers** here — a measured metric is a forward-goal prompt, never logged as
+  Testing evidence (`../../docs/goals.md §Found numbers`).
 - `/decisions` does not touch goals. A goal is not a decision.

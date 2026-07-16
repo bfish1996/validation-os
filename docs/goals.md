@@ -35,6 +35,13 @@ A Goal record carries:
   `Dropped`). Re-cutting a goal **supersedes** it — never a silent edit of a
   bar, or the instrument stops measuring anything.
 
+A goal yields **one evidence reading, at its deadline** — the close.
+Mid-cycle check-ins are reviews, not evidence; the series-of-misses model
+runs across successive goal cycles, and **each closed goal counts as its own
+unit in the Confidence aggregation** — cycles on the same instrument never
+dedupe (or a series could never accumulate). Re-counting an unchanged world
+is prevented by the bar ratchet (§Found numbers), not by dedupe.
+
 Why the bars come first: a goal whose bar moves to meet the result is not an
 instrument, it's a story. Fixing both bars at commit time is what lets the
 outcome count as evidence at all.
@@ -117,9 +124,10 @@ commitment.
 - **A human closes it** — `Achieved` / `Missed` / `Dropped`, read off the
   pre-registered bars, never auto-flipped by a threshold.
 - **Achieved and Missed are hard-gated on decomposition.** The outcome must
-  be read back onto the linked beliefs, one verdict per belief, via
-  `/find-evidence`. This is the step ordinary OKR processes skip: the miss
-  updates *beliefs*, not just the scoreboard.
+  be read back onto the linked beliefs, one verdict per belief, at `/goals`
+  close — the goal skill owns its side end to end, running the same evidence
+  procedure and gates. This is the step ordinary OKR processes skip: the
+  miss updates *beliefs*, not just the scoreboard.
 - **The loop runs both ways.** A miss's negative readings drop the underlying
   beliefs' Confidence, and the queue routes them back into testing — no new
   machinery, just the ordinary flow.
@@ -135,6 +143,38 @@ is what catches a broken goal in July instead of September.
 When a goal dies, nothing happens mechanically to the assumptions it linked —
 no status flips, no Impact edits. They stay in the queue on their own merits,
 because their queue membership never depended on the goal.
+
+## Found numbers — goal-first, always
+
+Analytics is Goals-side: a PostHog/CRM/product-DB number is a **goal
+reading** — degree of achievement against pre-set bars — never a Testing
+rung. And **there is no retro path**:
+
+- **A found scoreboard number is never logged as evidence** — no bare
+  Goals-side readings, no backdated goals, no retro-registered bars, no goal
+  born closed. Retro bars are theatre: discovery *is* peeking.
+- What the found number does is **prompt minting a forward goal** — a normal
+  live Goal record with a real future deadline (a short first cycle, "read
+  on Aug 31", is legitimate), both bars pre-registered at mint, **calibrated
+  off the found number**. Sandbagging buys nothing: magnitude keys to
+  absolute anchors, never %-of-target.
+- **The discovered truth banks at the first close.** These metrics are level
+  reads — the 15 customers still exist at the deadline — so the close
+  carries them: landing between the bars reads as an interpolated positive
+  at the magnitude of what materialised. One time only.
+- **The ratchet prevents re-counting.** Each next mint re-prices "no
+  progress" from the current level — the kill floor rises ("5 new customers;
+  wrong if 0 new"). An unchanged world then reads at the kill floor: a
+  commitment-grade negative. Kill stays series + human — first true miss
+  lands ≈ −49, a second fires the kill review, a human flips
+  `Live → Invalidated`.
+- Goal-first also births missing beliefs: draft-time mining creates the
+  assumption row if absent and links it — the ordinary `/goals` draft
+  machinery, no new rule.
+- **Discovery sweeps write nothing.** An analytics sweep surfaces numbers
+  ("24 of 34 are paying — mint a goal on this?") and routes to `/goals`
+  draft. World-facts (market size, regulation) are unaffected — Testing-side
+  desk research, as today.
 
 ## Worked example
 

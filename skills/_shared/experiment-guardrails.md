@@ -1,6 +1,7 @@
 # Shared helper — experiment guardrails
 
-The canonical rules every experiment **design** must satisfy. Cited by
+The canonical rules every experiment **design** must satisfy — and the
+lifecycle rules for what happens to it after (§6). Cited by
 `/experiment-design` (the inline design + prep gauntlet, whose
 `references/{interview-guide,prototype-brief,survey,fake-door}.md` playbooks
 expand §3 into runnable artifacts — they cite this file, they don't fork it)
@@ -8,54 +9,100 @@ and by the evidence skills that conclude a designed test (`/find-evidence`,
 via `historic-evidence.md`). When this
 changes, all paths change.
 
-An experiment exists to **kill or confirm one assumption as cheaply as it
-honestly can**. It starts from an assumption's *Metric for truth* (the
-falsifiability statement set by `/assumptions`) and turns it into a runnable
-test with a pre-registered pass bar. This file is the operational ruleset
-for the *design* — not for running the test or recording results.
+An experiment exists to **kill or confirm the beliefs that honestly share
+one run — as cheaply as it honestly can**. It is the Testing-side species of
+**pre-registered container**: a designed plan whose evidence arrives as
+readings. (The Goal record is the other species — same lifecycle shape,
+different plan type and evidence yield; `docs/goals.md`.) It starts from
+each assumption's *Metric for truth* (the falsifiability statement set by
+`/assumptions`) and turns it into a runnable test with pre-registered
+per-belief bars. This file is the operational ruleset for the *design* and
+the *lifecycle* — not for running the test.
 
 ---
 
-## 0. Data model (how the registry encodes an experiment)
+## 0. Data model (plan, readings, sources)
 
-Field map: `registry-schema.md §Field map — Experiments`. The load-bearing
-points:
+**An Experiment is one plan row** — the designed, pre-registered container:
 
-- **One activity-and-strength field: `Type`.** There is no separate "method"
-  field. `Type` is the single 8-rung select that names *both* what you do
-  and how strong the evidence is, grouped into **two categories** by how the
-  evidence is produced (`docs/evidence-ladder.md`):
-  - 🧪 **Testing** (recruited-sample instruments; plateau ±30): `Opinion` ·
-    `Pitch-deck reaction` · `Anecdotal` · `Desk research` · `Survey at
-    scale` · `Prototype usage` (unpaid)
-  - 🎯 **Goals** (open-world targets, two pre-registered bars, closed by the
-    market): `Signed intent` (concept / fake-door / LOI) · `Paying users`
-  Per-rung values live in §2 — read them before picking a rung.
-- **`Source quality`** (number) = how much *this* source's word is worth:
-  `Representativeness × Credibility`, each picked from `{1.0, 0.7, 0.5}`
-  (§2, "the who"). It scales the reading's **weight** in the Confidence
-  average, within its rung — never its value across rungs.
-- **`Strength`** (derived, read-only) = the reading's **signed value `s`**:
-  the rung anchor (× magnitude band on Goal rungs), positive when
-  `Validated`, negative when `Invalidated`, **gated to a conclusive
-  `Result`** — **0** while `Running` or `Inconclusive`. The assumption's
-  **`Confidence`** (signed weighted average over linked readings) reads it
-  directly, so Confidence only ever reflects **concluded** evidence. Never
-  set it by hand.
-- **`Feasibility`** = how hard the experiment is to actually run — `High`
-  (quick / cheap / access ready) · `Medium` · `Low` (slow / costly /
-  access-blocked). Set at design time; it's the second axis of `Type` choice
-  (§2) and, with the linked assumption's Risk, what ranks the test-next
-  surface (`registry-schema.md §Status & derived views`).
+- the **instrument** — the stimulus asset (prototype, fake-door page, survey
+  form), referenced by its **canonical link**, never copied in. A pure
+  interview has no instrument.
+- the **protocol** — in the record body (§3); the guide/questionnaire/spec
+  *is* the per-row protocol.
+- one **`Feasibility`** — how hard the run is to execute: `High` (quick /
+  cheap / access ready) · `Medium` · `Low` (slow / costly / access-blocked).
+  **One value per plan row**, judged at design time over the whole run —
+  bundling never splits it, because the instrument runs once against one
+  population. Drivers worth remembering land as a line in the protocol body
+  ("Low: no buyer access until Q3"). Consumed by exactly two things: rung
+  choice (§2 Axis B) and cross-experiment ordering (§6). (Known future
+  extension, deliberately not specced: a finer scale than H/M/L.)
+- one **bar line per belief under test** — the pre-registered `We're right
+  if` / `We're wrong if` pair **and the planned rung** for that belief (§1b,
+  §4). There is **no run-level `Type` or `Strength`**: the rung lives per
+  belief, the signed value per reading; anything experiment-level is a
+  closure-time **report** (§6), never a Confidence input.
+
+**Evidence is readings** — one reading per **artifact × belief it actually
+addressed**. Quotes from one artifact against one belief group inside that
+one reading, never fan into several. A reading carries its rung (inherited
+from its bar line at logging; assigned honestly at logging for off-plan and
+bare readings), `Source quality`, `Result`, the derived signed `Strength`,
+and its source artifact's canonical link.
+
+**Bars come from the plan; readings come from the artifacts.** Off-plan
+readings — signal the run yielded on beliefs that weren't bundled — are
+legitimate: they keep the experiment link as provenance and get **no bar**.
+A round's reading count is bounded by actual signal, not the plan grid.
+
+> **Physical schema — pending.** The live register still encodes plan and
+> reading on one Experiments row (`registry-schema.md §Field map —
+> Experiments`): one row per belief under test, the row's `Type` carrying
+> that belief's planned rung, a shared run expressed by the shared
+> instrument link + protocol, every new round a new row. The true split
+> (field map, relation shapes, where the rung sits) lands with the
+> registry-schema rewrite. The concepts here are normative either way.
+
+**Source artifacts — identity, routing, no Sources register:**
+
+- Testing-side source artifacts are essentially **two kinds**: user
+  interviews (calls/transcripts) and prototype/stimulus sessions. The
+  artifact is the *interview*, not the person — the interviewee stays an
+  attribute of the reading.
+- **Identity = the canonical link.** Every reading carries its artifact's
+  canonical URL (Fireflies transcript, prototype URL, Attio record, Drive
+  file). **Same link ⇒ same source** — this is the key the independence
+  dedupe (§2) runs on. Normalization rule: store the platform's stable
+  resource URL — scheme + host + path/id — with query strings, fragments,
+  and tracking parameters stripped; one artifact, one exact stored string.
+  Audit sweeps for drift (two spellings of one artifact).
+- **Routing = the config source-map.** `validation-os.config.yaml` carries a
+  `source_map:` block mapping artifact kind → home → how to fetch
+  (interviews → Fireflies; prototypes → the prototype repo; customers →
+  Attio; end users → the product DB). Token-light, loaded once; the evidence
+  skills use it to find and fetch artifacts, never to mirror them.
+- **Reference, never mirror.** The register stores links to homes, never
+  copies of their contents. A CRM entry is a *location* where an artifact or
+  scoreboard number lives, not a third source kind.
+- **Raw / pasted artifacts get a home.** An artifact that arrives by
+  copy-paste (email thread, screenshot, unrecorded-call notes) is filed into
+  the designated **"Raw evidence" Drive folder** (listed in the source-map
+  like any other home), which mints its canonical link. Quoting an excerpt
+  in a reading's body is fine — that's the reading's evidence note — but the
+  whole artifact lives exactly once, at its link; pasting it into rows as
+  the primary copy is banned (it recreates N-copy drift).
+- **Quality stays per-reading** (`Source quality`, §2) — source identity
+  dedupes, it never grades.
 
 **One reading ↔ one belief, linkage binary.** The unit entering the
 Confidence average is one concluded reading against exactly one assumption —
 bar, rung, `Result`, and `Strength` are all per-belief. A rich artifact (an
 interview) that bears on N beliefs fans into up to N readings sharing a
-source; there is no partial-credit "directness" discount — a weak proxy for
-the claim reads as a lower rung or `Inconclusive`, never a discounted strong
-reading. Evidence on a sibling or dependency never flows across the graph
-into this belief's Confidence.
+canonical link; there is no partial-credit "directness" discount — a weak
+proxy for the claim reads as a lower rung or `Inconclusive`, never a
+discounted strong reading. Evidence on a sibling or dependency never flows
+across the graph into this belief's Confidence.
 
 **Ladder integrity, always:** the Confidence average is bounded by its
 strongest reading's value, and source quality only scales weight — so weak
@@ -66,37 +113,78 @@ of it piles up.
 
 ## 1. Design discipline (reject a design that fails any)
 
-- **Falsifiable.** The test must be able to come back **Invalidated**. If
-  every plausible outcome would be read as "confirmed", it's theatre —
-  redesign it.
-- **Pre-registered.** `We're right if` (pass bar) **and** `We're wrong if`
-  (kill bar) are written **before** running. No moving the goalposts after
-  seeing data.
+- **Falsifiable — per belief.** The run must be able to come back
+  **Invalidated on each bundled belief independently**. A bar that can't
+  fail in this run doesn't belong in the bundle; a design where every
+  plausible outcome reads "confirmed" is theatre — redesign it.
+- **Pre-registered.** Every bundled belief's `We're right if` (pass bar)
+  **and** `We're wrong if` (kill bar) are written **before** running. No
+  moving the goalposts after seeing data.
 - **Cheapest viable.** Buy the evidence at the lowest cost that can actually
   move the belief (the ladder, §2). Don't run interviews for something a
   public document settles; don't build a prototype when a pitch suffices.
 - **Right population — and how *representative*.** Whoever you test must
-  match the assumption's `Lens` — a **hard gate**; wrong audience =
-  confident, irrelevant evidence. Within the right Lens, quality is a
-  **gradient, not a tick-box**: a senior decision-maker at a target-size,
-  on-ICP organisation is worth far more than a junior at an off-ICP one.
-  Record it in `Source quality` (§2).
+  match the assumptions' `Lens` — a **hard gate**, and the same Lens across
+  the whole bundle (§1b); wrong audience = confident, irrelevant evidence.
+  Within the right Lens, quality is a **gradient, not a tick-box**: a senior
+  decision-maker at a target-size, on-ICP organisation is worth far more
+  than a junior at an off-ICP one. Record it in `Source quality` (§2).
 - **Revealed > stated.** Prefer evidence of what people *did* (paid, signed,
   clicked, churned) over what they *say* they would do. Stated intent is
   weak evidence and gets discounted accordingly.
-- **One belief in focus.** One assumption per experiment
-  (`registry-schema.md`). A test that would also inform another belief gets
-  a second experiment record.
+- **Shared run only.** Beliefs share an experiment only when one run
+  honestly addresses each of them (§1b). A test that would also inform
+  another belief either bundles it — with its own bar line — or notes it and
+  leaves that belief to its own experiment. Never blur two beliefs into one
+  bar.
+
+## 1b. Grouping — when beliefs share one experiment
+
+- **Membership rule.** Beliefs may share a plan row only when a **single run
+  of one instrument, per one protocol, on one Lens-matched population**
+  honestly addresses each of them. Same Lens is a hard gate. A belief that
+  needs a different population, instrument, or rung to be tested honestly
+  gets its own experiment. Grouping is by **shared execution, never by
+  theme**.
+- **Rung lives per belief.** Each belief's bar line pre-registers its bars
+  **and** the rung its evidence will sit on — one session can honestly yield
+  different-strength signal per belief (past-behaviour questions vs
+  prototype-in-hand). Readings inherit the planned rung at logging.
+- **Focus = honesty test, no cap.** No numeric limit on bundle size. Two
+  design-time checks, fail either → separate experiment:
+  1. the run must be able to come back Invalidated on **each** belief
+     independently;
+  2. no belief's measurement may compromise another's — pitching
+     mid-interview to test desirability poisons the Mom-Test half; the §3
+     anti-patterns apply **per belief**, and the ordering check is explicit:
+     past-behaviour core before any stimulus.
+- **The bundle is symmetric.** No lead-belief marker: every bundled belief
+  has equal standing. Which belief prompted the design is origination
+  provenance, not structure; ordering rules (§6) read "highest-Risk belief
+  in the bundle" live.
+- **Workflow instruments.** The instrument may span more surface than the
+  beliefs under test. Bars exist only for the bundled beliefs; anything the
+  run reveals on un-bundled surface enters as **off-plan readings** (§0) —
+  experiment link as provenance, no bar. No obligation to pre-register every
+  belief the instrument touches.
+- **Reuse.** The instrument is a reusable **asset**, identified by its
+  canonical link (§0). Every new round — new population, new beliefs, or new
+  bars — is a **new experiment row** referencing the same instrument link.
+  **A bundle never grows after design**: adding a belief mid-run is
+  retro-registration, which origination forbids (§6).
+- **Duplicate seam.** If the **same pre-registered bar — the same reading —
+  would resolve two candidate beliefs, they are one assumption**: merge
+  (`assumption-guardrails.md §4`). Beliefs that each need their own bar to
+  fail independently are distinct — and may still bundle.
 
 ---
 
-## 2. The evidence ladder + feasibility (two axes of `Type` choice)
+## 2. The evidence ladder + feasibility (two axes of rung choice)
 
-Choosing the experiment is choosing **one `Type` rung** — and it's a
-trade-off of **two axes**, not one:
+Choosing each belief's **rung** is a trade-off of **two axes**, not one:
 
 **Axis A — evidence strength (climb as high as the belief needs).** The 8
-`Type` rungs, weakest → strongest, in **two categories**
+rungs, weakest → strongest, in **two categories**
 (`docs/evidence-ladder.md`). The gaps *between* rungs reflect **commitment**
 — what the signal cost the person to give:
 
@@ -134,20 +222,28 @@ Revealed > stated: a costly action beats a "would you?" — within Testing
 (any Goal rung beats every Testing rung). Push for the highest rung the test
 can honestly reach.
 
-**Axis B — feasibility (can we actually run it?).** Set `Feasibility` for
-how hard the test is to execute given **access to the right population,
-cost, and time**. The strongest rung is worthless if you can't run it this
-quarter. The categories embody the trade: Testing is quick and feasible,
-Goals are slow and expensive with a high ceiling — test cheaply until a
-belief has earned a Goal-tier bet.
+**Goal rungs enter via Goal records, goal-first, always.** A Goal-rung
+design *is* a goal — both bars pre-registered, deadline set, instrument
+named in advance (`docs/goals.md`) — and its evidence arrives as **one
+reading per goal, at its deadline**. A **found scoreboard number is never
+logged as evidence**: it prompts minting a *forward* goal calibrated off the
+number (`docs/goals.md §Found numbers`). There are no bare Goals-side
+readings (§6).
 
-**Pick the rung that maximises strength × feasibility.** Recommend the
-highest strength rung that is still genuinely runnable, in one line
-("`Signed intent` ideal but no buyer access yet → `Desk research` first,
-`High` feasibility"). If the ideal rung is `Low` feasibility, drop down
-and **say why** — don't design a test that won't get run. A high-Risk belief
-often needs several records: a feasible weak test now, a stronger one when
-access opens.
+**Axis B — feasibility (can we actually run it?).** Set `Feasibility` for
+how hard the run is to execute given **access to the right population,
+cost, and time** (§0 — one value per plan row). The strongest rung is
+worthless if you can't run it this quarter. The categories embody the
+trade: Testing is quick and feasible, Goals are slow and expensive with a
+high ceiling — test cheaply until a belief has earned a Goal-tier bet.
+
+**Pick the rung that maximises strength × feasibility — per belief.**
+Recommend the highest strength rung that is still genuinely runnable, in one
+line ("`Signed intent` ideal but no buyer access yet → `Desk research`
+first, `High` feasibility"). If the ideal rung is `Low` feasibility, drop
+down and **say why** — don't design a test that won't get run. A high-Risk
+belief often needs several records: a feasible weak test now, a stronger one
+when access opens.
 
 **Reading value `s` (canonical — every backend implements exactly this).**
 `Strength` holds the signed reading value, gated to a conclusive `Result`
@@ -207,10 +303,14 @@ Confidence = (w₀·0 + Σ wᵢ·sᵢ) / (w₀ + Σ wᵢ)     w₀ = 100,  wᵢ 
 - **Only concluded `Validated` / `Invalidated` readings enter** — `Running`
   and `Inconclusive` are excluded from numerator *and* denominator; a belief
   with only inconclusive tests sits at the prior because it has no mass.
-- **Independence dedupes by source:** readings sharing a `Source` against
-  the same belief count once — only the strongest (largest `|s|`; most
-  recent on ties) enters the sum. N readings cut from one interview are one
-  unit of corroborating mass, not N.
+- **Independence dedupes by source:** readings sharing a canonical link
+  against the same belief count once — only the strongest (largest `|s|`;
+  most recent on ties) enters the sum. N readings cut from one interview are
+  one unit of corroborating mass, not N. **Goal readings are the deliberate
+  exception:** each *closed goal* is its own unit — successive cycles on the
+  same instrument never dedupe (a series of misses could otherwise never
+  accumulate to the kill zone). Re-counting an unchanged world is prevented
+  by the bar ratchet, not by dedupe (`docs/goals.md §Found numbers`).
 - **No corroboration bump** — replication is just more mass reducing
   shrinkage; there is no separate uplift mechanic.
 - **Volume reaches toward the rung ceiling, never past it** (the average is
@@ -235,7 +335,8 @@ Every concluded reading documents its grading in the record body (under
   anchor it keys to ("2 paying pilots at £500/mo → Paying, Low");
 - the **Representativeness** and **Credibility** picks, one-line
   justification each;
-- the **source** (person/artifact) the independence dedupe keys off.
+- the **source** — the artifact's canonical link the independence dedupe
+  keys off.
 
 A reading missing its grading block can't be audited into the average —
 audit flags it.
@@ -251,18 +352,22 @@ whose N is too small (or wrong-Lens) to mean anything comes back
 State the minimum qualified N in the pass bar (`survey.md`,
 `interview-guide.md`); below it, the result is noise, not weak validation.
 
-> `Type` options are a real select — propose a genuinely new rung only as a
-> gated schema change; never write a `Type` value that isn't live in the
+> Rung options are a real select — propose a genuinely new rung only as a
+> gated schema change; never write a rung value that isn't live in the
 > register.
 
 ---
 
 ## 3. Per-method playbooks (what goes in the experiment body)
 
-The protocol lives in the record **body**. Pick the template by the chosen
-`Type` rung: `Desk research` → desk template; `Opinion`/`Anecdotal` +
-`Survey at scale` → interview template; `Pitch-deck reaction` +
-`Prototype usage` + the 🎯 Goal rungs → pitch/prototype template.
+The protocol lives in the record **body** — the guide / questionnaire /
+spec *is* the per-row protocol. Pick the playbook by the **run's method**,
+never by a rung (a bundle can hold mixed rungs; the run is still one
+method): **interview** (± stimulus) → interview template · **prototype
+session** → prototype path + usage guide · **survey** → questionnaire ·
+**fake-door** → stimulus spec + costly ask + instrumentation · **desk** →
+desk template · **pitch** → pitch checklist. One experiment → one playbook →
+one protocol artifact, even for mixed-rung bundles.
 
 The checklists below are the **minimum bar**; the full prep skeletons live
 in `/experiment-design`'s `references/` — `interview-guide.md` (guide
@@ -270,7 +375,7 @@ skeleton + how-to-ask rules, also the question discipline `survey.md`
 inherits), `prototype-brief.md` (prototype-needed rule table §3b + brief
 template), `fake-door.md` (stimulus / costly ask / instrumentation spec).
 
-### 🔵 Desk research (`Desk research` rung)
+### 🔵 Desk research
 
 - **Sub-questions.** Break the belief into the specific questions sources
   must answer (each maps to part of `We're right if`).
@@ -280,36 +385,41 @@ template), `fake-door.md` (stimulus / costly ask / instrumentation spec).
 - **Decision rule.** What pattern across sources = pass vs. fail. Capture
   conflicting evidence, don't cherry-pick.
 
-### 🟣 User interview (`Opinion` / `Anecdotal` / `Survey at scale` rungs)
+### 🟣 User interview (± stimulus)
 
-- **Recruit / screener.** Who qualifies (must match the `Lens`), how many
-  (small-N, but name the target), how you'll reach them.
+- **Recruit / screener.** Who qualifies (must match the `Lens` — one
+  population for the whole bundle), how many (small-N, but name the target),
+  how you'll reach them.
 - **Questions.** Non-leading, behaviour-first. Ask about the **last time**
   they did X, not whether they "would". Open, then probe. No pitching
-  mid-interview.
-- **Signal.** What answer pattern clears `We're right if` (e.g. "≥N of M
-  unprompted describe the problem we're betting on").
+  mid-interview. Past-behaviour core **before** any stimulus.
+- **Signal — per belief.** One block per bundled belief: what answer/
+  behaviour pattern clears *that belief's* `We're right if` (e.g. "≥N of M
+  unprompted describe the problem we're betting on"), with each question
+  tagged to the belief(s) it feeds.
 
-### 🟠 Pitch / Prototype (`Pitch-deck reaction`, `Prototype usage`, 🎯 Goal rungs)
+### 🟠 Pitch / Prototype / Fake-door (incl. 🎯 Goal rungs)
 
 A 🎯 Goal-rung design (`Signed intent` / `Paying users`) is a **goal**: both
 bars pre-registered, deadline set, instrument named in advance
 (`docs/goals.md`) — a fake-door is a short goal.
 
 - **Stimulus.** The thing shown (mock, landing page, one-pager, demo) —
-  realistic enough that the ask is real.
+  realistic enough that the ask is real; referenced by canonical link (§0).
 - **The ask.** A **costly** signal of intent: payment, deposit, signed LOI,
   calendar time, opting in. The cost is what makes it evidence.
-- **Bar.** The count/rate of people taking the costly action that clears
-  `We're right if`.
+- **Bar.** Per bundled belief: the count/rate of people taking the costly
+  action that clears its `We're right if`.
 
-**Anti-patterns (kill on sight in any method):** leading or "would you…"
-hypotheticals · vanity metrics (impressions, "interest") standing in for
-commitment · sample too small or wrong-Lens to mean anything · confirmation
-bias (only logging evidence that fits the bet) · a pass bar vague enough to
-always pass · a desirability bar on a watched session (observation destroys
-desire signals — `threats-to-validity.md`; a usage test measures
-comprehension/usability, desire needs its own Revealed record).
+**Anti-patterns (kill on sight in any method — applied per belief):**
+leading or "would you…" hypotheticals · vanity metrics (impressions,
+"interest") standing in for commitment · sample too small or wrong-Lens to
+mean anything · confirmation bias (only logging evidence that fits the
+bet) · a pass bar vague enough to always pass · a desirability bar on a
+watched session (observation destroys desire signals —
+`threats-to-validity.md`; a usage test measures comprehension/usability,
+desire needs its own Revealed record) · one belief's measurement poisoning
+another's (§1b).
 
 Before finalizing the protocol, pressure-test it against
 `references/threats-to-validity.md` (selection bias, novelty effects,
@@ -321,8 +431,8 @@ apply and either mitigate or explicitly accept them in the record body.
 ## 3b. When is a prototype needed? (rule table)
 
 Keyed to **what the experiment is discovering** — never to enthusiasm for
-building. Default follows the `Type` rung; the one human override is the
-interview stimulus question ("will you show a prototype in the interview?").
+building. The one human override is the interview stimulus question ("will
+you show a prototype in the interview?").
 
 | Discovering… | Build | Rung it belongs on |
 |---|---|---|
@@ -331,25 +441,30 @@ interview stimulus question ("will you show a prototype in the interview?").
 | **Willingness to commit** before anything is built | **Fake-door / landing page** — not a full prototype | `Signed intent` |
 | Facts **already knowable** from published sources | **Nothing** — desk research | `Desk research` |
 
-A prototype spec is a **prototype brief** — a throwaway-build spec, never a
-production PRD. Interviews that show a prototype still require the full
-interview guide — a prototype without a guide is a demo, not an experiment.
+A prototype spec is a **prototype brief** — the *experiment's constraints on
+the instrument*: what must be REAL, what can be FAKED, and the
+instrumentation, each keyed to the bundled beliefs' bars, plus how the
+session uses it. Never a build spec or a production PRD — every HOW/design
+question routes to `/prototype`, outside this system. Interviews that show a
+prototype still require the full interview guide — a prototype without a
+guide is a demo, not an experiment.
 
 ---
 
 ## 4. `We're right if` / `We're wrong if`
 
-Turn the assumption's *Metric for truth* into two concrete, observable
-thresholds fixed before the run:
+Turn each bundled assumption's *Metric for truth* into two concrete,
+observable thresholds fixed before the run — **one pair per belief**:
 
-- **`We're right if`** (the field) — the result that turns the assumption
-  into a fact. Concrete and countable: `≥N of M say/do X`, `≥X% convert`,
+- **`We're right if`** — the result that turns *that* assumption into a
+  fact. Concrete and countable: `≥N of M say/do X`, `≥X% convert`,
   `regulation explicitly permits Y`. No qualifiers without a number.
-- **`We're wrong if`** (body) — the kill bar. The result that should make
-  you drop or pivot the assumption. Naming it up front is what stops
-  post-hoc rescue.
+- **`We're wrong if`** — the kill bar. The result that should make you drop
+  or pivot the assumption. Naming it up front is what stops post-hoc rescue.
 
-If you can't state both as observable thresholds, the design isn't done — go
+Bars exist **only for the beliefs under test** — un-bundled surface the run
+happens to touch yields off-plan readings, never a bar (§0). If you can't
+state both thresholds for a belief, its part of the design isn't done — go
 back to the assumption's *Metric for truth* (or flag that the assumption
 itself is unfalsifiable, which is `/assumptions`' problem, not this
 skill's).
@@ -358,9 +473,11 @@ skill's).
 
 ## 5. Relations & the two axes
 
-- **One experiment ↔ one assumption** (`registry-schema.md`). A high-Risk
-  assumption often needs **several** experiments (e.g. desk research then a
-  pitch) — that's fine; they accrue as separate records.
+- **One experiment ↔ the beliefs that share its run.** Each bundled belief
+  keeps its own bar line (§1b); a belief the run can't honestly address gets
+  its own experiment. A high-Risk assumption often needs **several**
+  experiments (e.g. desk research then a pitch) — that's fine; they accrue
+  as separate records. (Live encoding of the relation: §0 pending note.)
 - **Two separate axes, do not conflate:**
   - **Assumption `Status`** = `Draft` / `Live` / `Invalidated` — the
     lifecycle and nothing else; Testing, queue membership, and goal linkage
@@ -368,8 +485,62 @@ skill's).
     §Status & derived views`). `/experiment-design` never flips any status:
     creating a `Running` experiment makes a `Live` row show in the derived
     Testing view automatically.
-  - **Experiment `Result`** = **Running** →
+  - **Reading `Result`** = **Running** →
     Validated/Invalidated/Inconclusive. `/experiment-design` only ever sets
-    **Running**. Concluding a `Result` is the evidence skills' job — a
+    **Running**. Readings conclude rolling as evidence is logged (§6) — a
     verdict moves Confidence and Risk, never the assumption's `Status`;
     only a human-affirmed kill flips `Live → Invalidated`.
+
+---
+
+## 6. Lifecycle — origination, conclusion, closure, kill, ordering
+
+**Origination — a reading is born exactly three ways. Never retroactively.**
+
+1. **From an Experiment** (Testing side): created only via forward design —
+   `/experiment-design`, queue-prompted or prototype-first *going forward*
+   (bars fixed before the next round). Found evidence **never gets a
+   wrapper experiment** minted after the fact.
+2. **From a Goal** (Goals side): scoreboard metrics enter via the Goal
+   container — **one reading per goal, at its deadline**; the
+   series-of-misses model runs across successive goal cycles; mid-cycle
+   check-ins are reviews, not evidence. **No bare Goals-side readings**: a
+   found scoreboard number prompts minting a *forward* goal
+   (`docs/goals.md §Found numbers`) — no backdated goals, no
+   retro-registered bars, no goal born closed.
+3. **Bare** (Testing rungs only): found evidence — desk research, evidence
+   sweeps, back-fits. Prototype-first entry = bare readings back-fit to
+   beliefs, plus optionally a new forward experiment.
+
+Experiment and Goal are the two species of **pre-registered container** —
+same lifecycle shape; they differ in plan type and evidence yield. They stay
+separate record types.
+
+**Readings conclude rolling** — human-affirmed as logged (the
+post-interview capture), signed strength fixed then; Confidence moves as
+evidence lands. No draft state on a reading.
+
+**Closure is one human act on the plan**: stop collecting; render each
+pre-registered per-belief **bar verdict** (Validated / Invalidated /
+Inconclusive — judged only now, against the full pre-registered N); write
+the rollup summary into the record. Bar verdicts and the rollup are
+**reports, never Confidence inputs** — the readings already carried the
+evidence; counting the verdict again would double-count.
+
+**Kill / early stop = the same closure gate, different reason code.**
+Already-concluded readings survive (a mid-round LOI keeps its strength);
+unmet bars close `Inconclusive`. Kill candidates are surfaced to the human
+by sweeps (the weekly ritual / `register-audit.md`), prompted by:
+
+- stale `Running` — no reading activity against the plan;
+- the underlying assumption mooted (Impact 0) or merged away;
+- superseded by a cheaper same-belief design;
+- cost ballooned past the design-time `Feasibility`.
+
+**Ordering: Risk picks the belief, Feasibility picks the experiment.** The
+test-next queue (Risk alone) says which belief deserves testing; among
+designed experiments, run `High` feasibility before `Medium` before `Low` —
+for a bundle, read "the highest-Risk belief in the bundle". That sort is the
+whole rule: Testing experiments live in one narrow, cheap band, so no
+further machinery earns its keep. (Which *goals* to commit to per cycle is
+goal-prioritisation — future goals work, outside this file.)
