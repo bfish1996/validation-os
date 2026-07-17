@@ -2,8 +2,14 @@ import { createInMemoryProvider } from "@validation-os/core/testing";
 import { describe, expect, it } from "vitest";
 import { createApi, type AuthResult } from "./index.js";
 
-const ALLOW = async (): Promise<AuthResult> => ({ userId: "u1" });
+const ROSTER = [
+  { name: "benji", authSubject: "clerk-benji" },
+  { name: "sam", authSubject: "clerk-sam" },
+];
+const ALLOW = async (): Promise<AuthResult> => ({ subject: "clerk-benji" });
 const DENY = async (): Promise<null> => null;
+/** A validly-authenticated token whose subject is on no roster. */
+const STRANGER = async (): Promise<AuthResult> => ({ subject: "clerk-nobody" });
 
 function seededProvider() {
   return createInMemoryProvider({
@@ -37,7 +43,7 @@ const req = (body?: unknown) =>
 
 describe("createApi auth", () => {
   it("rejects unauthenticated requests with 401", async () => {
-    const api = createApi({ provider: seededProvider(), authenticate: DENY });
+    const api = createApi({ provider: seededProvider(), authenticate: DENY, roster: ROSTER });
     const res = await api.list(req(), ctx({ register: "assumptions" }));
     expect(res.status).toBe(401);
   });
@@ -45,7 +51,7 @@ describe("createApi auth", () => {
 
 describe("createApi CRUD", () => {
   it("lists a register", async () => {
-    const api = createApi({ provider: seededProvider(), authenticate: ALLOW });
+    const api = createApi({ provider: seededProvider(), authenticate: ALLOW, roster: ROSTER });
     const res = await api.list(req(), ctx({ register: "assumptions" }));
     expect(res.status).toBe(200);
     const body = await res.json();
@@ -53,13 +59,13 @@ describe("createApi CRUD", () => {
   });
 
   it("rejects an unknown register with 400", async () => {
-    const api = createApi({ provider: seededProvider(), authenticate: ALLOW });
+    const api = createApi({ provider: seededProvider(), authenticate: ALLOW, roster: ROSTER });
     const res = await api.list(req(), ctx({ register: "nope" }));
     expect(res.status).toBe(400);
   });
 
   it("returns register counts", async () => {
-    const api = createApi({ provider: seededProvider(), authenticate: ALLOW });
+    const api = createApi({ provider: seededProvider(), authenticate: ALLOW, roster: ROSTER });
     const res = await api.counts(req());
     const body = await res.json();
     expect(body.counts.assumptions).toBe(1);
@@ -68,7 +74,7 @@ describe("createApi CRUD", () => {
 
   it("recomputes Risk and Derived Impact server-side when Impact is edited", async () => {
     const provider = seededProvider();
-    const api = createApi({ provider, authenticate: ALLOW });
+    const api = createApi({ provider, authenticate: ALLOW, roster: ROSTER });
     const res = await api.update(
       new Request("http://test/api", {
         method: "PATCH",
@@ -90,7 +96,7 @@ describe("createApi CRUD", () => {
   });
 
   it("surfaces a stale write as a friendly 409", async () => {
-    const api = createApi({ provider: seededProvider(), authenticate: ALLOW });
+    const api = createApi({ provider: seededProvider(), authenticate: ALLOW, roster: ROSTER });
     const res = await api.update(
       new Request("http://test/api", {
         method: "PATCH",
@@ -114,7 +120,7 @@ describe("createApi link", () => {
   }
 
   it("rejects unauthenticated link requests with 401", async () => {
-    const api = createApi({ provider: seededProvider(), authenticate: DENY });
+    const api = createApi({ provider: seededProvider(), authenticate: DENY, roster: ROSTER });
     const res = await api.link(
       linkReq({
         relation: "assumption-reading",
@@ -126,7 +132,7 @@ describe("createApi link", () => {
   });
 
   it("rejects an unknown relation with 400", async () => {
-    const api = createApi({ provider: seededProvider(), authenticate: ALLOW });
+    const api = createApi({ provider: seededProvider(), authenticate: ALLOW, roster: ROSTER });
     const res = await api.link(
       linkReq({
         relation: "not-a-relation",
@@ -138,7 +144,7 @@ describe("createApi link", () => {
   });
 
   it("rejects a from-register that does not match the relation with 400", async () => {
-    const api = createApi({ provider: seededProvider(), authenticate: ALLOW });
+    const api = createApi({ provider: seededProvider(), authenticate: ALLOW, roster: ROSTER });
     const res = await api.link(
       linkReq({
         relation: "assumption-reading",
@@ -156,7 +162,7 @@ describe("createApi link", () => {
       Title: "A reading",
       assumptionId: "",
     });
-    const api = createApi({ provider, authenticate: ALLOW });
+    const api = createApi({ provider, authenticate: ALLOW, roster: ROSTER });
     const res = await api.link(
       linkReq({
         relation: "assumption-reading",
@@ -184,7 +190,7 @@ describe("createApi link", () => {
       Credibility: 1.0,
       derived: { sourceQuality: 1, strength: 30 },
     });
-    const api = createApi({ provider, authenticate: ALLOW });
+    const api = createApi({ provider, authenticate: ALLOW, roster: ROSTER });
     await api.link(
       linkReq({
         relation: "assumption-reading",
@@ -199,7 +205,7 @@ describe("createApi link", () => {
   });
 
   it("returns 404 when an endpoint record is missing", async () => {
-    const api = createApi({ provider: seededProvider(), authenticate: ALLOW });
+    const api = createApi({ provider: seededProvider(), authenticate: ALLOW, roster: ROSTER });
     const res = await api.link(
       linkReq({
         relation: "assumption-reading",
@@ -214,7 +220,7 @@ describe("createApi link", () => {
 describe("derive-on-write", () => {
   it("stamps a reading's Source quality and Strength on create", async () => {
     const provider = seededProvider();
-    const api = createApi({ provider, authenticate: ALLOW });
+    const api = createApi({ provider, authenticate: ALLOW, roster: ROSTER });
     const res = await api.create(
       req({
         id: "RDG-1",
@@ -235,7 +241,7 @@ describe("derive-on-write", () => {
 
   it("recomputes the linked assumption's Confidence and Risk after a reading write", async () => {
     const provider = seededProvider();
-    const api = createApi({ provider, authenticate: ALLOW });
+    const api = createApi({ provider, authenticate: ALLOW, roster: ROSTER });
     await api.create(
       req({
         id: "RDG-1",
@@ -257,5 +263,126 @@ describe("derive-on-write", () => {
     expect(derived.confidence).toBe(6.92);
     expect(derived.derivedImpact).toBe(50);
     expect(derived.risk).toBe(46.54); // 50 × (1 − 6.92/100)
+  });
+});
+
+describe("identity: membership gate + Owner/Agreed-by stamp", () => {
+  it("rejects a validly-authenticated caller who is not on the roster with 403", async () => {
+    const api = createApi({
+      provider: seededProvider(),
+      authenticate: STRANGER,
+      roster: ROSTER,
+    });
+    const res = await api.list(req(), ctx({ register: "assumptions" }));
+    expect(res.status).toBe(403);
+  });
+
+  it("defaults Owner to the caller when a create omits it", async () => {
+    const api = createApi({
+      provider: seededProvider(),
+      authenticate: ALLOW,
+      roster: ROSTER,
+    });
+    const res = await api.create(
+      req({ id: "EXP-1", Title: "A plan" }),
+      ctx({ register: "experiments" }),
+    );
+    expect(res.status).toBe(201);
+    const body = await res.json();
+    expect(body.data.Owner).toEqual(["benji"]);
+  });
+
+  it("lets a create attribute Owner to another roster member", async () => {
+    const api = createApi({
+      provider: seededProvider(),
+      authenticate: ALLOW,
+      roster: ROSTER,
+    });
+    const res = await api.create(
+      req({ id: "EXP-1", Title: "A plan", Owner: ["sam"] }),
+      ctx({ register: "experiments" }),
+    );
+    expect(res.status).toBe(201);
+    const body = await res.json();
+    expect(body.data.Owner).toEqual(["sam"]);
+  });
+
+  it("rejects a create whose Owner is not a roster member with 400", async () => {
+    const api = createApi({
+      provider: seededProvider(),
+      authenticate: ALLOW,
+      roster: ROSTER,
+    });
+    const res = await api.create(
+      req({ id: "EXP-1", Title: "A plan", Owner: ["ghost"] }),
+      ctx({ register: "experiments" }),
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it("rejects an update whose Owner is not a roster member with 400", async () => {
+    const api = createApi({
+      provider: seededProvider(),
+      authenticate: ALLOW,
+      roster: ROSTER,
+    });
+    const res = await api.update(
+      new Request("http://test/api", {
+        method: "PATCH",
+        body: JSON.stringify({ version: 0, Owner: ["ghost"] }),
+      }),
+      ctx({ register: "assumptions", id: "ASM-1" }),
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it("rejects an update whose Agreed by includes a non-member with 400", async () => {
+    const api = createApi({
+      provider: seededProvider(),
+      authenticate: ALLOW,
+      roster: ROSTER,
+    });
+    const res = await api.update(
+      new Request("http://test/api", {
+        method: "PATCH",
+        body: JSON.stringify({ version: 0, "Agreed by": ["ghost"] }),
+      }),
+      ctx({ register: "assumptions", id: "ASM-1" }),
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it("rejects a decision whose Agreed by includes a non-member with 400", async () => {
+    const api = createApi({
+      provider: seededProvider(),
+      authenticate: ALLOW,
+      roster: ROSTER,
+    });
+    const res = await api.create(
+      req({
+        id: "DEC-1",
+        Title: "A decision",
+        Status: "Provisional",
+        "Agreed by": ["sam", "ghost"],
+        basedOnIds: [],
+      }),
+      ctx({ register: "decisions" }),
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it("does not invent an Owner on a register that has none (glossary)", async () => {
+    const api = createApi({
+      provider: seededProvider(),
+      authenticate: ALLOW,
+      roster: ROSTER,
+    });
+    const res = await api.create(
+      req({ id: "GLO-1", Title: "A term", Definition: "x" }),
+      ctx({ register: "glossary" }),
+    );
+    expect(res.status).toBe(201);
+    const body = await res.json();
+    expect(body.data.Owner).toBeUndefined();
   });
 });

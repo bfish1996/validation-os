@@ -29,15 +29,86 @@ const COLLECTIONS = new Set<string>(REGISTERS);
 const DERIVED_TRIGGERS = new Set<string>(["assumptions", "readings", "decisions"]);
 
 export interface AuthResult {
-  userId: string;
+  /**
+   * The raw, verified identity-provider subject (e.g. the Clerk user ID). The
+   * package treats it as an opaque string and resolves it against the roster;
+   * the auth vendor stays confined to the injected `authenticate`.
+   */
+  subject: string;
+}
+
+/**
+ * One team member the register recognises — the `vocabulary.dashboard_users`
+ * entry. `authSubject` is the IdP-neutral mapping a caller's token subject
+ * resolves through; `name` is what lands in `Owner` / `Agreed by` (OPS-1343).
+ */
+export interface DashboardUser {
+  name: string;
+  authSubject: string;
 }
 
 export interface CreateApiOptions {
   provider: DataProvider;
-  /** Return the authenticated principal, or null to reject with 401. */
+  /**
+   * Verify the request's bearer token and return its subject, or null to
+   * reject with 401. Roster resolution (subject → member) happens here in the
+   * package, so `authenticate` carries no auth-vendor-specific mapping.
+   */
   authenticate: (req: Request) => Promise<AuthResult | null> | AuthResult | null;
+  /**
+   * The known team roster. A caller whose subject resolves to a member may
+   * write (any register); an unmapped subject is a 403. Sourced from
+   * `vocabulary.dashboard_users` in the deployment config.
+   */
+  roster: DashboardUser[];
   /** Run derive-on-write after writes (default true). */
   deriveOnWrite?: boolean;
+}
+
+/** Registers that carry an `Owner`; glossary has none. */
+const REGISTERS_WITH_OWNER = new Set<string>([
+  "assumptions",
+  "experiments",
+  "readings",
+  "decisions",
+]);
+
+/** True when a create supplied no Owner to stamp the caller into. */
+function ownerAbsent(value: unknown): boolean {
+  return (
+    value === undefined ||
+    value === null ||
+    (Array.isArray(value) && value.length === 0)
+  );
+}
+
+/**
+ * Every identity a write names (Owner, Agreed by) must be a roster member —
+ * the body's word for *who* is never trusted. A stranger name is a 400.
+ */
+function assertMembers(
+  field: string,
+  value: unknown,
+  names: Set<string>,
+): void {
+  if (value === undefined || value === null) return;
+  const entries = Array.isArray(value) ? value : [value];
+  for (const v of entries) {
+    if (typeof v !== "string" || !names.has(v)) {
+      throw new BadRequest(
+        `${field} must reference a team member; "${String(v)}" is not one.`,
+      );
+    }
+  }
+}
+
+/** Both identity fields a write may carry must name roster members. */
+function assertIdentityFields(
+  data: Record<string, unknown>,
+  names: Set<string>,
+): void {
+  assertMembers("Owner", data.Owner, names);
+  assertMembers("Agreed by", data["Agreed by"], names);
 }
 
 type Params = Record<string, string | undefined>;
@@ -145,10 +216,19 @@ export function createApi(options: CreateApiOptions): ValidationOsApi {
   const { provider } = options;
   const deriveOn = options.deriveOnWrite ?? true;
 
-  async function guard(req: Request): Promise<AuthResult> {
+  const memberNames = new Set(options.roster.map((u) => u.name));
+
+  /**
+   * The membership gate (OPS-1343): a request with no/invalid token is a 401;
+   * a valid token whose subject is on no roster entry is a 403. Returns the
+   * resolved member — one lookup is both gate and identity source.
+   */
+  async function guard(req: Request): Promise<{ name: string }> {
     const auth = await options.authenticate(req);
     if (!auth) throw new Unauthorized();
-    return auth;
+    const member = options.roster.find((u) => u.authSubject === auth.subject);
+    if (!member) throw new Forbidden();
+    return { name: member.name };
   }
 
   async function maybeRecompute(register: Collection): Promise<void> {
@@ -182,9 +262,15 @@ export function createApi(options: CreateApiOptions): ValidationOsApi {
 
     async create(req, ctx) {
       try {
-        await guard(req);
+        const { name } = await guard(req);
         const register = assertRegister((await resolveParams(ctx)).register);
         let data = (await req.json()) as Record<string, unknown>;
+        // Identity is stamped, not trusted: any Owner/Agreed-by the client sent
+        // must be a roster member, and an omitted Owner defaults to the caller.
+        assertIdentityFields(data, memberNames);
+        if (REGISTERS_WITH_OWNER.has(register) && ownerAbsent(data.Owner)) {
+          data = { ...data, Owner: [name] };
+        }
         if (register === "readings") data = deriveReadingFields(data);
         const created = await provider.create(register, data);
         await maybeRecompute(register);
@@ -205,6 +291,8 @@ export function createApi(options: CreateApiOptions): ValidationOsApi {
         if (typeof version !== "number") {
           throw new BadRequest("A numeric `version` is required for updates.");
         }
+        // An update may re-attribute Owner/Agreed-by, but only to roster members.
+        assertIdentityFields(rawPatch, memberNames);
         const patch =
           register === "readings" ? deriveReadingFields(rawPatch) : rawPatch;
         const updated = await provider.update(register, p.id, patch, version);
@@ -265,10 +353,23 @@ export function createApi(options: CreateApiOptions): ValidationOsApi {
 }
 
 class Unauthorized extends Error {}
+/** Authenticated, but the subject resolves to no roster member (OPS-1343). */
+class Forbidden extends Error {}
 
 function handle(e: unknown): Response {
   if (e instanceof Unauthorized) {
     return json({ error: "unauthorized" }, 401);
+  }
+  if (e instanceof Forbidden) {
+    return json(
+      {
+        error: "forbidden",
+        message:
+          "Your account isn't on this register's team yet — ask an admin to " +
+          "add you.",
+      },
+      403,
+    );
   }
   return toErrorResponse(e);
 }
