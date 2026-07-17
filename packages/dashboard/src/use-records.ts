@@ -74,10 +74,19 @@ export interface UseListResult {
   refresh: () => void;
 }
 
-/** Fetch every row of a register. */
-export function useList(register: Collection, basePath = "/api"): UseListResult {
+/**
+ * Fetch every row of a register. `enabled` (default true) gates the fetch: pass
+ * false to keep the hook idle — the list-surface loads a *context* register
+ * (e.g. experiments, for the assumptions "Testing" view) only when the current
+ * register's tabs actually need it, without breaking the rules-of-hooks.
+ */
+export function useList(
+  register: Collection,
+  basePath = "/api",
+  enabled = true,
+): UseListResult {
   const { data, loading, error, refresh } = useJsonResource<AnyRecord[]>(
-    `${basePath}/${register}`,
+    enabled ? `${basePath}/${register}` : null,
   );
   return { records: data, loading, error, refresh };
 }

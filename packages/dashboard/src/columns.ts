@@ -67,7 +67,7 @@ const COLUMNS: Record<Collection, ColumnDef[]> = {
     },
   ],
   experiments: [
-    { key: "Title", header: "Experiment" },
+    { key: "Title", header: "Evidence plan" },
     { key: "Status", header: "Status", kind: "status" },
     { key: "Feasibility", header: "Feasibility" },
   ],
