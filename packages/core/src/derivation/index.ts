@@ -31,3 +31,9 @@ export type { TrajectoryPoint } from "./trajectory.js";
 export { derivedImpacts } from "./impact.js";
 export type { ImpactAssumptionInput } from "./impact.js";
 export { risk } from "./risk.js";
+export { beliefRisk, portfolioProgress } from "./portfolio.js";
+export type {
+  BeliefRisk,
+  PortfolioBeliefInput,
+  PortfolioProgress,
+} from "./portfolio.js";

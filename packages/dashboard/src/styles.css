@@ -1002,3 +1002,420 @@ textarea.vos-input {
   font-size: 13px;
   color: var(--vos-text);
 }
+
+/* ── portfolio pipeline (OPS-1300) ─────────────────────────────────────── */
+
+/* headline: the one burn-up reading, a single meter (not a chart) */
+.vos-pipe-hero {
+  background: var(--vos-surface);
+  border: 1px solid var(--vos-border);
+  border-radius: var(--vos-radius);
+  box-shadow: var(--vos-shadow);
+  padding: 20px 24px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+  flex-wrap: wrap;
+}
+.vos-pipe-eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--vos-muted);
+}
+.vos-pipe-big {
+  font-family: var(--vos-mono);
+  font-size: 54px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  margin: 6px 0 4px;
+  color: var(--vos-text);
+}
+.vos-pipe-big span {
+  font-size: 26px;
+  color: var(--vos-muted);
+}
+.vos-pipe-sub {
+  font-size: 13px;
+  color: var(--vos-muted);
+}
+.vos-pipe-figs {
+  display: flex;
+  gap: 26px;
+}
+.vos-pipe-fig {
+  text-align: right;
+}
+.vos-pipe-fv {
+  font-family: var(--vos-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--vos-text);
+}
+.vos-pipe-fl {
+  font-size: 11px;
+  color: var(--vos-muted);
+  margin-top: 1px;
+}
+
+/* stage legend: the four meters every belief carries */
+.vos-pipe-stages {
+  display: flex;
+  align-items: stretch;
+  margin: 0 0 10px;
+  flex-wrap: wrap;
+}
+.vos-pipe-stage {
+  flex: 1;
+  min-width: 150px;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 8px 12px;
+}
+.vos-pipe-idx {
+  font-family: var(--vos-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--vos-accent);
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+.vos-pipe-idx-open {
+  background: transparent;
+  color: var(--vos-accent-text);
+  border: 1px dashed var(--vos-accent);
+}
+.vos-pipe-skname {
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.vos-pipe-skdesc {
+  font-size: 11px;
+  color: var(--vos-muted);
+  line-height: 1.35;
+}
+.vos-pipe-arrow {
+  align-self: center;
+  color: var(--vos-border-strong);
+  flex: none;
+  padding: 0 2px;
+}
+
+/* the board */
+.vos-pipe-board {
+  overflow: visible;
+}
+.vos-pipe-boardhead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--vos-border);
+}
+.vos-pipe-bt {
+  font-size: 13px;
+  font-weight: 600;
+}
+.vos-pipe-bt span {
+  color: var(--vos-muted);
+  font-weight: 400;
+}
+.vos-pipe-sortnote {
+  font-size: 11.5px;
+  color: var(--vos-muted);
+}
+
+.vos-pipe-row {
+  display: grid;
+  grid-template-columns: 4px minmax(200px, 1.4fr) minmax(280px, 2fr) 92px;
+  align-items: center;
+  gap: 14px;
+  border-bottom: 1px solid var(--vos-border);
+  position: relative;
+}
+.vos-pipe-row:last-child {
+  border-bottom: 0;
+}
+.vos-pipe-row:hover {
+  background: var(--vos-surface-2);
+}
+.vos-pipe-stripe {
+  align-self: stretch;
+}
+
+.vos-pipe-belief {
+  text-align: left;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  padding: 14px 0;
+  display: block;
+}
+.vos-pipe-stmt {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 550;
+  line-height: 1.35;
+  color: var(--vos-text);
+}
+.vos-pipe-belief:hover .vos-pipe-stmt {
+  color: var(--vos-accent-text);
+}
+.vos-pipe-bmeta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 5px;
+  font-size: 11px;
+  color: var(--vos-faint);
+}
+.vos-pipe-impact-track {
+  width: 46px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--vos-surface-2);
+  overflow: hidden;
+  display: inline-block;
+  vertical-align: middle;
+}
+.vos-pipe-impact-track i {
+  display: block;
+  height: 100%;
+  background: var(--vos-border-strong);
+}
+
+/* the connected four-meter track */
+.vos-pipe-prog {
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+  padding: 14px 0;
+}
+.vos-pipe-seg {
+  flex: 1;
+  min-width: 0;
+}
+.vos-pipe-track {
+  height: 22px;
+  border-radius: 4px;
+  background: var(--vos-surface-2);
+  position: relative;
+  overflow: hidden;
+}
+.vos-pipe-track i {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  border-radius: 4px;
+}
+.vos-pipe-fill-accent {
+  background: var(--vos-accent);
+}
+.vos-pipe-known {
+  background: linear-gradient(
+    90deg,
+    var(--vos-crit-weak),
+    var(--vos-surface-2) 50%,
+    var(--vos-good-weak)
+  );
+}
+.vos-pipe-known-mid {
+  position: absolute;
+  left: 50%;
+  top: 2px;
+  bottom: 2px;
+  width: 1px;
+  background: var(--vos-border-strong);
+}
+.vos-pipe-known-pos {
+  left: 50%;
+  background: var(--vos-good);
+  border-radius: 0 4px 4px 0;
+}
+.vos-pipe-known-neg {
+  right: 50%;
+  left: auto;
+  background: var(--vos-crit);
+  border-radius: 4px 0 0 4px;
+}
+.vos-pipe-cap {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 5px;
+}
+.vos-pipe-capn {
+  font-family: var(--vos-mono);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--vos-faint);
+}
+.vos-pipe-capv {
+  font-size: 11px;
+  font-weight: 600;
+}
+.vos-pipe-flag {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--vos-crit);
+  background: var(--vos-crit-weak);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+/* risk cell */
+.vos-pipe-risk {
+  text-align: right;
+  padding-right: 16px;
+}
+.vos-pipe-rv {
+  font-family: var(--vos-mono);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1;
+}
+.vos-pipe-rl {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--vos-muted);
+}
+.vos-pipe-conf {
+  margin-top: 5px;
+  font-family: var(--vos-mono);
+  font-size: 10.5px;
+}
+
+/* hover actions */
+.vos-pipe-actions {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  gap: 6px;
+  opacity: 0;
+  transition: opacity 0.12s;
+  background: linear-gradient(90deg, transparent, var(--vos-surface-2) 22%);
+  padding-left: 40px;
+}
+.vos-pipe-row:hover .vos-pipe-actions,
+.vos-pipe-row:focus-within .vos-pipe-actions {
+  opacity: 1;
+}
+
+/* resolved / hidden */
+.vos-pipe-resolved {
+  margin-top: 14px;
+}
+.vos-pipe-disclosure {
+  background: var(--vos-surface);
+  border: 1px dashed var(--vos-border-strong);
+  border-radius: var(--vos-radius);
+  padding: 12px 16px;
+  font-size: 13px;
+  color: var(--vos-muted);
+  cursor: pointer;
+  list-style: none;
+}
+.vos-pipe-disclosure::-webkit-details-marker {
+  display: none;
+}
+.vos-pipe-disclosure::before {
+  content: "▸";
+  display: inline-block;
+  margin-right: 8px;
+  transition: transform 0.15s;
+}
+.vos-pipe-resolved[open] .vos-pipe-disclosure::before {
+  transform: rotate(90deg);
+}
+.vos-pipe-disclosure:hover {
+  border-color: var(--vos-accent);
+  color: var(--vos-accent-text);
+}
+.vos-pipe-resolved-body {
+  margin-top: 8px;
+  border: 1px solid var(--vos-border);
+  border-radius: var(--vos-radius);
+  overflow: hidden;
+  background: var(--vos-surface);
+}
+.vos-pipe-rrow {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(200px, 1fr) 90px 120px;
+  gap: 12px;
+  align-items: center;
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--vos-border);
+  border-left: 0;
+  border-right: 0;
+  border-top: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.vos-pipe-rrow:last-child {
+  border-bottom: 0;
+}
+.vos-pipe-rrow:hover {
+  background: var(--vos-surface-2);
+}
+.vos-pipe-rstmt {
+  font-size: 13px;
+  color: var(--vos-muted);
+  text-decoration: line-through;
+  text-decoration-color: var(--vos-border-strong);
+}
+.vos-pipe-retired {
+  font-family: var(--vos-mono);
+  font-size: 12px;
+  color: var(--vos-good);
+  text-align: right;
+}
+.vos-pipe-foot {
+  margin-top: 16px;
+  line-height: 1.6;
+}
+.vos-pipe-foot b {
+  color: var(--vos-text);
+  font-weight: 600;
+}
+
+@media (max-width: 760px) {
+  .vos-pipe-row {
+    grid-template-columns: 4px 1fr;
+  }
+  .vos-pipe-prog,
+  .vos-pipe-risk {
+    grid-column: 2;
+    padding-top: 0;
+    text-align: left;
+  }
+  .vos-pipe-actions {
+    position: static;
+    opacity: 1;
+    transform: none;
+    background: none;
+    padding: 0 0 14px 2px;
+    grid-column: 2;
+  }
+}

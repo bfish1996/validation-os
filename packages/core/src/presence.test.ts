@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   ASSUMPTION_PRESENCE_FIELDS,
+  assumptionCompleteness,
   assumptionPresenceComplete,
   missingPresenceFields,
 } from "./presence.js";
@@ -43,5 +44,28 @@ describe("assumption presence fields", () => {
     expect(
       assumptionPresenceComplete({ ...filled(), "5 Whys": 42 as unknown as string }),
     ).toBe(false);
+  });
+});
+
+describe("assumptionCompleteness (the pipeline's Framed meter)", () => {
+  it("is 100 when every presence field is present", () => {
+    expect(assumptionCompleteness(filled())).toBe(100);
+  });
+
+  it("is 0 for a bare draft", () => {
+    expect(assumptionCompleteness({})).toBe(0);
+  });
+
+  it("reads the share of fields present, rounded to a whole percent", () => {
+    expect(assumptionCompleteness({ "5 Whys": "x" })).toBe(33); // 1 of 3
+    expect(
+      assumptionCompleteness({ "5 Whys": "x", "Metric for truth": "y" }),
+    ).toBe(67); // 2 of 3
+  });
+
+  it("treats blank/whitespace as absent, matching the presence check", () => {
+    expect(assumptionCompleteness({ ...filled(), "Metric for truth": "   " })).toBe(
+      67,
+    );
   });
 });

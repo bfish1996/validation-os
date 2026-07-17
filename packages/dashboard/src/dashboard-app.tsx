@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { Collection } from "@validation-os/core";
 import { REGISTER_ORDER, REGISTER_SUBTITLE } from "./labels.js";
+import { PipelineSurface } from "./pipeline-surface.js";
 import { RecordPage } from "./record-page.js";
 import { RegisterBrowser } from "./register-browser.js";
 import { formatRoute, parseRoute, type Route } from "./route.js";
@@ -177,19 +178,7 @@ export function ValidationOSDashboard({ config = {} }: ValidationOSDashboardProp
             backRegister={registers[0] ?? "assumptions"}
           />
         ) : route.name === "pipeline" ? (
-          <SurfacePlaceholder
-            key="pipeline"
-            title="Pipeline"
-            subtitle="Where every belief stands across the loop, and how much risk you've bought down."
-            detail={
-              <>
-                The portfolio pipeline — the 4-meter board and the “% of risk
-                bought down” burn-up (<b>OPS-1300</b>) — mounts here. The
-                navigation shell wires its route (<code>#pipeline</code>) and nav
-                slot.
-              </>
-            }
-          />
+          <PipelineSurface key="pipeline" basePath={basePath} onNavigate={navigate} />
         ) : (
           <SurfacePlaceholder
             key="next"
