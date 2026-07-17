@@ -4,7 +4,9 @@ import type { Collection } from "@validation-os/core";
  * teammate meets, so no jargon and no code-y plurals. */
 export const REGISTER_LABEL: Record<Collection, string> = {
   assumptions: "Assumptions",
-  experiments: "Experiments",
+  // One container-agnostic lens now Goal is unified into Experiment (OPS-1299 /
+  // OPS-1287 story 22): all plans browse in one place under this label.
+  experiments: "Evidence plans",
   readings: "Readings",
   decisions: "Decisions",
   glossary: "Glossary",
@@ -14,7 +16,7 @@ export const REGISTER_LABEL: Record<Collection, string> = {
  * that would read "New Glossary"). */
 export const REGISTER_SINGULAR: Record<Collection, string> = {
   assumptions: "Assumption",
-  experiments: "Experiment",
+  experiments: "Evidence plan",
   readings: "Reading",
   decisions: "Decision",
   glossary: "Glossary term",

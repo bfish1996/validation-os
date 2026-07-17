@@ -12,6 +12,9 @@ export interface SidebarNavProps {
   onNavigate: (route: Route) => void;
   /** Live per-register counts; a middle dot shows until they load. */
   counts?: Counts | null;
+  /** Per-register needs-a-human counts — a persistent alert badge on the
+   * register that needs attention (kill lane, overdue plans, tensions; story 20). */
+  needsHuman?: Partial<Record<Collection, number>>;
   /** The registers shown under Records, in order. */
   registers: Collection[];
 }
@@ -29,6 +32,7 @@ export function SidebarNav({
   route,
   onNavigate,
   counts,
+  needsHuman,
   registers,
 }: SidebarNavProps) {
   const activeRegister = route.name === "records" ? route.register : null;
@@ -75,6 +79,14 @@ export function SidebarNav({
                 {REGISTER_ICON[register]}
               </span>
               {REGISTER_LABEL[register]}
+              {needsHuman?.[register] ? (
+                <span
+                  className="vos-nav-alert"
+                  title={`${needsHuman[register]} need a human`}
+                >
+                  {formatCount(needsHuman[register] ?? 0)}
+                </span>
+              ) : null}
               <span className="vos-nav-count vos-num">
                 {counts?.[register] !== undefined
                   ? formatCount(counts[register] ?? 0)
