@@ -1532,6 +1532,13 @@ textarea.vos-input {
   margin: 0;
 }
 .vos-why-rank {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
 /* ── Record page (OPS-1286) ──────────────────────────────────────────────── */
 .vos-record-head {
   align-items: flex-start;
@@ -1630,6 +1637,12 @@ textarea.vos-input {
   font-weight: 600;
 }
 .vos-why-rank-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .vos-backlink {
   display: flex;
   align-items: center;
