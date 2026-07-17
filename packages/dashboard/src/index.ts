@@ -98,6 +98,17 @@ export type {
   StageMeterInput,
   StageMeterView,
 } from "./stage-meters.js";
+export {
+  coldStartFor,
+  journeyColdState,
+  FIRST_RUN_LINE,
+} from "./cold-start.js";
+export type {
+  ColdStart,
+  JourneyColdState,
+  NextColdStart,
+  PipelineColdStart,
+} from "./cold-start.js";
 export { EditFields, FieldInput } from "./edit-fields.js";
 export { RegisterCounts } from "./register-counts.js";
 export type { RegisterCountsProps } from "./register-counts.js";

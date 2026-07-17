@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import type { AnyRecord } from "@validation-os/core";
 import { rankNextMoves, type MoveKind, type NextMove } from "@validation-os/core/derivation";
+import { coldStartFor, FIRST_RUN_LINE } from "./cold-start.js";
 import { movePresentation, toNextMoveInput } from "./next-move.js";
 import { riskFraction, riskLevel, type Tone } from "./primitives.js";
 import type { Route } from "./route.js";
@@ -120,6 +121,32 @@ export function NextMoveSurface({ basePath, onNavigate }: NextMoveSurfaceProps) 
     );
   }
   if (moves.length === 0) {
+    const records = {
+      assumptions: assumptions.records ?? [],
+      experiments: experiments.records ?? [],
+      readings: readings.records ?? [],
+      decisions: decisions.records ?? [],
+    };
+    const cold = coldStartFor(records);
+    if (cold.cold) {
+      return (
+        <NextMoveFrame>
+          <div className="vos-firstrun">{FIRST_RUN_LINE}</div>
+          <div className="vos-card vos-cold vos-cold-next">
+            <span className="vos-cold-eyebrow">{cold.next.eyebrow}</span>
+            <h2 className="vos-cold-headline">{cold.next.headline}</h2>
+            <p className="vos-cold-body">{cold.next.body}</p>
+            <button
+              type="button"
+              className="vos-btn vos-hero-act"
+              onClick={() => onNavigate({ name: "records", register: "assumptions" })}
+            >
+              {cold.next.cta}
+            </button>
+          </div>
+        </NextMoveFrame>
+      );
+    }
     return (
       <NextMoveFrame>
         <div className="vos-empty">
