@@ -95,21 +95,31 @@ registers:
       - {canonical: Title, backend: Title, type: string, derived: false}
       - {canonical: Statement, backend: Statement, type: string, derived: false}
       - {canonical: Status, backend: Status, type: string, derived: false, options_source: registry-schema}
+      - {canonical: Area, backend: Area, type: string, derived: false, options_source: vocabulary.area}
       - {canonical: Owner, backend: Owner, type: "object[]", derived: false, options_source: vocabulary.dashboard_users}
       - {canonical: Agreed by, backend: "Agreed by", type: "object[]", derived: false, options_source: vocabulary.dashboard_users}
+      - {canonical: Unanimity score, backend: "Unanimity score", type: number, derived: false}
       - {canonical: Unanimity justification, backend: "Unanimity justification", type: string, derived: false}
+      - {canonical: Source, backend: Source, type: string, derived: false}
+      - {canonical: Decided date, backend: "Decided date", type: string, derived: false}
+      - {canonical: Reversibility, backend: Reversibility, type: string, derived: false, options_source: registry-schema}
     relations:
       - {canonical: Based on assumption, backend: basedOnIds, target: assumptions, cardinality: many}
       - {canonical: Resolves assumption, backend: resolvesIds, target: assumptions, cardinality: many}
+      - {canonical: Related tension, backend: relatedTensionIds, target: decisions, cardinality: many, self: true}
+      - {canonical: Supersedes / Superseded by, backend: "supersedesIds, supersededByIds", target: decisions, cardinality: many, self: true}
   glossary:
     source: collection
     config_key: nosql.glossary_collection
     properties:
       - {canonical: Title, backend: Title, type: string, derived: false}
       - {canonical: Status, backend: Status, type: string, derived: false, options_source: registry-schema}
+      - {canonical: Area, backend: Area, type: string, derived: false, options_source: vocabulary.area}
       - {canonical: Definition, backend: Definition, type: string, derived: false}
       - {canonical: Avoid, backend: Avoid, type: "object[]", derived: false}
       - {canonical: How it differs, backend: "How it differs", type: string, derived: false}
+    relations:
+      - {canonical: Related tension, backend: relatedTensionIds, target: glossary, cardinality: many, self: true}
 ---
 
 # Schema guide — NoSQL
@@ -340,22 +350,27 @@ this document (`OPS-1305`) — `Grading justification` replaces the old
 | Title | `Title` | string | no |
 | Statement | `Statement` | string | no |
 | Status | `Status` | string | no |
+| Area | `Area` | string | no |
 | Owner | `Owner` | object[] (`{id, name}`) | no |
 | Agreed by | `Agreed by` | object[] (`{id, name}`) | no |
+| Unanimity score | `Unanimity score` | number (0–100) | no |
 | Unanimity justification | `Unanimity justification` | string | no |
+| Source | `Source` | string | no |
+| Decided date | `Decided date` | string (ISO date) | no |
+| Reversibility | `Reversibility` | string | no |
 | Based on assumption | `basedOnIds` | string[] (IDs) | no |
 | Resolves assumption | `resolvesIds` | string[] (IDs) | no |
+| Related tension | `relatedTensionIds` | string[] (IDs) | no |
+| Supersedes / Superseded by | `supersedesIds` / `supersededByIds` | string[] (IDs) | no |
 | Body | `body` | string (Markdown; `## Rationale`, `## Alternatives considered`) | no |
 
 No `type` field (the collection is the discriminator — a document here IS a
 decision) and no `kind` field (it drove nothing mechanical). `Statement`
 (promoted from the old `## Decision` body) and `Unanimity justification`
-(promoted from the old `## Rationale` prose) are first-class fields. The
-retired `Area`, `Unanimity score`, `Source`, `Decided date`, `Reversibility`,
-`Related tension`, and `Supersedes`/`Superseded by` fields are gone from the
-shipped adapter's model — `Area` moved to Glossary only, `Unanimity score`
-was never written by the migration, and the supersession/tension relations
-are not present in the live adapter.
+(promoted from the old `## Rationale` prose) are first-class fields.
+`Related tension` (an unresolved Decision↔Decision contradiction) and
+`Supersedes`/`Superseded by` (a resolved, intentional override) are symmetric
+and directed self-relations respectively, stored as ID arrays on both ends.
 
 ## Field mapping — Glossary
 
@@ -363,16 +378,19 @@ are not present in the live adapter.
 |---|---|---|---|
 | Title | `Title` | string | no |
 | Status | `Status` | string | no |
+| Area | `Area` | string | no |
 | Definition | `Definition` | string | no |
 | Avoid | `Avoid` | object[] (`{audience, phrase, fix}`) | no |
 | How it differs | `How it differs` | string | no |
+| Related tension | `relatedTensionIds` | string[] (IDs) | no |
 
 No `type` field (the collection is the discriminator). `Status` has no
 `Reversed` value — a term is superseded by a better one, never reversed.
 There is no `body` field on this document (`OPS-1305`) — `Definition`,
 `Avoid`, and `How it differs` replace the old `## Definition` / `## Avoid /
-don't say` / `## How it differs` body headings. `Area` and `Related tension`
-are not present in the shipped adapter's Glossary model.
+don't say` / `## How it differs` body headings. `Related tension` is a
+symmetric Glossary↔Glossary confusable-neighbour pairing, stored as an ID
+array on both ends.
 
 ## Vocabulary-driven fields
 
@@ -406,6 +424,9 @@ lists, it proposes a default set and writes them into the config.
 | Experiment / Assumption (bar line) | embedded `barLines[].assumptionId` on the experiment document; `barLineAssumptionIds` projection | experiments ↔ assumptions | many-to-many, via bar line |
 | Based on assumption (Decision) | `basedOnIds` array | decisions → assumptions | many |
 | Resolves assumption (Decision) | `resolvesIds` array | decisions → assumptions | many |
+| Related tension (Decision) | `relatedTensionIds` array on both documents | decisions | many |
+| Supersedes / Superseded by (Decision) | `supersedesIds` / `supersededByIds` arrays | decisions | many |
+| Related tension (Glossary) | `relatedTensionIds` array on both documents | glossary | many |
 
 For two-way relations, both documents are patched inside the same write batch
 or transaction. `Reading / Experiment` is one-ended by design — the inverse
