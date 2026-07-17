@@ -84,8 +84,21 @@ export type {
   ResolvedRow,
   StageKey,
 } from "./pipeline.js";
-export { buildJourney } from "./journey.js";
-export type { JourneyEventView, JourneyView } from "./journey.js";
+export { buildJourney, eventStepIn, eventTone } from "./journey.js";
+export type {
+  JourneyEventView,
+  JourneyView,
+  StoryStepIn,
+} from "./journey.js";
+export { BeliefJourney } from "./journey-surface.js";
+export type { BeliefJourneyProps } from "./journey-surface.js";
+export { stageMeters } from "./stage-meters.js";
+export type {
+  MeterKind,
+  StageMeterInput,
+  StageMeterView,
+} from "./stage-meters.js";
+export { EditFields, FieldInput } from "./edit-fields.js";
 export { RegisterCounts } from "./register-counts.js";
 export type { RegisterCountsProps } from "./register-counts.js";
 export { RegisterTable } from "./register-table.js";
@@ -113,8 +126,13 @@ export type {
   NextMoveRecords,
   StepInForm,
 } from "./next-move.js";
-export { ScoreImpactForm, WriteDecisionForm } from "./step-in-forms.js";
+export {
+  EditBeliefForm,
+  ScoreImpactForm,
+  WriteDecisionForm,
+} from "./step-in-forms.js";
 export type {
+  EditBeliefFormProps,
   ScoreImpactFormProps,
   WriteDecisionFormProps,
 } from "./step-in-forms.js";

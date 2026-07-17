@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { AnyRecord, Collection } from "@validation-os/core";
 import { REGISTERS } from "@validation-os/core";
 import { formatValue } from "./columns.js";
 import { GlossaryText } from "./glossary-text.js";
 import { toGlossaryTerms } from "./glossary.js";
+import { buildJourney } from "./journey.js";
+import { BeliefJourney } from "./journey-surface.js";
 import { REGISTER_LABEL, REGISTER_SINGULAR } from "./labels.js";
 import { nestReadingsByPlan } from "./list-surface.js";
 import {
@@ -99,6 +101,30 @@ export function RecordPage({
     }
   }
 
+  // The per-belief journey (OPS-1330) — only a belief travels the loop, so this
+  // is null for any other register. "Now" is supplied here so the view-model
+  // stays pure (it never reads a clock); the story's last event is today.
+  const journey = useMemo(() => {
+    if (register !== "assumptions" || !record) return null;
+    return buildJourney(
+      recordId,
+      {
+        assumptions: related.assumptions ?? [],
+        experiments: related.experiments ?? [],
+        readings: related.readings ?? [],
+        decisions: related.decisions ?? [],
+      },
+      asOf,
+    );
+  }, [register, record, recordId, asOf, related]);
+
+  const refreshAll = () => {
+    lists.assumptions.refresh();
+    lists.experiments.refresh();
+    lists.readings.refresh();
+    lists.decisions.refresh();
+  };
+
   const terms = toGlossaryTerms(related.glossary ?? []);
   const openTerm = (id: string) => onNavigate({ name: "record", id });
 
@@ -135,6 +161,9 @@ export function RecordPage({
           onOpenRecord={(id) => onNavigate({ name: "record", id })}
           onOpenTerm={openTerm}
           basePath={basePath}
+          journey={journey}
+          onJourneyChanged={refreshAll}
+          onNavigate={onNavigate}
         />
       )}
     </div>
@@ -152,6 +181,9 @@ function RecordBody({
   onOpenRecord,
   onOpenTerm,
   basePath,
+  journey,
+  onJourneyChanged,
+  onNavigate,
 }: {
   register: Collection;
   record: AnyRecord;
@@ -163,6 +195,9 @@ function RecordBody({
   onOpenRecord: (id: string) => void;
   onOpenTerm: (id: string) => void;
   basePath?: string;
+  journey: ReturnType<typeof buildJourney>;
+  onJourneyChanged: () => void;
+  onNavigate: (route: Route) => void;
 }) {
   const page = buildRecordPage(register, record, related, { asOf });
   const activeTab = page.tabs.includes(tab) ? tab : "overview";
@@ -286,7 +321,18 @@ function RecordBody({
         </section>
       ) : null}
 
-      {page.hasJourney ? (
+      {page.hasJourney && journey ? (
+        <section className="vos-journey-host">
+          <h3 className="vos-section-title">Validation journey</h3>
+          <BeliefJourney
+            journey={journey}
+            assumption={record}
+            basePath={basePath}
+            onNavigate={onNavigate}
+            onChanged={onJourneyChanged}
+          />
+        </section>
+      ) : page.hasJourney ? (
         <section className="vos-journey-host">
           <h3 className="vos-section-title">Validation journey</h3>
           <p className="vos-hint">

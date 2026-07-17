@@ -4,13 +4,8 @@ import { DrawerShell } from "./drawer-shell.js";
 import { REGISTER_LABEL } from "./labels.js";
 import { derivedLabel, fieldLabel, formatValue, primaryLabel } from "./columns.js";
 import { derivedTone, formatSigned, heroToneClass } from "./primitives.js";
-import {
-  buildPatch,
-  draftFrom,
-  editableFields,
-  type Draft,
-  type FieldEditor,
-} from "./edit.js";
+import { buildPatch, draftFrom, type Draft } from "./edit.js";
+import { EditFields } from "./edit-fields.js";
 import { useUpdate } from "./use-records.js";
 import { UnderstandingPanel } from "./understanding-panel.js";
 
@@ -353,74 +348,3 @@ function ConflictBanner({
   );
 }
 
-function EditFields({
-  register,
-  draft,
-  onField,
-}: {
-  register: Collection;
-  draft: Draft;
-  onField: (key: string, value: string) => void;
-}) {
-  return (
-    <div className="vos-field-stack">
-      {editableFields(register).map((field) => (
-        <FieldInput
-          key={field.key}
-          field={field}
-          value={draft[field.key]}
-          onChange={(v) => onField(field.key, v)}
-        />
-      ))}
-    </div>
-  );
-}
-
-function FieldInput({
-  field,
-  value,
-  onChange,
-}: {
-  field: FieldEditor;
-  value: string | undefined;
-  onChange: (value: string) => void;
-}) {
-  // Field keys can contain spaces ("5 Whys"); slugify for a valid DOM id.
-  const id = `field-${field.key.replace(/\s+/g, "-")}`;
-  return (
-    <div className="vos-field">
-      <label htmlFor={id}>{field.label}</label>
-      {field.kind === "textarea" ? (
-        <textarea
-          id={id}
-          value={String(value ?? "")}
-          onChange={(e) => onChange(e.target.value)}
-          rows={3}
-          className="vos-input"
-        />
-      ) : field.kind === "select" ? (
-        <select
-          id={id}
-          value={String(value ?? "")}
-          onChange={(e) => onChange(e.target.value)}
-          className="vos-input"
-        >
-          {field.nullable ? <option value="">—</option> : null}
-          {field.options?.map((opt) => (
-            <option key={opt} value={opt}>
-              {opt}
-            </option>
-          ))}
-        </select>
-      ) : (
-        <input
-          id={id}
-          type={field.kind === "number" ? "number" : "text"}
-          value={String(value ?? "")}
-          onChange={(e) => onChange(e.target.value)}
-          className="vos-input"
-        />
-      )}
-    </div>
-  );
-}

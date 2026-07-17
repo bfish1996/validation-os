@@ -3,6 +3,7 @@ import type { AnyRecord } from "@validation-os/core";
 import { formatSigned } from "./primitives.js";
 import { buildPipeline, weekOverWeekDelta, type PipelineRow } from "./pipeline.js";
 import type { Route } from "./route.js";
+import { stageMeters } from "./stage-meters.js";
 import { useList } from "./use-records.js";
 
 /**
@@ -262,49 +263,36 @@ function RowView({ row, onOpen }: { row: PipelineRow; onOpen: () => void }) {
         </span>
       </button>
 
+      {/* The four meters, captioned by the shared mapping the journey rail also
+          reads (`stageMeters`) — a row and a belief's rail can't disagree. */}
       <div className="vos-pipe-prog" aria-label="Loop progress">
-        <Meter n="1" label={`Framed ${row.framed}%`} muted={row.framed < 100}>
-          <div className="vos-pipe-track">
-            <i className="vos-pipe-fill-accent" style={{ width: `${row.framed}%` }} />
-          </div>
-        </Meter>
-        <Meter n="2" label={row.planned ? "Planned" : "No test"} muted={!row.planned}>
-          <div className="vos-pipe-track">
-            <i className="vos-pipe-fill-accent" style={{ width: row.planned ? "100%" : "0%" }} />
-          </div>
-        </Meter>
-        <Meter
-          n="3"
-          label={row.tested.total ? `Tested ${row.tested.settled}/${row.tested.total}` : "Untested"}
-          muted={row.tested.total === 0}
-        >
-          <div className="vos-pipe-track">
-            <i
-              className="vos-pipe-fill-accent"
-              style={{
-                width: row.tested.total
-                  ? `${Math.round((row.tested.settled / row.tested.total) * 100)}%`
-                  : "0%",
-              }}
-            />
-          </div>
-        </Meter>
-        <Meter
-          n="4"
-          flag={row.killZone ? "re-test" : undefined}
-          label={row.killZone ? undefined : `Known ${formatSigned(row.confidence)}`}
-          muted={row.confSign === "zero"}
-        >
-          <div className="vos-pipe-track vos-pipe-known">
-            <span className="vos-pipe-known-mid" />
-            {row.confSign !== "zero" ? (
-              <i
-                className={row.confSign === "pos" ? "vos-pipe-known-pos" : "vos-pipe-known-neg"}
-                style={{ width: `${Math.min(50, (Math.abs(row.confidence) / 100) * 50)}%` }}
-              />
-            ) : null}
-          </div>
-        </Meter>
+        {stageMeters(row).map((m) => (
+          <Meter
+            key={m.key}
+            n={m.n}
+            label={m.flag ? undefined : m.label}
+            flag={m.flag}
+            muted={m.muted}
+          >
+            {m.kind === "signed" ? (
+              <div className="vos-pipe-track vos-pipe-known">
+                <span className="vos-pipe-known-mid" />
+                {m.sign !== "zero" ? (
+                  <i
+                    className={
+                      m.sign === "pos" ? "vos-pipe-known-pos" : "vos-pipe-known-neg"
+                    }
+                    style={{ width: `${m.pct}%` }}
+                  />
+                ) : null}
+              </div>
+            ) : (
+              <div className="vos-pipe-track">
+                <i className="vos-pipe-fill-accent" style={{ width: `${m.pct}%` }} />
+              </div>
+            )}
+          </Meter>
+        ))}
       </div>
 
       <div className="vos-pipe-risk">
