@@ -29,6 +29,10 @@ export interface FieldEditor {
   options?: readonly string[];
   /** An empty input clears the field to `null` rather than "". */
   nullable?: boolean;
+  /** For `number`: the inclusive range a hand-scored value must sit in
+   * (e.g. Impact 0–100, `registry-schema.md`). Omitted = unbounded. */
+  min?: number;
+  max?: number;
 }
 
 const t = (key: string, label: string): FieldEditor => ({ key, label, kind: "text" });
@@ -37,11 +41,16 @@ const area = (key: string, label: string): FieldEditor => ({
   label,
   kind: "textarea",
 });
-const num = (key: string, label: string): FieldEditor => ({
+const num = (
+  key: string,
+  label: string,
+  range: { min?: number; max?: number } = {},
+): FieldEditor => ({
   key,
   label,
   kind: "number",
   nullable: true,
+  ...range,
 });
 const sel = (
   key: string,
@@ -71,7 +80,11 @@ const EDITORS: Record<Collection, FieldEditor[]> = {
   assumptions: [
     t("Title", "Assumption"),
     area("Description", "Description"),
-    num("Impact", "Impact"),
+    // The only hand-scored number in the registry (`registry-schema.md`) — a
+    // 0–100 severity-if-false seed. Every other number (Confidence, Derived
+    // Impact, Risk, Strength, Source quality, Completeness %) is computed on
+    // write and deliberately absent from this list.
+    num("Impact", "Impact", { min: 0, max: 100 }),
     sel("Status", "Status", ["Draft", "Live", "Invalidated"]),
     t("Lens", "Lens"),
     area("Scoring justification", "Scoring justification"),
@@ -156,6 +169,44 @@ function coerce(field: FieldEditor, raw: string): unknown {
 /** Absent and empty values compare equal, so an untouched field isn't a change. */
 function norm(value: unknown): unknown {
   return value === undefined || value === "" ? null : value;
+}
+
+/**
+ * The plain-language validation error for one field's draft value, or `null`
+ * when it's fine. Only `number` fields with a `min`/`max` are checked — an
+ * empty input always clears to `null` (allowed; there's no "required" seed).
+ * Kept pure so the Save button can gate on it without touching the DOM.
+ */
+export function fieldError(field: FieldEditor, raw: string): string | null {
+  if (field.kind !== "number") return null;
+  const str = String(raw ?? "").trim();
+  if (str === "") return null;
+  const n = Number(str);
+  if (Number.isNaN(n)) return `${field.label} must be a number.`;
+  if (field.min !== undefined && n < field.min) {
+    return `${field.label} must be at least ${field.min}.`;
+  }
+  if (field.max !== undefined && n > field.max) {
+    return `${field.label} must be at most ${field.max}.`;
+  }
+  return null;
+}
+
+/**
+ * Every field in a draft that currently fails validation, keyed by field —
+ * what the record page/drawer show inline and gate Save on (spec: seed
+ * Impact is the only hand-scored number, and it must stay in 0–100).
+ */
+export function draftErrors(
+  register: Collection,
+  draft: Draft,
+): Record<string, string> {
+  const errors: Record<string, string> = {};
+  for (const field of editableFields(register)) {
+    const message = fieldError(field, draft[field.key] ?? "");
+    if (message) errors[field.key] = message;
+  }
+  return errors;
 }
 
 /**

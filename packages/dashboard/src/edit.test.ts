@@ -3,8 +3,10 @@ import { describe, expect, it } from "vitest";
 import {
   CONFLICT_MESSAGE,
   buildPatch,
+  draftErrors,
   draftFrom,
   editableFields,
+  fieldError,
   hasEdits,
 } from "./edit.js";
 
@@ -35,6 +37,12 @@ describe("editableFields", () => {
     const status = fields.find((f) => f.key === "Status");
     expect(status?.kind).toBe("select");
     expect(status?.options).toEqual(["Draft", "Live", "Invalidated"]);
+  });
+
+  it("bounds Impact to 0–100 — the only hand-scored number in the registry", () => {
+    const impact = editableFields("assumptions").find((f) => f.key === "Impact");
+    expect(impact?.min).toBe(0);
+    expect(impact?.max).toBe(100);
   });
 });
 
@@ -84,5 +92,50 @@ describe("CONFLICT_MESSAGE", () => {
   it("is plain language, never version jargon (spec user story 12)", () => {
     expect(CONFLICT_MESSAGE).toMatch(/edited this while you had it open/);
     expect(CONFLICT_MESSAGE).not.toMatch(/version/i);
+  });
+});
+
+describe("fieldError / draftErrors — seed Impact's 0–100 range (OPS-1346)", () => {
+  const impact = editableFields("assumptions").find((f) => f.key === "Impact")!;
+
+  it("accepts values inside 0–100, and the bounds themselves", () => {
+    expect(fieldError(impact, "0")).toBeNull();
+    expect(fieldError(impact, "50")).toBeNull();
+    expect(fieldError(impact, "100")).toBeNull();
+  });
+
+  it("rejects a value below 0", () => {
+    expect(fieldError(impact, "-5")).toMatch(/at least 0/);
+  });
+
+  it("rejects a value above 100", () => {
+    expect(fieldError(impact, "101")).toMatch(/at most 100/);
+  });
+
+  it("rejects a non-numeric value", () => {
+    expect(fieldError(impact, "abc")).toMatch(/must be a number/);
+  });
+
+  it("lets an empty input through — clearing to null is always allowed", () => {
+    expect(fieldError(impact, "")).toBeNull();
+  });
+
+  it("never flags a select/text/textarea field — only number fields are range-checked", () => {
+    const status = editableFields("assumptions").find((f) => f.key === "Status")!;
+    expect(fieldError(status, "anything")).toBeNull();
+  });
+
+  it("draftErrors surfaces the out-of-range Impact and nothing else on an otherwise-clean draft", () => {
+    const original = { id: "A-1", version: 1, createdAt: "", updatedAt: "", Impact: 50 } as AnyRecord;
+    const draft = { ...draftFrom("assumptions", original), Impact: "150" };
+    const errors = draftErrors("assumptions", draft);
+    expect(Object.keys(errors)).toEqual(["Impact"]);
+    expect(errors.Impact).toMatch(/at most 100/);
+  });
+
+  it("draftErrors is empty for a valid Impact", () => {
+    const original = { id: "A-1", version: 1, createdAt: "", updatedAt: "", Impact: 50 } as AnyRecord;
+    const draft = { ...draftFrom("assumptions", original), Impact: "80" };
+    expect(draftErrors("assumptions", draft)).toEqual({});
   });
 });

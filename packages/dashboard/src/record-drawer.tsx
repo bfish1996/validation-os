@@ -5,7 +5,7 @@ import { REGISTER_LABEL } from "./labels.js";
 import { derivedLabel, formatValue, primaryLabel } from "./columns.js";
 import { detailRows, type DetailRow } from "./detail-fields.js";
 import { derivedTone, formatSigned, heroToneClass } from "./primitives.js";
-import { buildPatch, draftFrom, type Draft } from "./edit.js";
+import { buildPatch, draftErrors, draftFrom, type Draft } from "./edit.js";
 import { EditFields } from "./edit-fields.js";
 import type { RelatedSet } from "./record-view.js";
 import { useUpdate } from "./use-records.js";
@@ -123,6 +123,10 @@ export function RecordDrawer({
 
   async function onSave() {
     if (!record || !baseline) return;
+    // A field that fails validation (e.g. Impact outside 0–100) blocks the
+    // write entirely — never sent, so the server's own range check is a
+    // backstop, not the first line of defence.
+    if (Object.keys(draftErrors(register, draft)).length > 0) return;
     // Diff against the baseline (the fields the editor changed), but write
     // against the freshest known version so a reloaded record rebases cleanly.
     const patch = buildPatch(register, baseline, draft);
@@ -149,6 +153,9 @@ export function RecordDrawer({
 
   const setField = (key: string, value: string) =>
     setDraft((d) => ({ ...d, [key]: value }));
+
+  const errors = editing ? draftErrors(register, draft) : {};
+  const hasErrors = Object.keys(errors).length > 0;
 
   return (
     <DrawerShell
@@ -244,6 +251,7 @@ export function RecordDrawer({
               <EditFields
                 register={register}
                 draft={draft}
+                errors={errors}
                 onField={setField}
               />
             ) : (
@@ -277,7 +285,8 @@ export function RecordDrawer({
           <button
             type="button"
             onClick={onSave}
-            disabled={saving}
+            disabled={saving || hasErrors}
+            title={hasErrors ? "Fix the highlighted field before saving" : undefined}
             className="vos-btn vos-btn-sm"
           >
             {saving ? "Saving…" : "Save"}

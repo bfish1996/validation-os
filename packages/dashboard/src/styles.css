@@ -925,6 +925,11 @@ textarea.vos-input {
   flex-direction: column;
   gap: 14px;
 }
+.vos-field-error {
+  margin: 5px 0 0;
+  font-size: 12px;
+  color: var(--vos-crit);
+}
 .vos-sectitle {
   font-size: 11px;
   text-transform: uppercase;
@@ -1615,6 +1620,14 @@ textarea.vos-input {
   line-height: 1.6;
   color: var(--vos-text);
   margin: 4px 0 0;
+}
+.vos-record-editor {
+  border: 1px solid var(--vos-border);
+  border-radius: var(--vos-radius);
+  padding: 16px;
+}
+.vos-record-editor .vos-drawer-footer {
+  margin: 14px -16px -16px;
 }
 .vos-panels {
   display: grid;
