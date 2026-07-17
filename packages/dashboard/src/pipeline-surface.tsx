@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import type { AnyRecord } from "@validation-os/core";
+import { coldStartFor, FIRST_RUN_LINE } from "./cold-start.js";
 import { formatSigned } from "./primitives.js";
 import { buildPipeline, weekOverWeekDelta, type PipelineRow } from "./pipeline.js";
 import type { Route } from "./route.js";
@@ -90,12 +91,54 @@ function PipelineBoard({
   const delta = weekOverWeekDelta(assumptions, readings, new Date());
   const { progress, rows, resolved, resolvedRetired } = view;
 
-  if (assumptions.length === 0) {
+  const cold = coldStartFor({
+    assumptions,
+    experiments,
+    readings,
+    decisions: [],
+  });
+  if (cold.cold) {
     return (
-      <div className="vos-empty">
-        No beliefs yet. Write your first bet in <b>Records → Assumptions</b>, and
-        it will show here with its risk and its next move.
-      </div>
+      <>
+        <div className="vos-firstrun">{FIRST_RUN_LINE}</div>
+        <section className="vos-pipe-hero vos-cold vos-cold-pipe-hero">
+          <div className="vos-pipe-read">
+            <div className="vos-pipe-eyebrow">Risk bought down</div>
+            <div className="vos-pipe-big vos-num">
+              {cold.pipeline.headline}
+            </div>
+            <div className="vos-pipe-sub">{cold.pipeline.invitation}</div>
+          </div>
+        </section>
+
+        <div className="vos-pipe-stages">
+          <StageKey idx="1" name="Framed" desc="The bet is written & complete" />
+          <span className="vos-pipe-arrow" aria-hidden="true">→</span>
+          <StageKey idx="2" name="Planned" desc="A test is designed to move it" />
+          <span className="vos-pipe-arrow" aria-hidden="true">→</span>
+          <StageKey idx="3" name="Tested" desc="Evidence landing, bars settling" />
+          <span className="vos-pipe-arrow" aria-hidden="true">→</span>
+          <StageKey idx="4" open name="Known" desc={'Signed confidence — never "done"'} />
+        </div>
+
+        <div className="vos-card vos-pipe-board vos-cold vos-cold-pipe-board">
+          <div className="vos-pipe-boardhead">
+            <div className="vos-pipe-bt">
+              Pipeline <span>· 0 live beliefs</span>
+            </div>
+          </div>
+          <div className="vos-cold-pipe-body">
+            <p>{cold.pipeline.boardBody}</p>
+            <button
+              type="button"
+              className="vos-btn"
+              onClick={() => onNavigate({ name: "records", register: "assumptions" })}
+            >
+              {cold.pipeline.boardCta}
+            </button>
+          </div>
+        </div>
+      </>
     );
   }
 

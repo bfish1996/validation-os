@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { AnyRecord } from "@validation-os/core";
 import type { BeliefStage, NextMove, StageKey } from "@validation-os/core/derivation";
+import { journeyColdState } from "./cold-start.js";
 import {
   eventStepIn,
   eventTone,
@@ -127,6 +128,15 @@ export function BeliefJourney({
         <div className="vos-why-panel vos-jny-story">
           <section>
             <div className="vos-why-section-title">The story so far</div>
+            {(() => {
+              const coldState = journeyColdState(journey);
+              return coldState.cold ? (
+                <div className="vos-jny-cold vos-card">
+                  <span className="vos-jny-card-eyebrow">{coldState.eyebrow}</span>
+                  <p className="vos-jny-card-reason">{coldState.body}</p>
+                </div>
+              ) : null;
+            })()}
             <ol className="vos-jny-events">
               {journey.events.map((event, i) => (
                 <EventRow

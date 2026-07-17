@@ -2275,3 +2275,94 @@ textarea.vos-input {
   color: var(--vos-text);
 }
 }
+
+/* ── Cross-surface cold start (OPS-1331) ────────────────────────────────── */
+/* The shared first-run onboarding line — one tone across the two top-level
+ * surfaces (next + pipeline). Neutral text on a faint accent wash, so it
+ * reads as an invitation, not a status. */
+.vos-firstrun {
+  text-align: center;
+  font-size: 13px;
+  color: var(--vos-accent-text);
+  background: var(--vos-accent-weak);
+  border: 1px solid var(--vos-accent);
+  border-radius: var(--vos-radius);
+  padding: 10px 16px;
+  margin-bottom: 16px;
+}
+
+/* The cold-start surfaces share a neutral, centred treatment — no tone (these
+ * are invitations, not status), no dashed border (that reads "broken"). */
+.vos-cold {
+  text-align: center;
+}
+
+/* ── Front-door cold hero (replaces the empty ranked list) ──────────────── */
+.vos-cold-next {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 34px 28px;
+}
+.vos-cold-eyebrow {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--vos-faint);
+  font-weight: 700;
+}
+.vos-cold-headline {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  color: var(--vos-text);
+  max-width: 30ch;
+}
+.vos-cold-body {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--vos-muted);
+  max-width: 52ch;
+}
+
+/* ── Pipeline cold board ────────────────────────────────────────────────── */
+.vos-cold-pipe-hero .vos-pipe-big {
+  color: var(--vos-muted);
+}
+.vos-cold-pipe-board {
+  padding-bottom: 24px;
+}
+.vos-cold-pipe-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 28px 20px;
+}
+.vos-cold-pipe-body p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--vos-muted);
+  max-width: 50ch;
+}
+
+/* ── Journey no-history cold state ──────────────────────────────────────── */
+.vos-jny-cold {
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--vos-border);
+  border-radius: 8px;
+  background: var(--vos-accent-weak);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+.vos-jny-cold .vos-jny-card-eyebrow {
+  color: var(--vos-accent-text);
+}
