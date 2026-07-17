@@ -20,10 +20,8 @@ const RELATION_LABEL: Record<Relation, string> = {
   "assumption-depends-on": "Depends on",
   "assumption-contradicts": "Contradicts",
   "reading-experiment": "From experiment",
-  "reading-goal": "From goal",
   "decision-based-on": "Based on assumption",
   "decision-resolves": "Resolves assumption",
-  "goal-based-on": "Based on assumption",
 };
 
 /** The relations a record of `register` can initiate, in table order. */

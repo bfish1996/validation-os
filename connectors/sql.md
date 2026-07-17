@@ -14,7 +14,6 @@ sql:
   assumptions_table: assumptions
   experiments_table: experiments
   readings_table: readings
-  goals_table: goals
   decisions_table: decisions
   glossary_table: glossary
 ```
@@ -24,8 +23,8 @@ configured connection is unavailable, stop and tell the user how to provide it.
 
 ## Setup
 
-Create a schema and the six tables (plus the `experiment_bar_lines` child
-table and the relation junction tables) with columns matching
+Create a schema and the five register tables (plus the `experiment_bar_lines`
+child table and the relation junction tables) with columns matching
 `connectors/sql-schema.md`. Then run `/setup-validation-os`, which will
 validate the schema, create missing tables/indexes, and optionally seed starter
 records.
@@ -40,8 +39,8 @@ records.
 - **Update** — `UPDATE` named columns for one row by `id`; untouched columns
   stay intact.
 - **Link** — insert/delete junction-table rows (or set a reading's
-  `assumption_id` / nullable `experiment_id` / nullable `goal_id` FK, or a bar
-  line's `assumption_id`). Two-way relations get both junction rows in one
+  `assumption_id` / nullable `experiment_id` FK, or a bar line's
+  `assumption_id`). Two-way relations get both junction rows in one
   transaction.
 
 ## Derived fields — the skill computes them here

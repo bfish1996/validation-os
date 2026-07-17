@@ -41,11 +41,11 @@ export interface ExperimentView {
   done: boolean;
 }
 
-/** Goal-rung or direct evidence that moves Confidence but is not an experiment. */
+/** Direct evidence that moves Confidence but is not tied to an experiment
+ * (a bare/found reading, or a Market-rung reading with no plan). */
 export interface OtherMover {
   key: string;
   kind: Exclude<MoverKind, "experiment">;
-  goalId: string | null;
   contribution: number;
   magnitude: number;
   readingCount: number;
@@ -128,7 +128,6 @@ export function buildUnderstanding(
     .map((m) => ({
       key: m.key,
       kind: m.kind as OtherMover["kind"],
-      goalId: m.goalId,
       contribution: m.contribution,
       magnitude: m.magnitude,
       readingCount: m.readingCount,

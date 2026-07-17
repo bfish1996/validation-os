@@ -17,6 +17,10 @@ vocabulary:
   lens: [Adopter, Contributor, Distributor]
   area: [Positioning, Distribution, Docs & DX, Product, Community]
   audiences: [End user, Contributor, Internal]
+  # The auth-sourced team list Owner / Agreed by reference (OPS-1305) — the
+  # retired `people` collection had no replacement collection; this config
+  # list is its stand-in until a connector-auth source replaces it.
+  dashboard_users: [benji]
 
 evidence_sources:
   - web
@@ -32,11 +36,13 @@ evidence_sources:
 #   customer:  { home: Attio, fetch: record URL }
 #   raw:       { home: Google Drive "Raw evidence" folder, fetch: file URL }
 
-# Analytics — Goals-side, NOT an evidence_sources flavour. A scoreboard
-# number is read at a goal's deadline, never logged as Testing evidence
-# (docs/goals.md §Found numbers). Read by /goals (draft names the instrument,
-# close reads it), sharing skills/_shared/analytics-metric-resolution.md. This
-# repo has no analytics platform wired, so the block is absent. Example:
+# Analytics — read at a committed experiment's deadline (the unified plan,
+# not a separate Goal record, OPS-1305), NOT an evidence_sources flavour. A
+# scoreboard number is read at that deadline, never logged as Testing
+# evidence (docs/goals.md §Found numbers). Read by /experiment-design (draft
+# names the instrument) and /find-evidence (close reads it), sharing
+# skills/_shared/analytics-metric-resolution.md. This repo has no analytics
+# platform wired, so the block is absent. Example:
 #
 # analytics:
 #   platform: mixpanel            # free text — the connected platform skill

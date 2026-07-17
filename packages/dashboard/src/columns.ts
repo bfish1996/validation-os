@@ -83,11 +83,6 @@ const COLUMNS: Record<Collection, ColumnDef[]> = {
       accessor: derivedField("strength"),
     },
   ],
-  goals: [
-    { key: "Title", header: "Goal" },
-    { key: "Status", header: "Status", kind: "status" },
-    { key: "Outcome", header: "Outcome" },
-  ],
   decisions: [
     { key: "Title", header: "Decision" },
     { key: "Status", header: "Status", kind: "status" },
@@ -95,11 +90,6 @@ const COLUMNS: Record<Collection, ColumnDef[]> = {
   glossary: [
     { key: "Title", header: "Term" },
     { key: "Status", header: "Status", kind: "status" },
-  ],
-  people: [
-    { key: "Name", header: "Name" },
-    { key: "Role", header: "Role" },
-    { key: "Segment", header: "Segment" },
   ],
 };
 
@@ -150,6 +140,7 @@ const DERIVED_LABEL: Record<string, string> = {
   risk: "Risk",
   derivedImpact: "Derived Impact",
   impact: "Derived Impact",
+  completeness: "Completeness %",
   sourceQuality: "Source quality",
   strength: "Strength",
 };
@@ -163,7 +154,7 @@ const FIELD_LABEL: Record<string, string> = {
   readingIds: "Readings",
   assumptionId: "Assumption",
   experimentId: "Experiment",
-  goalId: "Goal",
+  contextLinks: "Context links",
   basedOnIds: "Based on",
   resolvesIds: "Resolves",
   barLineAssumptionIds: "Assumptions tested",

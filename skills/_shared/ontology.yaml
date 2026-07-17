@@ -14,13 +14,14 @@
 #   in guide frontmatter resolves to `vocabularies:` here.
 # - `/setup-validation-os` checks schema-guide completeness against this file
 #   before automated setup.
-# - `/assumptions` (audit + loop, via `register-audit.md`), `/goals` (audit),
-#   and `/decisions` (Audit) run the `integrity_rules:` whose `surfaced_by`
-#   names them.
+# - `/assumptions` (audit + loop, via `register-audit.md`), `/find-evidence`
+#   (evidence-plan audit), and `/decisions` (Audit) run the `integrity_rules:`
+#   whose `surfaced_by` names them.
 #
-# Six registers: assumptions, experiments (the plan, with composed bar lines),
-# readings (the Confidence atom), goals (the commitment container), decisions,
-# glossary.
+# Five registers: assumptions, experiments (the unified evidence plan, with
+# composed bar lines — Testing and Market-grade both live here), readings (the
+# Confidence atom), decisions, glossary. The Goal record was unified into the
+# Experiment and the `people` collection retired (OPS-1305).
 #
 # Changing this file is a schema change: update `registry-schema.md` prose and
 # every connector schema guide in the same commit — they must never disagree.
@@ -36,26 +37,30 @@ vocabularies:
   lens: { source: config, key: vocabulary.lens }
   area: { source: config, key: vocabulary.area }
   audiences: { source: config, key: vocabulary.audiences }
+  # The auth-sourced team list Owner / Agreed by reference (OPS-1305). A
+  # dashboard user, not a register row — the `people` collection was retired.
+  # Sourced from config now (connector auth later); never enumerated here.
+  dashboard_user: { source: config, key: vocabulary.dashboard_users }
 
   # Canonical fixed lists. Values are exact strings; writing a value not
   # listed is illegal (integrity rule `illegal-select-value`). Adding a value
   # is a gated schema change.
   # Small on purpose: there is no Validated status, and queue membership,
-  # Testing, goal linkage, and mootness are derived views (derived_views:),
-  # never stored values (docs/validated.md).
+  # Testing, and mootness are derived views (derived_views:), never stored
+  # values (docs/validated.md).
   assumption_status: [Draft, Live, Invalidated]
-  # Judgment-type gaps only — the semantic findings the /assumptions audit
-  # raises and a human resolves. The former presence-type gaps (5 Whys, Metric
-  # for truth, Scoring justification) were promoted to first-class fields
-  # (entities.assumptions) whose presence is a structural check, not a gap tag
-  # (OPS-1273 / OPS-1251).
-  gaps:
-    [Non-atomic, Unfalsifiable, Hyperbole, Lens check, Duplicate,
-     Contradiction, Human review]
+  # There is no stored `Gaps` field (OPS-1305): the audit check-types
+  # (Non-atomic, Unfalsifiable, Hyperbole, Lens check, Duplicate, Contradiction)
+  # are transient grill stages, not durable tags. Readiness is the derived
+  # `Completeness %` (derivations.completeness), computed from structural slot
+  # presence, never a stored tag.
 
-  # Experiment (the plan) lifecycle + why it closed.
-  experiment_status: [Running, Closed]
+  # Experiment (the unified evidence plan) lifecycle + why it closed + terminal
+  # outcome. `Draft` is the pre-commit state; commit is the Draft→Running gate;
+  # conclude+verdict is the Running→Closed gate. Outcome null until Closed.
+  experiment_status: [Draft, Running, Closed]
   experiment_closure_reason: [Completed, Early-stop, Kill]
+  experiment_outcome: [Achieved, Missed, Dropped]
 
   # Reading (the evidence atom): the sign of the evidence, set at logging.
   # No `Running` — a reading exists only once observed (registry-schema.md
@@ -66,13 +71,8 @@ vocabularies:
   # pre-registered N, never a Confidence input (readings carry the value).
   bar_verdict: [Validated, Invalidated, Inconclusive]
 
-  # Goal (the commitment container) lifecycle + terminal outcome. Outcome is
-  # null until Status = Closed.
-  goal_status: [Draft, Active, Closed]
-  goal_outcome: [Achieved, Missed, Dropped]
-
-  # Magnitude bands for Goal-rung readings — picked from the absolute outcome
-  # against the Goal's ## Pre-registration anchors, never %-of-target.
+  # Magnitude bands for Market-rung readings — picked from the absolute outcome
+  # against the experiment bar's pre-registration anchors, never %-of-target.
   magnitude_band: [Low, Typical, High]
 
   # Source quality is a number, not a select: Representativeness × Credibility,
@@ -92,10 +92,13 @@ vocabularies:
 
   # The 8-rung activity-and-strength ladder (experiment-guardrails.md §2,
   # docs/evidence-ladder.md). Order = strength, weakest first. Two categories:
-  # Testing (recruited-sample instruments, plateau ±30) and Goals (open-world
-  # targets, two pre-registered bars). Lives on the Reading (`Rung`) and on the
-  # bar line (`Planned rung`). `anchor` feeds the Strength derivation (signed
-  # by Result); Goal rungs carry magnitude bands (Low/Typical/High).
+  # Testing (recruited-sample instruments, plateau ±30) and Market (open-world
+  # targets, two pre-registered bars — the category formerly called "Goals",
+  # renamed with the unification so it no longer collides with the deleted
+  # record type, OPS-1305). Lives on the Reading (`Rung`) and on the bar line
+  # (`Planned rung`). `anchor` feeds the Strength derivation (signed by Result);
+  # Market rungs carry magnitude bands (Low/Typical/High). The magnitude bands
+  # and anchors are unchanged by the rename.
   rung:
     - { value: Opinion,             category: Testing, anchor: 3 }
     - { value: Pitch-deck reaction, category: Testing, anchor: 6 }
@@ -103,8 +106,8 @@ vocabularies:
     - { value: Desk research,       category: Testing, anchor: 15 }
     - { value: Survey at scale,     category: Testing, anchor: 25 }
     - { value: Prototype usage,     category: Testing, anchor: 30 }
-    - { value: Signed intent,       category: Goals,   anchor: { Low: 55, Typical: 68, High: 80 } }
-    - { value: Paying users,        category: Goals,   anchor: { Low: 75, Typical: 88, High: 99 } }
+    - { value: Signed intent,       category: Market,  anchor: { Low: 55, Typical: 68, High: 80 } }
+    - { value: Paying users,        category: Market,  anchor: { Low: 75, Typical: 88, High: 99 } }
 
   # Theme is an example set, not fixed — workspaces may extend it.
   theme:
@@ -125,12 +128,13 @@ derivations:
       seed + (100 - seed) × S / (S + 100), where seed = the hand-scored
       Impact and S = Σ Derived Impact of assumptions whose Depends on names
       this row, + 100 per standing decision (Provisional/Active) naming it
-      via Based on assumption. Goals never contribute — a goal never touches
-      Impact (docs/goals.md). One reverse-topological pass (dependents
-      first); moot rows pin to 0 and contribute nothing. Recomputed on every
-      touching write together with Confidence and Risk (OPS-1251) — no
-      deliberate staleness; the batch pass is only a backstop for writes that
-      bypass the dashboard (assumption-guardrails.md §3).
+      via Based on assumption. A reading's container origin (its Experiment)
+      never contributes — only dependent assumptions and standing decisions
+      feed S. One reverse-topological pass (dependents first); moot rows pin to
+      0 and contribute nothing. Recomputed on every touching write together
+      with Confidence and Risk (OPS-1251) — no deliberate staleness; the batch
+      pass is only a backstop for writes that bypass the dashboard
+      (assumption-guardrails.md §3).
     range: [0, 100]
   risk:
     field: assumptions.Risk
@@ -151,23 +155,36 @@ derivations:
   strength:
     field: readings.Strength
     formula: >-
-      rung anchor (Goal rungs: × magnitude band, Low/Typical/High from the
+      rung anchor (Market rungs: × magnitude band, Low/Typical/High from the
       absolute outcome) × sign(Result) — Validated positive, Invalidated
-      negative; 0 unless Result is Validated or Invalidated. Goal-rung sign
-      reads the goal's two pre-registered bars: hit/beat We're right if →
-      positive, at/below We're wrong if → negative, between → interpolated.
+      negative; 0 unless Result is Validated or Invalidated. Market-rung sign
+      reads the experiment bar's two pre-registered bars: hit/beat We're right
+      if → positive, at/below We're wrong if → negative, between → interpolated.
     rung_anchor: vocabularies.rung[].anchor
     range: [-99, 99]
 
+  completeness:
+    field: assumptions.Completeness %
+    formula: >-
+      filled slots / all slots × 100, over five structural slots: Description,
+      Lens, Impact, Scoring justification, dependencies traced (at least one
+      Depends on / Enables link). A derived readiness meter, never stored,
+      recomputed on every touching write. 100 = Live-ready; below 100 = open
+      work (the Draft ⇔ open-work invariant, replacing the retired Gaps
+      machinery, assumption-guardrails.md §3). Impact = 0 still counts as a
+      present slot (a real hand-scored value).
+    range: [0, 100]
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Entities — the record types and their properties. `hand_scored: true` marks
-# the only numbers a human types. `presence_gate: Live` marks a long-form field
-# whose *presence* (non-empty) is a structural, blocking check — required to
-# move the record to `Live` (checked by `presence-field-missing`), not a
-# semantic gap. Body headings are verbatim names; the heading *level* is
-# connector-specific (local files nest them one level under the record
-# heading). `composed_into` marks a sub-structure realized inside its parent
-# record backend-natively, not a register of its own.
+# the only numbers a human types. Body headings are verbatim names; the heading
+# *level* is connector-specific (local files nest them one level under the
+# record heading). `composed_into` marks a sub-structure realized inside its
+# parent record backend-natively, not a register of its own. Owner / Agreed by
+# are `dashboard_user` references (the auth team list), not free text and not a
+# register. Every record carries backend-native `Created at` / `Last edited at`
+# timestamps (OPS-1305) so the dashboard history has real times to show; they
+# are not re-listed per entity.
 # ─────────────────────────────────────────────────────────────────────────────
 entities:
   assumptions:
@@ -181,28 +198,30 @@ entities:
       - { name: Derived Impact, type: number, derived: derivations.derived_impact }
       - { name: Risk, type: number, derived: derivations.risk }
       - { name: Confidence, type: number, derived: derivations.confidence }
+      - { name: Completeness %, type: number, derived: derivations.completeness }
       - { name: Status, type: select, options: vocabularies.assumption_status,
           machine: status_machines.assumption_status }
-      - { name: Owner, type: person }
-      - { name: Gaps, type: multi_select, options: vocabularies.gaps }
-      # Presence-gap fields — promoted from body sections to first-class fields
-      # (OPS-1273). Non-empty is required to go Live (presence_gate: Live); may
-      # be empty while Draft. Long-form prose the audit no longer parses.
-      - { name: 5 Whys, type: text, presence_gate: Live }
-      - { name: Metric for truth, type: text, presence_gate: Live }
-      - { name: Scoring justification, type: text, presence_gate: Live }
-    body_headings: [Provenance & notes]
+      - { name: Owner, type: dashboard_user }
+      # The one hand-typed rationale left on an assumption — narrowed to the
+      # Impact-seed reason only (OPS-1305). The `5 Whys`, `Metric for truth`,
+      # and `Gaps` fields were cut: the why-trace lives in Depends on / Enables,
+      # falsifiability is enforced by the grill and the concrete threshold lives
+      # on the experiment bar, and audit check-types are transient grill stages.
+      - { name: Scoring justification, type: text }
+    body_headings: []   # no body — the audit trail lives in dashboard history
 
   experiments:
-    description: One row per designed test PLAN. Carries no rung and no strength — those live on the Readings the run produces. Bundles one-or-more beliefs through composed bar lines.
+    description: The unified evidence PLAN (OPS-1305 — Testing and Market-grade both live here; the Goal record is gone). One row per designed test. Carries no rung and no strength — those live on the Readings the run produces. Bundles one-or-more beliefs through composed bar lines. A committed plan carries an optional Deadline and a closure Outcome (the commitment-grade behaviour a Goal used to give).
     properties:
       - { name: Title, type: title, required: true }
-      - { name: Instrument, type: link, required: true }   # interview or dataset only
+      - { name: Instrument, type: link, required: true }   # interview / dataset / analytics cohort / payment event
       - { name: Feasibility, type: select, options: vocabularies.feasibility }
       - { name: Status, type: select, options: vocabularies.experiment_status,
           machine: status_machines.experiment_status }
       - { name: Closure reason, type: select, options: vocabularies.experiment_closure_reason, required: false }
-      - { name: Owner, type: person }
+      - { name: Deadline, type: date, required: false }   # optional; the committed-plan deadline
+      - { name: Outcome, type: select, options: vocabularies.experiment_outcome, required: false }  # null until Closed
+      - { name: Owner, type: dashboard_user }
       - { name: Date, type: date }
     body_headings: [Method protocol, Closure rollup]
 
@@ -223,10 +242,11 @@ entities:
       - { name: Bar verdict, type: select, options: vocabularies.bar_verdict, required: false }
 
   readings:
-    description: One artifact × one belief — the atomic unit Confidence reads. Exists only once observed (no draft/running state). Origin (Experiment | Goal | none) lives here, never on the assumption.
+    description: One artifact × one belief — the atomic unit Confidence reads. Exists only once observed (no draft/running state). Origin (Experiment | none) lives here, never on the assumption; the Goal origin is gone (OPS-1305).
     properties:
       - { name: Title, type: title, required: true }
-      - { name: Source, type: link, required: true }   # first-class independence-dedupe key
+      - { name: Source, type: link, required: true }   # the independence/dedupe key — the generator (person / dataset / cohort)
+      - { name: Context links, type: multi_link, required: false }   # provenance (recording, dashboard, CRM row, user id); 0..N; drives no math
       - { name: Rung, type: select, options: vocabularies.rung, required: true }
       - { name: Representativeness, type: select, options: vocabularies.source_quality.picks, required: true }
       - { name: Credibility, type: select, options: vocabularies.source_quality.picks, required: true }
@@ -234,50 +254,39 @@ entities:
       - { name: Result, type: select, options: vocabularies.reading_result,
           machine: status_machines.reading_result, required: true }
       - { name: Strength, type: number, derived: derivations.strength }
+      - { name: Grading justification, type: text }   # rationale for the rung/representativeness/credibility picks (presence-checked, warn)
       - { name: Date, type: date }
-      - { name: Owner, type: person, required: false }
-    body_headings: [Grading, Notes]
-
-  goals:
-    description: The Goals-side evidence container — pre-registration (two bars, deadline, instrument); closing it emits per-belief Readings. One goal-level bar pair, decomposed per belief only at close (docs/goals.md).
-    properties:
-      - { name: Title, type: title, required: true }
-      - { name: We're right if, type: text, required: true }
-      - { name: We're wrong if, type: text, required: false }   # no floor → no negative reading
-      - { name: Instrument, type: text, required: true }   # CRM stage / analytics cohort / payment event
-      - { name: Deadline, type: date }
-      - { name: Owner, type: person }
-      - { name: Status, type: select, options: vocabularies.goal_status,
-          machine: status_machines.goal_status }
-      - { name: Outcome, type: select, options: vocabularies.goal_outcome, required: false }
-      - { name: Date, type: date }
-    body_headings: [Pre-registration, Rationale, Closure]
-    # No Rung field — rung lands on the Reading at close, guardrail-enforced.
+      - { name: Owner, type: dashboard_user, required: false }
+    body_headings: []   # no body — a reading is a clean scored artifact
 
   decisions:
     description: The decision log. A row here IS a decision (the register is the discriminator — no Type field). No Kind field.
     properties:
       - { name: Title, type: title, required: true }
+      - { name: Statement, type: text }   # the one-line statement of what was decided (promoted from the body)
       - { name: Status, type: select, options: vocabularies.decision_status,
           machine: status_machines.decision_status }
       - { name: Area, type: select, options: vocabularies.area }
-      - { name: Owner, type: person }
-      - { name: Agreed by, type: people }
+      - { name: Owner, type: dashboard_user }
+      - { name: Agreed by, type: dashboard_user_multi }
       - { name: Unanimity score, type: number, range: [0, 100], hand_scored: true }
+      - { name: Unanimity justification, type: text }   # why the score was scored as it was (promoted from the body)
       - { name: Source, type: text }
       - { name: Decided date, type: date }
       - { name: Reversibility, type: select, options: vocabularies.reversibility }
-    body_headings: [Decision, Rationale, Alternatives considered, Source]
+    body_headings: [Rationale, Alternatives considered]   # kept, terse; ## Decision and ## Source were promoted to fields / cut
 
   glossary:
-    description: The shared glossary (the ubiquitous-language discipline; only the register is "Glossary"). No Type field; Status has no Reversed.
+    description: The shared glossary (the ubiquitous-language discipline; only the register is "Glossary"). No Type field; Status has no Reversed. All properties, no body (OPS-1305) — the terminology check parses structure directly.
     properties:
       - { name: Title, type: title, required: true }
       - { name: Status, type: select, options: vocabularies.glossary_status,
           machine: status_machines.glossary_status }
       - { name: Area, type: select, options: vocabularies.area }
-    # Verbatim names the terminology check keys off (ubiquitous-language.md).
-    body_headings: [Definition, Avoid / don't say, How it differs]
+      - { name: Definition, type: text }
+      - { name: Avoid, type: structured, shape: "[{audience, phrase, fix}]" }   # per-audience banned phrasing + fix
+      - { name: How it differs, type: text }   # confusable-neighbour distinctions
+    body_headings: []
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Relations — the edges between records. `kind: symmetric` means one relation
@@ -324,17 +333,7 @@ relations:
     target: experiments
     cardinality: many-to-one
     nullable: true
-    meaning: The originating plan, as provenance. Null for goal and bare/found readings. Exactly one of {Experiment, Goal} is set, or neither (integrity rule reading-two-origins).
-
-  - name: Reading / Goal
-    kind: directed
-    forward: Goal                # on the reading row, nullable
-    inverse: Readings            # queried on the goal, not stored
-    source: readings
-    target: goals
-    cardinality: many-to-one
-    nullable: true
-    meaning: The originating goal container. Null for experiment and bare readings. Exactly one of {Experiment, Goal} is set, or neither (integrity rule reading-two-origins).
+    meaning: The originating plan, as provenance. Null for bare/found readings. A reading has one origin type now — an Experiment or none; the Goal origin is gone (OPS-1305).
 
 # The Experiment↔belief link is NOT a top-level relation: it is the composed
 # `bar_line` sub-structure (entities.bar_line, references: assumptions), realized
@@ -364,15 +363,6 @@ relations:
     cardinality: many-to-many
     meaning: Resolved, intentional override; the superseded row's Status flips to Superseded. Distinct from Related tension (unresolved) — never both for the same counterpart at once.
 
-  - name: Supersedes / Superseded by
-    kind: directed
-    forward: Supersedes
-    inverse: Superseded by
-    source: goals
-    target: goals
-    cardinality: many-to-many
-    meaning: Re-cut supersedes the prior goal; the superseded goal goes Closed / Dropped and emits no reading (docs/goals.md).
-
   - name: Based on assumption
     kind: directed
     forward: Based on assumption
@@ -385,21 +375,6 @@ relations:
       seed.
     meaning: >-
       Why we decided this (decision-guardrails.md §6). Decision rows only.
-      Distinct from the Goal's same-named relation, which read backwards is the
-      goal linkage (derived_views.goal_linked) — a per-goal view that never
-      touches Impact.
-
-  - name: Based on assumption
-    kind: directed
-    forward: Based on assumption
-    source: goals
-    target: assumptions
-    cardinality: many-to-many
-    side_effects: >-
-      None — a goal NEVER touches Impact, Confidence, or queue membership.
-    meaning: >-
-      The beliefs the goal is bet on. Read backwards it is the goal linkage
-      (derived_views.goal_linked) — a per-goal queue view only (docs/goals.md).
 
   - name: Resolves assumption
     kind: directed
@@ -425,31 +400,36 @@ status_machines:
     transitions:
       - { from: Draft, to: Live,
           by: "/assumptions (single|seed)", gate: gated,
-          trigger: "grill close-out: the last Gaps tag (including Human review) clears AND every presence field (5 Whys / Metric for truth / Scoring justification) is non-empty, in a gated session" }
+          trigger: "grill close-out in a gated session: Completeness % reaches 100 (every structural slot present — Description, Lens, Impact, Scoring justification, dependencies traced) and the grill's transient semantic findings are all resolved" }
       - { from: Live, to: Draft,
           by: "/assumptions (gated session)", gate: gated,
-          trigger: "a new gap lands on the row — audit finding, contradiction, staleness flag" }
+          trigger: "the row falls below complete — a slot is emptied — or a grill finding (audit, contradiction, staleness) reopens it" }
       - { from: Live, to: Invalidated,
           by: "evidence skills + human verdict", gate: gated,
-          trigger: "the evidence turns decisively against the belief — signed Confidence in the kill zone (≤ -50, reachable only by a series of missed Goal-rung readings) — and a human affirms the kill" }
+          trigger: "the evidence turns decisively against the belief — signed Confidence in the kill zone (≤ -50, reachable only by a series of missed Market-rung readings) — and a human affirms the kill" }
       - { from: Invalidated, to: Live,
           by: "gated reopen session", gate: gated,
           trigger: "the killing reading is re-judged flawed, or the world has changed enough that the kill no longer holds — human re-verdict" }
     forbidden:
       - There is no Validated status. Validation is only ever Confidence rising and Risk falling — "validated at <rung>" is prose, never a stored state (docs/validated.md).
-      - Draft ⇔ open work, always (integrity rule draft-live-gaps-invariant): a non-empty Gap OR an empty presence field (5 Whys / Metric for truth / Scoring justification). A Live row has empty Gaps AND complete presence. Batch/loop modes tag the Human review gap — which keeps or returns the row to Draft — and never flip Status directly.
+      - Draft ⇔ open work, always (integrity rule draft-live-completeness-invariant): Completeness % < 100. A Live row is complete (100). The grill's transient semantic findings keep or return a row to Draft; batch/loop modes never flip Status directly.
       - Logging a Reading never flips Status (Confidence-only). Only a human-affirmed kill does.
-      - Testing, queue membership, goal linkage, and mootness are derived views (derived_views:), never stored.
+      - Testing, queue membership, and mootness are derived views (derived_views:), never stored.
 
   experiment_status:
-    initial: Running
+    initial: Draft
     transitions:
+      - { from: Draft, to: Running,
+          by: "/experiment-design commit", gate: gated,
+          trigger: "the plan is committed — bars, instrument, and (for a committed/Market-grade plan) any Deadline fixed; the run begins collecting" }
       - { from: Running, to: Closed,
           by: "/find-evidence close-out or human conclusion", gate: gated,
-          trigger: "the run ends — a Closure reason (Completed / Early-stop / Kill) is set and each bar line takes its Bar verdict" }
+          trigger: "the run ends — a Closure reason (Completed / Early-stop / Kill) is set, each bar line takes its Bar verdict, and (for a committed plan) the Outcome (Achieved/Missed/Dropped) is set" }
     forbidden:
       - A Closed experiment is never reverted to Running.
       - The plan carries no rung and no strength — those are on the Readings it produced.
+      - Outcome is null until Closed.
+      - Evidence maturity (readings-in vs planned N) is derived, never stored, and never auto-concludes — concluding is a deliberate human act.
 
   reading_result:
     initial: "conclusive at logging (Validated | Invalidated | Inconclusive)"
@@ -457,17 +437,6 @@ status_machines:
     forbidden:
       - No Running — a reading exists only once observed (registry-schema.md §Field map — Readings).
       - Strength must be 0 while Result is Inconclusive (integrity rule strength-not-gated).
-
-  goal_status:
-    initial: Draft
-    transitions:
-      - { from: Draft, to: Active, by: "/goals", gate: gated,
-          trigger: "the commitment is made — bars and instrument fixed" }
-      - { from: Active, to: Closed, by: "/goals", gate: gated,
-          trigger: "the deadline is judged — Outcome (Achieved/Missed/Dropped) set; Achieved/Missed decompose into per-belief Readings" }
-    forbidden:
-      - Outcome is null until Closed.
-      - Re-cut is a Supersedes edge to a fresh Goal, not an edit of a committed bar.
 
   decision_status:
     initial: "Active (agreed) | Provisional (still forming)"
@@ -497,23 +466,23 @@ status_machines:
 # not a record property.
 # ─────────────────────────────────────────────────────────────────────────────
 derived_views:
-  goal_linked: >-
-    A standing (Draft/Active) Goal record links the row via Based on
-    assumption. A per-goal queue view ONLY — never an Impact anchor (a goal
-    is not a node in derived_impact), never a condition of test-next
-    membership, never a Confidence input (docs/goals.md).
   experiments_testing_me: >-
     The Experiments whose composed bar lines name this belief — read over the
     experiments' bar lines (each bar_line references one assumption), never a
     stored relation on the assumption. Feeds Testing and the test-next surface.
+  evidence_maturity: >-
+    Per experiment: readings-in vs the planned N across its bar lines — a
+    derived progress meter, never stored, never auto-concluding. Surfaced as
+    "planned N met — ready to conclude?" but always waits for a human act
+    (OPS-1305).
   testing: "Status = Live AND a linked Experiment (plan) has Status = Running with an open bar line on this belief."
   test_next_surface: >-
     Experiments, not assumptions — there is no Risk-ranked belief queue.
-    Candidate/designed experiments on Live rows, ranked by Feasibility × the
-    linked assumption's Risk; tie-break = most-negative linked signed
-    Confidence first. Goal-agnostic: every Live row is eligible on its own
-    merits, linked or not (docs/goals.md). The exact ruleset and top-N cut
-    are the experiment-prioritisation layer's.
+    Candidate/designed (Draft) experiments on Live rows, ranked by Feasibility ×
+    the linked assumption's Risk; tie-break = most-negative linked signed
+    Confidence first. Every Live row is eligible on its own merits, linked or
+    not. The exact ruleset and top-N cut are the experiment-prioritisation
+    layer's.
   kill_lane: >-
     Status = Live AND Confidence ≤ -50 — surfaced for a human kill verdict
     (integrity rule kill-zone-unreviewed), out of the test-next surface.
@@ -545,15 +514,11 @@ integrity_rules:
   - id: body-template-missing-heading
     severity: warn
     surfaced_by: ["/assumptions audit", "/decisions audit"]
-    check: A record is missing one of its type's verbatim body_headings. A Glossary row without "Avoid / don't say", or a Reading without "Grading", silently escapes its check — always flag it.
+    check: A record is missing one of its type's verbatim body_headings. Only Experiments (## Method protocol / ## Closure rollup) and Decisions (## Rationale / ## Alternatives considered) carry bodies now; assumptions, readings, and glossary have no body (OPS-1305). A Decision missing "## Rationale" silently escapes its check — always flag it.
   - id: two-way-relation-one-ended
     severity: error
     surfaced_by: ["/assumptions audit", "/decisions audit"]
     check: A symmetric or inverse relation written on one end only, on a backend that doesn't auto-sync.
-  - id: reading-two-origins
-    severity: error
-    surfaced_by: ["/assumptions audit"]
-    check: A Reading with both its Experiment and Goal links set — a reading has exactly one container origin, or none (bare). Sets neither is legal; sets both is not.
 
   # Derived-field discipline
   - id: derived-field-stale
@@ -574,18 +539,18 @@ integrity_rules:
     severity: warn
     surfaced_by: ["/assumptions audit"]
     check: >-
-      A concluded Validated/Invalidated Reading whose body lacks the ##
-      Grading block — rung + (Goal rungs) magnitude anchor + Representativeness
-      × Credibility picks with one-line justifications + the source the
-      independence dedupe keys off (experiment-guardrails.md §2). An ungraded
-      reading's weight can't be audited.
-  - id: goal-rung-no-floor
+      A concluded Validated/Invalidated Reading whose Grading justification
+      field is empty — it should carry the rung + (Market rungs) magnitude
+      anchor + Representativeness × Credibility rationale
+      (experiment-guardrails.md §2). An ungraded reading's weight can't be
+      audited.
+  - id: market-rung-no-floor
     severity: error
-    surfaced_by: ["/assumptions audit", "/goals audit"]
+    surfaced_by: ["/assumptions audit", "/find-evidence audit"]
     check: >-
-      A Goal-rung (Signed intent / Paying users) Reading concluded Invalidated
-      whose originating Goal has no pre-registered We're wrong if bar — no
-      floor, no negative: an uncontrolled absence of the outcome is
+      A Market-rung (Signed intent / Paying users) Reading concluded Invalidated
+      whose originating Experiment bar has no pre-registered We're wrong if bar —
+      no floor, no negative: an uncontrolled absence of the outcome is
       Inconclusive (experiment-guardrails.md §2).
   - id: stale-representativeness
     severity: warn
@@ -608,34 +573,31 @@ integrity_rules:
   - id: contradiction-unwired
     severity: warn
     surfaced_by: ["/assumptions audit"]
-    check: Contradiction gap without a Contradicts edge, or an edge without the gap + a provenance note naming the resolving experiment.
+    check: A Contradicts edge whose two rows have no resolving experiment bar-line or decision naming the tension — a marked contradiction nobody is testing or has settled (assumption-guardrails.md §4).
   - id: direct-contradiction-unmerged
     severity: error
     surfaced_by: ["/assumptions audit"]
     check: Two records asserting opposite truth values of the same proposition — a negation-duplicate; merge (assumption-guardrails.md §4a).
 
   # Status coherence (assumptions × readings)
-  - id: draft-live-gaps-invariant
+  - id: draft-live-completeness-invariant
     severity: error
     surfaced_by: ["/assumptions audit"]
     check: >-
-      Status = Live with non-empty Gaps, or Status = Draft with BOTH empty Gaps
-      AND every presence field complete — the Draft ⇔ open-work invariant is
-      broken (a Draft must have open work: a Gap or an empty presence field).
-      Since the presence gaps became first-class fields (OPS-1273), open work is
-      "Gaps non-empty OR presence incomplete"; the Live-side presence half is
-      enforced separately by `presence-field-missing`. Fix in a gated session.
-  - id: presence-field-missing
+      Status = Live with Completeness % < 100, or Status = Draft at Completeness
+      % = 100 with no open grill finding — the Draft ⇔ open-work invariant is
+      broken (OPS-1305, replacing the retired Gaps invariant). A Live row is
+      structurally complete; a Draft has open work (an incomplete slot or an
+      unresolved grill finding). Fix in a gated session.
+  - id: incomplete-live
     severity: error
     surfaced_by: ["/assumptions audit", validate_backend]
     check: >-
-      A Live assumption with an empty 5 Whys, Metric for truth, or Scoring
-      justification field — the presence half of the Draft→Live gaps invariant
-      (OPS-1251). Now that these are first-class fields (not body prose) this is
-      a cheap structural check: the write model is to block a Draft→Live
-      promotion while any is empty (write-time enforcement lands with the CRUD
-      write slice, OPS-1256), and the audit confirms it meanwhile. A Draft may
-      legally leave them empty.
+      A Live assumption at Completeness % < 100 — a missing structural slot
+      (Description, Lens, Impact, Scoring justification, dependencies traced).
+      The write model blocks a Draft→Live promotion below 100 (write-time
+      enforcement lands with the CRUD write slice, OPS-1256); the audit confirms
+      it meanwhile. A Draft may legally sit below 100.
   - id: unrolled-verdict
     severity: warn
     surfaced_by: ["/assumptions audit"]
@@ -644,16 +606,12 @@ integrity_rules:
     severity: error
     surfaced_by: ["/assumptions audit", "/decisions audit"]
     check: Impact = 0 with a mootness line citing a resolving decision that is no longer standing (Reversed/Superseded, successor doesn't re-resolve) — restore the prior Impact per decision-guardrails.md §8.
-  - id: goal-link-uncited
-    severity: warn
-    surfaced_by: ["/goals audit"]
-    check: A Goal record's Based on assumption link whose target assumption is not named anywhere in the goal's rationale prose — a relation with no reasoning behind it. A hygiene check only — goals don't touch Impact and the queue gate is retired, so an uncited link unlocks nothing; it is just noise in the per-goal view and unaudited rationale (docs/goals.md).
 
   # Propagation (cross-register — a verdict in one place invalidates state in another)
   - id: invalidated-dependency
     severity: warn
     surfaced_by: ["/assumptions audit"]
-    check: An assumption whose Depends on target is Invalidated while it is itself Live with high Confidence — its support rests on a broken foundation; propose the Human review gap.
+    check: An assumption whose Depends on target is Invalidated while it is itself Live with high Confidence — its support rests on a broken foundation; flag for a gated reopen/review.
   - id: contradicts-both-validated
     severity: error
     surfaced_by: ["/assumptions audit"]
@@ -679,40 +637,37 @@ integrity_rules:
     surfaced_by: ["/decisions audit"]
     check: The same counterpart wired in both Related tension and Supersedes — once Supersedes is set, the tension is resolved (decision-guardrails.md §5).
 
-  # Goal records (docs/goals.md — goals are instruments, never gates, so every
-  # rule here surfaces or chases; none blocks a human from committing.)
+  # Committed (Market-grade) experiments — the commitment discipline the Goal
+  # record used to carry, re-homed onto the unified Experiment (OPS-1305). These
+  # surface or chase; none blocks a human from committing.
   - id: overdue-risk-acceptance
     severity: error
-    surfaced_by: ["/goals audit"]
-    check: An Active Goal record with a risk-acceptance line past its "revisit by" date whose assumption is still untested (format — decision-guardrails.md §8).
-  - id: goal-band-unaccepted
+    surfaced_by: ["/find-evidence audit"]
+    check: A Running experiment with a risk-acceptance line past its "revisit by" date whose belief is still untested (format — decision-guardrails.md §8).
+  - id: experiment-band-unaccepted
     severity: warn
-    surfaced_by: ["/goals audit"]
-    check: An Active Goal record with a linked belief whose Confidence sits below the ready band and no dated risk-acceptance line naming it — the gamble was taken without being written down. Advisory at draft time, chased once Active (docs/goals.md §In).
-  - id: goal-tripwire-unreviewed
+    surfaced_by: ["/find-evidence audit"]
+    check: A committed (Deadline-bearing) experiment testing a belief whose Confidence sits below the ready band, with no dated risk-acceptance line naming it — the gamble was taken without being written down. Advisory at draft time, chased once Running.
+  - id: experiment-tripwire-unreviewed
     severity: warn
-    surfaced_by: ["/goals audit"]
-    check: A Draft/Active Goal record resting on a belief that took a conclusive verdict after the goal was drafted, with no subsequent re-cut, risk-acceptance, or affirmation — the mid-cycle tripwire fired and nobody answered it (docs/goals.md §Out).
-  - id: unclosed-goal
+    surfaced_by: ["/find-evidence audit"]
+    check: A Draft/Running committed experiment resting on a belief that took a conclusive verdict after the plan was drafted, with no subsequent re-cut, risk-acceptance, or affirmation — the mid-cycle tripwire fired and nobody answered it.
+  - id: overdue-experiment
     severity: warn
-    surfaced_by: ["/goals audit"]
-    check: An Active Goal record past its deadline that has not been Closed.
-  - id: ungated-outcome
+    surfaced_by: ["/find-evidence audit"]
+    check: A Running experiment past its Deadline that has not been Closed.
+  - id: outcome-unread
     severity: error
-    surfaced_by: ["/goals audit"]
-    check: A Goal record Closed as Achieved/Missed whose outcome was never decomposed — no per-belief Reading against any linked assumption. The outcome IS the evidence; closing without reading it back is the one thing the joint exists to prevent. Dropped is exempt, emitting no evidence.
-  - id: stale-goal-anchor
+    surfaced_by: ["/find-evidence audit"]
+    check: An experiment Closed as Achieved/Missed whose outcome was never decomposed — no per-belief Reading against any belief it bars. The outcome IS the evidence; closing without reading it back is the one thing the two-level model exists to prevent. Dropped is exempt, emitting no evidence.
+  - id: stale-seed-anchor
     severity: warn
-    surfaced_by: ["/assumptions audit", "/goals audit"]
+    surfaced_by: ["/assumptions audit"]
     check: >-
-      An assumption whose hand-scored seed justification leans on a goal or
-      decision ("scored high because the Q3 goal rests on it") — the seed
+      An assumption whose hand-scored seed justification leans on a decision or
+      commitment ("scored high because the Q3 plan rests on it") — the seed
       must be purely intrinsic. A standing decision's weight is the
-      propagation's job (S) and dies with the link; a goal never touches
+      propagation's job (S) and dies with the link; a plan never touches
       Impact at all (assumption-guardrails.md §3). Re-justify the seed on
       severity alone. (Derived Impact needs no staleness check: a dead
       decision link's push vanishes at the next recompute.)
-  - id: anchor-dilution
-    severity: warn                # lens health only — linkage no longer gates anything
-    surfaced_by: ["/goals audit"]
-    check: Report the count of standing (Draft+Active) Goal records and the share of open assumptions linked to one; when most open assumptions link to some goal, the per-goal view has stopped discriminating. Informational — a goal touches neither Impact nor queue membership, so this dilutes a lens, not prioritisation (docs/goals.md §Through).

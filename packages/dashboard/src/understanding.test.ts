@@ -16,7 +16,6 @@ function reading(over: Partial<AnyRecord> = {}): AnyRecord {
     Credibility: 1.0,
     Date: "2026-01-01",
     experimentId: null,
-    goalId: null,
     ...over,
   } as AnyRecord;
 }
@@ -138,19 +137,19 @@ describe("buildUnderstanding", () => {
     expect(u.experiments[0]!).toMatchObject({ title: null, progress: null });
   });
 
-  it("routes goal and direct readings to otherMovers, not experiments", () => {
+  it("routes experiment-less readings (market-rung or bare) to otherMovers as direct", () => {
     const u = buildUnderstanding(
       asm,
       [
-        reading({ id: "g", Source: "sg", Rung: "Paying users", goalId: "GOL-1" }),
+        reading({ id: "g", Source: "sg", Rung: "Paying users" }),
         reading({ id: "d", Source: "sd" }),
       ],
       [],
     );
     expect(u.experiments).toEqual([]);
     const byKey = Object.fromEntries(u.otherMovers.map((m) => [m.key, m]));
-    expect(byKey["goal:GOL-1"]!.kind).toBe("goal");
     expect(byKey["direct"]!.kind).toBe("direct");
+    expect(u.otherMovers.every((m) => m.kind === "direct")).toBe(true);
   });
 
   it("ranks experiments by how hard they push, strongest first", () => {

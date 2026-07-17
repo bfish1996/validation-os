@@ -1,15 +1,17 @@
 /**
  * Confidence attribution — the "what's moving the number" half of the
  * understanding layer (OPS-1276). Decomposes an assumption's Confidence into
- * the experiments (and goals / direct readings) contributing to it, ranked by
- * how hard each pushes the number up or down.
+ * the experiments (and direct readings) contributing to it, ranked by how hard
+ * each pushes the number up or down.
  *
  * A winner's contribution is its signed share of the average:
  *   cᵢ = (weightᵢ · strengthᵢ) / den,  den = w0 + Σ weight
  * so Σ contributions = Σ(wᵢ·sᵢ)/den = Confidence (the w0·0 prior term is 0).
  * The reveal therefore literally adds up to the hero number. Contributions are
- * grouped by the reading's experiment (goal-rung readings and experiment-less
- * readings fall into their own buckets), then ranked by |contribution|.
+ * grouped by the reading's experiment (experiment-less readings — bare/found —
+ * fall into a "direct" bucket), then ranked by |contribution|. A reading's
+ * origin is an experiment or nothing; the retired Goal container is gone
+ * (OPS-1305).
  */
 import { W0, scoreAndDedupe, type ConfidenceReadingInput } from "./confidence.js";
 import { round2 } from "./round.js";
@@ -17,21 +19,17 @@ import { round2 } from "./round.js";
 export interface AttributionReadingInput extends ConfidenceReadingInput {
   /** The experiment that produced the reading, if any. */
   experimentId?: string | null;
-  /** The goal the reading concluded, for goal-rung readings. */
-  goalId?: string | null;
 }
 
-/** What a mover is anchored to — an experiment, a goal, or nothing. */
-export type MoverKind = "experiment" | "goal" | "direct";
+/** What a mover is anchored to — an experiment, or nothing (direct). */
+export type MoverKind = "experiment" | "direct";
 
 export interface Mover {
-  /** Stable grouping key: the experiment/goal id, or "direct". */
+  /** Stable grouping key: the experiment id, or "direct". */
   key: string;
   kind: MoverKind;
   /** The experiment id when `kind === "experiment"`, else null. */
   experimentId: string | null;
-  /** The goal id when `kind === "goal"`, else null. */
-  goalId: string | null;
   /** Signed push on Confidence; the whole set sums to `confidence`. */
   contribution: number;
   /** |contribution| — the rank key and the "how hard" magnitude. */
@@ -53,25 +51,15 @@ function bucketOf(r: AttributionReadingInput): {
   key: string;
   kind: MoverKind;
   experimentId: string | null;
-  goalId: string | null;
 } {
   if (r.experimentId) {
     return {
       key: r.experimentId,
       kind: "experiment",
       experimentId: r.experimentId,
-      goalId: null,
     };
   }
-  if (r.goalId) {
-    return {
-      key: `goal:${r.goalId}`,
-      kind: "goal",
-      experimentId: null,
-      goalId: r.goalId,
-    };
-  }
-  return { key: "direct", kind: "direct", experimentId: null, goalId: null };
+  return { key: "direct", kind: "direct", experimentId: null };
 }
 
 export function confidenceAttribution(
@@ -96,7 +84,6 @@ export function confidenceAttribution(
         key: b.key,
         kind: b.kind,
         experimentId: b.experimentId,
-        goalId: b.goalId,
         contribution,
         magnitude: 0, // finalised below
         readingCount: 1,

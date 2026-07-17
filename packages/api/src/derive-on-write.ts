@@ -64,7 +64,8 @@ export async function recomputeAllDerived(
     if (
       cur.confidence === next.confidence &&
       cur.risk === next.risk &&
-      cur.derivedImpact === next.derivedImpact
+      cur.derivedImpact === next.derivedImpact &&
+      cur.completeness === next.completeness
     ) {
       continue;
     }

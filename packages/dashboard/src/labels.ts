@@ -6,22 +6,18 @@ export const REGISTER_LABEL: Record<Collection, string> = {
   assumptions: "Assumptions",
   experiments: "Experiments",
   readings: "Readings",
-  goals: "Goals",
   decisions: "Decisions",
   glossary: "Glossary",
-  people: "People",
 };
 
 /** Singular labels — for "New {thing}" affordances (never a naive de-pluralise
- * that would read "New Peopl" / "New Glossary"). */
+ * that would read "New Glossary"). */
 export const REGISTER_SINGULAR: Record<Collection, string> = {
   assumptions: "Assumption",
   experiments: "Experiment",
   readings: "Reading",
-  goals: "Goal",
   decisions: "Decision",
   glossary: "Glossary term",
-  people: "Person",
 };
 
 /** The order tiles read left-to-right, top-to-bottom. */
@@ -29,22 +25,18 @@ export const REGISTER_ORDER: Collection[] = [
   "assumptions",
   "experiments",
   "readings",
-  "goals",
   "decisions",
   "glossary",
-  "people",
 ];
 
 /** A one-line description shown under each register's title (spec story 9). */
 export const REGISTER_SUBTITLE: Record<Collection, string> = {
   assumptions:
     "Falsifiable beliefs the plan rests on. Risk = Impact × (1 − max(0, Confidence)/100).",
-  experiments: "The tests that move Confidence in the beliefs.",
+  experiments: "The evidence plans that move Confidence in the beliefs.",
   readings: "The evidence logged against experiments and beliefs.",
-  goals: "The outcomes the plan is steering toward.",
   decisions: "The choices made, and what they rest on.",
   glossary: "The shared vocabulary for this venture.",
-  people: "The people the plan touches.",
 };
 
 /** A single-glyph icon per register for the sidebar nav (matches the prototype
@@ -53,19 +45,17 @@ export const REGISTER_ICON: Record<Collection, string> = {
   assumptions: "◎",
   experiments: "⚗",
   readings: "▤",
-  goals: "◇",
   decisions: "§",
   glossary: "A",
-  people: "☺",
 };
 
-/** The sidebar groups the registers into the register set and reference data. */
+/** The sidebar groups — all five registers now sit in one set (the retired
+ * `people` reference collection was the only "Reference" member). */
 export const REGISTER_GROUPS: { label: string; registers: Collection[] }[] = [
   {
     label: "Registers",
-    registers: ["assumptions", "experiments", "readings", "goals", "decisions", "glossary"],
+    registers: ["assumptions", "experiments", "readings", "decisions", "glossary"],
   },
-  { label: "Reference", registers: ["people"] },
 ];
 
 /** The workflow surfaces the sidebar lists above the register tables (OPS-1298):

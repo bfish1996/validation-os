@@ -79,7 +79,14 @@ describe("createApi CRUD", () => {
     expect(res.status).toBe(200);
     // The client's derived values are never trusted — the API recomputes.
     const asm = await provider.get("assumptions", "ASM-1");
-    expect(asm.derived).toEqual({ confidence: 0, derivedImpact: 80, risk: 80 });
+    // completeness = 20: only Impact of the five structural slots is present on
+    // this minimal seed record (OPS-1305).
+    expect(asm.derived).toEqual({
+      confidence: 0,
+      derivedImpact: 80,
+      risk: 80,
+      completeness: 20,
+    });
   });
 
   it("surfaces a stale write as a friendly 409", async () => {

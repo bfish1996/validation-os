@@ -12,10 +12,8 @@ describe("formFieldsFor", () => {
       "assumptions",
       "experiments",
       "readings",
-      "goals",
       "decisions",
       "glossary",
-      "people",
     ] as const) {
       const fields = formFieldsFor(register);
       expect(fields[0]?.required).toBe(true);
@@ -27,11 +25,12 @@ describe("formFieldsFor", () => {
     }
   });
 
-  it("offers presence-gap fields on assumptions", () => {
+  it("offers the kept Scoring justification, not the retired presence fields", () => {
     const keys = formFieldsFor("assumptions").map((f) => f.key);
-    expect(keys).toContain("5 Whys");
-    expect(keys).toContain("Metric for truth");
     expect(keys).toContain("Scoring justification");
+    // 5 Whys / Metric for truth were cut (OPS-1305).
+    expect(keys).not.toContain("5 Whys");
+    expect(keys).not.toContain("Metric for truth");
   });
 });
 
