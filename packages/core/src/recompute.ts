@@ -79,6 +79,9 @@ export function recomputeDerived(
       confidence: c,
       derivedImpact: di,
       risk: risk(di, c),
+      // Completeness is a *structural* readiness meter: it reads a.Impact as
+      // present/absent, not its value, so a moot assumption (whose Impact the
+      // Derived Impact pass zeroes) still counts its scored Impact slot.
       completeness: assumptionCompleteness(a),
     });
   }

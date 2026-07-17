@@ -494,6 +494,18 @@ derived_views:
     Seed Impact = 0 via a standing decision's Resolves assumption action —
     Derived Impact pins to 0, drops out of every ranking; reversal restores
     the prior Impact.
+  # Derived facets (OPS-1305) — display-only, NEVER stored. No field carries
+  # them and no rule forks on them; they exist so the dashboard can label a
+  # reading/experiment without the operator setting the same fact twice. The
+  # display computation itself is the dashboard layer's (Spec B / OPS-1308).
+  quant_qual: >-
+    A reading's quant-vs-qual character, inferred from its Rung + instrument
+    (a system-number instrument at any rung reads "quant"; recruited-sample
+    testing rungs read "qual"). A derived display tag, never a stored flag.
+  commercial_consumer: >-
+    An experiment's commercial-vs-consumer character, read through from the
+    tested assumption's Lens / Theme — never set on the experiment, so the
+    fact lives in exactly one place.
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Integrity rules — derivable defects no single-record grill can see. Each is

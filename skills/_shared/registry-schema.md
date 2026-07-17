@@ -116,6 +116,14 @@ Draft ──(grill close-out: Completeness ─────▶ Live ──(eviden
 | Proven set | `Live` + strongest (largest `\|Strength\|`) concluded Reading `Validated` — "what we currently know"; provisional, always |
 | Moot | seed Impact = 0 via a standing decision's `Resolves assumption` action; Derived Impact pins to 0 |
 
+**Derived facets (display-only; never stored — `OPS-1305`):** a reading's
+**quant vs qual** character is inferred from its `Rung` + instrument (a
+system-number instrument reads *quant*; recruited-sample testing rungs read
+*qual*), never a stored flag. An experiment's **commercial vs consumer**
+character reads through from the tested assumption's `Lens` / `Theme`, never
+set on the experiment — so the fact lives in one place. Neither is a field and
+no rule forks on them; the display computation is the dashboard layer's.
+
 - **Evidence never flips Status.** A validating verdict raises Confidence
   (lowering Risk); an invalidating one lowers it (raising Risk — a re-test
   signal, and past −50 a kill prompt), nothing else. Only a human-affirmed
