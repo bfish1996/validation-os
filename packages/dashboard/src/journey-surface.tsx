@@ -88,6 +88,7 @@ export function BeliefJourney({
   };
 
   const { stage, resolved } = journey;
+  const coldState = journeyColdState(journey);
 
   return (
     <section className="vos-jny vos-card">
@@ -128,24 +129,19 @@ export function BeliefJourney({
         <div className="vos-why-panel vos-jny-story">
           <section>
             <div className="vos-why-section-title">The story so far</div>
-            {(() => {
-              const coldState = journeyColdState(journey);
-              return coldState.cold ? (
-                <div className="vos-jny-cold vos-card">
-                  <span className="vos-jny-card-eyebrow">{coldState.eyebrow}</span>
-                  <p className="vos-jny-card-reason">{coldState.body}</p>
-                </div>
-              ) : null;
-            })()}
-            <ol className="vos-jny-events">
-              {journey.events.map((event, i) => (
-                <EventRow
-                  key={`${event.kind}-${event.refId ?? i}`}
-                  event={event}
-                  onStepIn={setStepIn}
-                />
-              ))}
-            </ol>
+            {coldState.cold ? (
+              <JourneyColdCard body={coldState.body} eyebrow={coldState.eyebrow} />
+            ) : (
+              <ol className="vos-jny-events">
+                {journey.events.map((event, i) => (
+                  <EventRow
+                    key={`${event.kind}-${event.refId ?? i}`}
+                    event={event}
+                    onStepIn={setStepIn}
+                  />
+                ))}
+              </ol>
+            )}
           </section>
 
           {/* OPS-1276's attribution + trajectory, reused whole — the story says
@@ -374,6 +370,23 @@ function NextMoveCard({
           it lands.
         </span>
       )}
+    </div>
+  );
+}
+
+/** The no-history cold-state card — replaces the sparse `bet` + `now` events
+ * with one guided line that names the belief's next move. */
+function JourneyColdCard({
+  eyebrow,
+  body,
+}: {
+  eyebrow: string;
+  body: string;
+}) {
+  return (
+    <div className="vos-jny-cold vos-card">
+      <span className="vos-jny-card-eyebrow">{eyebrow}</span>
+      <p className="vos-jny-card-reason">{body}</p>
     </div>
   );
 }

@@ -153,4 +153,29 @@ describe("journeyColdState", () => {
     expect(cold.body).toBe("");
     expect(cold.eyebrow).toBe("");
   });
+
+  it("falls back to a guided line when cold with no next move (a moot belief with no evidence)", () => {
+    // A moot belief (pinned moot) with no Impact score, no tests, no readings
+    // → only `bet` + `now` events, and no ranked next move (resolved beliefs
+    // drop out of the ranking).
+    const journey = buildJourney(
+      "m1",
+      records({
+        assumptions: [
+          assumption({
+            id: "m1",
+            moot: true,
+            Impact: null,
+            derived: { derivedImpact: 0, risk: 0, confidence: 0, completeness: 100 },
+          }),
+        ],
+      }),
+      NOW,
+    )!;
+    expect(journey.events.map((e) => e.kind)).toEqual(["bet", "now"]);
+    expect(journey.nextMove).toBeNull();
+    const cold = journeyColdState(journey);
+    expect(cold.cold).toBe(true);
+    expect(cold.body).toContain("Score its impact");
+  });
 });

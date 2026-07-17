@@ -95,6 +95,9 @@ function PipelineBoard({
     assumptions,
     experiments,
     readings,
+    // The pipeline surface doesn't load decisions (the burn-up reads only
+    // assumptions + experiments + readings); coldStartFor only reads
+    // assumptions.length, so an empty decisions array is honest here.
     decisions: [],
   });
   if (cold.cold) {
@@ -111,15 +114,7 @@ function PipelineBoard({
           </div>
         </section>
 
-        <div className="vos-pipe-stages">
-          <StageKey idx="1" name="Framed" desc="The bet is written & complete" />
-          <span className="vos-pipe-arrow" aria-hidden="true">→</span>
-          <StageKey idx="2" name="Planned" desc="A test is designed to move it" />
-          <span className="vos-pipe-arrow" aria-hidden="true">→</span>
-          <StageKey idx="3" name="Tested" desc="Evidence landing, bars settling" />
-          <span className="vos-pipe-arrow" aria-hidden="true">→</span>
-          <StageKey idx="4" open name="Known" desc={'Signed confidence — never "done"'} />
-        </div>
+        <StageSpine />
 
         <div className="vos-card vos-pipe-board vos-cold vos-cold-pipe-board">
           <div className="vos-pipe-boardhead">
@@ -174,15 +169,7 @@ function PipelineBoard({
       </section>
 
       {/* The four meters every belief carries, in order. */}
-      <div className="vos-pipe-stages">
-        <StageKey idx="1" name="Framed" desc="The bet is written & complete" />
-        <span className="vos-pipe-arrow" aria-hidden="true">→</span>
-        <StageKey idx="2" name="Planned" desc="A test is designed to move it" />
-        <span className="vos-pipe-arrow" aria-hidden="true">→</span>
-        <StageKey idx="3" name="Tested" desc="Evidence landing, bars settling" />
-        <span className="vos-pipe-arrow" aria-hidden="true">→</span>
-        <StageKey idx="4" open name="Known" desc={'Signed confidence — never "done"'} />
-      </div>
+      <StageSpine />
 
       <div className="vos-card vos-pipe-board">
         <div className="vos-pipe-boardhead">
@@ -280,6 +267,22 @@ function StageKey({
         <div className="vos-pipe-skname">{name}</div>
         <div className="vos-pipe-skdesc">{desc}</div>
       </div>
+    </div>
+  );
+}
+
+/** The four-stage spine — Framed → Planned → Tested → Known — shared by the
+ * cold and warm paths so the legend never drifts between them. */
+function StageSpine() {
+  return (
+    <div className="vos-pipe-stages">
+      <StageKey idx="1" name="Framed" desc="The bet is written & complete" />
+      <span className="vos-pipe-arrow" aria-hidden="true">→</span>
+      <StageKey idx="2" name="Planned" desc="A test is designed to move it" />
+      <span className="vos-pipe-arrow" aria-hidden="true">→</span>
+      <StageKey idx="3" name="Tested" desc="Evidence landing, bars settling" />
+      <span className="vos-pipe-arrow" aria-hidden="true">→</span>
+      <StageKey idx="4" open name="Known" desc={'Signed confidence — never "done"'} />
     </div>
   );
 }
