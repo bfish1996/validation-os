@@ -1,5 +1,12 @@
 # @validation-os/dashboard
 
+## 0.7.1
+
+### Patch Changes
+
+- afd6496: Fix unclosed CSS block in the journey card section that crashed the Next.js/webpack build (stray `}` after `.vos-jny-card-reason`).
+  - @validation-os/core@0.7.1
+
 ## 0.7.0
 
 ### Minor Changes
