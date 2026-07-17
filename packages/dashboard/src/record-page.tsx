@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
-import type { AnyRecord, Collection } from "@validation-os/core";
+import type { AnyRecord, BarLine, Collection } from "@validation-os/core";
 import { REGISTERS } from "@validation-os/core";
 import { formatValue } from "./columns.js";
+import { resolveBarLines } from "./detail-fields.js";
 import { GlossaryText } from "./glossary-text.js";
 import { toGlossaryTerms } from "./glossary.js";
 import { buildJourney } from "./journey.js";
@@ -513,8 +514,13 @@ function EvidenceTab({
     );
   }
 
-  // Experiments: bar lines + readings nested under this plan.
-  const bars = (record.barLines as { assumptionId: string; rightIf?: string; barVerdict?: string | null }[] | undefined) ?? [];
+  // Experiments: bar lines + readings nested under this plan. Each bar line
+  // is resolved against the loaded assumptions (OPS-1345) so it links the
+  // belief's title, never its bare `assumptionId`.
+  const bars = resolveBarLines(
+    (record.barLines as BarLine[] | undefined) ?? [],
+    related,
+  );
   const mine = (related.readings ?? []).filter((r) => r.experimentId === record.id);
   const nested = nestReadingsByPlan(mine, [record]);
   return (
@@ -527,7 +533,16 @@ function EvidenceTab({
           <ul className="vos-bars">
             {bars.map((b, i) => (
               <li key={i} className="vos-bar-line">
-                <span className="vos-bar-if">{b.rightIf ?? "—"}</span>
+                <span className="vos-bar-if">{b.rightIf || "—"}</span>
+                {b.assumption ? (
+                  <button
+                    type="button"
+                    className="vos-inline-link"
+                    onClick={() => onOpenRecord(b.assumption!.id)}
+                  >
+                    {b.assumption.title}
+                  </button>
+                ) : null}
                 <span
                   className={
                     b.barVerdict

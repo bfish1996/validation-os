@@ -16,6 +16,7 @@ import {
 import { RegisterTable } from "./register-table.js";
 import { RecordDrawer } from "./record-drawer.js";
 import { RecordForm } from "./record-form.js";
+import type { RelatedSet } from "./record-view.js";
 import { RelationEditor } from "./relation-editor.js";
 import { useList, useRecord } from "./use-records.js";
 import { useSavedViews } from "./use-saved-views.js";
@@ -31,7 +32,12 @@ export interface RegisterBrowserProps {
   onOpenRecord?: (id: string) => void;
 }
 
-/** Which context registers a register's derived-view tabs read. */
+/**
+ * Which context registers a register's derived-view tabs — and the record
+ * drawer's relation-field/bar-line links (OPS-1345) — read. `assumptions` is
+ * also needed on `experiments` (a bar line's `assumptionId`) and `readings`
+ * (its own `assumptionId`), not just `decisions` (`Based on`/`Resolves`).
+ */
 function contextNeeds(register: Collection): {
   experiments: boolean;
   readings: boolean;
@@ -40,7 +46,10 @@ function contextNeeds(register: Collection): {
   return {
     experiments: register === "assumptions" || register === "readings",
     readings: register === "assumptions",
-    assumptions: register === "decisions",
+    assumptions:
+      register === "decisions" ||
+      register === "experiments" ||
+      register === "readings",
   };
 }
 
@@ -118,6 +127,16 @@ export function RegisterBrowser({
     if (!tab.needsHuman) return null;
     const n = humanCount[tab.id] ?? 0;
     return n > 0 ? n : null;
+  };
+
+  // The drawer's relation/bar-line links (OPS-1345) read the same context
+  // registers the derived-view tabs already loaded above — one fetch, two
+  // consumers, never the other end of a link is left unresolved.
+  const related: RelatedSet = {
+    assumptions: ctx.assumptions,
+    experiments: ctx.experiments,
+    readings: ctx.readings,
+    decisions: ctx.decisions,
   };
 
   const patch = (p: Partial<ViewDescriptor>) =>
@@ -252,6 +271,8 @@ export function RegisterBrowser({
         onOpenFull={
           onOpenRecord && openId ? () => onOpenRecord(openId) : undefined
         }
+        onOpenRecord={onOpenRecord}
+        related={related}
         onChanged={() => {
           refreshRecord();
           refreshList();

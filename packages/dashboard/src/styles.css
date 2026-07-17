@@ -1019,6 +1019,24 @@ textarea.vos-input {
   font-size: 13px;
   color: var(--vos-text);
 }
+.vos-detail-links {
+  display: inline-flex;
+  flex-wrap: wrap;
+}
+.vos-inline-link {
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  font-size: inherit;
+  color: var(--vos-accent-text);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.vos-inline-link:hover {
+  opacity: 0.8;
+}
 
 /* ── portfolio pipeline (OPS-1300) ─────────────────────────────────────── */
 

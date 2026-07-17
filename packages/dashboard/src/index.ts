@@ -222,6 +222,13 @@ export type {
   RelationPanel,
   ScoreChip,
 } from "./record-view.js";
+export { detailRows, ownerNames, resolveBarLines } from "./detail-fields.js";
+export type {
+  DetailRelationItem,
+  DetailRow,
+  DetailRowKind,
+  ResolvedBarLine,
+} from "./detail-fields.js";
 export {
   REGISTER_GROUPS,
   REGISTER_ICON,
