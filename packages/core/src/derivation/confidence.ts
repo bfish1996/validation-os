@@ -7,12 +7,12 @@
  *
  * Only concluded Validated/Invalidated readings enter. Readings sharing a
  * Source against one belief dedupe to the strongest (largest |si|, most
- * recent on ties). Goal-rung readings never dedupe (each closed goal is its
- * own unit). No corroboration bump.
+ * recent on ties). Market-rung readings never dedupe (each closed commitment
+ * is its own unit). No corroboration bump.
  */
 import type { MagnitudeBand, Result, Rung } from "../types.js";
 import { round2 } from "./round.js";
-import { isGoalRung } from "./rung.js";
+import { isMarketRung } from "./rung.js";
 import { sourceQuality } from "./source-quality.js";
 import { isConcluded, readingStrength } from "./strength.js";
 
@@ -44,8 +44,8 @@ export interface Scored {
  * Score every concluded reading and resolve the Source dedupe — the shared
  * front half of the Confidence average. `confidence()` reduces the winners to
  * a number; `confidenceAttribution()` reuses the same winners so the movers it
- * reports always decompose the very number the drawer shows. Goal rungs never
- * dedupe (each closed goal is its own unit).
+ * reports always decompose the very number the drawer shows. Market rungs never
+ * dedupe (each closed commitment is its own unit).
  */
 export function scoreAndDedupe(readings: ConfidenceReadingInput[]): Scored[] {
   const scored: Scored[] = readings
@@ -59,7 +59,7 @@ export function scoreAndDedupe(readings: ConfidenceReadingInput[]): Scored[] {
 
   const best = new Map<string, Scored>();
   for (const x of scored) {
-    if (isGoalRung(x.input.rung)) {
+    if (isMarketRung(x.input.rung)) {
       best.set(x.input.id, x);
       continue;
     }

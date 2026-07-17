@@ -9,23 +9,27 @@ The schema (field map, status & derived views) lives in
 
 ---
 
-## 1. Define — the 4-step framework
+## 1. Define — the 3-step framework
 
 1. **Explicit.** Write it down as one sentence in the Description:
    `We assume [target user/system] will [behavior/action] because [reason]`.
    The title is a short handle, not the sentence.
-2. **Falsifiable.** State what evidence would prove it wrong. If nothing
-   could disprove it, it's a belief/philosophy, not an assumption — reject
-   it. Watch for: vague qualifiers ("meaningfully", "materially", "many",
-   "better"), absolutes ("always", "only", "nothing else"), and placeholders
-   ("benefits exist though unclear what they are"). Each needs an observable
-   threshold.
+2. **Falsifiable.** State what evidence would prove it wrong — concretely
+   enough to read as a countable threshold ("≥N of M institutions sign",
+   "≥X% of users do Y"), not a vague disproof. If nothing could disprove it,
+   it's a belief/philosophy, not an assumption — reject it. Watch for: vague
+   qualifiers ("meaningfully", "materially", "many", "better"), absolutes
+   ("always", "only", "nothing else"), and placeholders ("benefits exist
+   though unclear what they are"). Each needs an observable threshold.
+   **This is a grill check, not a stored field** — there is no `Metric for
+   truth` column (`OPS-1305`). It proves the claim is falsifiable in the
+   moment; the concrete number is re-authored as the bar's `We're right if`
+   when `/experiment-design` pre-registers a test against this belief
+   (`experiment-guardrails.md §4`) — never copied forward automatically,
+   because it was never stored.
 3. **Assess risk.** Score **Impact** (§3) — the intrinsic seed, the only
    hand-scored number; Derived Impact, Confidence, and Risk are all computed.
    Focus energy on high-Risk.
-4. **Metric for truth.** State the evidence that would turn it into a fact
-   ("≥N of M institutions sign", "≥X% of users do Y"). This is the
-   falsifiability statement; it later seeds an Experiment's `We're right if`.
 
 **Plain language, no hyperbole.** "institutions will fund X", not "are
 desperate for X". No marketing adjectives. The claim must read as a flat,
@@ -42,10 +46,15 @@ verbosity buries.
 
 ---
 
-## 2. Five Whys (mandatory, every assumption)
+## 2. The why-trace (grill stage — builds Depends on / Enables, nothing stored)
 
-Disciplined root-cause trace down to the foundational assumption. Without
-discipline it becomes a rabbit hole — so constrain both questions and answers.
+Disciplined root-cause trace down to the foundational assumption — the
+technique for building a healthy `Depends on` / `Enables` graph. **This is a
+transient grill stage, not a stored field**: there is no `5 Whys` column and
+no body to write the chain into (`OPS-1305`). The only durable output is the
+relation itself — a `Depends on` edge to whatever existing or newly-created
+assumption the trace converges on. Without discipline it becomes a rabbit
+hole — so constrain both questions and answers.
 
 **Question phrasing.** Always: *"What specific condition or action directly
 caused [the previous answer]?"* — forces one step back, not three steps
@@ -72,23 +81,21 @@ any link is a leap, you went down a rabbit hole — fix that link.
 - Valid: no cross-training time → only one dev knew the system → work stopped
   when they were sick → 5 days late → missed deadline.
 
-**Closure — tagging-only (this is also the gap-finder).** Every "why" answer
-is **either an existing assumption or a ground truth.** An *assumption*
-answer is stated as an **inline reference to an existing register record**
-(a page mention in Notion, an `ASM-###` link in local files), never as free
-prose — the body carries only the connective logic ("→ because…") and the
-therefore-test, while the *substance* lives in the referenced record. A
-**✅ ground truth** (a verified fact, settled reality, or accepted
-externality — not a bet) is **not** a register record, gets no reference, is
-marked inline with a ✅, and **terminates the branch — no further why.** This
-makes the register self-completing down each branch.
+**Closure — wire it, don't write it up.** Every "why" answer is **either an
+existing assumption or a ground truth.** An *assumption* answer converges
+onto a **real register record** — searched for and reused, never
+paraphrased — and gets wired via `Depends on`. A **ground truth** (a
+verified fact, settled reality, or accepted externality — not a bet) is
+**not** a register record and needs no relation: it **terminates the
+branch — no further why**, nothing written down anywhere. This makes the
+graph self-completing without any prose trail to maintain.
 
-- **Dedupe before you tag.** Search the register first and reuse the record
+- **Dedupe before you wire.** Search the register first and reuse the record
   that already says it. Create a new record only if none exists — and a
   near-duplicate step is merged into its neighbour, not given its own record.
-- **Body tags and relations must agree.** A node referenced in the body must
-  also be wired via `Depends on`. Relations alone do **not** satisfy closure —
-  the body must carry the references too; a prose paraphrase is a gap.
+- **The relation IS the closure.** There is no separate body tag to keep in
+  sync (assumptions carry no body, `OPS-1305`) — wiring `Depends on` at the
+  moment of convergence is the whole act.
 
 **Depth is per-chain, not per-record.** The "5 Whys" is the trace from *this*
 parent down its `Depends on` edges — depth accrues across records, so a
@@ -98,13 +105,14 @@ pad a chain to hit a count.
 **Stop a branch at the FIRST of these (whichever comes soonest):**
 
 1. **It converges** — the next "why" is an assumption you already have a
-   record for. Tag the existing record and stop. (This is the *ideal* close.)
-2. **It hits a ✅ ground truth** — a settled fact, verified reality, or
-   accepted externality (not a bet). No record, mark ✅ inline, stop.
+   record for. Wire `Depends on` to the existing record and stop. (This is
+   the *ideal* close.)
+2. **It hits a ground truth** — a settled fact, verified reality, or
+   accepted externality (not a bet). No record, no relation, stop.
 3. **It stops being load-bearing** — apply the test: *if this next answer
    turned out false, would it change the bet we're making or the experiment
-   we'd run?* If no, you've already gone one layer too deep. Mark the parent
-   **root** and stop.
+   we'd run?* If no, you've already gone one layer too deep. Treat the
+   parent as **root** and stop.
 
 **Soft ceiling — the rabbit-hole tripwire.** In practice a chain hits one of
 the three stops within **~3 new whys**. If you're at three *new* whys and
@@ -116,10 +124,10 @@ decision-relevant node root, don't keep going to feel thorough. (Not a hard
 truncation: a genuine 4th or 5th load-bearing layer is fine — the ceiling is
 a prompt to re-check, not a cap.)
 
-- A **leaf/root** node (the bottom of its chain) does not start its own new 5
-  Whys — its `5 Whys` gap is satisfied by being terminal. Mark it root; don't
+- A **leaf/root** node (the bottom of its chain) does not start its own new
+  why-trace — being terminal satisfies it. Treat it as root; don't
   manufacture deeper whys. Every branch ends at one of: a foundational/root
-  **assumption** (terminal — don't restart) or a **✅ ground truth**.
+  **assumption** (terminal — don't restart) or a **ground truth**.
 - **Convergence is the goal.** The best close is the chain **looping back
   onto a record that already exists** (often one already in another branch):
   foundational assumptions are *shared*, so the graph converges into a DAG
@@ -145,10 +153,11 @@ bands:
 - **10–20** — minor, adjust & move on.
 
 **The seed is purely intrinsic severity.** Don't fold in what depends on the
-record — no bump for dependents, goals, or decisions; the propagation below
-applies dependents and standing decisions mechanically, and hand-anchoring
-them too would double-count. A goal never enters the seed *or* the
-propagation at all (a goal never touches Impact — see below).
+record — no bump for dependents, committed plans, or decisions; the
+propagation below applies dependents and standing decisions mechanically, and
+hand-anchoring them too would double-count. An experiment (committed or not)
+never enters the seed *or* the propagation at all (a plan never touches
+Impact — see below).
 **Being a root is not itself a signal** — a record with no outgoing
 `Depends on` (it bottoms out a 5-Whys chain, §2) is normal; don't inflate
 the seed because a record has nothing further to trace.
@@ -164,7 +173,7 @@ where `S` = the sum of the record's **dependents' pull**: the `Derived
 Impact` of every assumption whose `Depends on` names this record, **plus 100
 per standing decision** that names it via `Based on assumption` (a flat,
 max-severity node — no per-Kind grading, no signed push, upward only).
-**Goals are not in `S`** — a goal never affects Impact (see below).
+**Experiments are not in `S`** — a plan never affects Impact (see below).
 Computed in one reverse-topological pass over the DAG (dependents first;
 cycles are impossible by §2's merge rule). Properties, by construction:
 
@@ -195,18 +204,19 @@ input (deciding is not evidence) and never a queue condition: every `Live`
 row competes on its own merits, linked or not (`registry-schema.md §Status
 & derived views`).
 
-**A goal never affects Impact — not the seed, not the propagation.** The
-business *acting on* a belief is already carried by the **decision** behind
-the pursuit, which anchors Impact; a goal is the measuring instrument for
-that pursuit, not a second importance signal, and anchoring both would
-double-count. Goals churn every cycle; the dependency structure doesn't. A
-goal reaches Impact only transitively and correctly: goal → evidence →
-Confidence on the beliefs it decomposes onto (`docs/goals.md §Out`) →
-informs a **decision** → the decision anchors Impact. Never a direct node.
-Goal linkage stays a per-goal view and an entry point, never a propagation
-node. Accepted tradeoff: a low-seed belief that matters only because an
-active goal rests on it no longer rises in the global queue — it's found via
-the per-goal view (`docs/goals.md §Through`).
+**An experiment never affects Impact — not the seed, not the propagation.**
+The business *acting on* a belief is already carried by the **decision**
+behind the pursuit, which anchors Impact; an experiment (committed or not)
+is the measuring instrument for that pursuit, not a second importance
+signal, and anchoring both would double-count. Plans churn every cycle; the
+dependency structure doesn't. A committed plan reaches Impact only
+transitively and correctly: plan → evidence → Confidence on the beliefs its
+bar lines decompose onto (`docs/goals.md §Out`) → informs a **decision** →
+the decision anchors Impact. Never a direct node. Plan linkage stays an
+evidence-plan view and an entry point, never a propagation node. Accepted
+tradeoff: a low-seed belief that matters only because an active committed
+plan rests on it no longer rises in the global queue — it's found via that
+plan's own view (`docs/goals.md §Through`).
 
 **Decision anchor (downward).** Decisions never close assumptions — they
 change what's staked on them. A standing decision that carries a `Resolves
@@ -295,27 +305,30 @@ the record's own severity (e.g. "the thesis dies" scored 10) is a flag.
     that can't both hold in practice ("users want simplicity" / "users want
     deep customization") have **independent truth values resolved by
     different evidence** — they are genuinely two assumptions. **Keep both**,
-    wire a **`Contradicts`** edge (set it both ways), tag both with the
-    **`Contradiction`** gap, and note the resolving experiment in the body's
-    `## Provenance & notes`. The bet is which one wins; evidence, not the
-    grill, decides.
+    wire a **`Contradicts`** edge (set it both ways). The **Contradiction**
+    check is a transient grill stage, not a stored tag (`OPS-1305`) — say
+    which experiment will resolve the tension out loud in the grill session;
+    there's no body to note it in, so the durable trail is whichever
+    Experiment bar line eventually settles it, not a written provenance line.
+    The bet is which one wins; evidence, not the grill, decides.
 - **Enforcement (mandatory, not optional).** Before creating a record, search
-  the register and surface the nearest 2–3 — every new stub sets the
-  `Duplicate` gap regardless of suspicion
+  the register and surface the nearest 2–3 — every new stub runs the
+  `Duplicate` check regardless of suspicion
   (`../assumptions/references/seed.md`), so this
   check always runs through single mode's dedup phase rather than being
-  skipped when nothing looks like a duplicate. The outcome must be recorded
-  in the body's `## Provenance & notes`: either merge (naming the redundant
-  dimension in the keeper's notes), or a line of the form
-  `Distinct from <record> because: <dimension>` — a boundary statement that
-  doesn't name a concrete axis of difference (metric, lens, trigger, actor)
-  doesn't satisfy this.
+  skipped when nothing looks like a duplicate. **This is a transient grill
+  check, not a stored tag or body note** (`OPS-1305`): resolve it live —
+  either merge (folding the redundant record's substance into the keeper), or
+  confirm distinctness out loud by naming the concrete axis of difference
+  (metric, lens, trigger, actor). A boundary statement that doesn't name a
+  concrete axis doesn't satisfy this — but nothing about it gets written to
+  the record either way.
 
 ---
 
 ## 5. Graph health (comprehensiveness — no gaps)
 
-- **Closure.** Every node in every 5-Whys chain exists as a record.
+- **Closure.** Every node in every why-trace chain (§2) exists as a record.
 - **Root check.** Every chain bottoms out in an **independently-testable
   root** (not an externality or blame). Identify the most-depended-on roots —
   they deserve the most test attention.
@@ -323,19 +336,21 @@ the record's own severity (e.g. "the thesis dies" scored 10) is a flag.
   isolated — flag it ("does this connect to the thesis at all?"). A large
   orphan share means whole dimensions float free of the spine.
 - **Contradiction sweep.** Scan for pairs in tension (semantic / pairwise).
-  An unexamined or unwired contradicting pair is a **gap** — tag both
-  `Contradiction` and wire `Contradicts`. An *open* `Contradicts` edge is
-  legitimate, not an error: it marks a real bet to be settled by evidence —
-  but it must carry the tag + a provenance line naming the experiment that
-  resolves it. A direct contradiction (negation, §4a) left as two records is
-  always a defect — merge it.
+  An unexamined or unwired contradicting pair is a finding — wire
+  `Contradicts` both ways. An *open* `Contradicts` edge is legitimate, not an
+  error: it marks a real bet to be settled by evidence, chased by the audit's
+  `contradiction-unwired` check (`ontology.yaml`) until an experiment bar
+  line or decision names the resolving test — there is no stored tag or
+  provenance line, only the relation and the eventual resolver. A direct
+  contradiction (negation, §4a) left as two records is always a defect —
+  merge it.
 
 ---
 
 ## 6. Guardrail summary (reject a candidate that fails any)
 
-Atomic · Falsifiable (disproof stated) · Plain (no hyperbole) · 5 Whys done +
-therefore-test passes · Scored against bands with justification · Not a
-duplicate (or merged) · No unreconciled contradiction (negation merged;
-tension wired via `Contradicts` + tagged + noted) · Single Lens · Themed ·
-Related (`Depends on` / `Enables`) or consciously a root.
+Atomic · Falsifiable (disproof stated, though not stored — §1) · Plain (no
+hyperbole) · why-trace done + therefore-test passes (§2) · Scored against
+bands with justification · Not a duplicate (or merged) · No unreconciled
+contradiction (negation merged; tension wired via `Contradicts`) · Single
+Lens · Themed · Related (`Depends on` / `Enables`) or consciously a root.

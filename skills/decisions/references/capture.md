@@ -8,8 +8,8 @@ gated fixes.
 ## Read first
 
 `../../_shared/decision-guardrails.md` (all sections — this mode enforces all
-of them) and `../../_shared/registry-schema.md` (field map, Type = Decision).
-Terminology check: `../../_shared/ubiquitous-language.md`. Gate:
+of them) and `../../_shared/registry-schema.md` (Decisions register field
+map). Terminology check: `../../_shared/ubiquitous-language.md`. Gate:
 `../../_shared/gated-writes.md`.
 
 ## Entry
@@ -21,14 +21,18 @@ memory with no source, ask for one — `Source` is required
 
 ## Phases
 
+0. **Not a commitment.** If the source turns out to describe a **committed
+   evidence plan** — a time-boxed commitment to a measurable outcome — stop:
+   it is not a Decision row (`decision-guardrails.md §9`). Hand off to
+   `/experiment-design`.
 1. **Extract.** Read the source. Pull out the one-line decision statement:
    what was decided, instead of what alternative, and who was in the
    room/thread.
-2. **Dedup.** Search existing Decision records (Type = Decision), same `Area`
-   first, then whole register, for a record that already covers this. If
-   found, **edit that record** (e.g. add corroborating `Agreed by`, or open a
-   `Supersedes` link if this is actually a later override) rather than
-   creating a duplicate.
+2. **Dedup.** Search existing Decision records, same `Area` first, then
+   whole register, for a record that already covers this. If found, **edit
+   that record** (e.g. add corroborating `Agreed by`, or open a `Supersedes`
+   link if this is actually a later override) rather than creating a
+   duplicate.
 3. **Draft the fields:**
    - **Owner** — who's accountable for the decision.
    - **Agreed by** — everyone who explicitly affirmed, best-effort from the
@@ -36,34 +40,35 @@ memory with no source, ask for one — `Source` is required
      (`decision-guardrails.md §3`).
    - **Unanimity score** — band it per `decision-guardrails.md §2`, one band
      down if attribution is uncertain. Write the one-line justification into
-     the body's `## Rationale`.
-   - **Area** — topic tag from the config's `vocabulary.area`.
-   - **Kind** — `Direction` (strategy, scope, path calls) / `Operating`
-     (process, tooling, how-we-work). `decision-guardrails.md §9`. If the
-     record turns out to be a **goal** — a time-boxed commitment to a
-     measurable outcome — stop: it is not a Decision row. Hand off to
-     `/goals` (`../../../docs/goals.md`).
+     `Unanimity justification` (promoted from the old `## Rationale` body
+     prose, `OPS-1305`).
+   - **Area** — topic tag from the config's `vocabulary.area`. There is no
+     `Kind` field (`OPS-1305`) — `Area` + `Reversibility` carry the
+     classification that used to also live on `Kind`.
    - **Decided date**, **Source** (link or dated reference).
    - **Reversibility** — ask: *"if this turns out wrong, can we get back to
      today's position at a cost we'd happily pay?"* Yes → `Two-way door`;
      no or unclear → `One-way door` (`decision-guardrails.md §8`).
    - **Status** — default `Active` unless the decision is explicitly
      tentative (`Provisional`).
-4. **Draft the body** from the 4-heading template (verbatim headings,
-   `registry-schema.md`): `## Decision`, `## Rationale` (+ scoring
-   justification), `## Alternatives considered`, `## Source` (quote/link).
+4. **Draft the record.** `Statement` field — the one-line what-was-decided
+   (promoted from the old `## Decision` body heading, `OPS-1305`). Body:
+   `## Rationale` (why; cites `Based on assumption` rows; carries any
+   risk-acceptance lines) and `## Alternatives considered` — the two
+   headings that survive; `## Source` is cut, it only mirrored the `Source`
+   field.
 5. **Assumption links — two separate, never-inferred-from-each-other
    questions** (`decision-guardrails.md §6`):
    - *"Does the rationale cite an existing assumption?"* → if yes, propose
      `Based on assumption`, linking the cited record(s). This never touches
-     the assumption, on any `Kind`.
+     the assumption.
    - *"Does this decision settle that assumption without needing a test?"* →
      only if the user **explicitly** affirms, propose `Resolves assumption`
      linking the record(s), **and** the paired write dropping the
-     assumption's Impact to 0 — a dated line in its `## Scoring
-     justification` records the prior score and cites this decision;
-     `Status` untouched. If the user is unsure or says no, leave this
-     unset — an open assumption stays open.
+     assumption's Impact to 0 — a dated line in its `Scoring justification`
+     field records the prior score and cites this decision; `Status`
+     untouched. If the user is unsure or says no, leave this unset — an
+     open assumption stays open.
    - **One-way door check** (`decision-guardrails.md §8`): if Reversibility
      is `One-way door` and any `Based on` link points at an assumption
      whose Risk sits above the working threshold, require either an
@@ -73,7 +78,7 @@ memory with no source, ask for one — `Source` is required
      the record `Provisional` until the evidence lands.
 
 6. **Terminology check.** Run `../../_shared/ubiquitous-language.md` over the
-   final Decision statement + body, audience = Internal. Walk any
+   final `Statement` + body, audience = Internal. Walk any
    must-fix/should-fix findings with the user; add any missing glossary term
    via Terminology Build mode (`Status: Provisional`).
 

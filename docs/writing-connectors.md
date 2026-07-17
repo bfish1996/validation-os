@@ -11,11 +11,11 @@ doc tells `/setup-validation-os` how to build or validate the backend.
 > deliberately **not** modeled as a connector — their event/property schemas
 > are workspace-defined and discovered at runtime, not a fixed field list a
 > maintainer could map once (the schema-guide contract below assumes the
-> latter). Analytics is **Goals-side**: a scoreboard number is read at a
-> goal's deadline, not stored as a register field (`docs/goals.md §Found
-> numbers`). It's wired in through `/goals` — `skills/goals/references/draft.md`
-> names the instrument, `skills/goals/references/close.md` reads it — sharing
-> `skills/_shared/analytics-metric-resolution.md` and
+> latter). Analytics is **Market-side**: a scoreboard number is read at a
+> committed plan's deadline, not stored as a register field (`docs/goals.md
+> §Found numbers`). It's wired in through `/experiment-design` (names the
+> instrument at draft/commit) and `/find-evidence` (reads it at close-out) —
+> sharing `skills/_shared/analytics-metric-resolution.md` and
 > `skills/_shared/quant-analytics-rubric.md`. Don't build a
 > `connectors/posthog.md` — there's no stable schema to map.
 
@@ -37,10 +37,11 @@ Read, in order:
 
 ## The decisions your runtime connector must make
 
-- **Structure mapping.** Where do the six registers live (tables? collections?
-  directories?), how are an experiment's per-belief bar lines composed in, and
-  how does a record's *body* (5 Whys, protocols, provenance notes) coexist with
-  its fields?
+- **Structure mapping.** Where do the five registers live (tables?
+  collections? directories?), how are an experiment's per-belief bar lines
+  composed in, and how does a record's *body* (method protocols, decision
+  rationale — only Experiments and Decisions carry one) coexist with its
+  fields?
 - **Derived fields.** Does your backend compute Risk / Confidence / Strength
   natively (formulas, rollups)? If yes, document the formulas and forbid
   writes. If no, state that skills recompute and rewrite them on every touching
@@ -54,7 +55,7 @@ Read, in order:
 
 ## The decisions your schema guide must make
 
-- **Source containers.** Where do the six registers live, and what are they
+- **Source containers.** Where do the five registers live, and what are they
   called in your backend?
 - **Field mapping.** For every canonical field in `registry-schema.md`, what
   is the backend property/column/document-path name and type? Which are

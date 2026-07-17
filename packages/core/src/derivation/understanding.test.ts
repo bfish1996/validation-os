@@ -21,7 +21,6 @@ function reading(
     date: "date" in over ? over.date : "2026-01-01",
     magnitudeBand: over.magnitudeBand,
     experimentId: over.experimentId ?? null,
-    goalId: over.goalId ?? null,
   };
 }
 
@@ -88,14 +87,15 @@ describe("confidenceAttribution", () => {
     expect(a.movers[0]!.readingIds.sort()).toEqual(["a", "b"]);
   });
 
-  it("buckets goal-rung and experiment-less readings separately", () => {
+  it("buckets experiment-less readings (market-rung or bare) as direct", () => {
     const a = confidenceAttribution([
-      reading({ id: "g", source: "sg", rung: "Paying users", goalId: "GOL-1" }),
-      reading({ id: "d", source: "sd" }), // no experiment, no goal
+      reading({ id: "g", source: "sg", rung: "Paying users" }), // no experiment
+      reading({ id: "d", source: "sd" }), // no experiment
     ]);
     const kinds = Object.fromEntries(a.movers.map((m) => [m.key, m.kind]));
-    expect(kinds["goal:GOL-1"]).toBe("goal");
     expect(kinds["direct"]).toBe("direct");
+    // Both experiment-less readings land in the single direct bucket.
+    expect(a.movers.every((m) => m.kind === "direct")).toBe(true);
   });
 
   it("honours Source dedupe, so a shadowed reading never doubles a mover", () => {

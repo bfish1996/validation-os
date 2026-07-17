@@ -2,11 +2,12 @@
  * The evidence ladder anchors that feed Strength.
  *
  * Source of truth: `skills/_shared/ontology.yaml` → `vocabularies.rung`.
- * Testing rungs carry a single anchor; Goal rungs carry a magnitude band
- * (Low/Typical/High) picked from the absolute outcome.
+ * Testing rungs carry a single anchor; Market rungs (the category formerly
+ * called "Goals", OPS-1305) carry a magnitude band (Low/Typical/High) picked
+ * from the absolute outcome. The anchors are unchanged by the rename.
  */
-import type { GoalRung, MagnitudeBand, Rung, TestingRung } from "../types.js";
-import { GOAL_RUNG_VALUES } from "../types.js";
+import type { MarketRung, MagnitudeBand, Rung, TestingRung } from "../types.js";
+import { MARKET_RUNG_VALUES } from "../types.js";
 
 export const RUNG_ANCHOR: Record<TestingRung, number> = {
   Opinion: 3,
@@ -17,14 +18,16 @@ export const RUNG_ANCHOR: Record<TestingRung, number> = {
   "Prototype usage": 30,
 };
 
-export const GOAL_RUNG_ANCHOR: Record<GoalRung, Record<MagnitudeBand, number>> =
-  {
-    "Signed intent": { Low: 55, Typical: 68, High: 80 },
-    "Paying users": { Low: 75, Typical: 88, High: 99 },
-  };
+export const MARKET_RUNG_ANCHOR: Record<
+  MarketRung,
+  Record<MagnitudeBand, number>
+> = {
+  "Signed intent": { Low: 55, Typical: 68, High: 80 },
+  "Paying users": { Low: 75, Typical: 88, High: 99 },
+};
 
-const GOAL_RUNG_SET = new Set<Rung>(GOAL_RUNG_VALUES);
+const MARKET_RUNG_SET = new Set<Rung>(MARKET_RUNG_VALUES);
 
-export function isGoalRung(rung: Rung): rung is GoalRung {
-  return GOAL_RUNG_SET.has(rung);
+export function isMarketRung(rung: Rung): rung is MarketRung {
+  return MARKET_RUNG_SET.has(rung);
 }

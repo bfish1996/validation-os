@@ -74,23 +74,27 @@ const EDITORS: Record<Collection, FieldEditor[]> = {
     num("Impact", "Impact"),
     sel("Status", "Status", ["Draft", "Live", "Invalidated"]),
     t("Lens", "Lens"),
-    area("5 Whys", "5 Whys"),
-    area("Metric for truth", "Metric for truth"),
     area("Scoring justification", "Scoring justification"),
     // `moot` is deliberately not editable here — mooting an assumption is a
     // gated business action (see core `relations.ts`), not a free-form toggle.
+    // 5 Whys / Metric for truth / Gaps are gone (OPS-1305); readiness is the
+    // derived Completeness %, and the why-trace lives in Depends on / Enables.
   ],
   experiments: [
     t("Title", "Experiment"),
     t("Instrument", "Instrument"),
     sel("Feasibility", "Feasibility", ["High", "Medium", "Low"], true),
-    sel("Status", "Status", ["Running", "Closed"]),
+    sel("Status", "Status", ["Draft", "Running", "Closed"]),
     sel(
       "closureReason",
       "Closure reason",
       ["Completed", "Early-stop", "Kill"],
       true,
     ),
+    // Deadline + Outcome: the commitment-grade fields folded in from the
+    // retired Goal record (OPS-1305). Outcome is null until Closed.
+    t("Deadline", "Deadline"),
+    sel("Outcome", "Outcome", ["Achieved", "Missed", "Dropped"], true),
     t("Date", "Date"),
   ],
   readings: [
@@ -101,23 +105,20 @@ const EDITORS: Record<Collection, FieldEditor[]> = {
     sel("Representativeness", "Representativeness", SOURCE_QUALITY),
     sel("Credibility", "Credibility", SOURCE_QUALITY),
     sel("magnitudeBand", "Magnitude band", ["Low", "Typical", "High"], true),
-    t("Date", "Date"),
-  ],
-  goals: [
-    t("Title", "Goal"),
-    sel("Status", "Status", ["Draft", "Active", "Closed"]),
-    sel("Outcome", "Outcome", ["Achieved", "Missed", "Dropped"], true),
+    area("Grading justification", "Grading justification"),
     t("Date", "Date"),
   ],
   decisions: [
     t("Title", "Decision"),
+    area("Statement", "Statement"),
     sel("Status", "Status", ["Active", "Provisional", "Superseded", "Reversed"]),
   ],
   glossary: [
     t("Title", "Term"),
     sel("Status", "Status", ["Active", "Provisional", "Superseded"]),
+    area("Definition", "Definition"),
+    area("How it differs", "How it differs"),
   ],
-  people: [t("Name", "Name"), t("Role", "Role"), t("Segment", "Segment")],
 };
 
 /** The fields a register lets you edit, in render order. */

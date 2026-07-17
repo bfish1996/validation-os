@@ -29,6 +29,5 @@ export function toReadingInput(r: AnyRecord): AttributionReadingInput {
     date: str(r.Date),
     magnitudeBand: r.magnitudeBand as AttributionReadingInput["magnitudeBand"],
     experimentId: str(r.experimentId),
-    goalId: str(r.goalId),
   };
 }

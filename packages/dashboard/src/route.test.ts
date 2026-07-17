@@ -6,7 +6,6 @@ const REGISTERS: Collection[] = [
   "assumptions",
   "experiments",
   "readings",
-  "goals",
   "decisions",
   "glossary",
 ];

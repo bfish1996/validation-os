@@ -9,7 +9,12 @@
  * (`toReadingInput`), shared with the dashboard's understanding layer so a
  * reading is read identically wherever Confidence is derived or explained.
  */
-import { confidence, derivedImpacts, risk } from "./derivation/index.js";
+import {
+  assumptionCompleteness,
+  confidence,
+  derivedImpacts,
+  risk,
+} from "./derivation/index.js";
 import { toReadingInput } from "./reading-input.js";
 import type {
   AnyRecord,
@@ -70,7 +75,15 @@ export function recomputeDerived(
   for (const a of assumptions) {
     const c = confidenceById.get(a.id) ?? 0;
     const di = impactById.get(a.id) ?? 0;
-    out.set(a.id, { confidence: c, derivedImpact: di, risk: risk(di, c) });
+    out.set(a.id, {
+      confidence: c,
+      derivedImpact: di,
+      risk: risk(di, c),
+      // Completeness is a *structural* readiness meter: it reads a.Impact as
+      // present/absent, not its value, so a moot assumption (whose Impact the
+      // Derived Impact pass zeroes) still counts its scored Impact slot.
+      completeness: assumptionCompleteness(a),
+    });
   }
   return out;
 }

@@ -1,60 +1,23 @@
 /**
- * Presence checks — the structural half of the assumption write guardrail.
+ * Assumption readiness — the structural precondition to move `Draft → Live`.
  *
- * `5 Whys`, `Metric for truth`, and `Scoring justification` used to live as
- * body prose audited as *semantic* Gaps (the audit had to parse markdown and
- * guess). OPS-1273 promotes them to first-class fields, so their PRESENCE is a
- * cheap structural check: non-empty is required to move an assumption to
- * `Live` — the presence half of the Draft→Live gaps invariant (OPS-1251).
+ * OPS-1305 retired the `5 Whys` / `Metric for truth` presence fields and the
+ * `Gaps` tag machinery. Readiness is now the derived completeness meter: an
+ * assumption is Live-ready once every structural slot (Description, Lens,
+ * Impact, Scoring justification, dependencies traced) is present. This module
+ * is a thin re-export of `derivation/completeness.ts` so callers keep a stable
+ * `presence`-shaped API while the slot logic lives in one place.
  *
  * These are pure functions with no backend dependency: the primitive the CRUD
- * write model is to block a Draft→Live write on (write-time enforcement lands
- * with the write slice, OPS-1256), and that the audit reports as an error-level
- * finding meanwhile (`presence-field-missing` in `ontology.yaml`).
+ * write model blocks a Draft→Live write on (write-time enforcement lands with
+ * the write slice, OPS-1256), and that the audit reports meanwhile
+ * (`draft-live-completeness-invariant` / `incomplete-live` in `ontology.yaml`).
  */
-
-/** The assumption fields whose presence is structurally required to go `Live`. */
-export const ASSUMPTION_PRESENCE_FIELDS = [
-  "5 Whys",
-  "Metric for truth",
-  "Scoring justification",
-] as const;
-
-export type AssumptionPresenceField = (typeof ASSUMPTION_PRESENCE_FIELDS)[number];
-
-/** A value counts as present only when it is a non-blank string. */
-function isPresent(value: unknown): boolean {
-  return typeof value === "string" && value.trim().length > 0;
-}
-
-/** The presence fields that are absent or blank on a record. */
-export function missingPresenceFields(
-  record: Partial<Record<AssumptionPresenceField, unknown>>,
-): AssumptionPresenceField[] {
-  return ASSUMPTION_PRESENCE_FIELDS.filter((field) => !isPresent(record[field]));
-}
-
-/**
- * True when every presence field is non-blank — the structural precondition
- * for an assumption to be `Live`. A `Draft` may legally fail this.
- */
-export function assumptionPresenceComplete(
-  record: Partial<Record<AssumptionPresenceField, unknown>>,
-): boolean {
-  return missingPresenceFields(record).length === 0;
-}
-
-/**
- * How far framing has got, as a 0–100 percentage — the pipeline's **Framed**
- * meter (OPS-1300, meter 1). It is the presence check surfaced as a degree
- * rather than a boolean: the share of the structurally-required fields that are
- * present. A `Live` assumption is necessarily 100 (presence is its gate); a
- * `Draft` reads how much framing remains. Rounded to a whole percent.
- */
-export function assumptionCompleteness(
-  record: Partial<Record<AssumptionPresenceField, unknown>>,
-): number {
-  const total = ASSUMPTION_PRESENCE_FIELDS.length;
-  const present = total - missingPresenceFields(record).length;
-  return Math.round((present / total) * 100);
-}
+export {
+  COMPLETENESS_SLOTS as ASSUMPTION_PRESENCE_SLOTS,
+  type CompletenessSlot as AssumptionPresenceSlot,
+  type CompletenessInput,
+  missingCompletenessSlots as missingPresenceSlots,
+  assumptionComplete as assumptionPresenceComplete,
+  assumptionCompleteness,
+} from "./derivation/completeness.js";

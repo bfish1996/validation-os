@@ -33,23 +33,13 @@ describe("columnsFor", () => {
     expect(by("Impact")?.kind).toBeUndefined(); // plain text
   });
 
-  it("gives people a Name/Role/Segment shape", () => {
-    expect(columnsFor("people").map((c) => c.key)).toEqual([
-      "Name",
-      "Role",
-      "Segment",
-    ]);
-  });
-
   it("leads every register with a headline column", () => {
     for (const register of [
       "assumptions",
       "experiments",
       "readings",
-      "goals",
       "decisions",
       "glossary",
-      "people",
     ] as const) {
       expect(columnsFor(register).length).toBeGreaterThan(0);
     }

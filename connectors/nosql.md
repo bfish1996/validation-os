@@ -15,7 +15,6 @@ nosql:
   assumptions_collection: assumptions
   experiments_collection: experiments
   readings_collection: readings
-  goals_collection: goals
   decisions_collection: decisions
   glossary_collection: glossary
 ```

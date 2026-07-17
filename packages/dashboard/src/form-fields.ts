@@ -7,7 +7,7 @@
  * deliberately absent. Vocabularies mirror `core`'s type unions.
  */
 import {
-  GOAL_RUNG_VALUES,
+  MARKET_RUNG_VALUES,
   TESTING_RUNGS,
   type Collection,
 } from "@validation-os/core";
@@ -33,17 +33,16 @@ export interface FormField {
 }
 
 const ASSUMPTION_STATUS = ["Draft", "Live", "Invalidated"] as const;
-const EXPERIMENT_STATUS = ["Running", "Closed"] as const;
+const EXPERIMENT_STATUS = ["Draft", "Running", "Closed"] as const;
 const CLOSURE_REASON = ["Completed", "Early-stop", "Kill"] as const;
-const GOAL_STATUS = ["Draft", "Active", "Closed"] as const;
-const GOAL_OUTCOME = ["Achieved", "Missed", "Dropped"] as const;
+const EXPERIMENT_OUTCOME = ["Achieved", "Missed", "Dropped"] as const;
 const DECISION_STATUS = ["Active", "Provisional", "Superseded", "Reversed"] as const;
 const GLOSSARY_STATUS = ["Active", "Provisional", "Superseded"] as const;
 const RESULT = ["Validated", "Invalidated", "Inconclusive"] as const;
 const MAGNITUDE = ["Low", "Typical", "High"] as const;
 const FEASIBILITY = ["High", "Medium", "Low"] as const;
 /** The full evidence ladder, weakest first — the canonical runtime lists. */
-const RUNGS = [...TESTING_RUNGS, ...GOAL_RUNG_VALUES] as const;
+const RUNGS = [...TESTING_RUNGS, ...MARKET_RUNG_VALUES] as const;
 /** Representativeness / Credibility picks, as labelled numeric options. */
 const QUALITY = ["1", "0.7", "0.5"] as const;
 
@@ -54,8 +53,6 @@ const FIELDS: Record<Collection, FormField[]> = {
     { key: "Lens", label: "Lens", kind: "text" },
     { key: "Impact", label: "Impact (0–100)", kind: "number" },
     { key: "Status", label: "Status", kind: "select", options: ASSUMPTION_STATUS },
-    { key: "5 Whys", label: "5 Whys", kind: "textarea" },
-    { key: "Metric for truth", label: "Metric for truth", kind: "textarea" },
     {
       key: "Scoring justification",
       label: "Scoring justification",
@@ -73,6 +70,8 @@ const FIELDS: Record<Collection, FormField[]> = {
       kind: "select",
       options: CLOSURE_REASON,
     },
+    { key: "Deadline", label: "Deadline", kind: "text", placeholder: "YYYY-MM-DD" },
+    { key: "Outcome", label: "Outcome", kind: "select", options: EXPERIMENT_OUTCOME },
     { key: "Date", label: "Date", kind: "text", placeholder: "YYYY-MM-DD" },
   ],
   readings: [
@@ -100,26 +99,23 @@ const FIELDS: Record<Collection, FormField[]> = {
       kind: "select",
       options: MAGNITUDE,
     },
-    { key: "Date", label: "Date", kind: "text", placeholder: "YYYY-MM-DD" },
-  ],
-  goals: [
-    { key: "Title", label: "Goal", kind: "text", required: true },
-    { key: "Status", label: "Status", kind: "select", options: GOAL_STATUS },
-    { key: "Outcome", label: "Outcome", kind: "select", options: GOAL_OUTCOME },
+    {
+      key: "Grading justification",
+      label: "Grading justification",
+      kind: "textarea",
+    },
     { key: "Date", label: "Date", kind: "text", placeholder: "YYYY-MM-DD" },
   ],
   decisions: [
     { key: "Title", label: "Decision", kind: "text", required: true },
+    { key: "Statement", label: "Statement", kind: "textarea" },
     { key: "Status", label: "Status", kind: "select", options: DECISION_STATUS },
   ],
   glossary: [
     { key: "Title", label: "Term", kind: "text", required: true },
     { key: "Status", label: "Status", kind: "select", options: GLOSSARY_STATUS },
-  ],
-  people: [
-    { key: "Name", label: "Name", kind: "text", required: true },
-    { key: "Role", label: "Role", kind: "text" },
-    { key: "Segment", label: "Segment", kind: "text" },
+    { key: "Definition", label: "Definition", kind: "textarea" },
+    { key: "How it differs", label: "How it differs", kind: "textarea" },
   ],
 };
 

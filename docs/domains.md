@@ -34,7 +34,7 @@ naturally pre-registerable.
 Two distinct belief families, tested differently:
 
 - **Who** (ICP beliefs): *"We assume ops leads at 20–50-person logistics
-  firms feel [pain] weekly because [reason]."* Classic 5-Whys material —
+  firms feel [pain] weekly because [reason]."* Classic why-cascade material —
   your product assumptions almost certainly already depend on unstated
   ICP beliefs. Outreach is the cheap test.
 - **How** (message/channel beliefs): *"We assume leading with cost-saving
@@ -72,22 +72,22 @@ use it before any call a campaign books.
 
 ## The whole workflow, not just assumptions
 
-Goals, decisions, the glossary, and the weekly ritual run identically on
-a non-product function — nothing is re-plumbed. The outreach case, end to
-end (mechanics: `goals.md`):
+Committed plans, decisions, the glossary, and the weekly ritual run
+identically on a non-product function — nothing is re-plumbed. The outreach
+case, end to end (mechanics: `goals.md`):
 
 **Commit.** *"Q3: 15 qualified meetings with logistics ops leads by
-Sep 30"* is a Goal record, like any other goal — bars fixed at commit time,
-instrument named (the CRM's qualified-meeting stage). The SMART check forces
-a glossary row first — **"qualified meeting" gets a Terminology entry**
-(booked ≠ attended ≠ ICP-matched), or the bar is ambiguous at the deadline.
-Drafting mines the rationale: ASM-31 *"ops leads at 20–50-person logistics
-firms feel the pain weekly"* and ASM-32 *"cold email reaches them"* — both
-untested. `/goals` reads both back in the gamble band and asks for a dated
-risk-acceptance; the team writes one and commits anyway, which is a
-supported answer. Both are high-Impact on their own and climb the queue on
-their own Risk — the goal doesn't lift them; they were always eligible,
-goal or no goal.
+Sep 30"* is a committed Experiment, like any other commitment — bars fixed
+per belief at commit time, instrument named (the CRM's qualified-meeting
+stage). The SMART check forces a glossary row first — **"qualified meeting"
+gets a Glossary entry** (booked ≠ attended ≠ ICP-matched), or the bar is
+ambiguous at the deadline. Drafting mines the rationale: ASM-31 *"ops leads
+at 20–50-person logistics firms feel the pain weekly"* and ASM-32 *"cold
+email reaches them"* — both untested. `/experiment-design` reads both back
+in the gamble band and asks for a dated risk-acceptance; the team writes one
+and commits anyway, which is a supported answer. Both are high-Impact on
+their own and climb the queue on their own Risk — the plan doesn't lift
+them; they were always eligible, committed or not.
 
 **Test.** `/experiment-design` turns ASM-32 into a pre-registered
 campaign — *"we're right if ≥5% of 100 sends book a meeting"*, one Survey
@@ -96,16 +96,16 @@ ASM-31, Mom-Test style: past behaviour, never the pitch.
 
 **Verdict → tripwire.** The campaign concludes 1/100 — **Invalidated**
 against its own bar, by a human. That verdict lands on a belief an active
-goal rests on, so the tripwire surfaces the goal in week 3, not at the
-deadline. The team supersedes: warm-intro channel, 10 meetings — a new Goal
-record with its own bars, not a silent edit of the old one.
+committed plan rests on, so the tripwire surfaces the plan in week 3, not at
+the deadline. The team re-cuts it: warm-intro channel, 10 meetings — a new
+committed Experiment with its own bars, not a silent edit of the old one.
 
 **Close out.** Sep 30, the CRM shows 12 qualified meetings: `Closed:
-Achieved`, decomposed per belief via `/find-evidence` — the successor
-channel belief gets a strong positive reading from revealed behaviour, and
-the interview notes from those meetings become the evidence that moves
-ASM-31. The Q4 outreach goal is drafted against what is now the register's
-riskiest surviving belief.
+Achieved` via `/find-evidence` close-out, decomposed per belief — the
+successor channel belief gets a strong positive reading from revealed
+behaviour, and the interview notes from those meetings become the evidence
+that moves ASM-31. The Q4 outreach commitment is drafted against what is now
+the register's riskiest surviving belief.
 
 Same loop, same gates, same weekly ritual slot — the only thing that
 changed is the `Theme` on the rows.

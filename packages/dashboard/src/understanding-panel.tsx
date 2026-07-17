@@ -194,7 +194,6 @@ function experimentDetail(e: ExperimentView): string {
 }
 
 function otherMoverLabel(m: OtherMover): string {
-  if (m.kind === "goal") return `Goal ${m.goalId ?? ""}`.trim();
   return m.readingCount === 1 ? "A direct reading" : "Direct readings";
 }
 

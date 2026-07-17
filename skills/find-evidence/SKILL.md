@@ -1,27 +1,34 @@
 ---
 name: find-evidence
 description: >-
-  Find and log EXISTING evidence for a single assumption — in two flavours of
-  the same "go out, explore, come back" task: INTERNAL (historic calls and
-  user interviews, notes, team chat, email — whatever evidence sources the
-  config declares) and DESK/WEB research (published secondary sources —
-  regulation, market sizing, competitor pricing/features, industry
-  benchmarks, precedent). Picks the right flavour for the claim: world facts
-  knowable without new participants → desk research; what you already heard
-  from your own users/market → internal; can run both. Desk research runs
-  under a trust harness (sub-question decomposition, A/B/C/D source tiering,
-  triangulation, recency, provenance for every claim, an adversarial refute
-  pass, base-rate≠validation). Each qualifying hit is triaged against the
-  assumption's Metric for truth + Lens and written as a conclusive
-  Experiment record — gated per record. Confidence recomputes automatically
-  (signed: evidence-against lowers it); the assumption's Status moves only
-  on a human-affirmed kill (Confidence in the kill zone, ≤ −50, gated Live
-  to Invalidated). Use for "find evidence for this
-  assumption", "what do we already know about X", "desk research this
-  assumption", "what does the market/regulation/competition say about X",
-  "size the market for Y", "are there historic interviews suggesting demand
-  for X", "log existing evidence for <assumption>". For the full guardrail
-  grill of a record, use /assumptions; to design a NEW forward test, use
+  Find and log EXISTING evidence for a single assumption, conclude a Running
+  Experiment plan, or audit the whole Experiments register — three modes.
+  Default flow: log evidence in two flavours of the same "go out, explore,
+  come back" task: INTERNAL (historic calls and user interviews, notes, team
+  chat, email — whatever evidence sources the config declares) and DESK/WEB
+  research (published secondary sources — regulation, market sizing,
+  competitor pricing/features, industry benchmarks, precedent). Picks the
+  right flavour for the claim: world facts knowable without new participants
+  → desk research; what you already heard from your own users/market →
+  internal; can run both. Desk research runs under a trust harness
+  (sub-question decomposition, A/B/C/D source tiering, triangulation,
+  recency, provenance for every claim, an adversarial refute pass,
+  base-rate≠validation). Each qualifying hit is triaged against the
+  assumption's Description + Lens and written as a bare, conclusive Reading —
+  gated per record. Confidence recomputes automatically (signed:
+  evidence-against lowers it); the assumption's Status moves only on a
+  human-affirmed kill (Confidence in the kill zone, ≤ −50, gated Live to
+  Invalidated). Conclude mode: close a Running Experiment (Testing or
+  committed Market-grade) — human verdict, hard-gated decomposition of the
+  outcome into per-belief readings. Audit mode: read-only Experiments-register
+  health report (overdue risk-acceptances, fired tripwires, unclosed plans,
+  undecomposed outcomes). Use for "find evidence for this assumption", "what
+  do we already know about X", "desk research this assumption", "what does
+  the market/regulation/competition say about X", "size the market for Y",
+  "are there historic interviews suggesting demand for X", "log existing
+  evidence for <assumption>", "close out this experiment", "did we hit the
+  target", "audit our experiments". For the full guardrail grill of a
+  record, use /assumptions; to design a NEW forward test or commitment, use
   /experiment-design.
 license: MIT
 ---
@@ -33,16 +40,29 @@ already have for or against it, and how strong is it?** The evidence lives
 in two places — your own record (past calls, interviews, notes) and the
 outside world (published, secondary sources). Both are the same task with a
 different `sources` list: go out, explore, come back, and capture each
-qualifying piece as a conclusive Experiment record so `Confidence` reflects
+qualifying piece as a bare, conclusive Reading so `Confidence` reflects
 what's actually known.
 
-This skill is a **thin, on-demand entry point** to the shared evidence
+The **default flow** is a thin, on-demand entry point to the shared evidence
 procedure — `../_shared/historic-evidence.md` owns the mechanics (search →
 triage → write → Confidence roll-up); this file is only the wrapper that
 resolves the assumption, **picks the flavour(s)**, runs that procedure, and
-closes out. It deliberately does **not** grill: no splitting, no 5 Whys, no
-scoring, no vocabulary pass. If the record needs that, it's an
+closes out. It deliberately does **not** grill: no splitting, no why-trace,
+no scoring, no vocabulary pass. If the record needs that, it's an
 `/assumptions` (single mode) job.
+
+Two further modes live alongside it — **conclude** (close a `Running`
+Experiment, hard-gated on decomposing its outcome) and **audit** (read-only
+Experiments-register health report) — because closing and chasing a plan is
+this skill's evidence-side job now, not `/experiment-design`'s.
+
+## Pick the mode
+
+| Mode | Scope | Gate | Use when | Reference |
+|---|---|---|---|---|
+| **default** | one assumption | gated per record | "find evidence for X", "desk research this" — the flow below | this file |
+| **conclude** | one `Running` Experiment | gated, hard gate on decomposition | "close out this experiment", "did we hit the target", the deadline passed | `references/conclude-plan.md` |
+| **audit** | whole Experiments register | read-only report | "audit our experiments", "what plans are overdue" | `references/audit.md` |
 
 Read `validation-os.config.yaml` (walk up from the working directory): the
 connector for register access, `evidence_sources` for what's sweepable, and
@@ -56,24 +76,24 @@ canonical link exists to store on the reading.
 ## When to reach for this vs. its siblings
 
 - **`/find-evidence` (here)** — you have a record and want to know & log
-  what evidence already exists, internal **or** desk/web. Backward-looking,
-  one record, gated.
+  what evidence already exists, internal **or** desk/web; or you want to
+  conclude/audit the Experiments register. Backward-looking, gated.
 - **`/assumptions` (single mode)** — full guardrail grill of a record; runs
   this evidence sweep as one phase. Reach for it when the *claim itself*
   still needs work.
 - **`/experiment-design`** (and **`/meeting-prep`**) — design a *new*
-  forward test (`Result = Running`), including interview guides and
-  `Desk research` tests that this skill later **closes out** once they've
-  actually been run.
+  forward test or commitment (`Status = Running`), including interview
+  guides and `Desk research` tests that this skill later **closes out**
+  once they've actually been run.
 - **`/assumptions` (loop mode)** — the whole register, autonomously.
 
-## Procedure
+## Default flow
 
 ### 1. Resolve the assumption
 
 Identify the record the user means (a title, a link/ID, or "the one we were
-just looking at"). Fetch it via the connector and read: Description,
-**Metric for truth**, Lens, current Confidence, Status.
+just looking at"). Fetch it via the connector and read: Description, Lens,
+current Confidence, Status.
 
 If the reference is ambiguous, query the register and show the top matches
 with their Description — confirm which one before searching. Evidence
@@ -82,8 +102,8 @@ logged against the wrong record is worse than none.
 ### 2. Pick the flavour (which `sources` fit this claim)
 
 The flavour is the `sources` list. Choose by what could actually settle the
-`Metric for truth` — honour an explicit ask ("desk research this" → `web`;
-"what have we heard" → internal), otherwise reason from the claim:
+claim — honour an explicit ask ("desk research this" → `web`; "what have we
+heard" → internal), otherwise reason from the claim:
 
 **Desk / web (`web`)** — *world facts knowable in hours without new
 participants:* market sizing / TAM, regulation & compliance, competitor
@@ -102,14 +122,15 @@ thread. Call transcripts are the primary internal source when available.
   internal signal yet → say so and point to `/experiment-design`. Log a
   base rate as context only (`Inconclusive`), never as validation.
 - **Your own product metrics / scoreboard numbers** (a PostHog cohort, a CRM
-  stage count, a product-DB figure) are **Goals-side, never logged here.** A
-  measured scoreboard number is a *goal reading* — degree of achievement
-  against pre-set bars — not a Testing rung, and there is no retro path
-  (`docs/goals.md §Found numbers`). Surface it and route to `/goals` draft
-  ("24 of 34 are paying — mint a goal on this?"): a forward goal calibrated
-  off the found number. A discovery sweep of analytics **writes nothing** —
-  it only surfaces and routes. World-facts (market size, regulation) are
-  unaffected: those stay Testing-side desk research.
+  stage count, a product-DB figure) are **Market-side, never logged here.**
+  A measured scoreboard number is a *Market-rung reading* — degree of
+  achievement against pre-set bars — not a Testing rung, and there is no
+  retro path (`docs/goals.md §Found numbers`). Surface it and route to
+  `/experiment-design` ("24 of 34 are paying — mint a committed plan on
+  this?"): a forward commitment calibrated off the found number. A
+  discovery sweep of analytics **writes nothing** — it only surfaces and
+  routes. World-facts (market size, regulation) are unaffected: those stay
+  Testing-side desk research.
 
 You may run **both** flavours for one assumption when both bear on it —
 each qualifying piece becomes its own record.
@@ -119,23 +140,24 @@ each qualifying piece becomes its own record.
 Hand off to `../_shared/historic-evidence.md` with:
 
 ```yaml
-assumption: { id, description, metric_for_truth, lens, confidence }  # step 1
-gate_mode:  interactive       # confirm each Experiment record before writing
+assumption: { id, description, lens, confidence }  # step 1
+gate_mode:  interactive       # confirm each Reading before writing
 sources:    <the flavour(s) chosen in step 2>
 ```
 
-That procedure does the searching, triage (against Metric for truth +
-Lens), Type/Result/Date/source-link assignment, the retrospective-honesty
-check, the gated write, and the Confidence roll-up. Follow it verbatim —
-don't re-derive the schema here. It first **pulls the assumption's open
-`Running` records** (interview guides, `Desk research` tests) so that a
-found transcript which is *the run of* one of those guides **closes that
-record out** — flips its `Result`, sets the outcome date, writes findings —
-rather than creating a duplicate. The match is proposed and confirmed at the
-gate, never auto-applied. **When `web` is in `sources` it applies the desk
-disciplines in `../_shared/historic-evidence.md` §1 and §4** — tiering,
-triangulation, exact quotes with dates, the counter-case search — the rigor
-that makes a published fact trustworthy enough to write into the register.
+That procedure does the searching, triage (against the assumption's
+Description + Lens), Rung/Result/Date/source-link assignment, the
+retrospective-honesty check, the gated write, and the Confidence roll-up.
+Follow it verbatim — don't re-derive the schema here. It first **pulls the
+assumption's open `Running` plans** (interview guides, `Desk research`
+tests) so that a found transcript which is *the run of* one of those plans
+**closes that bar line out** — logs the reading against it, judged against
+the pre-registered bar — rather than creating a duplicate. The match is
+proposed and confirmed at the gate, never auto-applied. **When `web` is in
+`sources` it applies the desk disciplines in `../_shared/historic-evidence.md`
+§1 and §4** — tiering, triangulation, exact quotes with dates, the
+counter-case search — the rigor that makes a published fact trustworthy
+enough to write into the register.
 
 **Show your work as you go.** For each candidate surface: source + link,
 one line of what it shows, the rung you'd assign and why, and the honest
@@ -146,43 +168,46 @@ the read is auditable. Search the disconfirming case too.
 
 ### 4. Close out
 
-- Report what changed: for each record, say whether it was a **new**
-  conclusive record or an existing `Running` guide you **closed out**
-  (`Running` → verdict), with links, and Confidence before → after.
+- Report what changed: for each record, say whether it was a **new** bare
+  Reading or a reading logged against an existing `Running` plan's bar line,
+  with links, and Confidence before → after.
 - Any verdict changes nothing on the assumption beyond Confidence — an
   invalidating one lowers it (re-test signal). If the recompute lands the
   Confidence at or below **−50**, the row is in the kill lane: propose the
   gated `Live` → `Invalidated` flip, the human affirms; never auto-apply.
 - "Swept, no qualifying hit" is a complete, honest outcome — say so plainly
   rather than logging a weak record to look productive.
-- **Goal tripwire** (`../../docs/goals.md §Out`): if a conclusive verdict
-  landed, query standing (`Draft`/`Active`) Goal records that link this
-  assumption via `Based on assumption` (or name it in a risk-acceptance
-  line). For each, surface it: *"this goal rests on the belief this verdict
-  just supported or killed — review it (re-cut, or re-accept the bet)?"*
-  Surfacing only — never flip a goal's lifecycle or edit a bar here; the
-  review itself is a `/goals` job.
-- If the sweep exposed that the assumption's Metric for truth is too vague
-  to judge evidence against, that's a grill problem — flag it and point at
+- **Mid-cycle tripwire** (`../../docs/goals.md §Out`): if a conclusive verdict
+  landed, query standing (`Draft`/`Running`) committed Experiments whose bar
+  lines name this assumption (or that name it in a risk-acceptance line).
+  For each, surface it: *"this committed plan rests on the belief this
+  verdict just supported or killed — review it (re-cut, or re-accept the
+  bet)?"* Surfacing only — never flip the plan's lifecycle or edit a bar
+  here; the review itself is `/experiment-design`'s job (this is exactly
+  the `experiment-tripwire-unreviewed` check `references/audit.md` chases
+  if nobody answers it).
+- If the sweep exposed that the assumption's Description is too vague to
+  judge evidence against, that's a grill problem — flag it and point at
   `/assumptions` (single mode); don't fix it here.
 
-**Goal close-out decomposition does *not* run here.** When `/goals` closes a
-goal, it decomposes the outcome into per-belief readings **in-skill** (`/goals`
-close — `docs/goals.md §Out`); this skill no longer owns that step. What
-`/find-evidence` still does for goals is fire the **tripwire** above: a
-conclusive verdict surfaces the standing goals resting on the belief.
+**Plan close-out decomposition does *not* run in the default flow.** That's
+**conclude mode** (`references/conclude-plan.md`) — a separate, hard-gated
+entry point for closing a `Running` Experiment. What the default flow still
+does is fire the **tripwire** above: a conclusive verdict surfaces the
+standing committed plans resting on the belief.
 
 ## Never
 
-- Never grill the record here (split / 5 Whys / score / vocabulary) —
-  that's `/assumptions`. This skill only finds and logs existing evidence.
+- Never grill the record here (split / why-trace / score / vocabulary) —
+  that's `/assumptions`. This skill only finds and logs existing evidence,
+  concludes plans, and audits.
 - Never flip the assumption `Status` on a verdict — Confidence-only. The
   one exception is the kill: Confidence at or below −50 flips `Live` →
   `Invalidated`, gated and human-affirmed.
 - Never log a *not-yet-run* test as existing evidence — designing a future
-  test is `/experiment-design`. But **do** close out a `Running` guide once
-  its interview has actually happened (flip it in place, don't duplicate
-  it).
+  test is `/experiment-design`. But **do** log a reading against a
+  `Running` plan's bar line once its interview has actually happened
+  (that's the default flow's §3 reconciliation, not a duplicate).
 - Never cherry-pick supporting hits — log disconfirming evidence
   (internal) and capture conflicting sources (desk).
 - Never write a desk fact you didn't fetch and quote, and never mark a

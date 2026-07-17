@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   confidence,
   derivedImpacts,
-  isGoalRung,
+  isMarketRung,
   readingStrength,
   risk,
   sign,
@@ -55,7 +55,7 @@ describe("readingStrength", () => {
     ).toBe(0);
   });
 
-  it("reads the magnitude band for goal rungs, defaulting to Typical", () => {
+  it("reads the magnitude band for market rungs, defaulting to Typical", () => {
     expect(
       readingStrength({ rung: "Signed intent", result: "Validated" }),
     ).toBe(68); // Typical default
@@ -75,10 +75,10 @@ describe("readingStrength", () => {
     ).toBe(-99);
   });
 
-  it("classifies goal vs testing rungs", () => {
-    expect(isGoalRung("Paying users")).toBe(true);
-    expect(isGoalRung("Signed intent")).toBe(true);
-    expect(isGoalRung("Opinion")).toBe(false);
+  it("classifies market vs testing rungs", () => {
+    expect(isMarketRung("Paying users")).toBe(true);
+    expect(isMarketRung("Signed intent")).toBe(true);
+    expect(isMarketRung("Opinion")).toBe(false);
   });
 });
 
@@ -131,6 +131,24 @@ describe("confidence", () => {
     expect(deduped).toBe(confidence([reading({ rung: "Prototype usage" })]));
   });
 
+  it("dedupes off Source alone — Context links never enter the math", () => {
+    // Same Source → dedupe to the strongest, whatever else differs. The split
+    // (OPS-1305) keys dedupe off Source only; Context links drive nothing and
+    // aren't even part of the derivation input.
+    const shared = confidence([
+      reading({ id: "a", source: "person-7", rung: "Prototype usage" }),
+      reading({ id: "b", source: "person-7", rung: "Opinion" }),
+    ]);
+    expect(shared).toBe(confidence([reading({ rung: "Prototype usage" })]));
+
+    // Different Source → both count independently, even against one belief.
+    const independent = confidence([
+      reading({ id: "a", source: "person-7", result: "Validated" }),
+      reading({ id: "b", source: "person-9", result: "Validated" }),
+    ]);
+    expect(independent).toBeGreaterThan(shared);
+  });
+
   it("breaks dedupe ties on the most recent date", () => {
     // Equal strength, same source — the later date wins. Both Validated here
     // so the value is identical, but the count must be one, not two.
@@ -141,7 +159,7 @@ describe("confidence", () => {
     expect(one).toBe(confidence([reading()]));
   });
 
-  it("never dedupes goal-rung readings (each is its own unit)", () => {
+  it("never dedupes market-rung readings (each is its own unit)", () => {
     const both = confidence([
       reading({ id: "g1", source: "s", rung: "Paying users" }),
       reading({ id: "g2", source: "s", rung: "Paying users" }),

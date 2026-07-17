@@ -42,7 +42,7 @@ autonomously wire `Supersedes`/`Superseded by` and flip the earlier record's
 
 **D — Assumption-link recommendations.** If a candidate's rationale plausibly
 cites an existing assumption, wire `Based on assumption` autonomously. The
-link is rationale-only and never touches the assumption, on any `Kind`.
+link is rationale-only and never touches the assumption.
 
 **Never** autonomously set `Resolves assumption`, even when the sweep is
 confident the decision settles the question. This is the deliberate asymmetry
@@ -50,12 +50,10 @@ in Sweep's autonomy: everything else here is reversible via the run-log;
 mooting a row at Impact 0 changes what the register prioritizes, and that
 judgment call stays gated.
 
-**Goals are out of scope.** A candidate that turns out to be a goal — a
-time-boxed commitment to a measurable outcome — is not a Decision row
-(`decision-guardrails.md §9`). Never create one here, in any `Kind`; log it
-as a recommendation to run `/goals` draft. The same applies to any legacy row
-found carrying the retired `Kind: Goal commitment`: log it for migration,
-never re-type it autonomously.
+**Committed evidence plans are out of scope.** A candidate that turns out to
+describe a commitment — a time-boxed pledge to a measurable outcome — is not
+a Decision row (`decision-guardrails.md §9`). Never create one here; log it
+as a recommendation to run `/experiment-design`.
 
 ## Autonomy rails
 
@@ -63,8 +61,8 @@ never re-type it autonomously.
   `Based on assumption`** — autonomous, logged.
 - **`Resolves assumption`** — never autonomous. Surfaced only as a run-log
   recommendation.
-- **Goals** — never created or migrated here. Surfaced only as a run-log
-  recommendation to run `/goals`.
+- **Committed evidence plans** — never created here. Surfaced only as a
+  run-log recommendation to run `/experiment-design`.
 - **Terminology check** — run `../../_shared/ubiquitous-language.md` over
   each new Decision statement (audience: Internal) same as Capture; add
   unknown terms as `Provisional` glossary records autonomously.
@@ -81,15 +79,15 @@ A list of `{record, field, before, after, kind}` mutations
 Must separately call out: new records created, tensions tagged,
 supersessions applied, and — distinctly — any recommended-but-not-applied
 `Resolves assumption` candidates for human follow-up via Capture, and any
-goal candidates or legacy goal-commitment rows for follow-up via `/goals`.
+committed-plan candidates for follow-up via `/experiment-design`.
 
 ## Never
 
 - Never schedule — Sweep is on-demand only in this skill.
 - Never autonomously set `Resolves assumption` — always a run-log
   recommendation, never a write.
-- Never create a goal as a Decision row, or migrate a legacy `Kind: Goal
-  commitment` row — recommend `/goals`.
+- Never create a committed evidence plan as a Decision row — recommend
+  `/experiment-design`.
 - Never compare for conflicts across different `Area`s.
 - Never leave a clear intentional override as an unresolved tension — if the
   evidence clearly shows one decision overriding another, resolve straight

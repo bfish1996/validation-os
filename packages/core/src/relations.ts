@@ -62,11 +62,6 @@ export const RELATIONS: Record<Relation, RelationSpec> = {
     to: null, // experiment→readings is derived
     targetRegister: "experiments",
   },
-  "reading-goal": {
-    from: { register: "readings", field: "goalId", cardinality: "one" },
-    to: null,
-    targetRegister: "goals",
-  },
   "decision-based-on": {
     from: { register: "decisions", field: "basedOnIds", cardinality: "many" },
     to: null, // never touches the assumption
@@ -75,11 +70,6 @@ export const RELATIONS: Record<Relation, RelationSpec> = {
   "decision-resolves": {
     from: { register: "decisions", field: "resolvesIds", cardinality: "many" },
     to: null, // mooting the assumption is a gated business action, not a link
-    targetRegister: "assumptions",
-  },
-  "goal-based-on": {
-    from: { register: "goals", field: "basedOnIds", cardinality: "many" },
-    to: null, // goal linkage is a per-goal view, never stored on the assumption
     targetRegister: "assumptions",
   },
 };

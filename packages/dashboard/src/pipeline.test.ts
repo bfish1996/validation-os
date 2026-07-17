@@ -12,9 +12,14 @@ function assumption(over: Partial<AnyRecord> & { id: string }): AnyRecord {
     Status: "Live",
     Impact: 50,
     moot: false,
-    "5 Whys": "x",
-    "Metric for truth": "y",
+    // The five structural completeness slots (OPS-1305) — a default fixture is
+    // fully framed (100). Framing is Description + Lens + Impact + Scoring
+    // justification + dependencies traced.
+    Description: "We assume adopters install because setup is one command.",
+    Lens: "Adopter",
     "Scoring justification": "z",
+    dependsOnIds: ["seed"],
+    enablesIds: [],
     derived: { derivedImpact: 50, risk: 50, confidence: 0 },
     ...over,
   } as AnyRecord;
@@ -42,7 +47,6 @@ function reading(over: Partial<AnyRecord> & { id: string }): AnyRecord {
     Source: over.id,
     assumptionId: "",
     experimentId: null,
-    goalId: null,
     Rung: "Survey at scale",
     Representativeness: 1.0,
     Credibility: 1.0,
@@ -87,7 +91,7 @@ describe("buildPipeline", () => {
       ],
     );
     const row = view.rows[0]!;
-    expect(row.framed).toBe(100); // all presence fields present
+    expect(row.framed).toBe(100); // all completeness slots present
     expect(row.planned).toBe(true);
     expect(row.tested).toEqual({ settled: 1, total: 2 });
     expect(row.nextMove).toBe("Record reading"); // planned, bars not all settled
@@ -95,10 +99,11 @@ describe("buildPipeline", () => {
 
   it("walks the next-move ladder by stage", () => {
     const draft = buildPipeline(
-      [assumption({ id: "d", Status: "Draft", "Metric for truth": "" , derived: { derivedImpact: 50, risk: 50, confidence: 0 } })],
+      // One slot missing (Scoring justification) → 4 of 5 → 80.
+      [assumption({ id: "d", Status: "Draft", "Scoring justification": "", derived: { derivedImpact: 50, risk: 50, confidence: 0 } })],
       [],
     ).rows[0]!;
-    expect(draft.framed).toBe(67);
+    expect(draft.framed).toBe(80);
     expect(draft.nextMove).toBe("Finish framing");
 
     const unplanned = buildPipeline([assumption({ id: "u" })], []).rows[0]!;

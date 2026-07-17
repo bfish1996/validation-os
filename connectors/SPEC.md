@@ -36,7 +36,7 @@ in `connectors/<name>-schema.md`.
 
 | Operation | Contract |
 |---|---|
-| **Query all** | Return every record of a register (assumptions / experiments / readings / goals / decisions / glossary). Never a filtered subset unless the skill asked for a filter. |
+| **Query all** | Return every record of a register (assumptions / experiments / readings / decisions / glossary). Never a filtered subset unless the skill asked for a filter. |
 | **Fetch one** | Return a single record — all fields plus body — by its identifier. |
 | **Search** | Find records semantically related to a phrase (dedupe checks, convergence checks). Best effort per backend; document what "search" means here. |
 | **Create** | Add a record with the given fields and body. Return its identifier so the skill can link it. |
@@ -84,12 +84,12 @@ the live backend against it, never against the prose. Required blocks:
   (`validate_backend`, `create_backend`, `seed_starter_records`,
   `migrate_schema`) with `status: supported | manual` and `tool_namespace:`
   (the harness tool family setup needs, e.g. `sql-mcp`, `file-system`).
-- `registers:` — `assumptions`, `experiments`, `readings`, `goals`,
+- `registers:` — `assumptions`, `experiments`, `readings`,
   `decisions`, `glossary`, each with a `source:` (backend container type) and
   connector-specific container keys (`config_key`, `file`, …). The experiment's
   per-belief **bar lines** are composed into the experiments register
   backend-natively (child table / embedded array / nested block), not a
-  seventh register. Every canonical property and relation in
+  sixth register. Every canonical property and relation in
   `skills/_shared/ontology.yaml §entities/§relations` must appear:
   - `properties:` entries carry mandatory `canonical`, `backend`, `type`,
     `derived`. `formula` is required when `derived: true`. `options_source`
@@ -97,9 +97,9 @@ the live backend against it, never against the prose. Required blocks:
     `vocabulary.area`) or `registry-schema`, which resolves to the canonical
     fixed lists in `ontology.yaml §vocabularies` (never restate the options;
     that would fork the semantics). `required` defaults to true; only
-    inherently optional canonical fields (Experiment's Closure reason, a
-    Reading's Owner, a Goal's Outcome, a bar line's Bar verdict / We're wrong
-    if) set it false.
+    inherently optional canonical fields (Experiment's Closure reason /
+    Deadline / Outcome, a Reading's Owner / Context links, a bar line's Bar
+    verdict / We're wrong if) set it false.
   - `relations:` entries carry mandatory `canonical`, `backend`, `target`,
     `cardinality`; `inverse` and `self` where they apply.
 

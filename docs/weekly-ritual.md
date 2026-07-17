@@ -19,29 +19,30 @@ numbers before ranking, then read the two surfaces the register computes.
 
 1. **Recompute.** Run the weekly Impact-propagation script: it walks the
    dependency graph and writes each row's `Derived Impact` (seed +
-   propagated pull from dependents and standing decisions; goals never
-   contribute); Confidence and Risk recompute off it. Derived Impact is stale between
-   runs *by design* — re-run on demand after any seed-Impact override or
-   graph edit (`../skills/_shared/assumption-guardrails.md` §3).
+   propagated pull from dependents and standing decisions; committed plans
+   never contribute); Confidence and Risk recompute off it. Derived Impact is
+   stale between runs *by design* — re-run on demand after any seed-Impact
+   override or graph edit (`../skills/_shared/assumption-guardrails.md` §3).
 2. **Read the test-next surface** — candidate experiments on `Live` rows,
    ranked by `Feasibility × the linked belief's Risk`, cheapest honest test
    of the riskiest belief on top. It ranks **experiments, not beliefs**, and
-   it is **goal-agnostic**: every `Live` row's experiments compete on the
-   same two axes, goal-linked or not. Sanity-check the top — does the
-   ranking reflect reality, or is a stale seed Impact distorting it? (Fixing
-   the seed and re-running step 1 now is cheaper than a week testing the
-   wrong thing.)
+   it is **commitment-agnostic**: every `Live` row's experiments compete on
+   the same two axes, committed-plan-linked or not. Sanity-check the top —
+   does the ranking reflect reality, or is a stale seed Impact distorting
+   it? (Fixing the seed and re-running step 1 now is cheaper than a week
+   testing the wrong thing.)
 3. **Clear the kill lane first.** Any `Live` row at Confidence ≤ −50
    (evidence has stacked against it) is *out of the test slot* and into a
    **human kill review**: affirm the `Invalidated` verdict or write down why
    the belief survives (`../skills/_shared/register-audit.md`). Never an
    automatic flip; never a fresh test slot spent on it.
-4. **Check against active goals.** For each `Active` Goal record, are the
-   beliefs it rests on actually surfacing near the top and being tested? An
-   active goal whose beliefs nobody is testing is a quiet gamble
-   (`goals.md`). A goal doesn't lift its beliefs in the queue — it never
-   touches Impact — so use the per-goal view to pull them up and test them
-   deliberately; don't wait for the global ranking to surface them.
+4. **Check against Running committed plans.** For each `Running` experiment
+   carrying a `Deadline`, are the beliefs it rests on actually surfacing near
+   the top and being tested? A committed plan whose beliefs nobody is
+   testing is a quiet gamble (`goals.md`). A committed plan doesn't lift its
+   beliefs in the queue — it never touches Impact — so use the per-plan view
+   to pull them up and test them deliberately; don't wait for the global
+   ranking to surface them.
 5. **Commit the week's tests.** For the top 1–3 experiments, run
    `/experiment-design` (or confirm the already-`Running` ones are actually
    moving).
@@ -75,11 +76,13 @@ numbers before ranking, then read the two surfaces the register computes.
 4. **Log the week's decisions.** Anything the team actually decided:
    `/decisions` (Capture for the ones you remember; an occasional Sweep
    over the week's transcripts catches the rest).
-5. **Tend the goals.** Any goal past its deadline gets closed out via
-   `/goals` — human verdict against the pre-registered bars, decomposed per
-   belief into evidence (`goals.md`). Any risk-acceptance past its
-   `revisit by` date with the belief still untested gets walked with the
-   goal's owner: test now, re-accept with a new date, or re-cut the goal.
+5. **Tend the committed plans.** Any committed plan (a `Running` experiment
+   carrying a `Deadline`) past its deadline gets closed out via
+   `/find-evidence` — human verdict against the pre-registered bars,
+   decomposed per belief into evidence (`goals.md`). Any risk-acceptance
+   past its `revisit by` date with the belief still untested gets walked
+   with the plan's owner: test now, re-accept with a new date, or re-cut the
+   plan via `/experiment-design`.
 6. **Clear the human-review queue.** If a loop/batch run grilled records
    this week, walk the `Human review` gaps with each record's owner — the
    gap holds machine-grilled records in `Draft`, and only a gated sign-off
@@ -87,14 +90,15 @@ numbers before ranking, then read the two surfaces the register computes.
 
 ## Monthly-ish — audit
 
-Run `/assumptions` (audit mode), `/decisions` (Audit), and `/goals` (audit)
-for a read-only health report: duplicates, contradictions, orphaned records,
-incomplete decisions, stale tensions — plus goal health: overdue
-risk-acceptance revisit dates, gambles taken with no line written down,
-tripwires nobody answered, goals past their deadline still open, outcomes
-closed without being decomposed, seed Impact justifications that lean on a
-goal (a goal never anchors Impact), and anchor dilution. `/assumptions`
-(audit) also runs the experiment-lifecycle sweeps
+Run `/assumptions` (audit mode) and `/decisions` (Audit) for a read-only
+health report: duplicates, contradictions, orphaned records, incomplete
+decisions, stale tensions, and seed Impact justifications that lean on a
+committed plan (a plan never anchors Impact) — plus committed-plan health via
+`/find-evidence` (audit): overdue risk-acceptance revisit dates, gambles
+taken with no line written down, tripwires nobody answered, committed plans
+past their deadline still open, outcomes closed without being decomposed,
+and anchor dilution. `/assumptions` (audit) also runs the experiment-lifecycle
+sweeps
 (`../skills/_shared/register-audit.md` Phase E) with the plans loaded, so this
 is where the lower-churn **source canonical-link drift** sweep lands: two
 spellings of one artifact against the normalization rule, and pasted-artifact

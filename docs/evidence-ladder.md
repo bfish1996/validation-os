@@ -1,27 +1,30 @@
 # The evidence ladder
 
-Eight rungs, **two categories, one signed scale**. The rung an experiment
-sits on (`Type`) names *both* what you do and how strong the resulting
-evidence is: a concluded reading contributes a **signed value `s`** —
-positive when `Validated`, negative when `Invalidated`, magnitudes below.
-The gaps between rungs reflect **commitment**: what the signal cost to give.
+Eight rungs, **two categories, one signed scale**. The `Rung` a reading sits
+on (set on the bar line at design time, or directly for a bare reading) names
+*both* what you did and how strong the resulting evidence is: a concluded
+reading contributes a **signed value `s`** — positive when `Validated`,
+negative when `Invalidated`, magnitudes below. The gaps between rungs reflect
+**commitment**: what the signal cost to give.
 
 ## Two categories, by how the evidence is produced
 
 - **🧪 Testing** — instruments you run on a sample you can enumerate:
   recruit, ask, observe. Cheap and fast — and it plateaus. No pile of
   recruited-sample evidence can push a belief past ±30.
-- **🎯 Goals** — open-world targets with a deadline, closed by the market:
+- **🎯 Market** — open-world targets with a deadline, closed by the market:
   **two bars pre-registered at commit time** (`We're right if` the target,
   `We're wrong if` the kill floor) and the measuring instrument named in
-  advance (`goals.md`). Everything commitment-grade is a Goal — a fake-door
-  test is just a *short* goal ("30 signups from 200 visitors in two weeks").
+  advance (`goals.md`). Everything commitment-grade runs through a committed
+  Experiment — a fake-door test is just a *short* commitment ("30 signups
+  from 200 visitors in two weeks").
 
 The boundary between them is the **commitment cliff**: confidence above ±30
 is only ever bought by the market answering a pre-registered target, never
 by another recruited sample. The categories are also the cost axis — Testing
-is quick and feasible, Goals are slow and expensive with a high ceiling — so
-the natural sequence is to test cheaply until a belief earns a Goal-tier bet.
+is quick and feasible, Market is slow and expensive with a high ceiling — so
+the natural sequence is to test cheaply until a belief earns a Market-tier
+bet.
 
 | Category | Rung | `s` (± by Result) | What it is |
 |---|---|---|---|
@@ -30,17 +33,17 @@ the natural sequence is to test cheaply until a belief earns a Goal-tier bet.
 | 🧪 Testing | Anecdotal | ±10 | A report of something that **actually happened** — a specific past behaviour, an unprompted real complaint. A weak, small-N shadow of revealed preference; that's why it beats Opinion. |
 | 🧪 Testing | Desk research | ±15 | Regulation, published data, competitor facts. Always ask first: "is this already knowable in hours, with no participants?" |
 | 🧪 Testing | Survey at scale | ±25 | A structured questionnaire at larger N. **This is where volume lives** — 100 people validating a belief is one Survey row, not 100 anecdotes. |
-| 🧪 Testing | Prototype usage | ±30 | Real (unpaid) use of a throwaway / Wizard-of-Oz build. A **usability** signal — comprehension, engagement — not demand; demand needs a Goal rung. |
-| 🎯 Goals | Signed intent | ±55 / 68 / 80 | A **costly** commitment made before the thing is built: fake-door signup, LOI, deposit. Magnitude Low / Typical / High. |
-| 🎯 Goals | Paying users | ±75 / 88 / 99 | Real money: payment, A/B on live traffic, signed contract. Strongest, priciest. Magnitude Low / Typical / High. |
+| 🧪 Testing | Prototype usage | ±30 | Real (unpaid) use of a throwaway / Wizard-of-Oz build. A **usability** signal — comprehension, engagement — not demand; demand needs a Market rung. |
+| 🎯 Market | Signed intent | ±55 / 68 / 80 | A **costly** commitment made before the thing is built: fake-door signup, LOI, deposit. Magnitude Low / Typical / High. |
+| 🎯 Market | Paying users | ±75 / 88 / 99 | Real money: payment, A/B on live traffic, signed contract. Strongest, priciest. Magnitude Low / Typical / High. |
 
-**Magnitude (Low / Typical / High) exists only on the Goal rungs** — that's
-where "$100k vs $5" and "12 customers vs 3" live (drivers: commitment size ×
-count × activity depth). Testing rungs are single-valued; sample size gates
-the `Result` (too small / wrong audience → `Inconclusive`), never the
+**Magnitude (Low / Typical / High) exists only on the Market rungs** —
+that's where "$100k vs $5" and "12 customers vs 3" live (drivers: commitment
+size × count × activity depth). Testing rungs are single-valued; sample size
+gates the `Result` (too small / wrong audience → `Inconclusive`), never the
 magnitude.
 
-## Goal rungs: sign from the bars, magnitude from the world
+## Market rungs: sign from the bars, magnitude from the world
 
 - **Hit or beat the target** → full positive. **At or below the kill floor**
   → commitment-grade negative. **Between** → interpolate: degree of
@@ -51,14 +54,14 @@ magnitude.
   ambition term: sandbagging can't inflate a reading, and a stretch target
   is never punished.
 - **No pre-registered floor → no negative possible.** An uncontrolled
-  absence of sales or signups was never a closed goal — it's `Inconclusive`.
-  The base-rate guard is structural: a −95 requires a controlled,
-  pre-registered, right-Lens paid test that decisively failed — as hard to
-  earn as a +95.
-- **A missed goal is one negative reading, not a kill** — set another goal.
-  A wrong-framing miss decomposes per belief: a miss caused by channel
-  failure reads `Inconclusive` against the willingness-to-pay belief and
-  lands its negative on the channel belief.
+  absence of sales or signups was never a closed commitment — it's
+  `Inconclusive`. The base-rate guard is structural: a −95 requires a
+  controlled, pre-registered, right-Lens paid test that decisively failed —
+  as hard to earn as a +95.
+- **A missed commitment is one negative reading, not a kill** — commit to
+  another. A wrong-framing miss decomposes per belief: a miss caused by
+  channel failure reads `Inconclusive` against the willingness-to-pay belief
+  and lands its negative on the channel belief.
 - **Churn is not a `Paying users` negative** — they paid, then left. It
   reads against a *retention* belief, at `Prototype usage` grade.
 
@@ -77,7 +80,7 @@ Signed, ranging −100…100; no evidence = 0. Full operational ruleset:
 ## The rules that keep the ladder honest
 
 - **Revealed > stated.** What people *did* beats what they *say* they'd do —
-  within Testing (Prototype 30 > Survey 25) and across the cliff (any Goal
+  within Testing (Prototype 30 > Survey 25) and across the cliff (any Market
   rung beats every Testing rung).
 - **No corroboration bump.** Replication is just more evidence mass reducing
   shrinkage toward the prior — there is no separate uplift mechanic.
@@ -90,15 +93,15 @@ Signed, ranging −100…100; no evidence = 0. Full operational ruleset:
   *weight*; a high-credibility Opinion is still worth ±3.
 - **Independence keys off the source.** Same-source readings against one
   belief don't compound as independent mass — aggregation dedupes by the
-  artifact's canonical link. Goal readings are the deliberate exception:
-  **each closed goal is its own unit** — successive cycles on the same
-  instrument never dedupe (a series of misses could otherwise never
-  accumulate); the rising kill floor, not dedupe, stops an unchanged world
-  being re-counted (`goals.md §Found numbers`).
-- **Goal rungs enter goal-first, always.** A found scoreboard number is
-  never logged as evidence — it prompts minting a *forward* goal with bars
-  calibrated off it (`goals.md §Found numbers`). No bare Goals-side
-  readings, no retro-registered bars.
+  artifact's canonical link. Readings from a closed committed plan are the
+  deliberate exception: **each closed plan is its own unit** — successive
+  cycles on the same instrument never dedupe (a series of misses could
+  otherwise never accumulate); the rising kill floor, not dedupe, stops an
+  unchanged world being re-counted (`goals.md §Found numbers`).
+- **Market rungs enter market-first, always.** A found scoreboard number is
+  never logged as evidence — it prompts minting a *forward* committed plan
+  with bars calibrated off it (`goals.md §Found numbers`). No bare
+  Market-side readings, no retro-registered bars.
 - **Only concluded readings count.** `Running` and `Inconclusive` contribute
   nothing — excluded from the sum entirely, not counted as zeros.
 - **Base rate ≠ validation.** Desk research can tell you the world's
@@ -110,9 +113,9 @@ Signed, ranging −100…100; no evidence = 0. Full operational ruleset:
 - **The kill zone is earned by a series.** Confidence ≤ −50 raises the
   kill-review flag for a human verdict — never an automatic kill. Testing
   negatives asymptote at −30, and no single reading can reach −50 (one
-  max-grade missed goal lands ≈ −49; a second fires the prompt): **only a
-  series of missed Goals can kill a belief.**
+  max-grade missed commitment lands ≈ −49; a second fires the prompt):
+  **only a series of missed Market-rung commitments can kill a belief.**
 
 Full operational ruleset: `skills/_shared/experiment-guardrails.md §2`.
-Credit: the ladder adapts Itamar Gilad's Confidence Meter; the Goal rungs add
-OKR-style continuous grading plus experiment-style pre-registration.
+Credit: the ladder adapts Itamar Gilad's Confidence Meter; the Market rungs
+add OKR-style continuous grading plus experiment-style pre-registration.

@@ -15,7 +15,7 @@ experiment is discovering*, not to enthusiasm for building:
 |---|---|
 | Problem **existence / severity** (past behaviour) | **Nothing** — interview, no stimulus |
 | Solution **comprehension / usability / engagement** | **Prototype** (this playbook) |
-| **Willingness to commit** before anything is built | **Fake-door / landing page** (`fake-door.md`) — the record is a short goal via `/goals` |
+| **Willingness to commit** before anything is built | **Fake-door / landing page** (`fake-door.md`) — a short committed plan via `commitment-discipline.md` |
 | Facts knowable from published sources | **Nothing** — `/find-evidence` desk research |
 
 If the table says "nothing" or "fake-door", say so, route there, and stop

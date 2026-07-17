@@ -23,8 +23,9 @@ An assumption is a bet about the world, and the world moves. So:
   however strong, lands only near half its rung; the ceiling takes a
   series.
 - **A claim that *is* certain isn't an assumption.** Settled facts are
-  ✅ ground truths — they live outside the register and terminate 5-Whys
-  branches (`assumption-guardrails.md §2`). Graduating out of the register
+  ✅ ground truths — they live outside the register and terminate the
+  `Depends on` why-cascade (`assumption-guardrails.md §2`). Graduating out
+  of the register
   is the only "full" validation, and it means the question stopped being a
   bet (the regulation passed; the contract is signed), not that testing
   finished.
@@ -40,10 +41,10 @@ exists as a stored state — the rare, human-affirmed kill — and `Validated`
 does not exist as a state at all. Evidence-against is a **score
 decrement**: it lowers signed Confidence, which raises Risk — a re-test
 signal, never a closure. The kill route runs through the score's negative
-zone: Confidence sinking to −50 (which only a series of missed Goal-rung
+zone: Confidence sinking to −50 (which only a series of missed Market-rung
 readings can do) raises an audit prompt for a **human** kill verdict —
 nothing flips automatically. An assumption's `Status` is only ever
-`Draft` (still being built, `Gaps` non-empty), `Live` (ranked by Risk,
+`Draft` (still being built, `Completeness %` < 100), `Live` (ranked by Risk,
 forever), or `Invalidated` (`registry-schema.md §Status & derived views`).
 Validation is nothing but Confidence rising and Risk falling; "what we
 currently know" is the derived proven-set view (`Live` + strongest

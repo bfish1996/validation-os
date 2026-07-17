@@ -22,9 +22,8 @@ resolved against the working directory.
 ```
 registry/
   assumptions/      # one file per assumption      (ASM-###.md)
-  experiments/      # one file per experiment plan (EXP-###.md)
+  experiments/      # one file per evidence plan   (EXP-###.md)
   readings/         # one file per reading         (RDG-###.md)
-  goals/            # one file per goal            (GOAL-###.md)
   decisions/        # one file per decision        (DEC-###.md)
   glossary/         # one file per term            (GLO-###.md)
 ```
@@ -54,18 +53,18 @@ Relations are ID references (`ASM-002`), comma-separated. Example
 - **Confidence**: 25        <!-- derived -->
 - **Risk**: 52.5            <!-- derived -->
 - **Status**: Live
+- **Completeness %**: 100     <!-- derived -->
 - **Owner**: you
-- **Gaps**: (none)
+- **Scoring justification**: High because distribution rests on it.
 - **Depends on**: ASM-001
 - **Enables**: (none)
 - **Contradicts**: (none)
 - **Readings**: RDG-001
-
-### 5 Whys
-### Metric for truth
-### Scoring justification
-### Provenance & notes
 ```
+
+Assumptions carry no body (OPS-1305): the `5 Whys` / `Metric for truth` /
+`Gaps` fields and the `## Provenance & notes` section are gone. Readiness is
+the derived `Completeness %`; the why-trace lives in `Depends on` / `Enables`.
 
 ## Operations
 
@@ -81,7 +80,7 @@ Relations are ID references (`ASM-002`), comma-separated. Example
 - **Link** — write the ID into both records' relation bullets (two-way
   relations: both ends; the Reading→Assumption link is `Assumption:` on the
   reading, mirrored by `Readings:` on the assumption; a reading's origin sets
-  at most one of `Experiment:` / `Goal:`).
+  `Experiment:` or nothing — a bare/found reading).
 
 ## Derived fields — the skill computes them here
 

@@ -22,8 +22,7 @@ describe("editableFields", () => {
     const forbidden = ["confidence", "risk", "derivedImpact", "strength",
       "sourceQuality", "derived", "id", "version", "createdAt", "updatedAt"];
     for (const register of [
-      "assumptions", "experiments", "readings", "goals", "decisions",
-      "glossary", "people",
+      "assumptions", "experiments", "readings", "decisions", "glossary",
     ] as const) {
       const keys = editableFields(register).map((f) => f.key);
       for (const bad of forbidden) expect(keys).not.toContain(bad);

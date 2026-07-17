@@ -9,9 +9,17 @@
 export { round2 } from "./round.js";
 export {
   RUNG_ANCHOR,
-  GOAL_RUNG_ANCHOR,
-  isGoalRung,
+  MARKET_RUNG_ANCHOR,
+  isMarketRung,
 } from "./rung.js";
+export {
+  COMPLETENESS_SLOTS,
+  completenessSlotPresence,
+  missingCompletenessSlots,
+  assumptionCompleteness,
+  assumptionComplete,
+} from "./completeness.js";
+export type { CompletenessSlot, CompletenessInput } from "./completeness.js";
 export { sign, isConcluded, readingStrength } from "./strength.js";
 export type { StrengthInput } from "./strength.js";
 export { sourceQuality } from "./source-quality.js";

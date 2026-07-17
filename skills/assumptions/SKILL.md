@@ -3,25 +3,25 @@ name: assumptions
 description: >-
   The one skill for the Assumption Registry — build, grill, audit, and
   bulk-complete the beliefs your business depends on. Enforces atomic,
-  falsifiable, plain-language assumptions with a disciplined 4-step
-  definition, mandatory 5 Whys, anchored Impact scoring (0–100, a purely
-  intrinsic seed), dedup + contradiction reconciliation with named boundary
-  statements, a healthy Depends-on/Enables graph, glossary-checked
-  vocabulary, and retrospective evidence logging. Five modes; pick by the
-  ask: single (default) — grill ONE record to guardrail-complete, gated
-  ("grill this assumption", "flesh out ASM-4", "work the Gaps queue"); seed —
-  turn a transcript or blank topic into new guardrail-clean records ("map
-  assumptions", "pull assumptions from this call", "pressure-test this
-  idea"); audit — read-only
-  whole-register health report ("audit the assumption register", "what's
-  wrong across all assumptions"); loop — autonomous write-through completion
-  with a run-log, opt-in by explicit phrasing ONLY ("grill the whole register
-  without me", "batch-grill to completion"); triage — resolve accumulated
-  comments and hand-tagged Gaps ("resolve the comments", "check what got
-  flagged"). Use whenever the user wants to create, grill, stress-test,
-  audit, fill in, triage, or find historic evidence for assumptions. Stops at
-  the assumption — designing experiments is /experiment-design; standalone
-  evidence logging is /find-evidence.
+  falsifiable, plain-language assumptions with a disciplined 3-step
+  definition, a mandatory why-trace (grill-only, builds the Depends-on
+  graph), anchored Impact scoring (0–100, a purely intrinsic seed), dedup +
+  contradiction reconciliation, a healthy Depends-on/Enables graph,
+  glossary-checked vocabulary, and retrospective evidence logging. Five
+  modes; pick by the ask: single (default) — grill ONE record to
+  guardrail-complete, gated ("grill this assumption", "flesh out ASM-4",
+  "work the Draft queue"); seed — turn a transcript or blank topic into new
+  guardrail-clean records ("map assumptions", "pull assumptions from this
+  call", "pressure-test this idea"); audit — read-only whole-register health
+  report ("audit the assumption register", "what's wrong across all
+  assumptions"); loop — autonomous write-through completion with a run-log,
+  opt-in by explicit phrasing ONLY ("grill the whole register without me",
+  "batch-grill to completion"); triage — resolve accumulated comments
+  ("resolve the comments", "check what got flagged"). Use whenever the user
+  wants to create, grill, stress-test, audit, fill in, triage, or find
+  historic evidence for assumptions. Stops at the assumption — designing
+  experiments is /experiment-design; standalone evidence logging, concluding
+  a plan, and auditing the Experiments register is /find-evidence.
 license: MIT
 ---
 
@@ -47,15 +47,15 @@ work the register through the active connector (`connectors/SPEC.md`).
 Four of the five modes are two knobs — **scope** (one record vs. whole
 register) and **gate** (gated vs. autonomous) — plus seeding, which is just
 *what you point it at*. **Triage** is a fifth cell: its scope is a
-**discovered subset** — records with open comments or hand-tagged `Gaps`.
+**discovered subset** — records with open comment threads.
 
 | Mode | Scope | Gate | Use when | Reference |
 |---|---|---|---|---|
-| **single** (default) | one record | gated, one question at a time | "grill this assumption", "flesh out ASM-4", working a Gaps queue | `references/single.md` |
+| **single** (default) | one record | gated, one question at a time | "grill this assumption", "flesh out ASM-4", working the Draft queue | `references/single.md` |
 | **seed** | new record(s) from raw input | gated (grills each stub via single) | "map assumptions", "pull assumptions from this call", "pressure-test this idea", a blank topic | `references/seed.md` |
 | **audit** | whole register | **read-only** report; fixes gated after | "audit the register", "what's wrong across all assumptions" | `references/audit.md` |
 | **loop** | whole register | **autonomous** write-through + run-log | "grill the whole register without me", "auto-fill every assumption" | `references/loop.md` |
-| **triage** | discovered subset (open comments / tagged Gaps) | gated, one thread/gap at a time | "resolve the comments", "check what got flagged" | `references/triage.md` |
+| **triage** | discovered subset (open comment threads) | gated, one thread at a time | "resolve the comments", "check what got flagged" | `references/triage.md` |
 
 **Default = single + gated.** If the ask is ambiguous, do NOT pick loop —
 its autonomous write-through is opt-in by *explicit* phrasing ("without me",
@@ -90,29 +90,32 @@ norm.
 ## Guardrail summary
 
 See `../_shared/assumption-guardrails.md §6`. Reject a candidate that fails
-any: Atomic · Falsifiable · Plain (no hyperbole, no unneeded verbosity) ·
-5 Whys + therefore-test ·
-Scored with justification (a purely intrinsic seed — goals/dependents ride
+any: Atomic · Falsifiable (a grill check, not a stored field) · Plain (no
+hyperbole, no unneeded verbosity) · why-trace + therefore-test ·
+Scored with justification (a purely intrinsic seed — plans/dependents ride
 the propagation, not the hand score) ·
 Not a duplicate (or merged, with the redundant dimension named) · Distinct
-from its nearest neighbours, with the discriminating dimension named in the
-body (checked on every new record, not just suspected overlaps) · No
-unreconciled contradiction (negation merged; tension wired via `Contradicts`
-+ tagged) · Single Lens · Themed · Related or consciously a root.
+from its nearest neighbours, with the discriminating dimension named out
+loud (checked on every new record, not just suspected overlaps) · No
+unreconciled contradiction (negation merged; tension wired via `Contradicts`)
+· Single Lens · Themed · Related or consciously a root.
 
 ## Scope boundary
 
-Enforce that a falsifiability statement exists, then **stop.**
+Enforce that a falsifiability check passes, then **stop.**
 Creating/running experiments is `/experiment-design`; logging existing
-evidence standalone is `/find-evidence`. This skill only ever flips
-`Status` `Draft` ⇔ `Live`: `Draft` → `Live` at grill close-out when `Gaps`
-empties (gated, single/seed — loop never flips `Status`; it tags the
-`Human review` gap instead, which holds the row in `Draft`), and `Live` →
-`Draft` when a new gap lands. Goal linkage is never a status — it's
-`/goals`' `Based on assumption` write on a standing Goal record, read back
-as a per-goal view, never an Impact anchor, a Confidence input, or a queue
-condition (`../../docs/goals.md`); a fully-grilled row with no goal link is
-`Live` and queues like any other.
+evidence, concluding a plan, and auditing the Experiments register is
+`/find-evidence`. This skill only ever flips `Status` `Draft` ⇔ `Live`:
+`Draft` → `Live` at grill close-out when `Completeness % = 100` and every
+semantic check has passed (gated, single/seed — loop never flips `Status`;
+a record it brings to `Completeness % = 100` simply stays `Draft`,
+awaiting a human hand-off session — there is no stored review tag,
+`OPS-1305`), and `Live` → `Draft` when a slot empties or a grill finding
+reopens it. Commitment linkage is never a status — it's
+`/experiment-design`'s bar line on a standing (committed) Experiment, read
+back as an evidence-plan view, never an Impact anchor, a Confidence input,
+or a queue condition (`../../docs/goals.md`); a fully-grilled row with no
+plan link is `Live` and queues like any other.
 Testing is a derived view (`Live` + a `Running` experiment), never a flip;
 verdicts are the evidence skills' — evidence rolls up `Confidence` on its
 own, and only a human-affirmed kill flips `Live` → `Invalidated`. Full

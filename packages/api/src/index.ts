@@ -24,7 +24,7 @@ import {
 
 export { deriveReadingFields, recomputeAllDerived };
 
-const COLLECTIONS = new Set<string>([...REGISTERS, "people"]);
+const COLLECTIONS = new Set<string>(REGISTERS);
 /** Writes to these trigger the cross-record derived recompute pass. */
 const DERIVED_TRIGGERS = new Set<string>(["assumptions", "readings", "decisions"]);
 
