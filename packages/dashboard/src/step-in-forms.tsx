@@ -1,18 +1,22 @@
 import { useState } from "react";
 import type { AnyRecord } from "@validation-os/core";
 import { DrawerShell } from "./drawer-shell.js";
+import { buildPatch, draftFrom, type Draft } from "./edit.js";
+import { EditFields } from "./edit-fields.js";
 import { FIELD_CONTROL_CLASS, FIELD_LABEL_CLASS } from "./field-styles.js";
 import { useCreate, useLink } from "./use-mutations.js";
 import { useUpdate } from "./use-records.js";
 
 /**
- * The two step-in forms the front door was missing (OPS-1294 human step-in set;
- * the reading form already exists, and assumption create/edit is the record
- * form). Both ride the shared `DrawerShell` chrome and write through the
+ * The human step-in set (OPS-1294): score impact, write decision, and edit the
+ * belief — the small edits a founder makes on the review surface there and then,
+ * not where validating happens. The reading form lives with the evidence, and
+ * there is deliberately no experiment-design form here (OPS-1297).
+ *
+ * All three ride the shared `DrawerShell` chrome and write through the
  * Clerk-gated API, which recomputes the derived numbers on write — so the hero's
- * risk chip and the ranking refresh from authoritative numbers, never anything
- * the client computed. The dashboard is a review surface: these are the small
- * edits a founder makes there and then, not where validating happens.
+ * risk chip, the ranking and the journey rail refresh from authoritative
+ * numbers, never anything the client computed.
  */
 
 function belief(record: AnyRecord): string {
@@ -137,6 +141,85 @@ export function ScoreImpactForm({
           </button>
           <button type="submit" disabled={saving} className="vos-btn vos-btn-sm">
             {saving ? "Saving…" : "Save impact"}
+          </button>
+        </footer>
+      </form>
+    </DrawerShell>
+  );
+}
+
+// ── Edit the belief ──────────────────────────────────────────────────────────
+
+export interface EditBeliefFormProps {
+  /** The assumption being edited (its version guards the write). */
+  assumption: AnyRecord;
+  basePath?: string;
+  /** Called after a successful save. */
+  onDone: () => void;
+  onCancel: () => void;
+}
+
+/**
+ * Edit the bet itself — the assumption-edit half of the OPS-1294 step-in set,
+ * reached from the journey story's `bet` event. It renders the register's
+ * editable fields from the same schema the drawer uses (`EditFields`), so the
+ * two never drift, and writes only the fields actually changed: the patch is
+ * diffed against the record it opened on, so a teammate's concurrent edit to an
+ * untouched field survives. Framing completeness (the rail's Framed meter)
+ * recomputes server-side on write.
+ */
+export function EditBeliefForm({
+  assumption,
+  basePath,
+  onDone,
+  onCancel,
+}: EditBeliefFormProps) {
+  const [draft, setDraft] = useState<Draft>(() =>
+    draftFrom("assumptions", assumption),
+  );
+  const { save, saving, conflict, error } = useUpdate("assumptions", basePath);
+
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (saving) return;
+    const patch = buildPatch("assumptions", assumption, draft);
+    patch.version = assumption.version;
+    if (Object.keys(patch).length <= 1) {
+      onCancel(); // only `version` present — nothing actually changed
+      return;
+    }
+    const result = await save(assumption.id, patch);
+    if (result.ok) onDone();
+  };
+
+  return (
+    <DrawerShell open onClose={onCancel} ariaLabel="Edit the bet">
+      <header className="vos-drawer-header">
+        <span className="vos-drawer-eyebrow">Edit the bet</span>
+        <h2 className="vos-drawer-title">{belief(assumption)}</h2>
+      </header>
+      <form onSubmit={onSubmit} className="vos-form">
+        <div className="vos-form-body">
+          <EditFields
+            register="assumptions"
+            draft={draft}
+            onField={(key, value) =>
+              setDraft((d) => ({ ...d, [key]: value }))
+            }
+          />
+          {conflict ? <p className="vos-error">{conflict}</p> : null}
+          {error ? <p className="vos-error">{error}</p> : null}
+        </div>
+        <footer className="vos-drawer-footer">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="vos-btn vos-btn-ghost vos-btn-sm"
+          >
+            Cancel
+          </button>
+          <button type="submit" disabled={saving} className="vos-btn vos-btn-sm">
+            {saving ? "Saving…" : "Save the bet"}
           </button>
         </footer>
       </form>

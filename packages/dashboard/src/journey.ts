@@ -27,10 +27,12 @@ import {
   rankNextMoves,
   type BeliefStage,
   type JourneyEvent,
+  type JourneyEventKind,
   type NextMove,
 } from "@validation-os/core/derivation";
 import { resolvedKind, toStageExperimentInput } from "./pipeline.js";
 import { toNextMoveInput, type NextMoveRecords } from "./next-move.js";
+import type { Tone } from "./primitives.js";
 import { testsAssumption } from "./derived-views.js";
 
 /** A journey event with its front-door copy attached. */
@@ -74,6 +76,50 @@ function labelFor(event: JourneyEvent): string {
       return "Now";
   }
 }
+
+/** The dot's tone against an event — how that moment read for the belief. */
+export function eventTone(event: JourneyEvent): Tone {
+  switch (event.kind) {
+    case "reading":
+      if (event.result === "Validated") return "good";
+      if (event.result === "Invalidated") return "crit";
+      return "neutral"; // Inconclusive — it landed, but moved nothing
+    case "confidence-cross":
+      return "crit";
+    case "now":
+      return "accent";
+    default:
+      return "neutral";
+  }
+}
+
+/**
+ * The step-in an event offers (OPS-1294's human set: assumption edit · score
+ * impact · write decision), or null for an event there is nothing to act on.
+ *
+ * The story is where step-in lives — the rail is pure status (OPS-1297). Two
+ * acts are deliberately absent: designing a test (no experiment-design form on
+ * this surface) and recording a reading (its form lives with the evidence, not
+ * the narrative). An unscored belief has no `score` event at all, so its
+ * score-impact act rides the next-move card instead.
+ */
+export function eventStepIn(
+  kind: JourneyEventKind,
+): { form: StoryStepIn; cta: string } | null {
+  switch (kind) {
+    case "bet":
+      return { form: "edit-belief", cta: "Edit the bet" };
+    case "score":
+      return { form: "score-impact", cta: "Re-score" };
+    case "confidence-cross":
+      return { form: "write-decision", cta: "Kill or re-test" };
+    default:
+      return null;
+  }
+}
+
+/** The forms the story can open — the OPS-1294 set, minus experiment design. */
+export type StoryStepIn = "edit-belief" | "score-impact" | "write-decision";
 
 /**
  * Build one belief's journey from the four registers. Returns null when the

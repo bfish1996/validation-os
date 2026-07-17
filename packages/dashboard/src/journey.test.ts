@@ -1,8 +1,20 @@
 import { describe, expect, it } from "vitest";
 import type { AnyRecord } from "@validation-os/core";
-import { buildJourney } from "./journey.js";
+import type { JourneyEvent, JourneyEventKind } from "@validation-os/core/derivation";
+import { buildJourney, eventStepIn, eventTone } from "./journey.js";
 import { buildPipeline } from "./pipeline.js";
 import type { NextMoveRecords } from "./next-move.js";
+
+function event(kind: JourneyEventKind, extra: Partial<JourneyEvent> = {}): JourneyEvent {
+  return {
+    kind,
+    date: null,
+    confidence: null,
+    result: null,
+    refId: null,
+    ...extra,
+  };
+}
 
 function assumption(over: Partial<AnyRecord> & { id: string }): AnyRecord {
   return {
@@ -182,5 +194,41 @@ describe("buildJourney", () => {
       expect(rail.confidence).toBe(row.confidence);
       expect(rail.killZone).toBe(row.killZone);
     }
+  });
+});
+
+describe("eventTone", () => {
+  it("reads a validated reading as good and an invalidated one as crit", () => {
+    expect(eventTone(event("reading", { result: "Validated" }))).toBe("good");
+    expect(eventTone(event("reading", { result: "Invalidated" }))).toBe("crit");
+  });
+
+  it("reads an inconclusive reading as neutral — it landed, but moved nothing", () => {
+    expect(eventTone(event("reading", { result: "Inconclusive" }))).toBe("neutral");
+  });
+
+  it("reads a confidence-cross as crit and now as accent", () => {
+    expect(eventTone(event("confidence-cross"))).toBe("crit");
+    expect(eventTone(event("now"))).toBe("accent");
+  });
+
+  it("reads the structural events (bet, score, experiment) as neutral", () => {
+    expect(eventTone(event("bet"))).toBe("neutral");
+    expect(eventTone(event("score"))).toBe("neutral");
+    expect(eventTone(event("experiment"))).toBe("neutral");
+  });
+});
+
+describe("eventStepIn", () => {
+  it("offers edit-belief on the bet, score-impact on the score, write-decision on the cross", () => {
+    expect(eventStepIn("bet")).toEqual({ form: "edit-belief", cta: "Edit the bet" });
+    expect(eventStepIn("score")).toEqual({ form: "score-impact", cta: "Re-score" });
+    expect(eventStepIn("confidence-cross")).toEqual({ form: "write-decision", cta: "Kill or re-test" });
+  });
+
+  it("offers no step-in on the evidence-only events — their forms live elsewhere", () => {
+    expect(eventStepIn("experiment")).toBeNull();
+    expect(eventStepIn("reading")).toBeNull();
+    expect(eventStepIn("now")).toBeNull();
   });
 });

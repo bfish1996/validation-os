@@ -2047,3 +2047,231 @@ textarea.vos-input {
   border-color: var(--vos-accent);
   color: var(--vos-accent-text);
 }
+/* ── Per-belief journey: the rail + story (OPS-1330) ─────────────────────── */
+.vos-jny {
+  padding: 16px 18px;
+  margin-bottom: 16px;
+}
+.vos-jny-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.vos-jny-head > div:first-child {
+  flex: 1;
+  min-width: 0;
+}
+.vos-jny-eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--vos-muted);
+}
+.vos-jny-at {
+  margin: 2px 0 0;
+  font-size: 14px;
+  color: var(--vos-text);
+}
+
+/* The resting rail — read-only status, no step-in. */
+.vos-jny-rail {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+.vos-jny-arrow {
+  color: var(--vos-border-strong);
+  font-size: 12px;
+  padding-top: 22px;
+}
+.vos-jny-stop {
+  flex: 1;
+  min-width: 0;
+  opacity: 0.55;
+}
+.vos-jny-stop-at,
+.vos-jny-stop-done {
+  opacity: 1;
+}
+.vos-jny-stopname {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--vos-text);
+  margin-bottom: 5px;
+}
+.vos-jny-stopn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: var(--vos-surface-2);
+  color: var(--vos-muted);
+  font-size: 9px;
+}
+.vos-jny-stop-at .vos-jny-stopn {
+  background: var(--vos-accent);
+  color: var(--vos-on-accent, #fff);
+}
+.vos-jny-stop-done .vos-jny-stopn {
+  background: var(--vos-good);
+  color: var(--vos-on-accent, #fff);
+}
+.vos-jny-track {
+  height: 18px;
+  border-radius: 4px;
+  background: var(--vos-surface-2);
+  position: relative;
+  overflow: hidden;
+}
+.vos-jny-track i {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  border-radius: 4px;
+}
+.vos-jny-fill {
+  background: var(--vos-accent);
+}
+.vos-jny-known {
+  background: linear-gradient(
+    90deg,
+    var(--vos-crit-weak),
+    var(--vos-surface-2) 50%,
+    var(--vos-good-weak)
+  );
+}
+.vos-jny-mid {
+  position: absolute;
+  left: 50%;
+  top: 2px;
+  bottom: 2px;
+  width: 1px;
+  background: var(--vos-border-strong);
+}
+.vos-jny-pos {
+  left: 50%;
+  background: var(--vos-good);
+  border-radius: 0 4px 4px 0;
+}
+.vos-jny-neg {
+  right: 50%;
+  left: auto !important;
+  background: var(--vos-crit);
+  border-radius: 4px 0 0 4px;
+}
+.vos-jny-cap {
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--vos-text-2);
+}
+.vos-jny-flag {
+  color: var(--vos-crit);
+  font-weight: 600;
+}
+.vos-jny-why {
+  margin-top: 12px;
+}
+
+/* The story — the dated event log the rail expands into. */
+.vos-jny-story {
+  margin-top: 12px;
+}
+.vos-jny-events {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.vos-jny-ev {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--vos-border);
+  font-size: 13px;
+}
+.vos-jny-ev:last-child {
+  border-bottom: 0;
+}
+.vos-jny-ev-now {
+  font-weight: 600;
+}
+.vos-jny-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+}
+.vos-jny-dot-good {
+  background: var(--vos-good);
+}
+.vos-jny-dot-warn {
+  background: var(--vos-warn);
+}
+.vos-jny-dot-crit {
+  background: var(--vos-crit);
+}
+.vos-jny-dot-accent {
+  background: var(--vos-accent);
+}
+.vos-jny-dot-neutral {
+  background: var(--vos-border-strong);
+}
+.vos-jny-date {
+  font-variant-numeric: tabular-nums;
+  color: var(--vos-muted);
+  font-size: 12px;
+  flex: none;
+  min-width: 84px;
+}
+.vos-jny-label {
+  flex: 1;
+  min-width: 0;
+  color: var(--vos-text);
+}
+.vos-jny-conf {
+  flex: none;
+}
+.vos-jny-act {
+  flex: none;
+}
+
+/* The card the story ends in — the ranked next move for this belief. */
+.vos-jny-card {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--vos-border);
+  border-radius: 8px;
+  background: var(--vos-surface-2);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+.vos-jny-card-kill {
+  border-color: var(--vos-crit);
+}
+.vos-jny-card-done {
+  opacity: 0.85;
+}
+.vos-jny-card-eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--vos-muted);
+}
+.vos-jny-card-kill .vos-jny-card-eyebrow {
+  color: var(--vos-crit);
+}
+.vos-jny-card-reason {
+  margin: 0;
+  font-size: 13px;
+  color: var(--vos-text);
+}
+}
