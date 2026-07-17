@@ -22,6 +22,7 @@ import {
   type Progress,
   type TrajectoryPoint,
 } from "@validation-os/core/derivation";
+import { str, testsAssumption } from "./derived-views.js";
 
 /** An experiment testing this assumption: how hard it moves Confidence, and
  * how close it is to concluding. `contribution` is 0 for a running experiment
@@ -62,18 +63,6 @@ export interface Understanding {
   trajectory: TrajectoryPoint[];
   /** Concluded readings feeding the number, across all sources. */
   readingCount: number;
-}
-
-function str(v: unknown): string | null {
-  return typeof v === "string" && v !== "" ? v : null;
-}
-
-/** Does this experiment pre-register a bar line against the given assumption? */
-export function testsAssumption(exp: AnyRecord, assumptionId: string): boolean {
-  const bars = exp.barLines as BarLine[] | undefined;
-  if (bars?.some((b) => b.assumptionId === assumptionId)) return true;
-  const ids = exp.barLineAssumptionIds as string[] | undefined;
-  return ids?.includes(assumptionId) ?? false;
 }
 
 export function buildUnderstanding(

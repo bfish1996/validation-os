@@ -31,7 +31,7 @@ import {
 } from "@validation-os/core/derivation";
 import { resolvedKind, toStageExperimentInput } from "./pipeline.js";
 import { toNextMoveInput, type NextMoveRecords } from "./next-move.js";
-import { testsAssumption } from "./understanding.js";
+import { testsAssumption } from "./derived-views.js";
 
 /** A journey event with its front-door copy attached. */
 export interface JourneyEventView extends JourneyEvent {
