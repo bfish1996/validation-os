@@ -43,3 +43,18 @@ export function assumptionPresenceComplete(
 ): boolean {
   return missingPresenceFields(record).length === 0;
 }
+
+/**
+ * How far framing has got, as a 0–100 percentage — the pipeline's **Framed**
+ * meter (OPS-1300, meter 1). It is the presence check surfaced as a degree
+ * rather than a boolean: the share of the structurally-required fields that are
+ * present. A `Live` assumption is necessarily 100 (presence is its gate); a
+ * `Draft` reads how much framing remains. Rounded to a whole percent.
+ */
+export function assumptionCompleteness(
+  record: Partial<Record<AssumptionPresenceField, unknown>>,
+): number {
+  const total = ASSUMPTION_PRESENCE_FIELDS.length;
+  const present = total - missingPresenceFields(record).length;
+  return Math.round((present / total) * 100);
+}
