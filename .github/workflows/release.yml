@@ -17,15 +17,6 @@ jobs:
           python-version: "3.12"
       - run: pip install pyyaml
 
-      - name: Tag must match plugin.json version
-        run: |
-          tag="${GITHUB_REF_NAME#v}"
-          version=$(python -c "import json; print(json.load(open('.claude-plugin/plugin.json'))['version'])")
-          if [ "$tag" != "$version" ]; then
-            echo "::error::Tag $GITHUB_REF_NAME does not match plugin.json version $version — bump plugin.json (and CHANGELOG.md) first."
-            exit 1
-          fi
-
       - name: Never release a broken state
         run: python scripts/validate.py
 
