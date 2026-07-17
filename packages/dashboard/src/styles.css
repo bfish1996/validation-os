@@ -412,6 +412,21 @@
   font-size: 12.5px;
 }
 
+/* A ready-to-copy command block (Connect Claude Code, OPS-1349). */
+.vos-code {
+  font-family: var(--vos-mono);
+  font-size: 12.5px;
+  line-height: 1.6;
+  background: var(--vos-surface-2);
+  border: 1px solid var(--vos-border);
+  border-radius: var(--vos-radius);
+  padding: 12px 14px;
+  margin: 16px 0;
+  white-space: pre-wrap;
+  word-break: break-all;
+  overflow-x: auto;
+}
+
 /* ── card + table ──────────────────────────────────────────────────────── */
 .vos-card {
   background: var(--vos-surface);
