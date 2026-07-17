@@ -28,9 +28,11 @@ export {
   StatusPill,
 } from "./primitives-view.js";
 export {
+  configureRiskBands,
   confidenceTone,
   formatCount,
   formatSigned,
+  riskBand,
   riskFraction,
   riskLevel,
   sparklinePath,
@@ -38,7 +40,30 @@ export {
   RISK_CRIT,
   RISK_WARN,
 } from "./primitives.js";
-export type { Tone } from "./primitives.js";
+export type { RiskBand, Tone } from "./primitives.js";
+export {
+  defaultTabId,
+  filterRecords,
+  groupByAxesFor,
+  groupRecords,
+  needsHumanCounts,
+  nestReadingsByPlan,
+  shapeRegister,
+  sortRecords,
+  tabsFor,
+} from "./list-surface.js";
+export type {
+  GroupBucket,
+  GroupByAxis,
+  NeedsHumanCounts,
+  NestedGroup,
+  RegisterContext,
+  SavedView,
+  ShapedRegister,
+  SortSpec,
+  TabDef,
+  ViewDescriptor,
+} from "./list-surface.js";
 export { SidebarNav } from "./sidebar-nav.js";
 export type { SidebarNavProps } from "./sidebar-nav.js";
 export { parseRoute, formatRoute } from "./route.js";
@@ -93,8 +118,15 @@ export type {
   ScoreImpactFormProps,
   WriteDecisionFormProps,
 } from "./step-in-forms.js";
-export { useCounts } from "./use-counts.js";
-export type { Counts, UseCountsResult } from "./use-counts.js";
+export { useCounts, useNeedsHuman } from "./use-counts.js";
+export type {
+  Counts,
+  NeedsHumanByRegister,
+  UseCountsResult,
+  UseNeedsHumanResult,
+} from "./use-counts.js";
+export { useSavedViews } from "./use-saved-views.js";
+export type { UseSavedViewsResult } from "./use-saved-views.js";
 export { useList, useRecord, useUpdate, interpretSave } from "./use-records.js";
 export type {
   UseListResult,
@@ -132,6 +164,35 @@ export {
 export type { FormField } from "./form-fields.js";
 export { linkChoicesFrom } from "./link-choices.js";
 export type { LinkChoice } from "./link-choices.js";
+export { dontConfuseWith, linkify, toGlossaryTerms } from "./glossary.js";
+export type {
+  GlossaryTerm,
+  LinkifyNode,
+  LinkifyOptions,
+  NeighbourChip,
+  TermPreview,
+} from "./glossary.js";
+export { GlossaryText } from "./glossary-text.js";
+export type { GlossaryTextProps } from "./glossary-text.js";
+export {
+  backlinkPanels,
+  buildRecordPage,
+  headerPills,
+  humanInputFields,
+  leadingMeters,
+  scoreChip,
+} from "./record-view.js";
+export type {
+  BacklinkItem,
+  HumanText,
+  Meter,
+  Pill,
+  RecordPageModel,
+  RecordTabId,
+  RelatedSet,
+  RelationPanel,
+  ScoreChip,
+} from "./record-view.js";
 export {
   REGISTER_GROUPS,
   REGISTER_ICON,
