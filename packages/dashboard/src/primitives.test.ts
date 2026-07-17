@@ -5,6 +5,7 @@ import {
   formatCount,
   formatSigned,
   heroToneClass,
+  riskBand,
   riskFraction,
   riskLevel,
   sparklinePath,
@@ -43,13 +44,25 @@ describe("statusTone", () => {
 });
 
 describe("riskLevel", () => {
-  it("crosses to warn at 30 and crit at 60", () => {
+  it("crosses to warn at 40 and crit at 70 (OPS-1287 bands)", () => {
     expect(riskLevel(0)).toBe("good");
-    expect(riskLevel(29)).toBe("good");
-    expect(riskLevel(30)).toBe("warn");
-    expect(riskLevel(59)).toBe("warn");
-    expect(riskLevel(60)).toBe("crit");
+    expect(riskLevel(39)).toBe("good");
+    expect(riskLevel(40)).toBe("warn");
+    expect(riskLevel(69)).toBe("warn");
+    expect(riskLevel(70)).toBe("crit");
     expect(riskLevel(100)).toBe("crit");
+  });
+});
+
+describe("riskBand", () => {
+  it("bands by the three fixed thresholds Critical ≥70 / High 40–69 / Watch <40", () => {
+    expect(riskBand(0)).toBe("Watch");
+    expect(riskBand(39)).toBe("Watch");
+    expect(riskBand(40)).toBe("High");
+    expect(riskBand(69)).toBe("High");
+    expect(riskBand(70)).toBe("Critical");
+    expect(riskBand(75)).toBe("Critical");
+    expect(riskBand(100)).toBe("Critical");
   });
 });
 
