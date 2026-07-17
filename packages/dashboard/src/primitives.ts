@@ -52,9 +52,35 @@ export function statusTone(status: string | null | undefined): Tone {
   return "neutral";
 }
 
-/** Risk thresholds — a belief is critical at ≥60, watch at ≥30 (prototype). */
-export const RISK_CRIT = 60;
-export const RISK_WARN = 30;
+/**
+ * Risk band thresholds — Critical ≥ 70, High 40–69, Watch < 40 (OPS-1287). A
+ * belief is critical at ≥ `RISK_CRIT`, watch/high at ≥ `RISK_WARN`. These are a
+ * prioritisation setting (a config knob), not a record property; overriding them
+ * is `configureRiskBands`. Kept dashboard-wide so the flat-table risk cell, the
+ * group-by risk-band axis, and the hero meter all band a number the same way.
+ */
+export let RISK_CRIT = 70;
+export let RISK_WARN = 40;
+
+/** The three fixed risk bands, strongest first (OPS-1287 story 19). */
+export type RiskBand = "Critical" | "High" | "Watch";
+
+/**
+ * Override the two risk-band thresholds (the config knob). Left as a setter over
+ * module state rather than threaded through every call, so an instance can retune
+ * the bands once at startup and every risk rendering follows.
+ */
+export function configureRiskBands(crit: number, warn: number): void {
+  RISK_CRIT = crit;
+  RISK_WARN = warn;
+}
+
+/** Risk (0–100) → its band label. Grouping uses this; sort stays continuous. */
+export function riskBand(risk: number): RiskBand {
+  if (risk >= RISK_CRIT) return "Critical";
+  if (risk >= RISK_WARN) return "High";
+  return "Watch";
+}
 
 /** Risk (0–100) → a tone for the bar fill and the number. */
 export function riskLevel(risk: number): Tone {
