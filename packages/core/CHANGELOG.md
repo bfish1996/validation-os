@@ -1,5 +1,29 @@
 # @validation-os/core
 
+## 0.6.0
+
+### Minor Changes
+
+- c08746b: Portfolio pipeline overview across `core` + `dashboard` (OPS-1300).
+
+  `@validation-os/core` gains the one cross-belief roll-up: `portfolioProgress` (and its per-belief `beliefRisk`) in `derivation`, computing the burn-up "% of identified risk bought down" — Risk Retired ÷ Risk-ever-identified across the whole set, resolved beliefs included. Pure and numeric like `risk`/`confidence`/`impact`, computed fresh on read, so it stays out of the on-write recompute; ever-identified is floored at the seed Impact so a kill or moot retires risk without shrinking the denominator. `presence.ts` gains `assumptionCompleteness`, the framing meter as a percentage. New exports: `beliefRisk`, `portfolioProgress`, `assumptionCompleteness`, and the `BeliefRisk` / `PortfolioBeliefInput` / `PortfolioProgress` types.
+
+  `@validation-os/dashboard` fills the `#pipeline` pane with `PipelineSurface`: one row per live belief, sorted riskiest-first, each carrying the four loop meters (Framed % → Planned → Tested settled/total → signed Known, with a re-test flag at Confidence ≤ −50) as a connected track plus its stage-aware next move; above them the single burn-up headline meter (no chart); resolved beliefs set apart behind a disclosure; the raw Impact shown only as a faint bar. The "this week" delta is derived honestly from the readings' own dates and simply omitted when none are dated. New exports: `PipelineSurface`, `buildPipeline`, `weekOverWeekDelta`, and the `PipelineRow` / `PipelineView` / `ResolvedRow` types.
+
+- 2319058: Front-door "next move" surface across `core` + `dashboard` (OPS-1304).
+
+  `@validation-os/core` gains `rankNextMoves` (in `derivation`) — one pure function, beside `risk`/`confidence`/`impact`, that ranks beliefs into their next move. It scores each unresolved belief by Feasibility × Risk (the cheapest honest test of the riskiest belief on top), floats any belief at Confidence ≤ −50 into a kill/re-test lane above that order, and names the act its stage demands (`score-impact` · `design-experiment` · `record-reading` · `decide` · `retest`). Computed fresh on read — it reads the derived numbers, never recomputing them — so it stays out of the on-write recompute. The rule is stated once in `ontology.yaml → derived_views.next_move`. New exports: `rankNextMoves`, `KILL_LANE_THRESHOLD`, and the `NextMove` / `MoveKind` / `NextMove*Input` types.
+
+  `@validation-os/dashboard` fills the `#next` pane with `NextMoveSurface`: a centred hero (the belief, a seen-not-read risk chip with no number, and one act button whose label follows the belief's stage), all machinery behind a single "Why this?" reveal (the numeric risk, the Feasibility × Risk breakdown, the ranked list, and the Framed→Planned→Tested→Known stepper), an "On deck" list of runners-up, a manual-override pick-list, and a kill-lane banner. Step-in adapts to the act: human acts open a form, agent-run acts point at the record for review. Adds the two missing step-in forms — `ScoreImpactForm` (a real slider, not a bare cell) and `WriteDecisionForm` (create a decision and wire it to the belief via `based on`/`resolves` in one step). New exports: `NextMoveSurface`, `ScoreImpactForm`, `WriteDecisionForm`, `toNextMoveInput`, `movePresentation`.
+
+- 20b571c: Per-belief journey view-model — the pure, testable half of the drill-in (OPS-1329).
+
+  `@validation-os/core` gains, in `derivation`, a per-belief **stage-deriver** and an **event-log assembler**. `stage.ts` factors the pipeline's test-meter logic out of the dashboard row-builder into `beliefTestMeters`, and adds `deriveBeliefStage` / `classifyStage`: the single-belief analogue of the cross-belief pipeline aggregation, placing one belief on the Framed → Planned → Tested → Known spine with its four meters (the kill zone stays an overlay, not a stage). `journey.ts` adds `assembleJourney`, ordering a belief's life into dated events (bet → score → experiment → readings → confidence-cross → now) by reusing `confidenceTrajectory` / `confidence` — no new maths, no faked dates, absent events omitted. Both are pure and computed fresh on read, so they stay out of the on-write recompute. New exports: `beliefTestMeters`, `classifyStage`, `deriveBeliefStage`, `emptyTestMeter`, `assembleJourney`, and the `BeliefStage` / `BeliefStageInput` / `ConfSign` / `StageExperimentInput` / `StageKey` / `TestMeter` / `JourneyEvent` / `JourneyEventKind` / `JourneyBeliefInput` / `JourneyExperimentInput` / `AssembleJourneyInput` types.
+
+  `@validation-os/dashboard` adds `buildJourney`, the pure journey view-model (mirroring `understanding.ts` / `pipeline.ts`) that composes one belief's rail (its `BeliefStage`), its event story (each event given front-door copy), and its next-move card (the same ranking the front door reads, filtered to this belief). `pipeline.ts` is refactored to derive its rows through the shared `deriveBeliefStage`, so the board and a belief's rail agree by construction. New exports: `buildJourney`, `toStageExperimentInput`, and the `JourneyView` / `JourneyEventView` types.
+
+  The rail + story UI that renders this (OPS-1330) is blocked on the record page and lands separately.
+
 ## 0.5.0
 
 ## 0.4.0
