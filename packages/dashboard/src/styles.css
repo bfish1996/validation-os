@@ -2306,6 +2306,77 @@ textarea.vos-input {
   color: var(--vos-text);
 }
 
+/* ── Cycles: the loop, round by round (OPS-1347) ─────────────────────────── */
+.vos-cyc-list {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  list-style: none;
+  margin: 0;
+  padding: 2px 0 6px;
+}
+.vos-cyc-card {
+  flex: 0 0 168px;
+  border: 1px solid var(--vos-border);
+  border-radius: var(--vos-radius);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--vos-surface-2);
+}
+.vos-cyc-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px;
+}
+.vos-cyc-num {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--vos-faint);
+}
+.vos-cyc-date {
+  font-size: 11px;
+  color: var(--vos-muted);
+  font-variant-numeric: tabular-nums;
+}
+.vos-cyc-title {
+  font-size: 12.5px;
+  color: var(--vos-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.vos-cyc-dots {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.vos-cyc-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-top: auto;
+}
+.vos-cyc-push {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--vos-mono);
+  font-size: 11px;
+  font-weight: 700;
+}
+.vos-cyc-track {
+  flex: 0 0 34px;
+  height: 7px;
+}
+
 /* ── Cross-surface cold start (OPS-1331) ────────────────────────────────── */
 /* The shared first-run onboarding line — one tone across the two top-level
  * surfaces (next + pipeline). Neutral text on a faint accent wash, so it

@@ -92,6 +92,8 @@ export type {
 } from "./journey.js";
 export { BeliefJourney } from "./journey-surface.js";
 export type { BeliefJourneyProps } from "./journey-surface.js";
+export { buildCycles, DIRECT_CYCLE_KEY } from "./cycles.js";
+export type { CycleReadingView, CycleView } from "./cycles.js";
 export { stageMeters } from "./stage-meters.js";
 export type {
   MeterKind,

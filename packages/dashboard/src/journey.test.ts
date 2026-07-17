@@ -134,6 +134,15 @@ describe("buildJourney", () => {
     expect(view!.events.find((e) => e.kind === "reading")!.label).toBe(
       "Reading — Inconclusive",
     );
+    // Cycles: the same experiment regrouped into one round, carrying this
+    // belief's own bar-line verdict and its reading.
+    expect(view!.cycles).toHaveLength(1);
+    expect(view!.cycles[0]!).toMatchObject({
+      key: "e1",
+      kind: "experiment",
+      barVerdict: "Validated",
+    });
+    expect(view!.cycles[0]!.readings.map((r) => r.id)).toEqual(["r1"]);
     // Card: the belief's own ranked move. The card (evidence-based ranking) and
     // the rail (bar-settlement stage) are independent derivations; here a test
     // is running with no concluded reading yet → record a reading.

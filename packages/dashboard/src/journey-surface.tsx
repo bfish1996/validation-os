@@ -1,7 +1,8 @@
 import { useState } from "react";
-import type { AnyRecord } from "@validation-os/core";
+import type { AnyRecord, Result } from "@validation-os/core";
 import type { BeliefStage, NextMove, StageKey } from "@validation-os/core/derivation";
 import { journeyColdState } from "./cold-start.js";
+import type { CycleView } from "./cycles.js";
 import {
   eventStepIn,
   eventTone,
@@ -29,7 +30,9 @@ import { UnderstandingPanel } from "./understanding-panel.js";
  *    rail is pure status: nothing to act on there;
  *  - it **expands into the chronological story** through the record page's
  *    existing "Why?" reveal idiom — the dated event log (bet → score →
- *    experiment → readings → confidence-cross → now), ending in the ranked
+ *    experiment → readings → confidence-cross → now), the same history
+ *    regrouped into **rounds** (OPS-1347 — one card per Experiment run, plus
+ *    any bare/direct evidence, oldest first), and ending in the ranked
  *    next-move card (OPS-1292).
  *
  * **Step-in is story-only** (OPS-1297): the next-move card and the per-event
@@ -143,6 +146,13 @@ export function BeliefJourney({
               </ol>
             )}
           </section>
+
+          {journey.cycles.length > 0 ? (
+            <section>
+              <div className="vos-why-section-title">Round by round</div>
+              <CycleTimeline cycles={journey.cycles} />
+            </section>
+          ) : null}
 
           {/* OPS-1276's attribution + trajectory, reused whole — the story says
               what happened; this says what it did to the number. */}
@@ -314,6 +324,105 @@ function EventRow({
           {act.cta}
         </button>
       ) : null}
+    </li>
+  );
+}
+
+/** A reading dot's tone, from its result alone (the cycle cards have no
+ * confidence-cross / now to fold in, unlike `eventTone`). */
+function readingDotTone(result: Result | null): Tone {
+  if (result === "Validated") return "good";
+  if (result === "Invalidated") return "crit";
+  return "neutral"; // Inconclusive, or unresolved
+}
+
+const BAR_VERDICT_PILL: Record<Result, string> = {
+  Validated: "vos-pill vos-pill-good",
+  Invalidated: "vos-pill vos-pill-crit",
+  Inconclusive: "vos-pill vos-pill-neutral",
+};
+
+/**
+ * The validation loop, round by round (OPS-1347): one card per cycle — an
+ * Experiment's run against this belief, or (failing that) its bare/direct
+ * evidence — each with its readings as a dot row, its bar verdict, and how
+ * hard the round pushed Confidence. A horizontal strip, oldest round first,
+ * so scrolling it *is* watching the belief move.
+ */
+function CycleTimeline({ cycles }: { cycles: CycleView[] }) {
+  const maxMagnitude = Math.max(...cycles.map((c) => c.magnitude), 0.01);
+  return (
+    <ol className="vos-cyc-list">
+      {cycles.map((cycle, i) => (
+        <CycleCard key={cycle.key} cycle={cycle} n={i + 1} max={maxMagnitude} />
+      ))}
+    </ol>
+  );
+}
+
+function CycleCard({
+  cycle,
+  n,
+  max,
+}: {
+  cycle: CycleView;
+  n: number;
+  max: number;
+}) {
+  const up = cycle.contribution >= 0;
+  const moving = cycle.magnitude > 0;
+  const width = Math.round((cycle.magnitude / max) * 50);
+  const fill = up
+    ? { left: "50%", width: `${width}%`, background: "var(--vos-good)" }
+    : { right: "50%", width: `${width}%`, background: "var(--vos-crit)" };
+  return (
+    <li className="vos-cyc-card">
+      <div className="vos-cyc-head">
+        <span className="vos-cyc-num">Round {n}</span>
+        {cycle.date ? <span className="vos-cyc-date">{cycle.date}</span> : null}
+      </div>
+      <div className="vos-cyc-title">
+        {cycle.kind === "direct"
+          ? "Direct evidence"
+          : cycle.title ?? "Untitled experiment"}
+      </div>
+      {cycle.readings.length > 0 ? (
+        <div
+          className="vos-cyc-dots"
+          role="img"
+          aria-label={`${cycle.readings.length} reading${cycle.readings.length === 1 ? "" : "s"}`}
+        >
+          {cycle.readings.map((r) => (
+            <span
+              key={r.id}
+              className={`vos-jny-dot ${DOT_CLASS[readingDotTone(r.result)]}`}
+            />
+          ))}
+        </div>
+      ) : (
+        <span className="vos-hint">No readings yet</span>
+      )}
+      <div className="vos-cyc-foot">
+        {cycle.barVerdict ? (
+          <span className={BAR_VERDICT_PILL[cycle.barVerdict]}>
+            {cycle.barVerdict}
+          </span>
+        ) : cycle.kind === "experiment" ? (
+          <span className="vos-hint">
+            {cycle.status === "Closed" ? "No bar line" : "Bar pending"}
+          </span>
+        ) : null}
+        {moving ? (
+          <span className="vos-cyc-push">
+            <span className="vos-track vos-signed vos-cyc-track">
+              <i style={fill} />
+            </span>
+            <span className={up ? "vos-text-good" : "vos-text-crit"}>
+              {formatSigned(cycle.contribution)}
+            </span>
+          </span>
+        ) : null}
+      </div>
     </li>
   );
 }
