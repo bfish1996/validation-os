@@ -47,6 +47,14 @@ export { RecordPage } from "./record-page.js";
 export type { RecordPageProps } from "./record-page.js";
 export { SurfacePlaceholder } from "./surface-placeholder.js";
 export type { SurfacePlaceholderProps } from "./surface-placeholder.js";
+export { PipelineSurface } from "./pipeline-surface.js";
+export { buildPipeline, weekOverWeekDelta } from "./pipeline.js";
+export type {
+  PipelineRow,
+  PipelineView,
+  ResolvedRow,
+  StageKey,
+} from "./pipeline.js";
 export { RegisterCounts } from "./register-counts.js";
 export type { RegisterCountsProps } from "./register-counts.js";
 export { RegisterTable } from "./register-table.js";
@@ -66,6 +74,19 @@ export type {
 } from "./understanding.js";
 export { RegisterBrowser } from "./register-browser.js";
 export type { RegisterBrowserProps } from "./register-browser.js";
+export { NextMoveSurface } from "./next-move-surface.js";
+export type { NextMoveSurfaceProps } from "./next-move-surface.js";
+export { movePresentation, toNextMoveInput } from "./next-move.js";
+export type {
+  MovePresentation,
+  NextMoveRecords,
+  StepInForm,
+} from "./next-move.js";
+export { ScoreImpactForm, WriteDecisionForm } from "./step-in-forms.js";
+export type {
+  ScoreImpactFormProps,
+  WriteDecisionFormProps,
+} from "./step-in-forms.js";
 export { useCounts } from "./use-counts.js";
 export type { Counts, UseCountsResult } from "./use-counts.js";
 export { useList, useRecord, useUpdate, interpretSave } from "./use-records.js";

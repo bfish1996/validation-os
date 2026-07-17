@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import type { Collection } from "@validation-os/core";
 import { REGISTER_ORDER, REGISTER_SUBTITLE } from "./labels.js";
+import { PipelineSurface } from "./pipeline-surface.js";
 import { RecordPage } from "./record-page.js";
 import { RegisterBrowser } from "./register-browser.js";
+import { NextMoveSurface } from "./next-move-surface.js";
 import { formatRoute, parseRoute, type Route } from "./route.js";
 import { SidebarNav } from "./sidebar-nav.js";
-import { SurfacePlaceholder } from "./surface-placeholder.js";
 import { useCounts } from "./use-counts.js";
 
 /**
@@ -60,10 +61,10 @@ function initialsOf(name: string): string {
  * package's own token sheet — the instance imports `styles.css` once and builds
  * no UI.
  *
- * The shell lands first; the front-door and pipeline surfaces, and OPS-1282's
- * record page, fill their panes as they ship (each currently a labelled
- * placeholder). Records is the one live surface — the register browser, kept as
- * the browse-everything / manual-override view.
+ * The front-door (`#next`) and pipeline (`#pipeline`) surfaces are now live;
+ * OPS-1282's record page (`#record/<id>`) still fills its pane as it ships.
+ * Records is the browse-everything / manual-override surface — the register
+ * browser, kept from the original scheme.
  */
 export function ValidationOSDashboard({ config = {} }: ValidationOSDashboardProps) {
   const {
@@ -177,32 +178,9 @@ export function ValidationOSDashboard({ config = {} }: ValidationOSDashboardProp
             backRegister={registers[0] ?? "assumptions"}
           />
         ) : route.name === "pipeline" ? (
-          <SurfacePlaceholder
-            key="pipeline"
-            title="Pipeline"
-            subtitle="Where every belief stands across the loop, and how much risk you've bought down."
-            detail={
-              <>
-                The portfolio pipeline — the 4-meter board and the “% of risk
-                bought down” burn-up (<b>OPS-1300</b>) — mounts here. The
-                navigation shell wires its route (<code>#pipeline</code>) and nav
-                slot.
-              </>
-            }
-          />
+          <PipelineSurface key="pipeline" basePath={basePath} onNavigate={navigate} />
         ) : (
-          <SurfacePlaceholder
-            key="next"
-            title="Next move"
-            subtitle="Your guided view — the single next move to make, and what's on deck."
-            detail={
-              <>
-                The front-door “next move” surface (design <b>OPS-1295</b>)
-                mounts here. The navigation shell wires its route (
-                <code>#next</code>, the default landing) and nav slot.
-              </>
-            }
-          />
+          <NextMoveSurface key="next" basePath={basePath} onNavigate={navigate} />
         )}
       </main>
     </div>

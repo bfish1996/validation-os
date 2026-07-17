@@ -486,6 +486,26 @@ derived_views:
   kill_lane: >-
     Status = Live AND Confidence ≤ -50 — surfaced for a human kill verdict
     (integrity rule kill-zone-unreviewed), out of the test-next surface.
+  next_move: >-
+    The dashboard front door's "what's my next move" ranking (OPS-1291 Model A;
+    implemented once in packages/core derivation.rankNextMoves, computed fresh on
+    read — a whole-set ordering, never stored, so it stays out of the on-write
+    recompute). Ranks BELIEFS (not experiments — this is the belief-facing
+    counterpart to test_next_surface, which ranks the experiments that test
+    them): each unresolved assumption (not moot, Status ≠ Invalidated) is scored
+    Feasibility × Risk — Feasibility = the cheapest (highest) among the
+    experiments whose bar lines name it, or a neutral middle when none plans it
+    yet; tie-break = most-negative Confidence first, then id. A belief at
+    Confidence ≤ -50 (kill_lane) jumps ABOVE the Feasibility × Risk order
+    regardless of rank, ordered among the lane by Risk — the one place act
+    urgency beats belief risk. Each ranked belief also carries the single ACT its
+    stage demands (the move): Impact unscored → score impact; scored but no
+    evidence and no running test → design an experiment; a test running, no
+    evidence in → record a reading; evidence in, no standing decision resting on
+    it → decide; kill lane → re-test / kill. A belief with evidence and a
+    standing (Active/Provisional) decision on it is resolved and drops out. The
+    front door names all acts but only score-impact / decide / re-test are human
+    step-in forms (OPS-1294); the rest are agent-run / visualised.
   proven_set: >-
     Status = Live AND the strongest (largest |Strength|) concluded linked
     Reading is Validated — "what we currently know"; provisional, always
