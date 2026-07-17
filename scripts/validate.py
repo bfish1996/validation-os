@@ -5,7 +5,6 @@ Enforces the contracts the docs declare:
 - ontology.yaml is the machine source; registry-schema.md and every
   connectors/*-schema.md guide must cover everything it lists
   (ontology.yaml header, connectors/SPEC.md).
-- .claude-plugin/plugin.json must list exactly the skill directories.
 - Every skills/*/SKILL.md must carry valid frontmatter.
 
 Run: python3 scripts/validate.py   (needs PyYAML)
@@ -21,7 +20,6 @@ import yaml
 ROOT = Path(__file__).resolve().parent.parent
 ONTOLOGY = ROOT / "skills/_shared/ontology.yaml"
 REGISTRY_SCHEMA = ROOT / "skills/_shared/registry-schema.md"
-PLUGIN_MANIFEST = ROOT / ".claude-plugin/plugin.json"
 
 errors = []
 
@@ -70,12 +68,13 @@ def frontmatter(path):
 
 # ── 1. Parse the standalone config files ────────────────────────────────────
 ontology = load_yaml(ONTOLOGY)
-manifest = load_json(PLUGIN_MANIFEST)
 load_json(ROOT / "skills/self-review/references/evals.json")
 load_yaml(ROOT / "validation-os.config.yaml")
 
 
-# ── 2. Skill frontmatter ↔ 3. plugin manifest ↔ skill dirs ─────────────────
+# ── 2. Skill frontmatter ↔ skill dirs ───────────────────────────────────────
+# The skills/ directory is the source of truth for which skills exist; each is
+# published as an agent skill via skills.sh (`npx skills`).
 skill_dirs = sorted(
     d.name for d in (ROOT / "skills").iterdir() if d.is_dir() and d.name != "_shared"
 )
@@ -93,17 +92,6 @@ for name in skill_dirs:
             fail(skill_md, f"frontmatter missing `{key}`")
     if fm.get("name") and fm["name"] != name:
         fail(skill_md, f"frontmatter name `{fm['name']}` != directory `{name}`")
-
-if manifest is not None:
-    for key in ("name", "version", "skills"):
-        if not manifest.get(key):
-            fail(PLUGIN_MANIFEST, f"missing `{key}`")
-    listed = {Path(p).name for p in manifest.get("skills", [])}
-    for name in skill_dirs:
-        if name not in listed:
-            fail(PLUGIN_MANIFEST, f"skill dir `skills/{name}` not listed in `skills`")
-    for name in sorted(listed - set(skill_dirs)):
-        fail(PLUGIN_MANIFEST, f"lists `{name}` but `skills/{name}/` does not exist")
 
 
 # ── Ontology-derived expectations ────────────────────────────────────────────

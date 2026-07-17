@@ -1,8 +1,9 @@
 # Changelog
 
-Release convention: add a `## vX.Y.Z` section here, set the same version in
-`.claude-plugin/plugin.json`, commit, then `git tag vX.Y.Z && git push --tags`.
-The release workflow refuses tags whose version or changelog section is missing.
+Release convention: add a `## vX.Y.Z` section here, commit, then
+`git tag vX.Y.Z && git push --tags`. The release workflow refuses tags whose
+changelog section is missing. Tagged releases are what `npx skills update`
+picks up.
 
 ## v0.1.0 — 2026-07-10
 

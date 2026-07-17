@@ -3,8 +3,8 @@
 The code side of validation-os: the dashboard, its reference API, and the
 backend seam ship as versioned npm packages so an adopter installs them rather
 than forking. `validation-os` stays a pnpm-workspace monorepo; the markdown
-registry/skills/docs (this repo's original plugin surface) live alongside and
-release separately via the Claude plugin.
+registry/skills/docs live alongside and release separately as agent skills via
+skills.sh (`npx skills`).
 
 | Package | What it is |
 |---|---|
