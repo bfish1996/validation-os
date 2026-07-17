@@ -29,6 +29,9 @@ export interface RecordDrawerProps {
   /** Re-fetch the record + its list — called after a save, and the re-fetch
    * path offered when a concurrent edit is detected. */
   onChanged?: () => void;
+  /** Open this record's canonical full page (story 12). When set, the header
+   * shows a "Full page" link; the drawer stays the quick read/edit peek. */
+  onOpenFull?: () => void;
   /** Extra content below the fields in read mode — e.g. the relation editor. */
   children?: ReactNode;
 }
@@ -66,6 +69,7 @@ export function RecordDrawer({
   onClose,
   basePath,
   onChanged,
+  onOpenFull,
   children,
 }: RecordDrawerProps) {
   const [editing, setEditing] = useState(false);
@@ -156,6 +160,15 @@ export function RecordDrawer({
         </div>
         {record ? (
           <span className="vos-verbadge">v{formatValue(record.version)}</span>
+        ) : null}
+        {record && !editing && onOpenFull ? (
+          <button
+            type="button"
+            onClick={onOpenFull}
+            className="vos-btn vos-btn-ghost vos-btn-sm"
+          >
+            Full page ↗
+          </button>
         ) : null}
         {record && !editing ? (
           <button
