@@ -69,7 +69,7 @@ function str(v: unknown): string | null {
 }
 
 /** Does this experiment pre-register a bar line against the given assumption? */
-function testsAssumption(exp: AnyRecord, assumptionId: string): boolean {
+export function testsAssumption(exp: AnyRecord, assumptionId: string): boolean {
   const bars = exp.barLines as BarLine[] | undefined;
   if (bars?.some((b) => b.assumptionId === assumptionId)) return true;
   const ids = exp.barLineAssumptionIds as string[] | undefined;

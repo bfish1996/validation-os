@@ -54,3 +54,25 @@ export type {
   NextMoveDecisionInput,
   NextMoveInput,
 } from "./next-move.js";
+export {
+  beliefTestMeters,
+  classifyStage,
+  deriveBeliefStage,
+  emptyTestMeter,
+} from "./stage.js";
+export type {
+  BeliefStage,
+  BeliefStageInput,
+  ConfSign,
+  StageExperimentInput,
+  StageKey,
+  TestMeter,
+} from "./stage.js";
+export { assembleJourney } from "./journey.js";
+export type {
+  AssembleJourneyInput,
+  JourneyBeliefInput,
+  JourneyEvent,
+  JourneyEventKind,
+  JourneyExperimentInput,
+} from "./journey.js";

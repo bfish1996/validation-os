@@ -48,13 +48,19 @@ export type { RecordPageProps } from "./record-page.js";
 export { SurfacePlaceholder } from "./surface-placeholder.js";
 export type { SurfacePlaceholderProps } from "./surface-placeholder.js";
 export { PipelineSurface } from "./pipeline-surface.js";
-export { buildPipeline, weekOverWeekDelta } from "./pipeline.js";
+export {
+  buildPipeline,
+  toStageExperimentInput,
+  weekOverWeekDelta,
+} from "./pipeline.js";
 export type {
   PipelineRow,
   PipelineView,
   ResolvedRow,
   StageKey,
 } from "./pipeline.js";
+export { buildJourney } from "./journey.js";
+export type { JourneyEventView, JourneyView } from "./journey.js";
 export { RegisterCounts } from "./register-counts.js";
 export type { RegisterCountsProps } from "./register-counts.js";
 export { RegisterTable } from "./register-table.js";
