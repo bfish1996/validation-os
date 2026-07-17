@@ -8,7 +8,12 @@
  *  - the **story** — its life ordered into dated events (`assembleJourney`),
  *    each given front-door copy here (the assembler stays label-free);
  *  - the **next-move card** — the same OPS-1292 ranking the front door reads,
- *    filtered to this belief.
+ *    filtered to this belief;
+ *  - the **cycles** (OPS-1347) — the same history regrouped into rounds
+ *    (`cycles.ts`): one per Experiment run against this belief, plus one
+ *    closing bucket for bare/direct evidence. Where the story is a flat dated
+ *    log and `understanding.ts` ranks by how hard each mover pushes, this is
+ *    the round-by-round shape the operator asked for — "show each cycle".
  *
  * The `.tsx` rail + story UI (OPS-1330) mounts thinly over this. Every number is
  * derived through `@validation-os/core`, computed fresh on read, out of the
@@ -34,6 +39,7 @@ import { resolvedKind, toStageExperimentInput } from "./pipeline.js";
 import { toNextMoveInput, type NextMoveRecords } from "./next-move.js";
 import type { Tone } from "./primitives.js";
 import { testsAssumption } from "./derived-views.js";
+import { buildCycles, type CycleView } from "./cycles.js";
 
 /** A journey event with its front-door copy attached. */
 export interface JourneyEventView extends JourneyEvent {
@@ -49,6 +55,9 @@ export interface JourneyView {
   stage: BeliefStage;
   /** The story: the belief's life, oldest first, `now` last. */
   events: JourneyEventView[];
+  /** The loop's rounds, oldest first (OPS-1347) — the same history the story
+   * tells, regrouped by Experiment run instead of by dated event. */
+  cycles: CycleView[];
   /** The ranked next move for this belief; null once it is resolved. */
   nextMove: NextMove | null;
   /** Killed (Invalidated) / moot / null — the drill-in's terminal state. */
@@ -170,11 +179,14 @@ export function buildJourney(
       (m) => m.assumptionId === assumptionId,
     ) ?? null;
 
+  const cycles = buildCycles(assumptionId, records.readings, records.experiments);
+
   return {
     id: assumptionId,
     statement: str(belief.Title),
     stage,
     events,
+    cycles,
     nextMove,
     resolved: resolvedKind(belief),
   };
