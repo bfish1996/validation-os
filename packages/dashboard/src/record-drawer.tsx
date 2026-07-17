@@ -2,10 +2,12 @@ import { useEffect, useState, type ReactNode } from "react";
 import type { AnyRecord, Collection } from "@validation-os/core";
 import { DrawerShell } from "./drawer-shell.js";
 import { REGISTER_LABEL } from "./labels.js";
-import { derivedLabel, fieldLabel, formatValue, primaryLabel } from "./columns.js";
+import { derivedLabel, formatValue, primaryLabel } from "./columns.js";
+import { detailRows, type DetailRow } from "./detail-fields.js";
 import { derivedTone, formatSigned, heroToneClass } from "./primitives.js";
 import { buildPatch, draftFrom, type Draft } from "./edit.js";
 import { EditFields } from "./edit-fields.js";
+import type { RelatedSet } from "./record-view.js";
 import { useUpdate } from "./use-records.js";
 import { UnderstandingPanel } from "./understanding-panel.js";
 
@@ -27,12 +29,20 @@ export interface RecordDrawerProps {
   /** Open this record's canonical full page (story 12). When set, the header
    * shows a "Full page" link; the drawer stays the quick read/edit peek. */
   onOpenFull?: () => void;
+  /**
+   * Open *any* linked record's full page (OPS-1345) — the same navigation the
+   * canonical record page's Connections tab uses, reused here so a relation
+   * field or a bar line's assumption is a click, not inert text. Falls back
+   * to plain (unclickable) titles when omitted.
+   */
+  onOpenRecord?: (id: string) => void;
+  /** The other registers' rows, loaded so a relation field / bar line can
+   * resolve to a title instead of a raw id (OPS-1345). Omitted relations
+   * simply fall back to showing the id. */
+  related?: RelatedSet;
   /** Extra content below the fields in read mode — e.g. the relation editor. */
   children?: ReactNode;
 }
-
-/** Provider-owned/meta fields are shown in the footer, not as content rows. */
-const META_FIELDS = new Set(["id", "version", "createdAt", "updatedAt", "derived"]);
 
 /** Sub-captions under the derived numbers — the formula, in plain language. */
 const DERIVED_SUB: Record<string, string> = {
@@ -65,6 +75,8 @@ export function RecordDrawer({
   basePath,
   onChanged,
   onOpenFull,
+  onOpenRecord,
+  related,
   children,
 }: RecordDrawerProps) {
   const [editing, setEditing] = useState(false);
@@ -94,9 +106,7 @@ export function RecordDrawer({
       ? (record.derived as Record<string, unknown>)
       : null;
 
-  const fields = record
-    ? Object.keys(record).filter((k) => !META_FIELDS.has(k))
-    : [];
+  const rows = record ? detailRows(register, record, related ?? {}) : [];
 
   function startEditing() {
     if (!record) return;
@@ -238,13 +248,12 @@ export function RecordDrawer({
               />
             ) : (
               <div className="vos-detail-list">
-                {fields.map((key) => (
-                  <div key={key} className="vos-detail-row">
-                    <span className="vos-detail-k">{fieldLabel(key)}</span>
-                    <span className="vos-detail-v">
-                      {formatValue(record[key])}
-                    </span>
-                  </div>
+                {rows.map((row) => (
+                  <DetailRowView
+                    key={row.key}
+                    row={row}
+                    onOpenRecord={onOpenRecord}
+                  />
                 ))}
               </div>
             )}
@@ -280,6 +289,110 @@ export function RecordDrawer({
         </footer>
       ) : null}
     </DrawerShell>
+  );
+}
+
+/** One row in the generic field list (OPS-1345) — a relation field renders
+ * as linked title(s), `Owner`/`Agreed by` as plain name(s), `barLines` as
+ * structured rows with a linked assumption; everything else is `row.text`
+ * from `formatValue`. Never the stored id or raw JSON. */
+function DetailRowView({
+  row,
+  onOpenRecord,
+}: {
+  row: DetailRow;
+  onOpenRecord?: (id: string) => void;
+}) {
+  return (
+    <div className="vos-detail-row">
+      <span className="vos-detail-k">{row.label}</span>
+      <span className="vos-detail-v">
+        {row.kind === "relation" ? (
+          row.items && row.items.length ? (
+            <RelationLinks items={row.items} onOpenRecord={onOpenRecord} />
+          ) : (
+            "—"
+          )
+        ) : row.kind === "owner" ? (
+          row.names && row.names.length ? row.names.join(", ") : "—"
+        ) : row.kind === "bar-lines" ? (
+          row.bars && row.bars.length ? (
+            <ul className="vos-bars">
+              {row.bars.map((b, i) => (
+                <li key={i} className="vos-bar-line">
+                  <span className="vos-bar-if">{b.rightIf || "—"}</span>
+                  {b.assumption ? (
+                    <InlineLink
+                      id={b.assumption.id}
+                      title={b.assumption.title}
+                      onOpenRecord={onOpenRecord}
+                    />
+                  ) : null}
+                  <span
+                    className={
+                      b.barVerdict
+                        ? "vos-pill vos-pill-good"
+                        : "vos-pill vos-pill-neutral"
+                    }
+                  >
+                    {b.barVerdict ?? "open"}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            "—"
+          )
+        ) : (
+          row.text
+        )}
+      </span>
+    </div>
+  );
+}
+
+/** A comma-separated list of clickable relation links — falls back to plain
+ * (unclickable) titles when no navigate handler is wired. */
+function RelationLinks({
+  items,
+  onOpenRecord,
+}: {
+  items: { id: string; title: string }[];
+  onOpenRecord?: (id: string) => void;
+}) {
+  return (
+    <span className="vos-detail-links">
+      {items.map((item, i) => (
+        <span key={item.id}>
+          {i > 0 ? ", " : null}
+          <InlineLink id={item.id} title={item.title} onOpenRecord={onOpenRecord} />
+        </span>
+      ))}
+    </span>
+  );
+}
+
+/** One navigable title — a button when a navigate handler is wired, else
+ * plain text (still a title, never a raw id). */
+function InlineLink({
+  id,
+  title,
+  onOpenRecord,
+}: {
+  id: string;
+  title: string;
+  onOpenRecord?: (id: string) => void;
+}) {
+  return onOpenRecord ? (
+    <button
+      type="button"
+      className="vos-inline-link"
+      onClick={() => onOpenRecord(id)}
+    >
+      {title}
+    </button>
+  ) : (
+    <span>{title}</span>
   );
 }
 
