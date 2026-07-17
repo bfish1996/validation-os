@@ -2274,7 +2274,6 @@ textarea.vos-input {
   font-size: 13px;
   color: var(--vos-text);
 }
-}
 
 /* ── Cross-surface cold start (OPS-1331) ────────────────────────────────── */
 /* The shared first-run onboarding line — one tone across the two top-level
