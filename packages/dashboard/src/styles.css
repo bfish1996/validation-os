@@ -294,10 +294,27 @@
 .vos-nav-item.is-active .vos-nav-ic {
   opacity: 1;
 }
+.vos-nav-alert {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--vos-crit);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+}
 .vos-nav-count {
   margin-left: auto;
   font-size: 12px;
   color: var(--vos-faint);
+}
+.vos-nav-alert + .vos-nav-count {
+  margin-left: 6px;
 }
 .vos-nav-item.is-active .vos-nav-count {
   color: var(--vos-accent-text);
@@ -1515,6 +1532,85 @@ textarea.vos-input {
   margin: 0;
 }
 .vos-why-rank {
+/* ── Record page (OPS-1286) ──────────────────────────────────────────────── */
+.vos-record-head {
+  align-items: flex-start;
+}
+.vos-pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.vos-record-cols {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.vos-meter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+.vos-meter {
+  padding: 14px;
+  border: 1px solid var(--vos-border);
+  border-radius: var(--vos-radius);
+  background: var(--vos-surface);
+}
+.vos-meter-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.vos-meter-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--vos-muted);
+}
+.vos-meter-val {
+  font-family: var(--vos-mono);
+  font-size: 28px;
+  font-weight: 600;
+  margin: 6px 0;
+}
+.vos-section-title {
+  margin: 0 0 10px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.vos-human-field {
+  margin-bottom: 12px;
+}
+.vos-human-field p,
+.vos-record-prose p {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--vos-text);
+  margin: 4px 0 0;
+}
+.vos-panels {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+.vos-panel {
+  padding: 14px;
+  border: 1px solid var(--vos-border);
+  border-radius: var(--vos-radius);
+  background: var(--vos-surface);
+}
+.vos-panel-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.vos-backlinks {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -1534,6 +1630,24 @@ textarea.vos-input {
   font-weight: 600;
 }
 .vos-why-rank-title {
+.vos-backlink {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  border: none;
+  background: none;
+  padding: 8px;
+  border-radius: 8px;
+  font: inherit;
+  color: var(--vos-text);
+  text-align: left;
+  cursor: pointer;
+}
+.vos-backlink:hover {
+  background: var(--vos-bg);
+}
+.vos-backlink-title {
   flex: 1;
   min-width: 0;
   overflow: hidden;
@@ -1662,4 +1776,260 @@ textarea.vos-input {
 .vos-radio input {
   margin-top: 2px;
   accent-color: var(--vos-accent);
+.vos-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  font-size: 12px;
+}
+.vos-chip-k {
+  opacity: 0.7;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.vos-bars {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.vos-bar-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--vos-border);
+  border-radius: 8px;
+  font-size: 13px;
+}
+.vos-journey-host {
+  margin-top: 24px;
+  padding: 16px;
+  border: 1px dashed var(--vos-border-strong);
+  border-radius: var(--vos-radius);
+}
+
+/* ── List surface: tabs, controls, groups (OPS-1287) ─────────────────────── */
+.vos-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 16px 0 12px;
+  border-bottom: 1px solid var(--vos-border);
+}
+.vos-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: none;
+  padding: 8px 12px;
+  margin-bottom: -1px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--vos-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+}
+.vos-tab:hover {
+  color: var(--vos-text);
+}
+.vos-tab.is-active {
+  color: var(--vos-text);
+  border-bottom-color: var(--vos-accent);
+  font-weight: 600;
+}
+.vos-tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--vos-crit);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+}
+.vos-view-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.vos-saved-views {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.vos-saved-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--vos-muted);
+}
+.vos-saved-view {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--vos-border-strong);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.vos-saved-apply {
+  border: none;
+  background: var(--vos-bg);
+  padding: 3px 10px;
+  font: inherit;
+  font-size: 12px;
+  color: var(--vos-text);
+  cursor: pointer;
+}
+.vos-saved-apply:hover {
+  color: var(--vos-accent-text);
+}
+.vos-saved-x {
+  border: none;
+  border-left: 1px solid var(--vos-border);
+  background: var(--vos-bg);
+  padding: 3px 8px;
+  font: inherit;
+  color: var(--vos-muted);
+  cursor: pointer;
+}
+.vos-saved-x:hover {
+  color: var(--vos-crit);
+}
+.vos-search {
+  max-width: 260px;
+  flex: 1 1 180px;
+}
+.vos-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--vos-muted);
+}
+.vos-control select {
+  width: auto;
+}
+.vos-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.vos-group-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--vos-muted);
+}
+.vos-group-n {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--vos-bg);
+  border: 1px solid var(--vos-border);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--vos-muted);
+}
+
+/* ── Glossary auto-linking (OPS-1285) ─────────────────────────────────────── */
+/* A dotted inline link; its definition-preview popover shows on hover/focus. */
+.vos-gloss {
+  position: relative;
+  display: inline;
+}
+.vos-gloss-term {
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: help;
+  text-decoration: underline dotted var(--vos-accent);
+  text-underline-offset: 2px;
+}
+.vos-gloss-term:hover,
+.vos-gloss-term:focus-visible {
+  color: var(--vos-accent-text);
+}
+.vos-gloss-pop {
+  position: absolute;
+  z-index: 40;
+  left: 0;
+  top: calc(100% + 6px);
+  width: max-content;
+  max-width: 320px;
+  display: none;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: var(--vos-surface);
+  border: 1px solid var(--vos-border-strong);
+  border-radius: var(--vos-radius);
+  box-shadow: var(--vos-shadow-lg);
+  text-align: left;
+  white-space: normal;
+}
+.vos-gloss:hover .vos-gloss-pop,
+.vos-gloss:focus-within .vos-gloss-pop {
+  display: flex;
+}
+.vos-gloss-pop-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.vos-gloss-pop-def {
+  font-size: 13px;
+  color: var(--vos-text);
+  line-height: 1.5;
+}
+.vos-gloss-pop-neighbours {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--vos-border);
+}
+.vos-gloss-pop-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--vos-muted);
+  width: 100%;
+}
+.vos-gloss-chip {
+  border: 1px solid var(--vos-border-strong);
+  background: var(--vos-bg);
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-size: 12px;
+  color: var(--vos-text);
+  cursor: pointer;
+}
+.vos-gloss-chip:hover {
+  border-color: var(--vos-accent);
+  color: var(--vos-accent-text);
 }

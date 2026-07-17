@@ -7,7 +7,7 @@ import { RegisterBrowser } from "./register-browser.js";
 import { NextMoveSurface } from "./next-move-surface.js";
 import { formatRoute, parseRoute, type Route } from "./route.js";
 import { SidebarNav } from "./sidebar-nav.js";
-import { useCounts } from "./use-counts.js";
+import { useCounts, useNeedsHuman } from "./use-counts.js";
 
 /**
  * Everything the instance passes — config only, never secrets. The API base
@@ -82,6 +82,7 @@ export function ValidationOSDashboard({ config = {} }: ValidationOSDashboardProp
       : parseRoute(window.location.hash, registers),
   );
   const { counts } = useCounts(basePath);
+  const { byRegister: needsHuman } = useNeedsHuman(basePath);
 
   // Keep the route and the URL hash in step, so a deep link opens the right
   // surface and the browser back/forward buttons move between them. The hash is
@@ -159,6 +160,7 @@ export function ValidationOSDashboard({ config = {} }: ValidationOSDashboardProp
         route={route}
         onNavigate={navigate}
         counts={counts}
+        needsHuman={needsHuman}
         registers={registers}
       />
 
@@ -169,6 +171,7 @@ export function ValidationOSDashboard({ config = {} }: ValidationOSDashboardProp
             register={route.register}
             basePath={basePath}
             subtitle={REGISTER_SUBTITLE[route.register]}
+            onOpenRecord={(id) => navigate({ name: "record", id })}
           />
         ) : route.name === "record" ? (
           <RecordPage
@@ -176,6 +179,7 @@ export function ValidationOSDashboard({ config = {} }: ValidationOSDashboardProp
             recordId={route.id}
             onNavigate={navigate}
             backRegister={registers[0] ?? "assumptions"}
+            basePath={basePath}
           />
         ) : route.name === "pipeline" ? (
           <PipelineSurface key="pipeline" basePath={basePath} onNavigate={navigate} />
