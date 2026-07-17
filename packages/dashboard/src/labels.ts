@@ -67,3 +67,20 @@ export const REGISTER_GROUPS: { label: string; registers: Collection[] }[] = [
   },
   { label: "Reference", registers: ["people"] },
 ];
+
+/** The workflow surfaces the sidebar lists above the register tables (OPS-1298):
+ * the front door (default landing) and the portfolio pipeline. Kept beside the
+ * register presentation data so all sidebar labels/icons live in one place. */
+export interface WorkflowNavItem {
+  /** The route this item selects. */
+  route: "next" | "pipeline";
+  label: string;
+  icon: string;
+  /** The default landing — carries a "home" badge in the nav. */
+  isDefault?: boolean;
+}
+
+export const WORKFLOW_NAV: WorkflowNavItem[] = [
+  { route: "next", label: "Next move", icon: "◈", isDefault: true },
+  { route: "pipeline", label: "Pipeline", icon: "▦" },
+];

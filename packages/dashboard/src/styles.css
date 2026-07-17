@@ -302,6 +302,20 @@
 .vos-nav-item.is-active .vos-nav-count {
   color: var(--vos-accent-text);
 }
+.vos-nav-default {
+  margin-left: auto;
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--vos-faint);
+  border: 1px solid var(--vos-border);
+  border-radius: 4px;
+  padding: 1px 4px;
+}
+.vos-nav-item.is-active .vos-nav-default {
+  color: var(--vos-accent-text);
+  border-color: var(--vos-accent-text);
+}
 
 .vos-main {
   grid-area: main;
@@ -323,6 +337,25 @@
   margin: 3px 0 0;
   color: var(--vos-muted);
   font-size: 13px;
+}
+.vos-crumbs {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.5px;
+  color: var(--vos-muted);
+  margin-bottom: 14px;
+}
+.vos-crumbs button {
+  border: none;
+  background: none;
+  color: var(--vos-accent-text);
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+}
+.vos-crumbs button:hover {
+  text-decoration: underline;
 }
 
 /* ── buttons ───────────────────────────────────────────────────────────── */

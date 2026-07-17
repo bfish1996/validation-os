@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import type { Collection } from "@validation-os/core";
 import { REGISTER_ORDER, REGISTER_SUBTITLE } from "./labels.js";
+import { RecordPage } from "./record-page.js";
 import { RegisterBrowser } from "./register-browser.js";
-import { RegisterNav } from "./register-nav.js";
+import { formatRoute, parseRoute, type Route } from "./route.js";
+import { SidebarNav } from "./sidebar-nav.js";
+import { SurfacePlaceholder } from "./surface-placeholder.js";
 import { useCounts } from "./use-counts.js";
 
 /**
@@ -46,22 +49,21 @@ function initialsOf(name: string): string {
   return (first + last).toUpperCase() || "?";
 }
 
-/** Read the active register from the URL hash, if it names one. */
-function registerFromHash(available: Collection[]): Collection | null {
-  if (typeof window === "undefined") return null;
-  const hash = window.location.hash.replace(/^#\/?/, "");
-  return (available as string[]).includes(hash) ? (hash as Collection) : null;
-}
-
 /**
  * The entire styled dashboard as one mountable app (spec OPS-1280): the frame —
- * sidebar composing register nav + live counts, topbar with the backend
- * indicator and user — and the register views (browse → drawer → understanding)
- * it composes from the package's own bricks. Navigation is owned here, not the
- * host router: the active register lives in client state (synced to the URL
- * hash), so the instance mounts this at one route and wires no routing. Styled
- * by the package's own token sheet — the instance imports `styles.css` once and
- * builds no UI.
+ * sidebar composing the workflow + register nav with live counts, topbar with
+ * the backend indicator and user — and the surfaces it routes between across
+ * the three altitudes (front door → pipeline → per-belief drill-in) plus the
+ * kept register tables. Navigation is owned here, not the host router: the
+ * active route lives in client state, synced to the URL hash (OPS-1298), so the
+ * instance mounts this at one route and wires no routing. Styled by the
+ * package's own token sheet — the instance imports `styles.css` once and builds
+ * no UI.
+ *
+ * The shell lands first; the front-door and pipeline surfaces, and OPS-1282's
+ * record page, fill their panes as they ship (each currently a labelled
+ * placeholder). Records is the one live surface — the register browser, kept as
+ * the browse-everything / manual-override view.
  */
 export function ValidationOSDashboard({ config = {} }: ValidationOSDashboardProps) {
   const {
@@ -73,28 +75,31 @@ export function ValidationOSDashboard({ config = {} }: ValidationOSDashboardProp
     registers = REGISTER_ORDER,
   } = config;
 
-  const [active, setActive] = useState<Collection>(
-    () => registerFromHash(registers) ?? registers[0] ?? "assumptions",
+  const [route, setRoute] = useState<Route>(() =>
+    typeof window === "undefined"
+      ? { name: "next" }
+      : parseRoute(window.location.hash, registers),
   );
   const { counts } = useCounts(basePath);
 
-  // Keep the active register and the URL hash in step, so a deep link opens the
-  // right register and the browser back button moves between them.
+  // Keep the route and the URL hash in step, so a deep link opens the right
+  // surface and the browser back/forward buttons move between them. The hash is
+  // the single source of truth: `navigate` only writes it, and this listener
+  // reads it back into state.
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const onHash = () => {
-      const next = registerFromHash(registers);
-      if (next) setActive(next);
-    };
+    const onHash = () => setRoute(parseRoute(window.location.hash, registers));
+    onHash();
     window.addEventListener("hashchange", onHash);
     return () => window.removeEventListener("hashchange", onHash);
   }, [registers]);
 
-  const select = useCallback((register: Collection) => {
-    setActive(register);
-    if (typeof window !== "undefined") {
-      window.location.hash = register;
+  const navigate = useCallback((next: Route) => {
+    if (typeof window === "undefined") {
+      setRoute(next);
+      return;
     }
+    window.location.hash = formatRoute(next);
   }, []);
 
   const toggleTheme = useCallback(() => {
@@ -149,20 +154,56 @@ export function ValidationOSDashboard({ config = {} }: ValidationOSDashboardProp
         ) : null}
       </div>
 
-      <RegisterNav
-        active={active}
-        onSelect={select}
+      <SidebarNav
+        route={route}
+        onNavigate={navigate}
         counts={counts}
         registers={registers}
       />
 
       <main className="vos-main">
-        <RegisterBrowser
-          key={active}
-          register={active}
-          basePath={basePath}
-          subtitle={REGISTER_SUBTITLE[active]}
-        />
+        {route.name === "records" ? (
+          <RegisterBrowser
+            key={route.register}
+            register={route.register}
+            basePath={basePath}
+            subtitle={REGISTER_SUBTITLE[route.register]}
+          />
+        ) : route.name === "record" ? (
+          <RecordPage
+            key={route.id}
+            recordId={route.id}
+            onNavigate={navigate}
+            backRegister={registers[0] ?? "assumptions"}
+          />
+        ) : route.name === "pipeline" ? (
+          <SurfacePlaceholder
+            key="pipeline"
+            title="Pipeline"
+            subtitle="Where every belief stands across the loop, and how much risk you've bought down."
+            detail={
+              <>
+                The portfolio pipeline — the 4-meter board and the “% of risk
+                bought down” burn-up (<b>OPS-1300</b>) — mounts here. The
+                navigation shell wires its route (<code>#pipeline</code>) and nav
+                slot.
+              </>
+            }
+          />
+        ) : (
+          <SurfacePlaceholder
+            key="next"
+            title="Next move"
+            subtitle="Your guided view — the single next move to make, and what's on deck."
+            detail={
+              <>
+                The front-door “next move” surface (design <b>OPS-1295</b>)
+                mounts here. The navigation shell wires its route (
+                <code>#next</code>, the default landing) and nav slot.
+              </>
+            }
+          />
+        )}
       </main>
     </div>
   );
