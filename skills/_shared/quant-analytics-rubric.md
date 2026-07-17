@@ -1,16 +1,17 @@
 # Shared helper — quantitative-analytics trust rubric
 
-Read by `../goals/references/close.md` — the deadline read of a goal measured
-from telemetry or a scoreboard. A goal's closing number becomes `Confidence`
-on the beliefs underneath (via decomposition, `close.md`), which the whole
-team reads off. A sloppy read doesn't just get a wrong answer, it gets a
+Read by `../find-evidence/references/conclude-plan.md` — the deadline read
+of a committed (Market-grade) Experiment measured from telemetry or a
+scoreboard. A plan's closing number becomes `Confidence` on the beliefs
+underneath (via decomposition, `conclude-plan.md`), which the whole team
+reads off. A sloppy read doesn't just get a wrong answer, it gets a
 **confident** wrong answer that moves live beliefs on evidence that never
-actually settled them. Every goal closed against a number sourced from
+actually settled them. Every plan closed against a number sourced from
 telemetry must clear this rubric.
 
 This guards against a bad *query* — the "source" here is your own data, read at
 the deadline, which invites a particular self-deception: reshaping the read
-after seeing where the number landed. The goal's instrument, segment, and
+after seeing where the number landed. The plan's instrument, segment, and
 window were **fixed at commit time** (`docs/goals.md`); this rubric is how the
 close honours that.
 
@@ -27,8 +28,8 @@ reuse a mapping that no longer means what it used to.
 
 ## 2. Denominator discipline
 
-Read the exact denominator the goal's instrument named — the qualified
-population matching the goal's `Lens`. A denominator that narrows or widens at
+Read the exact denominator the plan's instrument named — the qualified
+population matching the plan's `Lens`. A denominator that narrows or widens at
 the deadline to hit the bar is invalid: the instrument was fixed in advance,
 and moving it now is the same tampering as editing a bar.
 
@@ -36,7 +37,7 @@ and moving it now is the same tampering as editing a bar.
 
 Honour the minimum qualified N per segment below which the result is
 **Inconclusive**, not a shrunken positive — the same floor
-`experiment-guardrails.md §2` sets for sample size generally. When the goal
+`experiment-guardrails.md §2` sets for sample size generally. When the plan
 reads across segments, check the aggregate trend against each segment's own
 trend: a reversal (aggregate moves one way, every segment the other) must be
 surfaced, never hidden by reporting only the cut that favours the bet.
@@ -44,11 +45,11 @@ surfaced, never hidden by reporting only the cut that favours the bet.
 ## 4. Date-range discipline
 
 The window was fixed at commit time and cannot move at the deadline. State it
-as the goal pre-registered it ("the full quarter to Sep 30", not "the five
+as the plan pre-registered it ("the full quarter to Sep 30", not "the five
 best days"). Reading a different window because it clears the bar is the core
 violation this rubric exists to catch.
 
-## 5. Correlation vs. caused-by-the-goal's-work
+## 5. Correlation vs. caused-by-the-plan's-work
 
 Before attributing a metric move to what the team actually did, check the same
 window for confounds — other launches, seasonality, channel-mix shifts,
@@ -66,7 +67,7 @@ ones that missed are part of the honest record, not a discarded draft.
 
 ## 7. The verdict — interpolated against the two bars
 
-Map the read onto the goal's pre-registered `We're right if` / `We're wrong
+Map the read onto the plan's pre-registered `We're right if` / `We're wrong
 if`, as **degree of achievement**, not a binary threshold flip
 (`experiment-guardrails.md §2`):
 
@@ -78,19 +79,19 @@ if`, as **degree of achievement**, not a binary threshold flip
 - **Between the two bars** → interpolate — a partial positive at the magnitude
   of what landed. Say plainly where the number sits and let the human read the
   verdict (`Achieved` / `Missed`); the rubric grades the reading, it never
-  auto-flips the goal.
+  auto-flips the plan.
 - **Any of §1–§6 unmet** → cap at **Inconclusive** regardless of where the
   number sits: schema drifted, N too small in the relevant segment, an
   unruled-out confound, or a window/segment read differently than
-  pre-registered. A goal read that can't clear the rubric contributes no
+  pre-registered. A plan read that can't clear the rubric contributes no
   evidence.
 
 ---
 
-## Body template (write into the goal close-out)
+## Body template (write into the plan close-out)
 
 ```markdown
-## Deadline read — <goal name>
+## Deadline read — <experiment name>
 **Instrument:** <resolved definition — from analytics-metric-resolution.md>
 **We're right if:** <pre-registered pass bar>   **We're wrong if:** <kill floor>
 **Segment:** <Lens-matched population>   **Denominator:** <exact definition, as fixed>

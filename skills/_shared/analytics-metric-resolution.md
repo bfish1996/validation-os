@@ -1,13 +1,14 @@
 # Shared helper — analytics metric resolution
 
-Read by `../goals/references/draft.md` (prospective — name the goal's
-instrument concretely, in advance) and `../goals/references/close.md`
-(retrospective — read the number at the deadline). Both need the same thing
-first: turn a goal's **named instrument** ("owners paying £40/mo", "pilots at
-stage 'Signed'") into one concrete, queryable metric/event on a connected
-product-analytics platform — without this repo ever hardcoding what that
-platform calls things. Analytics is **Goals-side** (`docs/goals.md §Found
-numbers`); this helper is only reached through `/goals`.
+Read by `../experiment-design/references/commitment-discipline.md`
+(prospective — name a committed plan's instrument concretely, in advance)
+and `../find-evidence/references/conclude-plan.md` (retrospective — read the
+number at the deadline). Both need the same thing first: turn a plan's
+**named instrument** ("owners paying £40/mo", "pilots at stage 'Signed'")
+into one concrete, queryable metric/event on a connected product-analytics
+platform — without this repo ever hardcoding what that platform calls
+things. Analytics is **Market-side** (`docs/goals.md §Found numbers`); this
+helper is only reached through `/experiment-design` and `/find-evidence`.
 
 **Delegate, don't reinvent.** validation-os does not ship its own schema
 introspection or query execution for PostHog, Mixpanel, BigQuery, or any
@@ -25,7 +26,7 @@ fail-loudly rule) rather than improvising a raw API call.
 ## Inputs
 
 ```yaml
-concept:          <string>   # the goal's instrument, in words, to resolve to a queryable metric
+concept:          <string>   # the committed plan's instrument, in words, to resolve to a queryable metric
 lens:             <from config vocabulary.lens>
 platform:         <config analytics.platform, free text — e.g. "mixpanel">
 glossary_file:    <config analytics.glossary_file, resolved path>
@@ -72,9 +73,9 @@ valid outcome, not a failure to keep searching.
 
 Hand back to the caller: the platform, the resolved event/property/metric
 definition, and whether it came from the glossary (§2) or a fresh resolution
-(§3–4). The caller — `draft.md` pre-registering it as the goal's instrument,
-or `close.md` running the query at the deadline — takes it from here, applying
-`quant-analytics-rubric.md`.
+(§3–4). The caller — `commitment-discipline.md` pre-registering it as the
+plan's instrument, or `conclude-plan.md` running the query at the deadline —
+takes it from here, applying `quant-analytics-rubric.md`.
 
 ### 6. Write back to the glossary — gated
 
@@ -99,9 +100,9 @@ record. Created on first write-back, not eagerly scaffolded at setup.
 Confirmed once by a human, reused after. Re-validated (existence check,
 not blind trust) before reuse — telemetry schemas drift.
 
-| Concept (the goal instrument in words) | Platform | Resolved definition | Confirmed | By | Notes |
+| Concept (the plan's instrument in words) | Platform | Resolved definition | Confirmed | By | Notes |
 |---|---|---|---|---|---|
-| owner pays £40/mo | mixpanel | event `Subscription Started`, `plan=flat_40` | 2026-07-09 | benji | GOAL-Q3-pilots |
+| owner pays £40/mo | mixpanel | event `Subscription Started`, `plan=flat_40` | 2026-07-09 | benji | EXP-Q3-pilots |
 ```
 
 One row per concept. A row whose definition no longer resolves (§2) is updated
@@ -110,8 +111,8 @@ in place at the next successful re-resolution — never silently left stale.
 ## Never
 
 - Never hardcode a platform's event/property/metric name in this file or in
-  the `/goals` playbooks — every example above is illustrative, not a default
-  to assume.
+  the commitment-discipline / conclude-plan playbooks — every example above
+  is illustrative, not a default to assume.
 - Never trust a glossary row without a live re-check — schemas drift.
 - Never guess a mapping when candidates are ambiguous — gate it (§4).
 - Never call a platform's raw API directly when no platform skill/MCP tools

@@ -4,7 +4,7 @@ The front door: turn raw material into guardrail-clean records. Seeding is
 not a separate choreography — **a create is just a grill of an empty
 record.** Seed mode's job is only to figure out *what* records should exist
 and stub them; the actual build runs through **single mode**
-(`single.md`), whose Phase 0 (Statement) → Phase 8 (5 Whys) → Phase 9
+(`single.md`), whose Phase 0 (Statement) → Phase 7 (why-trace) → Phase 8
 (Language) is the gauntlet.
 
 ## Detect the seed
@@ -19,15 +19,15 @@ and stub them; the actual build runs through **single mode**
   named-person, named-wedge specificity before anything is stubbed. Its
   design doc's problem restatement and named person/wedge become the seed
   material. Not installed, or not a fit? Stub straight from the raw idea as
-  usual — every phase still opens as a `Gaps`, so nothing here substitutes
-  for the Statement/5-Whys/scoring grill in single mode. Either way, stub
-  one or more records from what survives; each starts with **all** `Gaps`
-  set, so single mode grills every phase from scratch — the interview only
-  sharpens Description and Owner, it never pre-fills Confidence or clears a
-  guardrail.
+  usual — every phase still runs in single mode, so nothing here
+  substitutes for the Statement/why-trace/scoring grill. Either way, stub
+  one or more records from what survives; each starts at `Completeness % =
+  0` (empty), so single mode grills every phase from scratch — the
+  interview only sharpens Description and Owner, it never pre-fills
+  Confidence or clears a guardrail.
 - **Call transcript / notes** — extract the candidate assumptions stated or
   implied in the material. Pre-fill what's actually stated (Description,
-  Lens if clear), leave the rest as `Gaps`. One record per distinct
+  Lens if clear), leave the rest empty. One record per distinct
   falsifiable belief — split bundled claims rather than writing an "and"
   record.
 - **Existing records** — not seeding; that's audit mode (`audit.md`) to find
@@ -41,17 +41,17 @@ and stub them; the actual build runs through **single mode**
    exists, don't create a twin; grill the existing record.
 2. **Create the stub record(s)** (field map:
    `../../_shared/registry-schema.md`): title + whatever Description is
-   stated, `Owner` = who voiced/champions the belief, a
-   `## Provenance & notes` line in the body for source provenance
-   (call/conversation/document), and `Gaps` = every phase not yet satisfied
-   **plus `Duplicate`, always** — every new stub runs the boundary check
-   against the register through single mode's Phase 5, even when nothing
-   about it looks like an overlap. A record never suspected of overlapping
-   is exactly the record that silently drifts into one.
-3. **Hand each stub to single mode.** It works the `Gaps` as its agenda —
+   stated, `Owner` = who voiced/champions the belief. Assumptions carry no
+   body (`OPS-1305`) — there is no provenance line to write; the source
+   context stays in conversation. Every new stub runs the `Duplicate` check
+   in single mode's Phase 5 regardless of suspicion — a record never
+   suspected of overlapping is exactly the record that silently drifts into
+   one.
+3. **Hand each stub to single mode.** It works the full gauntlet —
    Statement, atomicity, falsifiability, Lens, dedup/contradiction, scoring,
-   metric-for-truth, 5 Whys, language — one question at a time, gated write.
-   The stub is guardrail-clean when its `Gaps` empties.
+   why-trace, language — one question at a time, gated write. The stub is
+   guardrail-clean when `Completeness % = 100` and every semantic check has
+   passed.
 
 For a whole transcript with many candidates, this is a small loop: stub them
 all, then grill top-down by `Risk`. If the user wants that unattended,
@@ -59,25 +59,27 @@ that's **loop mode** — seeding included, no gates.
 
 ## Lifecycle & timing (applies to every seeded record)
 
-- **`Gaps` drives the work, never an exhaustive march.** A gap-filtered
+- **`Completeness %` drives the work, never an exhaustive march.** A Draft
   queue sorted by Risk descending *is* the grill queue: open one, grill
-  top-down, stop when Risk gets low. Empty `Gaps` = guardrail-complete → the
-  close-out write flips `Status` `Draft` → `Live`, and the record enters
-  the derived **test-next** queue on its own — no goal link required. A
-  goal link never moves the row in the queue — a goal doesn't touch Impact;
-  every `Live` row competes on its own Risk (`../../../docs/goals.md`).
-- **5 Whys timing.** Mandatory **at creation** (do it up front, so no
-  backlog forms). For a retrofit backlog, prioritise by `Risk × gap-count`,
-  not all at once — the low-Risk tail sits as clean scaffold until it's
+  top-down, stop when Risk gets low. `Completeness % = 100` + every
+  semantic check passed = guardrail-complete → the close-out write flips
+  `Status` `Draft` → `Live`, and the record enters the derived
+  **test-next** queue on its own — no plan link required. A plan link never
+  moves the row in the queue — a plan doesn't touch Impact; every `Live`
+  row competes on its own Risk (`../../../docs/goals.md`).
+- **Why-trace timing.** Run **at creation** (do it up front, so no backlog
+  forms). For a retrofit backlog, prioritise by `Risk × incompleteness`, not
+  all at once — the low-Risk tail sits as clean scaffold until it's
   actually due to be tested.
-- **No SWOT in assumption bodies.** An assumption is one falsifiable bet;
-  if-false / what-would-prove-it / threats are already covered by Impact +
-  Metric-for-truth + the Depends-on graph. If strategic SWOT is wanted, do
-  it one level up (thesis-wide, or per Lens/Theme), referencing assumptions.
+- **No SWOT in assumption bodies.** An assumption is one falsifiable bet, and
+  it carries no body at all (`OPS-1305`); if-false / what-would-prove-it /
+  threats are already covered by Impact + the falsifiability check + the
+  Depends-on graph. If strategic SWOT is wanted, do it one level up
+  (thesis-wide, or per Lens/Theme), referencing assumptions.
 
 ## Scope boundary
 
-Enforce that a falsifiability statement exists, then **stop**.
+Enforce that a falsifiability check passes, then **stop**.
 Creating/running experiments and managing evidence is the Experiments
 register's job (`/experiment-design`, `/find-evidence`) — seed mode never
 designs a test.

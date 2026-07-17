@@ -1,46 +1,37 @@
 # Shared helper — terminology check (ubiquitous language)
 
 The canonical terminology-enforcement procedure. Cited by `/decisions` (its
-Terminology Audit mode) **and** by any output-producing skill that wants its
-draft checked before it ships. Build and enforcement judge by the same
-glossary, so what the glossary says is what every output is held to. When
-this changes, all paths change.
+Terminology Build/Audit modes) **and** by any output-producing skill that
+wants its draft checked before it ships. Build and enforcement judge by the
+same glossary, so what the glossary says is what every output is held to.
+When this changes, all paths change.
 
-The glossary lives in the Decisions & Terminology register (query it via the
-active connector, **filtered/confirmed to `Type = Terminology`** — the same
-register holds Decision records, whose rules live in
-`decision-guardrails.md`). Field map: `registry-schema.md`.
+The glossary lives in its own **Glossary register** (`OPS-1305`) — query it
+via the active connector. Field map: `registry-schema.md §Field map —
+Glossary`.
 
 > ⚠️ Always query the full register, never a filtered view or subset —
 > checking against a slice silently misses terms.
 
-## Model: one record per word, audience in the body
+## Model: one record per word, all properties, no body
 
 A word is **one concept = one record.** Audience-specific meaning and bans
-are not fields and not separate per-audience records — they live in the
-record **body**, per audience. The audience list comes from the config's
-`vocabulary.audiences`. The fields carry only the word's audience-agnostic
-facts (Title, Type, Status, Area, Related tension).
+are **structured properties**, not body prose (`OPS-1305` — the glossary
+carries no body at all, so the check parses fields directly):
 
-### Record body — the enforceable source
+- **`Definition`** (text) — the definition, one sentence per applicable
+  audience if it diverges. Context only, **not enforced**.
+- **`Avoid`** (structured `[{audience, phrase, fix}]`) — the **must-fix
+  source**. One entry per banned phrasing + its fix, e.g.
+  `{audience: "End user", phrase: "claim", fix: "redeem"}`. An audience
+  value of `All` applies universally. A check applies the `All` entries
+  plus the entries for the resolved audience.
+- **`How it differs`** (text) — contrasts the term from confusable
+  neighbours (pairs with the `Related tension` relation). Context.
 
-Every term's body follows three fixed headings (the check keys off these
-verbatim):
-
-- **`## Definition`** — one bullet per audience that applies
-  (`- **End user:** …`, `- **Internal:** …`); a single bullet if the meaning
-  is uniform. Context only, **not enforced**.
-- **`## Avoid / don't say`** — the **must-fix source**. Per-audience bullets
-  of banned phrasings + the fix, e.g. `- **End user:** 'claim' → say
-  'redeem'`. Universal bans use `- **All:** …`. A check applies the **All**
-  bullets plus the bullets for the resolved audience.
-- **`## How it differs`** — 2–5 `- **vs <neighbour>:**` bullets contrasting
-  the term from confusable neighbours (pairs with the `Related tension`
-  relation). Context.
-
-A term whose body breaks the template (no `## Avoid` section) silently
-escapes the check — when building or editing terms, always write the
-template.
+There is no template to break — `Avoid` is a real structured field, so a
+term missing must-fix entries is simply an empty `Avoid`, not a silently
+escaped check.
 
 ## The check contract
 
@@ -50,24 +41,25 @@ template.
 
 **Steps:**
 
-1. Query the register (Type = Terminology; Title, Status, Area). Determine
-   the **hard-enforce set**: `Active` + `Superseded` + `Reversed` records.
-   Optionally narrow to the draft's Area when known.
-2. Read the **bodies of the hard-enforce set only** and parse each
-   `## Avoid / don't say` section into `{audience → [banned phrasing →
-   fix]}`. Apply the **All** bullets plus the resolved audience's bullets.
+1. Query the Glossary register (Title, Status, Area, Avoid). Determine the
+   **hard-enforce set**: `Active` + `Superseded` records (there is no
+   `Reversed` status on a glossary term — a term is superseded by a better
+   one, never reversed). Optionally narrow to the draft's Area when known.
+2. Read the `Avoid` field of the hard-enforce set only and parse it into
+   `{audience → [banned phrasing → fix]}`. Apply the **All** entries plus
+   the resolved audience's entries.
 3. Scan the draft for those banned phrasings, and for any use of a
-   `Superseded`/`Reversed` term.
+   `Superseded` term.
 4. If the draft uses a domain concept that has **no glossary record at all**,
    emit it as an `unknown term` note — a candidate to add via `/decisions`'
    Terminology Build mode.
 
 **Severity:**
 
-- **must-fix** — a banned phrasing from an `## Avoid` bullet (All or the
-  resolved audience), or a `Superseded`/`Reversed` term.
-- **should-fix** — an `## Avoid` bullet for the resolved audience that
-  suggests a register/wording swap (soft nudge rather than hard ban).
+- **must-fix** — a banned phrasing from an `Avoid` entry (All or the
+  resolved audience), or a `Superseded` term.
+- **should-fix** — an `Avoid` entry for the resolved audience that suggests
+  a register/wording swap (soft nudge rather than hard ban).
 - **note** — unknown term (not yet in the glossary).
 
 **Output shape** (the calling skill renders this at its existing gate):

@@ -1,10 +1,11 @@
 # Shared reference — register-wide audit harness
 
 The canonical **detection** shape for scanning the whole Assumption Registry
-at once: what's non-compliant, what's duplicated/contradictory, where the
-dependency graph is unhealthy, and — with the linked experiments loaded —
-which plans need killing or closing (Phase E). Cited by `/assumptions` and by
-the weekly ritual's experiment sweep (`docs/weekly-ritual.md`):
+at once: what's non-compliant, what's duplicated/contradictory, and where
+the dependency graph is unhealthy. Experiment-lifecycle sweeps (which plans
+need killing or closing) are `/find-evidence audit`'s own detection shape
+(`../find-evidence/references/audit.md`, Phase E note below). Cited by
+`/assumptions` and by the weekly ritual's sweep (`docs/weekly-ritual.md`):
 
 - **audit mode** runs it **read-only** → a findings report; fixes stay gated
   inline.
@@ -35,8 +36,8 @@ falsifiable / plain-language booleans, severity (`ok|minor|major`), and a
 and verbosity (buries the claim in stacked clauses/jargon/hedging) — flag
 either, and where verbosity trips, include a proposed concise rewrite
 alongside the falsifiable-Description proposal. Do **not** invent scores or
-5-Whys — audit only what's shown; flag missing scores for the human (audit)
-or the grill (loop).
+why-trace answers — audit only what's shown; flag missing scores or an
+incomplete `Completeness %` for the human (audit) or the grill (loop).
 
 ## Phase B — Dedup & contradiction panel (barrier, ≥2 perspectives, union)
 
@@ -49,16 +50,12 @@ passes from different angles (strict-merge vs cross-wave) and **union** —
 one pass misses cross-wave restatements. Always call out ID collisions,
 **direct contradictions** (opposite-polarity pairs → merge, `§4a`), and
 **tensions** (distinct claims that can't both hold → recommend the
-`Contradicts` edge + `Contradiction` tag, `§4b`). This panel is what
-populates the `Contradiction` queue across the register; an inline grill
-only catches them one record at a time.
-
-For any pair the panel classifies as **distinct, keep**, also check whether
-both records' bodies already carry the mandatory boundary line under
-`## Provenance & notes` (`§4` Enforcement — `Distinct from <record> because:
-<dimension>`). If not, add `missing boundary statement` to that record's
-Phase A issue list — this is how the retrofit backlog surfaces, without a
-separate detection pass.
+`Contradicts` edge, `§4b`). This panel is what surfaces unwired tensions
+across the register; an inline grill only catches them one record at a
+time. Assumptions carry no body (`OPS-1305`), so there is no stored
+boundary line to check for "distinct, keep" pairs — that confirmation is a
+transient grill check (`assumption-guardrails.md §4`), re-run live whenever
+a pair is re-examined, not a retrofit backlog to detect.
 
 ## Phase C — Graph health (barrier, full DAG)
 
@@ -71,11 +68,16 @@ health note with the orphan share and which families float free.
 Run every check in `ontology.yaml §integrity_rules` whose `surfaced_by`
 includes `/assumptions audit`, citing each finding by rule `id`. Phase A/B/C
 already cover the per-record and graph-shape rules; what only this phase
-catches is status coherence and propagation — `draft-live-gaps-invariant`,
-`unrolled-verdict`, `moot-without-resolver`, `invalidated-dependency`,
+catches is status coherence and propagation —
+`draft-live-completeness-invariant`, `incomplete-live`, `unrolled-verdict`,
+`moot-without-resolver`, `invalidated-dependency`,
 `contradicts-both-validated`, `derived-field-stale`, `strength-not-gated`,
-`reading-ungraded`, `goal-rung-no-floor`, `kill-zone-unreviewed`,
-`stale-representativeness`.
+`reading-ungraded`, `market-rung-no-floor`, `stale-representativeness`,
+`stale-seed-anchor`, plus the structural `dangling-reference` /
+`illegal-select-value` / `body-template-missing-heading` /
+`two-way-relation-one-ended` checks. The kill-lane surface itself
+(Confidence ≤ −50) is the `kill_lane` derived view, chased here for a
+human-affirmed kill verdict even though it isn't a named integrity rule.
 These need the assumptions **and** their linked experiments loaded — pull
 both registers before fanning out.
 
@@ -95,49 +97,31 @@ Two of these deserve their mechanics spelled out:
   (or being told of) an ICP/Lens change, flag all such readings for a
   Rep re-grade, dated.
 
-## Phase E — Experiment lifecycle sweeps (needs the plans + their readings)
+## Phase E — Experiment lifecycle sweeps (owned by `/find-evidence audit`)
 
 The plan-side hygiene the assumption phases don't reach — implementing
-`experiment-guardrails.md §0/§6`. Load the Experiments register (plans and
-their readings) alongside the assumptions, as Phase D already does. Every
-finding here **surfaces a candidate**: the kill and the closure verdict stay
-the **human closure gate** (`experiment-guardrails.md §6`) — never an
-autonomous flip, in either mode.
+`experiment-guardrails.md §0/§6` — now lives in **`/find-evidence`'s own
+audit mode** (`../find-evidence/references/audit.md`, `OPS-1305`): kill
+prompts (stale `Running`, belief mooted/merged, superseded, cost-ballooned),
+closure audits (N-met-not-closed, missing bar verdict/rollup), and the
+committed-plan-specific `overdue-risk-acceptance` /
+`experiment-band-unaccepted` / `experiment-tripwire-unreviewed` /
+`overdue-experiment` / `outcome-unread` rules. Run that mode alongside this
+one for full-register health; this file no longer duplicates it.
 
-- **Kill prompts (`§6`).** Surface each `Running` plan matching a kill
-  trigger, tagged with which one, for a human kill-or-continue call:
-  - **stale `Running`** — no reading activity logged against the plan (last
-    reading older than the cadence);
-  - **belief mooted or merged** — the plan's underlying assumption went
-    `Derived Impact` 0 (mooted) or was merged away
-    (`assumption-guardrails.md §4`);
-  - **superseded** — a cheaper same-belief design now exists;
-  - **cost ballooned** — the run has outgrown its design-time `Feasibility`.
+**Source canonical-link drift** stays here — it's a register-wide sweep over
+every reading's source link, not plan-specific:
 
-  A kill closes the plan `Inconclusive` on unmet bars; already-concluded
-  readings survive (`§6`).
+- **two spellings of one artifact** — links that normalize to the same
+  stable resource URL (scheme + host + path/id, with query strings,
+  fragments, and tracking parameters stripped) but are stored as different
+  strings; they must collapse to one exact string, or the independence
+  dedupe (`experiment-guardrails.md §2`) counts one source as two;
+- **pasted-artifact primaries** — a reading whose primary copy is pasted
+  inline rather than living at a link in the designated **"Raw evidence"**
+  Drive home (`experiment-guardrails.md §0`); flag to re-home and reference.
 
-- **Closure audits (`§6`).** Two shapes:
-  - a plan whose pre-registered **N is met but that was never closed** — the
-    evidence is in and the human closure act is owed;
-  - a **closed** plan missing a per-belief **bar verdict** or its **rollup
-    report** — closure done sloppily; the report is what the register reads
-    back, so a gap is a finding.
-
-- **Source canonical-link drift (`§0`).** Over every reading's source link:
-  - **two spellings of one artifact** — links that normalize to the same
-    stable resource URL (scheme + host + path/id, with query strings,
-    fragments, and tracking parameters stripped) but are stored as different
-    strings; they must collapse to one exact string, or the independence
-    dedupe (`experiment-guardrails.md §2`) counts one source as two;
-  - **pasted-artifact primaries** — a reading whose primary copy is pasted
-    inline rather than living at a link in the designated **"Raw evidence"**
-    Drive home (`§0`); flag to re-home and reference.
-
-Whether any of these should harden into `ontology.yaml §integrity_rules` is
-the registry-schema rewrite's call, deferred with the physical schema
-(`experiment-guardrails.md §0` pending note); they stay sweep prompts here
-until then.
+This stays a sweep prompt without a hardened `ontology.yaml` rule id.
 
 ## Synthesis
 
@@ -150,7 +134,8 @@ merge/contradiction clusters, graph gaps, integrity-rule findings (by rule
   nothing.
 - **Loop mode:** feed the clusters/violations straight into the autonomous
   convergence loop, which applies them and logs every mutation to the
-  run-log. **Phase E is the exception**: a kill or closure verdict is the
-  human closure gate and is never auto-applied — the loop surfaces the
-  candidate and stops. Link-drift normalization is a mechanical fix and may
-  run gated like any other.
+  run-log. **A kill or closure verdict is always the exception**: it is the
+  human closure gate (`/find-evidence`'s `references/conclude-plan.md`) and
+  is never auto-applied — the loop surfaces the candidate and stops.
+  Link-drift normalization is a mechanical fix and may run gated like any
+  other.

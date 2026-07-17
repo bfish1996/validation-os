@@ -12,39 +12,45 @@ fundraising, and partnership beliefs (`domains.md`).
 Every belief the business depends on becomes a falsifiable **Assumption**:
 one plain sentence — `We assume [who] will [do something] because [reason]`
 — scored for **Impact** (0–100, the only hand-scored number: if this is
-false, how much of the solution breaks?) and traced to its roots with a
-disciplined **5 Whys** (every "why" answer is either another assumption in
-the register or a ✅ ground truth, so the register self-completes into a
-dependency graph with shared foundations). The hand score is a pure
-intrinsic seed; the recompute propagates what depends on each belief —
-dependents and standing decisions — into a **Derived Impact** on every
-touching write, so load-bearing beliefs rank by structure, not by re-scoring
+false, how much of the solution breaks?) and traced to its roots by a
+disciplined why-cascade held in the `Depends on` / `Enables` graph (every
+link resolves to another assumption in the register or a ✅ ground truth, so
+the register self-completes into a dependency graph with shared
+foundations). The hand score is a pure intrinsic seed; the recompute
+propagates what depends on each belief — dependents and standing decisions —
+into a **Derived Impact** on every touching write, so load-bearing beliefs
+rank by structure, not by re-scoring
 (`skills/_shared/assumption-guardrails.md §3`).
 
 An assumption that can't be proven wrong isn't an assumption — it's a
-belief, and it gets rejected or reframed. Every record carries a **Metric
-for truth**: the specific, countable result that would turn the bet into a
-fact.
+belief, and it gets rejected or reframed at the grill. Readiness is a
+derived **Completeness %** — every structural slot present (Description,
+Lens, Impact, Scoring justification, dependencies traced) — not a stored
+checklist.
 
 Skills: `/assumptions` (build, grill, audit). Rules:
 `skills/_shared/assumption-guardrails.md`.
 
 ## Habit 2 — Buy down risk with evidence
 
-An **Experiment** is a pre-registered plan — one instrument, one protocol
-run, one Lens-matched population — that may honestly test **several**
-beliefs at once, each bundled belief carrying its own `We're right if` /
-`We're wrong if` pair and its own planned rung, all fixed before running
-(`skills/_shared/experiment-guardrails.md §1b`). Each rung is bought at the
-lowest step of the **evidence ladder** that can honestly move that belief
-(see `evidence-ladder.md`: 8 rungs in two categories — **Testing**,
-recruited-sample instruments from Opinion ±3 to Prototype usage ±30, and
-**Goals**, market-closed targets from Signed intent up to Paying users
-±99). Evidence arrives as **readings** — one per artifact × belief it
-actually addressed — born exactly three ways: from an Experiment (forward
-design), from a Goal at its deadline, or bare (found evidence: desk
-research, sweeps). Never retroactively: found evidence gets no wrapper
-experiment, and a found scoreboard number prompts a *forward* goal
+An **Experiment** is the unified evidence **plan** — one instrument, one
+protocol run, one Lens-matched population — that may honestly test
+**several** beliefs at once, each bundled belief carrying its own `We're
+right if` / `We're wrong if` pair and its own planned rung on a composed bar
+line, all fixed before running (`skills/_shared/experiment-guardrails.md
+§1b`). Each rung is bought at the lowest step of the **evidence ladder**
+that can honestly move that belief (see `evidence-ladder.md`: 8 rungs in two
+categories — **Testing**, recruited-sample instruments from Opinion ±3 to
+Prototype usage ±30, and **Market**, market-closed targets from Signed
+intent up to Paying users ±99). A plan carrying a `Deadline` is
+commitment-grade: it closes with an `Outcome` (`Achieved` / `Missed` /
+`Dropped`) as well as its bar verdicts — the discipline a standalone `Goal`
+record used to give, now just a mode of the same record (`goals.md`).
+Evidence arrives as **readings** — one per artifact × belief it actually
+addressed — born exactly two ways: from an Experiment (forward design, at
+its close for a committed plan), or bare (found evidence: desk research,
+sweeps). Never retroactively: found evidence gets no wrapper experiment, and
+a found scoreboard number prompts minting a *forward* committed plan
 (`goals.md`). An experiment closes (or is killed — same gate) by one human
 act: a bar verdict per belief plus a rollup summary, which are **reports,
 never Confidence inputs** — the readings already carried the evidence.
@@ -70,12 +76,12 @@ Assumption → (grill/score) → Experiment (pre-registered per-belief bars)
     → next test surfaces → closure: human bar verdicts (a report)
 ```
 
-Skills: `/experiment-design` (forward tests), `/find-evidence`
-(retrospective evidence — internal record + desk research; Testing-side
-only — scoreboard numbers are `/goals`' side, `goals.md`),
-`/meeting-prep` (person → assumption matching: work backward from who
-you're meeting to what they can uniquely prove or disprove). Rules:
-`skills/_shared/experiment-guardrails.md`,
+Skills: `/experiment-design` (forward tests, including drafting a committed
+plan), `/find-evidence` (retrospective evidence — internal record + desk
+research; Testing-side only, and closing out a committed plan — scoreboard
+numbers are Market-side, `goals.md`), `/meeting-prep` (person → assumption
+matching: work backward from who you're meeting to what they can uniquely
+prove or disprove). Rules: `skills/_shared/experiment-guardrails.md`,
 `skills/_shared/historic-evidence.md`.
 
 ## Habit 3 — Speak one language, log decisions
@@ -120,22 +126,23 @@ Skills: `/decisions`. Rules: `skills/_shared/decision-guardrails.md`,
 
 ## Goals & OKRs — instruments, not gates
 
-A goal is a **time-boxed, owned commitment to a measurable state change in
-the world**, held as its own **Goal record** — two bars fixed at commit time
-(`We're right if` / `We're wrong if`), a deadline, an owner, and the
-measuring instrument named in advance. The OS never becomes an OKR tracker
-(your CRM/analytics stay the scoreboard), and it **never gates goal-making**
-— the team commits to what it chooses. Three joints connect the two machines:
-**in** — the beliefs a goal rests on are surfaced and their Confidence read
-back as **advisory bands**, which ask for a dated risk-acceptance when you're
-gambling but never block; **through** — those beliefs get a per-goal view,
-but linkage never anchors Impact (a goal never touches Impact) and never
-gates queue membership: every `Live` assumption is eligible on its own
-merits; **out** — a verdict landing on a
-linked belief trips a review of the goal, and at the deadline the outcome is
-decomposed per belief into evidence (a hit is top-rung proof; a miss usually
-invalidates something specific). Full treatment and a worked example:
-`goals.md`; skill: `/goals`.
+A commitment is a **time-boxed, owned bet on a measurable state change in
+the world**, carried on an ordinary **Experiment** record — two bars fixed
+per belief at commit time (`We're right if` / `We're wrong if`), a
+`Deadline`, an `Owner`, and the measuring instrument named in advance. The OS
+never becomes an OKR tracker (your CRM/analytics stay the scoreboard), and it
+**never gates commitment-making** — the team commits to what it chooses.
+Three joints connect the two machines: **in** — the beliefs a plan rests on
+are surfaced and their Confidence read back as **advisory bands**, which ask
+for a dated risk-acceptance when you're gambling but never block;
+**through** — those beliefs get a per-plan view, but linkage never anchors
+Impact (a committed plan never touches Impact) and never gates queue
+membership: every `Live` assumption is eligible on its own merits; **out** —
+a verdict landing on a linked belief trips a review of the plan, and at the
+deadline the outcome is decomposed per belief into evidence (a hit is
+top-rung proof; a miss usually invalidates something specific). Full
+treatment and a worked example: `goals.md`; skills: `/experiment-design`
+(draft, commit), `/find-evidence` (close-out, decomposition).
 
 ## Verdicts are human
 

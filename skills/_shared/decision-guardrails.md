@@ -12,10 +12,10 @@ operational ruleset — how to score, tag, and gate a Decision record.
 ## 1. Decision definition discipline
 
 A Decision record states **what was decided, by whom, and why** — not a vague
-direction, not a discussion summary. Write the `## Decision` body heading as
-one line: *"We decided [X] instead of [alternative], on [date], because
-[reason]."* Plain language, no hyperbole — same discipline as an assumption's
-Description.
+direction, not a discussion summary. Write the `Statement` field as one line:
+*"We decided [X] instead of [alternative], on [date], because [reason]."*
+Plain language, no hyperbole — same discipline as an assumption's
+Description. (Promoted from the old `## Decision` body heading, `OPS-1305`.)
 
 Every Decision record must carry: a `Decided date`, a `Source` (link back to
 the transcript/thread/note it came from), and at least one `Owner`. A record
@@ -43,9 +43,11 @@ unreliable transcript can't earn top-band confidence in the *content* of what
 was agreed, even if the words on the page look unanimous.
 
 **Unanimity score is the only hand-scored number on a Decision record.**
-Always record the chosen band + a one-line reason in the body (a "Scoring
-justification" line under `## Rationale`) — so the number is auditable, same
-convention as an assumption's Impact score (`assumption-guardrails.md §3`).
+Always record the chosen band + a one-line reason in `Unanimity
+justification` — so the number is auditable, same convention as an
+assumption's Impact score (`assumption-guardrails.md §3`). Promoted from the
+old `## Rationale` body prose (`OPS-1305`); `## Rationale` itself survives
+for the wider why, incl. risk-acceptance lines (§8).
 
 ---
 
@@ -195,9 +197,9 @@ Risk-acceptance: <assumption ref> — <why deciding now beats testing first> —
 ```
 
 Audit and the weekly ritual flag records whose risk-accepted assumptions are
-past `revisit by` and still untested. **`/goals` uses this same format** for
-the risk-acceptance a band asks for (`docs/goals.md`) — one parser, both
-callers.
+past `revisit by` and still untested. **`/experiment-design` uses this same
+format** for the risk-acceptance a commitment band asks for on a Market-grade
+plan (`docs/goals.md`) — one parser, both callers.
 
 **Mootness dies with the decision.** When a Decision carrying `Resolves
 assumption` links flips to `Reversed` or `Superseded` (and the superseding
@@ -209,29 +211,24 @@ session (`registry-schema.md §Status & derived views`).
 
 ---
 
-## 9. Goals are not decisions
+## 9. Committed evidence plans are not decisions
 
-A goal is **a time-boxed, owned commitment to a measurable state change in
-the world** — and it is **not a Decision row**. Committing to a goal is a
-commitment, but it isn't a call between options, which is all this file's
-apparatus is for: a unanimity band and a reversibility door say nothing
-useful about a target. What a goal needs is two bars fixed in advance and a
-human verdict at the deadline.
+A committed (Market-grade) Experiment is **a time-boxed, owned commitment to
+a measurable state change in the world** — and it is **not a Decision row**.
+Committing to a plan is a commitment, but it isn't a call between options,
+which is all this file's apparatus is for: a unanimity band and a
+reversibility door say nothing useful about a target. What a committed plan
+needs is two bars fixed in advance and a human verdict at the deadline.
 
-Goals live as their own **Goal record**: fields in `registry-schema.md`, the
-model and a worked example in `docs/goals.md`, drafting and close-out via
-`/goals`. Nothing in this file applies to them.
+Committed plans live on the **Experiment record** — the Goal record was
+unified into it (`OPS-1305`): fields in `registry-schema.md`, the model and a
+worked example in `docs/goals.md`, drafting via `/experiment-design`,
+close-out via `/find-evidence`. Nothing in this file applies to them.
 
-`Kind` (select, Decision rows only): `Direction` (strategy, scope, path
-calls) / `Operating` (process, tooling, how-we-work). Optional — legacy rows
-without it are untyped; Audit nudges, never blocks. There is **no `Goal
-commitment` kind**; a legacy row still carrying one is migrated to a Goal
-record, not re-typed.
-
-Goal-linkage is not a Decision concept either. An assumption's per-goal queue
-view is read from the **Goal record's** `Based on assumption` links
-(`docs/goals.md`) — no `Kind` of Decision row confers it, a goal never
-anchors Impact, and linkage is a lens, never a queue-membership condition.
+Commitment linkage is not a Decision concept either. An assumption's
+evidence-plan view is read from the committed Experiment's own bar lines —
+no Decision-row field confers it, a plan never anchors Impact, and linkage
+is a lens, never a queue-membership condition.
 
 ## 10. Guardrail summary (reject a Capture/Sweep write that fails any)
 
@@ -243,6 +240,6 @@ never in place of an unresolved `Related tension` · `Based on` and `Resolves`
 assumption relations set independently, never one inferred from the other ·
 Sweep's conflict search never crosses `Area` · Reversibility classified
 (unclear = one-way) · One-way door with above-threshold `Based on` links
-carries a risk-acceptance line or stays `Provisional` pending a test · `Kind`
-is `Direction` or `Operating` only — a row proposed as `Goal commitment` is a
-Goal record, rejected here and routed to `/goals` (§9).
+carries a risk-acceptance line or stays `Provisional` pending a test · a
+committed evidence plan is never captured as a Decision row — rejected here
+and routed to `/experiment-design` (§9).

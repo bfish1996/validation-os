@@ -1,20 +1,15 @@
 # Audit mode — read-only decision health report
 
-Scan every `Type = Decision` record and report what's wrong — **without
-changing anything**. Safe to run any time. Fixes happen afterwards, one at a
-time, gated, through Capture mode.
+Scan every record in the Decisions register and report what's wrong —
+**without changing anything**. Safe to run any time. Fixes happen
+afterwards, one at a time, gated, through Capture mode.
 
 ## What it does
 
-1. **Load the full register unfiltered first, then split by `Type`.** A
-   `Type = Decision` fetch matches neither branch when `Type` is unset, so
-   fetching pre-filtered would make untyped rows permanently invisible —
-   they'd never surface as Decisions *or* Terminology, on any subsequent
-   audit. Flag every row with no `Type` (`untyped-record`,
-   `../../_shared/ontology.yaml`) before proceeding. Then work the Decision
-   subset (never a filtered *view* either —
-   `../../_shared/registry-schema.md`). Rules:
-   `../../_shared/decision-guardrails.md`.
+1. **Load the full Decisions register unfiltered** (never a filtered
+   *view* — `../../_shared/registry-schema.md`; Decisions and Glossary are
+   separate registers now, `OPS-1305`, so there is no cross-register
+   filter to get wrong). Rules: `../../_shared/decision-guardrails.md`.
 2. **Check each record against the guardrail summary**
    (`decision-guardrails.md §10`) and flag:
    - Missing **Owner**.
@@ -46,24 +41,24 @@ time, gated, through Capture mode.
      link points at a now-`Invalidated` assumption — the reason the decision
      rested on has been disproved; flag for re-affirm or revisit (highest
      severity when the decision is a `One-way door`).
-   - **Retired goal-commitment rows**: any row still carrying `Kind: Goal
-     commitment` — a goal is not a Decision row
-     (`decision-guardrails.md §9`). Report it for migration to a Goal
-     record; **do not** audit it as a goal (that's `/goals audit`) and do not
-     re-type it in place.
-   - Missing `Kind` on Decision rows — a nudge, never a block (legacy rows
-     are untyped by design).
+   - **Misfiled commitments**: any row that actually describes a committed
+     evidence plan rather than a decision (`decision-guardrails.md §9`) — a
+     commitment is not a Decision row. Report it for migration to an
+     Experiment record; **do not** audit it as a plan (that's
+     `/find-evidence audit`) and do not re-type it in place.
    These checks are the `/decisions audit` rules in
    `../../_shared/ontology.yaml §integrity_rules` — cite each finding by its
-   rule `id` (`untyped-record`, `stale-resolution`, `stale-rationale`,
-   `one-way-door-untested-basis`, `unresolved-tension`,
-   `supersedes-tension-overlap`, `moot-without-resolver`, plus the
-   structural rules).
+   rule `id` (`dangling-reference`, `illegal-select-value`,
+   `body-template-missing-heading`, `two-way-relation-one-ended`,
+   `stale-resolution`, `stale-rationale`, `one-way-door-untested-basis`,
+   `unresolved-tension`, `supersedes-tension-overlap`,
+   `moot-without-resolver`).
 
-**Goal health is not audited here.** Overdue risk-acceptances, unanswered
-tripwires, unclosed goals, undecomposed outcomes, uncited goal links, stale
-goal anchors, and anchor dilution all moved to `/goals audit`
-(`../../goals/references/audit.md`) when goals stopped being decisions.
+**Committed-plan health is not audited here.** Overdue risk-acceptances,
+unanswered tripwires, unclosed plans, undecomposed outcomes, and stale plan
+anchors all live in `/find-evidence audit`
+(`../../find-evidence/references/audit.md`) — a commitment is an Experiment,
+never a decision.
 3. **Synthesise one ranked findings report** — by record, with the specific
    gap(s) and a suggested fix. Read it back to the user.
 4. When the user picks findings to fix, walk them one at a time through

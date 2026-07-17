@@ -9,8 +9,9 @@ description: >-
   assumptions is this specific person uniquely qualified to test, and does
   an existing Experiment (interview guide) fit, need person-specific
   additions, or must a new one be created. Ends with a prep brief AND a
-  Running interview-guide Experiment record — linked to the target
-  assumption(s) with the interviewee set (gated write). Use whenever the
+  `Running` interview-guide Experiment record — linked to the target
+  assumption(s) with the interviewee named in its protocol (gated write).
+  Use whenever the
   user names a person they're about to speak to: "I'm speaking to X
   tomorrow", "prep me for my call with X", "what should I ask X", "who is
   X / research X before our meeting", "which assumptions should we test
@@ -51,15 +52,15 @@ contact" / thinner internal history.
 ## The two registers this touches
 
 - **Assumptions** — read-only here: Description, Lens, Risk, Status,
-  Confidence, body *Metric for truth*. Query the full register, never a
-  filtered view.
+  Confidence. Query the full register, never a filtered view.
 - **Experiments** — interview guides ARE Experiment records: the
-  protocol/questions live in the body, the pass bar in `We're right if`,
-  with `Result = Running` and `Type` = the rung the interview can honestly
-  reach. **The interview guide is this skill's REQUIRED deliverable — it
-  must end as a record here, never only a document.** Writable (gated):
-  create the interview-guide record, link its `Assumption` relation, set
-  the interviewee, and append additions to an existing guide's body.
+  protocol/questions live in the body, the pass bar in the bar line's
+  `We're right if`, with `Status = Running` and the bar line's `Planned
+  rung` = the rung the interview can honestly reach. **The interview guide
+  is this skill's REQUIRED deliverable — it must end as a record here,
+  never only a document.** Writable (gated): create the interview-guide
+  record, link its bar line(s) to the assumption(s), name the interviewee
+  in the protocol body, and append additions to an existing guide's body.
 
 ## Procedure
 
@@ -144,16 +145,16 @@ more evidence). A belief whose signed `Confidence` has gone **negative**
 a conversation that could confirm or overturn that doubt is high-value. Then
 apply two filters, in order:
 
-- **Goal intersection** — start from what the person is trying to achieve
-  (step 2's motivations layer) and find the register records that live
-  inside it. A question aligned with their own aims gets real, considered
-  answers; a high-Risk record outside their aims gets polite speculation,
-  whatever their role. A candidate linked from a standing (`Draft`/`Active`)
-  Goal record via `Based on assumption` (`../../docs/goals.md`) that *this
-  person owns or influences* is a strong match. Absence of a goal link is not
-  disqualifying at all — an unlinked row's experiments sit on the test-next
-  surface like any other's; the link is a signal about *this person's* stake,
-  nothing more.
+- **Commitment intersection** — start from what the person is trying to
+  achieve (step 2's motivations layer) and find the register records that
+  live inside it. A question aligned with their own aims gets real,
+  considered answers; a high-Risk record outside their aims gets polite
+  speculation, whatever their role. A candidate bar-lined into a standing
+  (`Draft`/`Running`) committed Experiment (`../../docs/goals.md`) that
+  *this person owns or influences* is a strong match. Absence of a
+  committed-plan link is not disqualifying at all — an unlinked row's
+  experiments sit on the test-next surface like any other's; the link is a
+  signal about *this person's* stake, nothing more.
 - **Unique qualification** — what can *this* person answer that a generic
   participant couldn't (their role, access, lived experience, their
   company's situation)? Drop high-Risk records they'd only speculate on.
@@ -172,7 +173,7 @@ target (one question, recommended answer first).
 ### 5. Match experiments — fit / additions / new
 
 For each chosen assumption, query Experiments for linked records (any
-`Result` — a `Running` interview guide is the ideal hit; a concluded one
+`Status` — a `Running` interview guide is the ideal hit; a `Closed` one
 shows what's already been asked). Read the body protocol and give one
 verdict:
 
@@ -203,18 +204,17 @@ the skill must leave a Running interview-guide record behind; writes 2–3
 support it:
 
 1. **Create the interview-guide Experiment record** (verdict *New needed*):
-   title, `Result = Running`, `Feasibility`, `Assumption` relation → the
-   target belief(s), and body = recruit criteria + questions tagged per belief
-   + **one signal→bar block per bundled belief** (planned rung + pre-registered
-   `We're right if` and kill bar), per
+   title, `Status = Running`, `Feasibility`, one composed **bar line** per
+   target belief (`Planned rung` + pre-registered `We're right if` and kill
+   bar), and body = recruit criteria + questions tagged per belief +
+   **one signal→bar block per bundled belief**, per
    `../experiment-design/references/interview-guide.md`'s skeleton. Most
    single-conversation prep tests one belief; when the same conversation
-   honestly bundles more, read and write each belief's block separately
+   honestly bundles more, read and write each belief's bar line separately
    (`../_shared/experiment-guardrails.md §1b`).
-2. **Interviewee** on the chosen/created record → the person (on Notion,
-   take the interviewee field's name and relation target from the live
-   schema — don't hardcode either; create a minimal person record if none
-   exists).
+2. **Interviewee** — named in the protocol body's recruit criteria (a
+   reference to their CRM record link), never a register row: `people` is
+   retired (`OPS-1305`) and Experiments carry no `Interviewee` field.
 3. **Body additions** to an *existing* guide — appended as a clearly-marked
    section (`### Person-specific — <name>, <date>`), never interleaved. Run
    the terminology check (`../_shared/ubiquitous-language.md`) over any
@@ -229,8 +229,9 @@ capturing findings are execution's job.
 ## The prep brief
 
 The **required durable artifact is the interview-guide Experiment record**
-(created/reused in step 6) — that record, `Result = Running`, linked to the
-target assumption(s) with the interviewee set, IS the deliverable. Deliver
+(created/reused in step 6) — that record, `Status = Running`, bar-lined to
+the target assumption(s) with the interviewee named in the protocol, IS the
+deliverable. Deliver
 the brief in chat and link the record. Do **not** substitute a document for
 the record. Optionally (gated), also save a human-readable copy wherever
 your team keeps meeting docs (a CRM note, a doc next to the calendar
@@ -255,11 +256,12 @@ ALWAYS use this structure:
 
 ## Never
 
-- Creating the `Running` interview-guide record (linked, interviewee set)
-  IS in scope. But never flip its `Result` to a verdict and never change an
-  assumption `Status` — the record you leave stays `Running`; verdicts are
-  execution. Deep non-interview instrument design (prototype, survey,
-  fake-door) stays with `/experiment-design`.
+- Creating the `Running` interview-guide record (bar-lined, interviewee
+  named) IS in scope. But never flip its `Status` past `Running`, never
+  write a bar verdict or a Reading, and never change an assumption
+  `Status` — the record you leave stays `Running`; verdicts and readings
+  are execution's job (`/find-evidence`). Deep non-interview instrument
+  design (prototype, survey, fake-door) stays with `/experiment-design`.
 - Never edit a guide's pre-registered bars or existing questions —
   additions only.
 - Never log anything the person *might* say as evidence, and never log the

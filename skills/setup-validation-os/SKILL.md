@@ -26,11 +26,11 @@ the user asks.
 1. **Choose the connector.** Ask where the registry should live:
    - **Local files** (default, recommended to start) — markdown files in this
      workspace, git-trackable, no accounts or keys.
-   - **Notion** — three databases in the user's workspace, worked through the
+   - **Notion** — five databases in the user's workspace, worked through the
      Notion MCP server.
-   - **SQL** — three tables in a relational database, through a
+   - **SQL** — five tables in a relational database, through a
      harness-provided database connection.
-   - **NoSQL** — three collections in a document store, through a
+   - **NoSQL** — five collections in a document store, through a
      harness-provided connection.
    Someone unsure gets local files; migrating later is a records copy, not a
    rewrite.
@@ -86,9 +86,10 @@ the user asks.
      **"Raw evidence"** home where pasted material is filed. Omit kinds the
      workspace doesn't use.
    - **`analytics:`** — **only** if a product-analytics platform (PostHog,
-     Mixpanel, …) is connected. It is **Goals-side, not an `evidence_sources`
-     flavour**: record `platform` (free text) and `glossary_file` (default
-     `analytics-glossary.md`) as a top-level block `/goals` reads
+     Mixpanel, …) is connected. It is **Market-side, not an
+     `evidence_sources` flavour**: record `platform` (free text) and
+     `glossary_file` (default `analytics-glossary.md`) as a top-level block
+     `/experiment-design` and `/find-evidence` read
      (`docs/goals.md §Found numbers`). No platform connected → omit it
      entirely.
 

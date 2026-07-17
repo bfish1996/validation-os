@@ -4,15 +4,17 @@ Entered from SKILL.md step 7 when the run's **method** is a fake-door (concept
 test, waitlist, LOI, deposit). The evidence is the **costly action** — a
 signup, signature, or payment-intent — not stated enthusiasm.
 
-> **The record is a Goal, not an Experiment.** A fake-door sits on the
-> `Signed intent` rung, which is 🎯 Goals-side (`experiment-guardrails.md §2`).
-> A fake-door is a **short goal**: its two bars, deadline, and instrument
-> named in advance are drafted through **`/goals`** (`docs/goals.md`), which
-> owns the Goal record. **This playbook specs the instrument** — the stimulus,
-> the costly ask, and the instrumentation — that the goal's instrument line
-> points at. Never write a `Signed intent` plan as an Experiment row.
+> **The record is a committed Experiment, at Market rung.** A fake-door sits
+> on the `Signed intent` rung, which is 🎯 Market-side
+> (`experiment-guardrails.md §2`). A fake-door is a **short committed
+> plan**: its two bars, `Deadline`, and instrument named in advance are set
+> through `references/commitment-discipline.md`
+> (`../../../docs/goals.md`), the same skill's own commitment discipline —
+> there is no separate Goal record to hand off to (`OPS-1305`). **This
+> playbook specs the instrument** — the stimulus, the costly ask, and the
+> instrumentation — that the plan's instrument line points at.
 
-## The three parts (all pre-registered, into the Goal record)
+## The three parts (all pre-registered, into the Experiment record)
 
 1. **Stimulus** — the thing shown: a waitlist landing page, one-pager, or
    concept card. Realistic enough that the ask is real: concrete promise,
@@ -29,17 +31,18 @@ signup, signature, or payment-intent — not stated enthusiasm.
 3. **Instrumentation** — name the exact event that counts as a conversion (an
    analytics event / form submission with qualifying fields complete), the
    denominator (unique qualified visitors — traffic source must match the
-   goal's Lens population), and the window. This is what the Goal's
+   plan's Lens population), and the window. This is what the plan's
    **instrument** line names in advance; if the counting event isn't defined
    before launch, the bar can't be scored.
 
-## Render into the Goal record body
+## Render into the Experiment's `## Method protocol` body
 
-The two bars, deadline, owner, and instrument are set by `/goals` draft; this
-playbook fills the instrument's detail into the body:
+The two bars, `Deadline`, owner, and instrument are set by
+`references/commitment-discipline.md`; this playbook fills the instrument's
+detail into the body:
 
 ```markdown
-## Fake-door instrument — <goal name>
+## Method protocol
 
 ### Stimulus
 - Page/asset: <canonical link to the brief> · promise shown · price shown (if any)
@@ -50,7 +53,7 @@ playbook fills the instrument's detail into the body:
 ### Traffic & population
 - Source: <channel> · must match Lens: <…> · window: <dates, fixed>
 
-### Instrumentation (the goal's named instrument)
+### Instrumentation (the plan's named instrument)
 - Conversion event: <exact event/form> · denominator: <qualified visitors>
 
 ### Ethics note
@@ -61,12 +64,12 @@ playbook fills the instrument's detail into the body:
 **Anti-patterns:** counting impressions/clicks as intent (vanity —
 guardrails §3) · un-qualified traffic inflating the denominator · a soft ask
 dressed up as `Signed intent` (if the action costs nothing, the honest rung is
-`Pitch-deck reaction` — a Testing-side Experiment, not a goal) · no
+`Pitch-deck reaction` — a Testing-grade design, not a commitment) · no
 post-signup follow-up plan.
 
 **Terminology check:** `../../_shared/ubiquitous-language.md` — end-user
 audience for all on-page copy.
 
-**Write gates:** the stimulus brief and the Goal-record instrument body are
-each gated (`../../_shared/gated-writes.md`); the Goal record itself is drafted
-and gated in `/goals`.
+**Write gates:** the stimulus brief and the Experiment's protocol body are
+each gated (`../../_shared/gated-writes.md`); the Experiment record itself is
+committed and gated in `references/commitment-discipline.md`.

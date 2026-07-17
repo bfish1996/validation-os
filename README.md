@@ -21,7 +21,8 @@ founders' heads, untested, while the roadmap compounds on top of them.
 Validation-OS makes those beliefs impossible to ignore:
 
 - Every belief becomes an **Assumption** — one falsifiable sentence, scored
-  for Impact, traced to its roots with a disciplined 5 Whys.
+  for Impact, traced to its roots in the `Depends on` / `Enables` dependency
+  graph.
 - Every assumption gets **Risk = Impact × (1 − max(0, Confidence)/100)** —
   and Confidence is *never typed by hand*: it's the signed, weighted
   average of every concluded **Experiment** reading, on an 8-rung evidence
@@ -33,9 +34,10 @@ Validation-OS makes those beliefs impossible to ignore:
   **decision log** records what was decided and how unanimously — without
   letting a business call masquerade as validation.
 - **Goals/OKRs are instruments, not gates**: the OS never blocks a
-  commitment — it tells you what a goal bets on before you make it, and every
-  hit or miss decomposes back into evidence on the beliefs underneath, while
-  your CRM/analytics stay the scoreboard ([docs/goals.md](docs/goals.md)).
+  commitment — it rides on the unified evidence plan, tells you what a
+  commitment bets on before you make it, and every hit or miss decomposes
+  back into evidence on the beliefs underneath, while your CRM/analytics
+  stay the scoreboard ([docs/goals.md](docs/goals.md)).
 
 The loop:
 
@@ -81,11 +83,10 @@ Update later with `npx skills update`. Versioned releases are tagged
 | Skill | What it does | Invoke it when |
 |---|---|---|
 | `/assumptions` | Build, grill, audit the Assumption Registry. Five modes: single (default, gated), seed, audit, loop (autonomous, explicit opt-in), triage. | "grill this assumption", "map assumptions from this call", "audit the register" |
-| `/experiment-design` | Turn the riskiest assumption into a falsifiable, pre-registered test; prep the instrument (interview guide, survey, prototype brief, fake-door spec). | "how do I test this", "design an experiment", "interview guide for X" |
-| `/find-evidence` | Sweep what you *already* know — internal record (calls, chat, email, CRM) and rigorous desk research — and log it as conclusive evidence. | "what do we already know about X", "desk research this" |
+| `/experiment-design` | Turn the riskiest assumption into a falsifiable, pre-registered test; prep the instrument (interview guide, survey, prototype brief, fake-door spec). Also drafts and commits a Market-grade evidence plan (SMART bar, bars fixed per belief at commit time, the beliefs underneath read back as advisory bands) — never blocks a commitment. | "how do I test this", "design an experiment", "interview guide for X", "commit to this goal" |
+| `/find-evidence` | Sweep what you *already* know — internal record (calls, chat, email, CRM) and rigorous desk research — and log it as conclusive evidence. Also closes out a committed plan into per-belief evidence and audits plan health. | "what do we already know about X", "desk research this", "close out the goal", "did we hit the goal" |
 | `/meeting-prep` | Person-first: research whoever you're meeting, then work backward to the high-Risk assumptions they're uniquely qualified to test. | "I'm speaking to X tomorrow", "what should I ask X" |
 | `/decisions` | The shared glossary + the decision log — capture, sweep, audit; retire assumptions by explicit decision, never by accident. | "log this decision", "sweep decisions", "what's the canonical term for X" |
-| `/goals` | Goal records — draft one (SMART bar, two bars fixed at commit time, the beliefs underneath read back as advisory bands), close it out into per-belief evidence, audit goal health. Never blocks a commitment. | "log this goal", "commit to this goal", "close out the goal", "did we hit the goal" |
 | `/self-review` | A private coach: sweep your own recorded calls for pitches and load-bearing claims, score yourself against the registers (decision fidelity, assumption transparency, experiment-first, concreteness), track trends, get improve-next actions. Writes only to a local gitignored directory — never through the connector. | "review my calls", "how did I pitch", "am I still reopening settled decisions" |
 
 All six read the same config and enforce the same shared rulesets
@@ -125,46 +126,45 @@ flowchart LR
   classDef record fill:#eceef1,stroke:#77808c,color:#272d35
 
   subgraph cap["① Capture"]
-    A["/assumptions<br>a call, transcript, or hunch becomes one<br>falsifiable sentence — Impact scored, 5-Whys<br>traced; Gaps tags list what's still missing"]:::skill
+    A["/assumptions<br>a call, transcript, or hunch becomes one<br>falsifiable sentence — Impact scored, dependency-<br>traced; Completeness % says what's still missing"]:::skill
   end
 
   subgraph gate["② Prioritise"]
-    D["/goals<br>the team commits to a goal; its rationale<br>names the beliefs the goal rests on —<br>a lens onto them, anchoring nothing, gating nothing"]:::skill
     Q["test-next surface<br>candidate experiments on Live beliefs, ranked<br>by Feasibility × the belief's Risk — cheapest<br>honest test of the riskiest belief on top"]:::record
   end
 
   subgraph test["③ Test"]
-    E["/experiment-design<br>cheapest honest test for the top record;<br>pass and kill bars locked before it runs"]:::skill
+    E["/experiment-design<br>cheapest honest test for the top record;<br>pass and kill bars locked before it runs — or,<br>drafting a committed (Market-grade) plan, whose<br>rationale names the beliefs it rests on"]:::skill
     M["/meeting-prep<br>'I'm meeting X tomorrow' — the booked call<br>becomes that test's interview guide"]:::skill
     RUN["you run it<br>interviews · survey · prototype · fake door"]:::human
   end
 
   subgraph conclude["④ Conclude"]
-    F["/find-evidence<br>logs what the test showed — and anything<br>you already knew from calls, email, CRM, desk"]:::skill
+    F["/find-evidence<br>logs what the test showed — and anything<br>you already knew from calls, email, CRM, desk;<br>closes a committed plan's Outcome and decomposes<br>it per belief"]:::skill
     V["human verdict against the locked bar<br>Validated · Invalidated · Inconclusive"]:::human
   end
 
-  A -->|"1 · the one gate:<br>grill until Gaps is empty"| Q
-  D -.->|"2 · a lens onto the surface: which<br>beliefs does *this* goal rest on? —<br>never moves the ranking, never gates entry"| Q
-  D -.->|"a goal's 'because' with no<br>record yet → new assumption"| A
+  A -->|"1 · the one gate:<br>grill until Completeness % hits 100"| Q
+  E -.->|"2 · a lens onto the surface: which<br>beliefs does *this* committed plan rest on? —<br>never moves the ranking, never gates entry"| Q
+  E -.->|"a committed plan's 'because' with no<br>record yet → new assumption"| A
   Q -->|"3 · cheapest honest test<br>of the riskiest belief"| E
   E -->|"4 · Running experiment"| RUN
   M -->|"guide for that call"| RUN
   RUN -->|"5 · what happened"| F
   F -->|"6 · evidence linked<br>to the record"| V
   V -->|"7 · Confidence moves → Risk follows<br>→ the surface reorders itself"| Q
-  V -.->|"a goal rested on this<br>belief → tripwire: review the goal"| D
-  D -.->|"goal closes → its result is decomposed<br>per belief back into evidence"| F
+  V -.->|"a committed plan rested on this<br>belief → tripwire: review the plan"| E
 ```
 
 After step 7 the loop closes: the cheapest honest test of the now-riskiest
 belief is already sitting on top of the surface.
 
 **One gate, not two.** Grilling is the only thing standing between a belief
-and the surface. A goal touches neither *where* a belief ranks nor *whether*
-it competes — it's a lens onto the beliefs it rests on. The goal has a
-lifecycle of its own, and its verdict at the end flows back in as evidence.
-Same colours:
+and the surface. A committed plan touches neither *where* a belief ranks nor
+*whether* it competes — it's a lens onto the beliefs it rests on. The plan
+has a lifecycle of its own (the same `Experiment` record, now carrying a
+`Deadline`), and its verdict at the end flows back in as evidence. Same
+colours:
 
 ```mermaid
 flowchart LR
@@ -173,38 +173,38 @@ flowchart LR
   classDef record fill:#eceef1,stroke:#77808c,color:#272d35
 
   subgraph g1["① Draft"]
-    P["Draft Goal record — both bars fixed at commit<br>time, instrument named; rationale names the<br>beliefs it rests on"]:::record
-    B["/goals reads each belief's Confidence back<br>as an advisory band — ready · gamble ·<br>betting against your evidence · kill lane"]:::skill
+    P["Draft committed Experiment — bar lines fixed<br>per belief at commit time, Deadline and<br>instrument named; each bar line names the<br>belief it rests on"]:::record
+    B["/experiment-design reads each belief's<br>Confidence back as an advisory band — ready ·<br>gamble · betting against your evidence · kill lane"]:::skill
   end
   subgraph g2["② De-risk — optional"]
-    T["its beliefs run the main loop above —<br>always surface-eligible, ranked on their own Risk.<br>The goal doesn't lift them; it's a lens onto which<br>ones it rests on, so you can test them deliberately"]:::record
+    T["its beliefs run the main loop above —<br>always surface-eligible, ranked on their own Risk.<br>The plan doesn't lift them; it's a lens onto which<br>ones it rests on, so you can test them deliberately"]:::record
   end
   subgraph g3["③ Commit"]
-    C["human commits: Draft → Active.<br>Nothing blocks this — a gamble just needs<br>a dated risk-acceptance line on the record"]:::human
+    C["human commits: Draft → Running.<br>Nothing blocks this — a gamble just needs<br>a dated risk-acceptance line on the record"]:::human
   end
   subgraph g4["④ Stand — the tripwire"]
-    W["a conclusive verdict lands on a linked<br>belief while the goal stands"]:::record
-    REV["human reviews the goal —<br>never a silent edit of a bar"]:::human
+    W["a conclusive verdict lands on a linked<br>belief while the plan is Running"]:::record
+    REV["human reviews the plan —<br>never a silent edit of a bar"]:::human
     RA["re-accept the bet<br>new dated risk-acceptance line"]:::record
-    RC["re-cut<br>a new goal supersedes it; the successor<br>re-links the beliefs it keeps"]:::record
-    DP["drop<br>the goal closes Dropped"]:::record
+    RC["re-cut<br>a new committed Experiment replaces it;<br>the successor re-links the beliefs it keeps"]:::record
+    DP["drop<br>the plan closes Dropped"]:::record
   end
   subgraph g5["⑤ Close out"]
-    O["deadline → human verdict read against the<br>bars fixed at commit time, from the<br>named instrument"]:::human
-    AM["Achieved / Missed — can't close with zero<br>per-belief readings: the result is decomposed<br>via /find-evidence"]:::record
+    O["deadline → human verdict read against the<br>bars fixed at commit time, from the<br>named instrument, via /find-evidence"]:::human
+    AM["Achieved / Missed — can't close with zero<br>per-belief readings: the result is decomposed<br>in the same close-out"]:::record
     DR["Dropped — emits no evidence; nothing<br>to decompose"]:::record
   end
 
   P --> B
   B -->|"1 · beliefs enter the main<br>loop while still a draft"| T
   T -->|"2 · evidence lands<br>in its favour"| C
-  B -.->|"gambling? dated risk-acceptance line,<br>revisit-by date — audit chases overdue ones,<br>and the goal proceeds either way"| C
+  B -.->|"gambling? dated risk-acceptance line,<br>revisit-by date — audit chases overdue ones,<br>and the plan proceeds either way"| C
   C -->|"3 · the cycle runs"| O
   T -.-> W
   W --> REV
   REV -->|"the bet still holds"| RA
   REV -->|"a bar is now wrong"| RC
-  REV -->|"the goal is dead"| DP
+  REV -->|"the plan is dead"| DP
   REV -.->|"still a draft and the evidence<br>is good → commit it"| C
   O -->|"hit or miss"| AM
   O -->|"abandoned"| DR
@@ -212,9 +212,9 @@ flowchart LR
 
 A hit becomes top-rung evidence on the beliefs it proved; a miss usually
 invalidates one specific belief — either way the loop's next lap starts
-better informed. When a goal dies, the beliefs it linked don't move: they
-keep competing on their own Risk, because they never needed the goal to be
-on the surface.
+better informed. When a committed plan dies, the beliefs it linked don't
+move: they keep competing on their own Risk, because they never needed the
+plan to be on the surface.
 
 Underneath the flow, an assumption's `Status` stores only its lifecycle —
 three values, because **an assumption is never validated**
@@ -224,13 +224,13 @@ score, moving forever as evidence and stakes move.
 ```mermaid
 stateDiagram-v2
   direction LR
-  D: Draft — Gaps non-empty; being built, not yet ranked
+  D: Draft — Completeness % < 100; being built, not yet ranked
   L: Live — ranked by Risk, forever; never "done"
   I: Invalidated — conclusively killed; the rare, real closure
 
   [*] --> D
-  D --> L: /assumptions — grill close-out, Gaps empty
-  L --> D: a new gap lands — audit finding, contradiction, staleness
+  D --> L: /assumptions — grill close-out, Completeness % = 100
+  L --> D: a slot empties, or a grill finding reopens it
   L --> I: human verdict — conclusive kill at a rung ≥ the strongest support
   I --> L: gated reopen — kill re-judged flawed, or the world changed
 ```
@@ -240,7 +240,7 @@ row's data:
 
 | Derived view (never stored) | Computed from |
 |---|---|
-| Goal-linked | a standing Goal record cites it via `Based on assumption` — a per-goal view only, never an Impact anchor or a queue condition |
+| Committed-plan-linked | a `Running` experiment carrying a `Deadline` names it via a composed bar line — a per-plan view only, never an Impact anchor or a queue condition |
 | Testing | a linked experiment is `Running` |
 | Test-next surface | experiments on Live rows, ranked by Feasibility × the linked belief's Risk |
 | Kill lane | Live + Confidence ≤ −50 — surfaced for a human kill verdict |

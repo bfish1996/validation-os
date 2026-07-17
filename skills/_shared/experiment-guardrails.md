@@ -10,14 +10,16 @@ via `historic-evidence.md`). When this
 changes, all paths change.
 
 An experiment exists to **kill or confirm the beliefs that honestly share
-one run — as cheaply as it honestly can**. It is the Testing-side species of
-**pre-registered container**: a designed plan whose evidence arrives as
-readings. (The Goal record is the other species — same lifecycle shape,
-different plan type and evidence yield; `docs/goals.md`.) It starts from
-each assumption's *Metric for truth* (the falsifiability statement set by
-`/assumptions`) and turns it into a runnable test with pre-registered
-per-belief bars. This file is the operational ruleset for the *design* and
-the *lifecycle* — not for running the test.
+one run — as cheaply as it honestly can**. It is the single **pre-registered
+container**, at any rung: a designed plan whose evidence arrives as
+readings, Testing-grade or committed (Market-grade) alike — the Goal record
+was unified into the Experiment; there is no separate record type, only a
+committed plan carrying an optional Deadline and closure Outcome
+(`OPS-1305`, `docs/goals.md`). It starts from each assumption's falsifiable
+disproof (the grill check set by `/assumptions §1`, not a stored field) and
+turns it into a runnable test with pre-registered per-belief bars. This file
+is the operational ruleset for the *design* and the *lifecycle* — not for
+running the test.
 
 ---
 
@@ -56,13 +58,13 @@ readings — signal the run yielded on beliefs that weren't bundled — are
 legitimate: they keep the experiment link as provenance and get **no bar**.
 A round's reading count is bounded by actual signal, not the plan grid.
 
-> **Physical schema — pending.** The live register still encodes plan and
-> reading on one Experiments row (`registry-schema.md §Field map —
-> Experiments`): one row per belief under test, the row's `Type` carrying
-> that belief's planned rung, a shared run expressed by the shared
-> instrument link + protocol, every new round a new row. The true split
-> (field map, relation shapes, where the rung sits) lands with the
-> registry-schema rewrite. The concepts here are normative either way.
+**Physical schema.** The split is real, not just conceptual
+(`registry-schema.md §Field map — Experiments`, `OPS-1305`): the Experiment
+row carries the plan (Instrument, Feasibility, Status, Deadline, Outcome);
+each bundled belief gets its own composed **bar line** (`We're right if` /
+`We're wrong if` / Planned rung / Bar verdict) realized backend-natively
+inside the Experiment; the rung and signed value live on the Reading. There
+is no run-level `Type` or `Strength`.
 
 **Source artifacts — identity, routing, no Sources register:**
 
@@ -208,34 +210,36 @@ rungs, weakest → strongest, in **two categories**
   - `Prototype usage` (±30) — real use of a throwaway / Wizard-of-Oz build.
     Genuine behaviour, but it measures **comprehension / usability /
     engagement**, not demand — and it's novelty-biased, drawn from
-    non-representative early users. Demand needs a Goal rung.
-- 🎯 **Goals** (open-world targets with a deadline, two pre-registered bars,
-  closed by the market — `docs/goals.md`):
+    non-representative early users. Demand needs a Market rung.
+- 🎯 **Market** (open-world targets with a deadline, two pre-registered
+  bars, closed by the market — renamed from "Goals" with the Goal→Experiment
+  unification, `OPS-1305`; `docs/goals.md`):
   - `Signed intent` (±55 / 68 / 80) — concept / fake-door / LOI / deposit: a
     **costly** commitment made *before* the thing is built. A fake-door test
-    is a *short* goal.
+    is a *short* committed plan.
   - `Paying users` (±75 / 88 / 99) — real money, A/B, signed contract.
     Strongest, priciest.
 
 Revealed > stated: a costly action beats a "would you?" — within Testing
 (`Prototype usage` > `Survey at scale`) and across the **commitment cliff**
-(any Goal rung beats every Testing rung). Push for the highest rung the test
-can honestly reach.
+(any Market rung beats every Testing rung). Push for the highest rung the
+test can honestly reach.
 
-**Goal rungs enter via Goal records, goal-first, always.** A Goal-rung
-design *is* a goal — both bars pre-registered, deadline set, instrument
-named in advance (`docs/goals.md`) — and its evidence arrives as **one
-reading per goal, at its deadline**. A **found scoreboard number is never
-logged as evidence**: it prompts minting a *forward* goal calibrated off the
-number (`docs/goals.md §Found numbers`). There are no bare Goals-side
-readings (§6).
+**Market rungs enter via a committed Experiment, commitment-first, always.**
+A Market-rung design *is* a committed plan — both bars pre-registered,
+Deadline set, instrument named in advance (`docs/goals.md`) — and its
+evidence arrives as **one round of readings per bar line, at the
+deadline**. A **found scoreboard number is never logged as evidence**: it
+prompts minting a *forward* committed plan calibrated off the number
+(`docs/goals.md §Found numbers`). There are no bare Market-rung readings
+(§6).
 
 **Axis B — feasibility (can we actually run it?).** Set `Feasibility` for
 how hard the run is to execute given **access to the right population,
 cost, and time** (§0 — one value per plan row). The strongest rung is
 worthless if you can't run it this quarter. The categories embody the
-trade: Testing is quick and feasible, Goals are slow and expensive with a
-high ceiling — test cheaply until a belief has earned a Goal-tier bet.
+trade: Testing is quick and feasible, Market is slow and expensive with a
+high ceiling — test cheaply until a belief has earned a Market-tier bet.
 
 **Pick the rung that maximises strength × feasibility — per belief.**
 Recommend the highest strength rung that is still genuinely runnable, in one
@@ -254,13 +258,13 @@ when access opens.
 - Rung anchors: `Opinion` 3 · `Pitch-deck reaction` 6 · `Anecdotal` 10 ·
   `Desk research` 15 · `Survey at scale` 25 · `Prototype usage` 30 ·
   `Signed intent` 55/68/80 · `Paying users` 75/88/99.
-- **Magnitude (Low / Typical / High) exists only on the Goal rungs** —
+- **Magnitude (Low / Typical / High) exists only on the Market rungs** —
   picked from what actually materialised (commitment size × count ×
   activity depth) on absolute anchors, **never %-of-target**. Target 1,
   land 1 → Low; target 10, land 4 → the magnitude of 4 real customers. No
   ambition term: sandbagging can't inflate, stretch is never punished.
-- **Goal sign comes from the two bars:** hit/beat `We're right if` → full
-  positive; at/below `We're wrong if` → negative; between → interpolate
+- **Market-rung sign comes from the two bars:** hit/beat `We're right if` →
+  full positive; at/below `We're wrong if` → negative; between → interpolate
   (degree of achievement). **No pre-registered floor → no negative** — an
   uncontrolled absence of sales is `Inconclusive`, never a kill reading
   (the base-rate guard is structural). Churn is a *retention*-belief
@@ -300,17 +304,20 @@ Confidence = (w₀·0 + Σ wᵢ·sᵢ) / (w₀ + Σ wᵢ)     w₀ = 100,  wᵢ 
 
 - **Signed, −100…100; no evidence = 0.** Stored signed; Risk clamps the
   negative zone to 0 (`assumption-guardrails.md §3`).
-- **Only concluded `Validated` / `Invalidated` readings enter** — `Running`
-  and `Inconclusive` are excluded from numerator *and* denominator; a belief
-  with only inconclusive tests sits at the prior because it has no mass.
+- **Only concluded `Validated` / `Invalidated` readings enter** —
+  `Inconclusive` is excluded from numerator *and* denominator (a reading has
+  no other pre-conclusion state, `registry-schema.md §Field map —
+  Readings`); a belief with only inconclusive tests sits at the prior
+  because it has no mass.
 - **Independence dedupes by source:** readings sharing a canonical link
   against the same belief count once — only the strongest (largest `|s|`;
   most recent on ties) enters the sum. N readings cut from one interview are
-  one unit of corroborating mass, not N. **Goal readings are the deliberate
-  exception:** each *closed goal* is its own unit — successive cycles on the
-  same instrument never dedupe (a series of misses could otherwise never
-  accumulate to the kill zone). Re-counting an unchanged world is prevented
-  by the bar ratchet, not by dedupe (`docs/goals.md §Found numbers`).
+  one unit of corroborating mass, not N. **Market-rung readings are the
+  deliberate exception:** each *closed committed plan* is its own unit —
+  successive cycles on the same instrument never dedupe (a series of misses
+  could otherwise never accumulate to the kill zone). Re-counting an
+  unchanged world is prevented by the bar ratchet, not by dedupe
+  (`docs/goals.md §Found numbers`).
 - **No corroboration bump** — replication is just more mass reducing
   shrinkage; there is no separate uplift mechanic.
 - **Volume reaches toward the rung ceiling, never past it** (the average is
@@ -321,25 +328,26 @@ Confidence = (w₀·0 + Σ wᵢ·sᵢ) / (w₀ + Σ wᵢ)     w₀ = 100,  wᵢ 
   reading can reach the kill zone). **Kill zone: Confidence ≤ −50** raises
   the audit flag for a human-affirmed kill (`register-audit.md`) — never an
   automatic `Invalidated`. Testing negatives asymptote at −30: **only a
-  series of missed Goals can kill a belief.**
+  series of missed Market-rung readings can kill a belief.**
 
 Backends never encode this in a native formula — a connector-agnostic script
 (and the evidence skills, on every touching write) recomputes `Strength`,
 `Confidence`, and `Risk` from the stored fields.
 
-**The grading block (write-up convention — what makes a reading auditable).**
-Every concluded reading documents its grading in the record body (under
-`Results notes`), so the numbers are reproducible from the record alone:
+**The `Grading justification` field — what makes a reading auditable.**
+Every concluded reading records its grading in this one field (readings
+carry no body, `OPS-1305`), so the numbers are reproducible from the record
+alone:
 
-- the **rung** and, on Goal rungs, the **magnitude pick** with the absolute
-  anchor it keys to ("2 paying pilots at £500/mo → Paying, Low");
+- the **rung** and, on Market rungs, the **magnitude pick** with the
+  absolute anchor it keys to ("2 paying pilots at £500/mo → Paying, Low");
 - the **Representativeness** and **Credibility** picks, one-line
   justification each;
 - the **source** — the artifact's canonical link the independence dedupe
   keys off.
 
-A reading missing its grading block can't be audited into the average —
-audit flags it.
+A reading with an empty `Grading justification` can't be audited into the
+average — the `reading-ungraded` check flags it (`ontology.yaml`).
 
 **Volume lives in rung choice, not in a record count.** Same-source records
 don't stack (the dedupe), and weak records can't out-average strong ones. If
@@ -398,11 +406,11 @@ template), `fake-door.md` (stimulus / costly ask / instrumentation spec).
   unprompted describe the problem we're betting on"), with each question
   tagged to the belief(s) it feeds.
 
-### 🟠 Pitch / Prototype / Fake-door (incl. 🎯 Goal rungs)
+### 🟠 Pitch / Prototype / Fake-door (incl. 🎯 Market rungs)
 
-A 🎯 Goal-rung design (`Signed intent` / `Paying users`) is a **goal**: both
-bars pre-registered, deadline set, instrument named in advance
-(`docs/goals.md`) — a fake-door is a short goal.
+A 🎯 Market-rung design (`Signed intent` / `Paying users`) is a **committed
+plan**: both bars pre-registered, Deadline set, instrument named in advance
+(`docs/goals.md`) — a fake-door is a short committed plan.
 
 - **Stimulus.** The thing shown (mock, landing page, one-pager, demo) —
   realistic enough that the ask is real; referenced by canonical link (§0).
@@ -453,8 +461,9 @@ guide is a demo, not an experiment.
 
 ## 4. `We're right if` / `We're wrong if`
 
-Turn each bundled assumption's *Metric for truth* into two concrete,
-observable thresholds fixed before the run — **one pair per belief**:
+Turn each bundled assumption's falsifiability answer (`assumption-guardrails.md
+§1` — a grill check, not a stored field) into two concrete, observable
+thresholds fixed before the run — **one pair per belief**:
 
 - **`We're right if`** — the result that turns *that* assumption into a
   fact. Concrete and countable: `≥N of M say/do X`, `≥X% convert`,
@@ -465,9 +474,9 @@ observable thresholds fixed before the run — **one pair per belief**:
 Bars exist **only for the beliefs under test** — un-bundled surface the run
 happens to touch yields off-plan readings, never a bar (§0). If you can't
 state both thresholds for a belief, its part of the design isn't done — go
-back to the assumption's *Metric for truth* (or flag that the assumption
-itself is unfalsifiable, which is `/assumptions`' problem, not this
-skill's).
+back to `/assumptions` and re-run the falsifiability check (or flag that the
+assumption itself is unfalsifiable, which is `/assumptions`' problem, not
+this skill's).
 
 ---
 
@@ -477,44 +486,50 @@ skill's).
   keeps its own bar line (§1b); a belief the run can't honestly address gets
   its own experiment. A high-Risk assumption often needs **several**
   experiments (e.g. desk research then a pitch) — that's fine; they accrue
-  as separate records. (Live encoding of the relation: §0 pending note.)
-- **Two separate axes, do not conflate:**
+  as separate records. (Live encoding of the relation: `registry-schema.md
+  §Field map — Experiments` — the composed bar line.)
+- **Three separate axes, do not conflate:**
   - **Assumption `Status`** = `Draft` / `Live` / `Invalidated` — the
-    lifecycle and nothing else; Testing, queue membership, and goal linkage
-    are derived views computed from the row's data (`registry-schema.md
-    §Status & derived views`). `/experiment-design` never flips any status:
-    creating a `Running` experiment makes a `Live` row show in the derived
-    Testing view automatically.
-  - **Reading `Result`** = **Running** →
-    Validated/Invalidated/Inconclusive. `/experiment-design` only ever sets
-    **Running**. Readings conclude rolling as evidence is logged (§6) — a
-    verdict moves Confidence and Risk, never the assumption's `Status`;
-    only a human-affirmed kill flips `Live → Invalidated`.
+    lifecycle and nothing else; Testing, queue membership, and evidence-plan
+    linkage are derived views computed from the row's data
+    (`registry-schema.md §Status & derived views`). `/experiment-design`
+    never flips any assumption status: committing an Experiment to `Running`
+    makes each bundled `Live` row show in the derived Testing view
+    automatically.
+  - **Experiment `Status`** = `Draft` → `Running` → `Closed` — this is where
+    `Running` lives, never on a Reading. `/experiment-design` only ever
+    commits to `Running`.
+  - **Reading `Result`** = set once at logging, conclusive from the start
+    (`Validated` / `Invalidated` / `Inconclusive` — no `Running`). Readings
+    conclude rolling as evidence is logged (§6) — a verdict moves Confidence
+    and Risk, never the assumption's `Status`; only a human-affirmed kill
+    flips `Live → Invalidated`.
 
 ---
 
 ## 6. Lifecycle — origination, conclusion, closure, kill, ordering
 
-**Origination — a reading is born exactly three ways. Never retroactively.**
+**Origination — a reading is born exactly two ways. Never retroactively.**
 
-1. **From an Experiment** (Testing side): created only via forward design —
-   `/experiment-design`, queue-prompted or prototype-first *going forward*
-   (bars fixed before the next round). Found evidence **never gets a
-   wrapper experiment** minted after the fact.
-2. **From a Goal** (Goals side): scoreboard metrics enter via the Goal
-   container — **one reading per goal, at its deadline**; the
-   series-of-misses model runs across successive goal cycles; mid-cycle
-   check-ins are reviews, not evidence. **No bare Goals-side readings**: a
-   found scoreboard number prompts minting a *forward* goal
-   (`docs/goals.md §Found numbers`) — no backdated goals, no
-   retro-registered bars, no goal born closed.
-3. **Bare** (Testing rungs only): found evidence — desk research, evidence
+1. **From an Experiment** — Testing-grade or committed (Market-grade)
+   alike: created only via forward design — `/experiment-design`,
+   queue-prompted or prototype-first *going forward* (bars fixed before the
+   next round). Found evidence **never gets a wrapper experiment** minted
+   after the fact. A committed (Deadline-bearing) plan's Market-rung
+   readings enter at closure — **one round of readings per bar line, at the
+   deadline**; the series-of-misses model runs across successive
+   committed-plan cycles; mid-cycle check-ins are reviews, not evidence.
+   **No bare Market-rung readings**: a found scoreboard number prompts
+   minting a *forward* committed plan (`docs/goals.md §Found numbers`) — no
+   backdated plans, no retro-registered bars, no plan born closed.
+2. **Bare** (Testing rungs only): found evidence — desk research, evidence
    sweeps, back-fits. Prototype-first entry = bare readings back-fit to
    beliefs, plus optionally a new forward experiment.
 
-Experiment and Goal are the two species of **pre-registered container** —
-same lifecycle shape; they differ in plan type and evidence yield. They stay
-separate record types.
+Testing-grade and committed Market-grade plans are **one record type, one
+lifecycle shape** (`Draft → Running → Closed`) — the Goal record was
+unified into the Experiment (`OPS-1305`); they differ only in whether a
+Deadline/Outcome is set, never in shape.
 
 **Readings conclude rolling** — human-affirmed as logged (the
 post-interview capture), signed strength fixed then; Confidence moves as
@@ -523,7 +538,8 @@ evidence lands. No draft state on a reading.
 **Closure is one human act on the plan**: stop collecting; render each
 pre-registered per-belief **bar verdict** (Validated / Invalidated /
 Inconclusive — judged only now, against the full pre-registered N); write
-the rollup summary into the record. Bar verdicts and the rollup are
+the rollup summary into the record; for a committed plan, also set the
+**Outcome** (Achieved / Missed / Dropped). Bar verdicts and the rollup are
 **reports, never Confidence inputs** — the readings already carried the
 evidence; counting the verdict again would double-count.
 
@@ -542,5 +558,5 @@ test-next queue (Risk alone) says which belief deserves testing; among
 designed experiments, run `High` feasibility before `Medium` before `Low` —
 for a bundle, read "the highest-Risk belief in the bundle". That sort is the
 whole rule: Testing experiments live in one narrow, cheap band, so no
-further machinery earns its keep. (Which *goals* to commit to per cycle is
-goal-prioritisation — future goals work, outside this file.)
+further machinery earns its keep. (Which committed plans to commit to per
+cycle is commitment-prioritisation — future work, outside this file.)
