@@ -39,8 +39,14 @@ export {
   RISK_WARN,
 } from "./primitives.js";
 export type { Tone } from "./primitives.js";
-export { RegisterNav } from "./register-nav.js";
-export type { RegisterNavProps } from "./register-nav.js";
+export { SidebarNav } from "./sidebar-nav.js";
+export type { SidebarNavProps } from "./sidebar-nav.js";
+export { parseRoute, formatRoute } from "./route.js";
+export type { Route } from "./route.js";
+export { RecordPage } from "./record-page.js";
+export type { RecordPageProps } from "./record-page.js";
+export { SurfacePlaceholder } from "./surface-placeholder.js";
+export type { SurfacePlaceholderProps } from "./surface-placeholder.js";
 export { RegisterCounts } from "./register-counts.js";
 export type { RegisterCountsProps } from "./register-counts.js";
 export { RegisterTable } from "./register-table.js";
