@@ -3,6 +3,7 @@ import type { Collection } from "@validation-os/core";
 import { REGISTER_ORDER, REGISTER_SUBTITLE } from "./labels.js";
 import { RecordPage } from "./record-page.js";
 import { RegisterBrowser } from "./register-browser.js";
+import { NextMoveSurface } from "./next-move-surface.js";
 import { formatRoute, parseRoute, type Route } from "./route.js";
 import { SidebarNav } from "./sidebar-nav.js";
 import { SurfacePlaceholder } from "./surface-placeholder.js";
@@ -191,18 +192,7 @@ export function ValidationOSDashboard({ config = {} }: ValidationOSDashboardProp
             }
           />
         ) : (
-          <SurfacePlaceholder
-            key="next"
-            title="Next move"
-            subtitle="Your guided view — the single next move to make, and what's on deck."
-            detail={
-              <>
-                The front-door “next move” surface (design <b>OPS-1295</b>)
-                mounts here. The navigation shell wires its route (
-                <code>#next</code>, the default landing) and nav slot.
-              </>
-            }
-          />
+          <NextMoveSurface key="next" basePath={basePath} onNavigate={navigate} />
         )}
       </main>
     </div>

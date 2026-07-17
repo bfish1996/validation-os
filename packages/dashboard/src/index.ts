@@ -66,6 +66,19 @@ export type {
 } from "./understanding.js";
 export { RegisterBrowser } from "./register-browser.js";
 export type { RegisterBrowserProps } from "./register-browser.js";
+export { NextMoveSurface } from "./next-move-surface.js";
+export type { NextMoveSurfaceProps } from "./next-move-surface.js";
+export { movePresentation, toNextMoveInput } from "./next-move.js";
+export type {
+  MovePresentation,
+  NextMoveRecords,
+  StepInForm,
+} from "./next-move.js";
+export { ScoreImpactForm, WriteDecisionForm } from "./step-in-forms.js";
+export type {
+  ScoreImpactFormProps,
+  WriteDecisionFormProps,
+} from "./step-in-forms.js";
 export { useCounts } from "./use-counts.js";
 export type { Counts, UseCountsResult } from "./use-counts.js";
 export { useList, useRecord, useUpdate, interpretSave } from "./use-records.js";
