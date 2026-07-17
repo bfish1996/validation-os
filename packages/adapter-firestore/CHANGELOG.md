@@ -1,5 +1,11 @@
 # @validation-os/adapter-firestore
 
+## 0.8.0
+
+### Patch Changes
+
+- @validation-os/core@0.8.0
+
 ## 0.7.1
 
 ### Patch Changes

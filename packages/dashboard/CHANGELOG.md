@@ -1,5 +1,19 @@
 # @validation-os/dashboard
 
+## 0.8.0
+
+### Minor Changes
+
+- 940c3f1: Add the "Connect Claude Code" page (OPS-1349): `composeConnectCommand` — a pure
+  composer that bakes a minted token + the API URL into one ready-to-paste command
+  wiring the `remote-api` connector — and `<ConnectClaudeCode>`, the page shell
+  around it. Token minting is injected (`mintToken`), so the package takes no
+  auth-vendor dependency; the deployment supplies the Clerk key-mint.
+
+### Patch Changes
+
+- @validation-os/core@0.8.0
+
 ## 0.7.1
 
 ### Patch Changes
