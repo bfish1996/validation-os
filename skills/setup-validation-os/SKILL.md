@@ -32,6 +32,11 @@ the user asks.
      harness-provided database connection.
    - **NoSQL** — five collections in a document store, through a
      harness-provided connection.
+   - **Remote API** — a hosted register behind someone else's gated dashboard
+     (Clerk or any IdP), reached over HTTP with a personal bearer token. Only
+     offer this when the user already has (or can get) a "Connect Claude
+     Code" command from that dashboard — it is never the answer for a new,
+     self-owned workspace, since nothing gets provisioned from this end.
    Someone unsure gets local files; migrating later is a records copy, not a
    rewrite.
 
@@ -47,12 +52,24 @@ the user asks.
    `registers:` block is incomplete, say so and fall back to the manual
    instructions in the runtime doc — never improvise a mapping.
 
+   **Remote API is the one connector with no schema guide, by design** —
+   `connectors/remote-api.md` is the whole contract, because the backend is
+   already provisioned and owned by the deployment, not something this wizard
+   builds. Load only the runtime doc, then skip straight to confirming the
+   connection (step 4's Remote API branch) — none of the schema-guide
+   completeness checks above apply.
+
 3. **Probe the harness.** Check that a tool matching the schema guide's
    `tool_namespace` is actually connected (Notion MCP server, database
    connection, plain file access) before touching anything. Missing → stop and
    tell the user what to connect and how. Credentials live in the harness,
    never in the config; the config only ever holds IDs, paths, and connection
    *names*.
+
+   Remote API has no `tool_namespace` to probe — its "harness" is just the
+   token env var. Confirm `token_env` (from the pasted connect command) is
+   actually set before calling anything; unset → stop and tell the user to
+   re-run the connect command from their dashboard.
 
 4. **Validate first, create if needed.** The wizard is validate-first:
    1. If config keys point at an existing backend (or the default
@@ -72,6 +89,22 @@ the user asks.
    verify per the guide's Cautions (e.g. Notion: relation targets point at the
    configured databases) and write the resulting IDs into the config — with
    the user's confirmation, never silently.
+
+   **Remote API replaces this whole step with a connection check.** There is
+   no backend to validate or create — it already exists, owned by the
+   deployment. Instead, make one authenticated read (`GET
+   {api_base_url}/counts` is enough) and report the result:
+   - Succeeds → report the per-register counts back to the user as proof the
+     connection works, then continue to step 5. There is nothing to seed —
+     the remote register's starter records (if any) are the deployment's
+     call, not this wizard's.
+   - `401` → the token is missing or expired. Tell the user, in plain
+     language, to re-paste the connect command from their dashboard's
+     "Connect Claude Code" page.
+   - `403` → the token is valid but the account isn't on this register's
+     team. Tell the user to ask an admin to add them — there's no narrower
+     grant to request instead (`connectors/remote-api.md` §Cautions).
+   - Anything else → fail loudly with the status and body; don't guess.
 
 5. **Declare evidence sources, the source-map, and analytics.**
    - **`evidence_sources:`** — ask which of these the user's agent can
@@ -118,9 +151,10 @@ the user asks.
 
 ## Scope boundary
 
-This skill configures and builds/validates backends; it never grills, scores,
-designs experiments, or edits registry records beyond seeding the starter
-examples — those belong to `/assumptions`, `/experiment-design`,
+This skill configures and builds/validates backends (or, for a hosted backend
+like Remote API, confirms the connection to one that already exists); it never
+grills, scores, designs experiments, or edits registry records beyond seeding
+the starter examples — those belong to `/assumptions`, `/experiment-design`,
 `/find-evidence`, and `/decisions`.
 
 ## Never
