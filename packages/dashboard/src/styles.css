@@ -1776,6 +1776,7 @@ textarea.vos-input {
 .vos-radio input {
   margin-top: 2px;
   accent-color: var(--vos-accent);
+}
 .vos-chip {
   display: inline-flex;
   align-items: center;
