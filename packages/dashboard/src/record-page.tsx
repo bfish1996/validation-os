@@ -3,6 +3,8 @@ import type { AnyRecord, BarLine, Collection } from "@validation-os/core";
 import { REGISTERS } from "@validation-os/core";
 import { formatValue } from "./columns.js";
 import { resolveBarLines } from "./detail-fields.js";
+import { buildPatch, draftErrors, draftFrom, type Draft } from "./edit.js";
+import { EditFields } from "./edit-fields.js";
 import { GlossaryText } from "./glossary-text.js";
 import { toGlossaryTerms } from "./glossary.js";
 import { buildJourney } from "./journey.js";
@@ -25,7 +27,7 @@ import {
 } from "./record-view.js";
 import type { Route } from "./route.js";
 import { UnderstandingPanel } from "./understanding-panel.js";
-import { useList } from "./use-records.js";
+import { useList, useUpdate } from "./use-records.js";
 
 export interface RecordPageProps {
   /** The record being drilled into (`#record/<id>`). */
@@ -37,6 +39,27 @@ export interface RecordPageProps {
   backRegister: Collection;
   /** API base path (default `/api`). */
   basePath?: string;
+}
+
+/**
+ * The record page's own edit affordance (OPS-1346) — genuine hand-input
+ * fields only (seed Impact chief among them), wired through the same
+ * `edit.ts`/`EditFields`/`useUpdate` seam the drawer uses. Bundled into one
+ * prop so `RecordBody` doesn't grow a dozen individual callbacks.
+ */
+interface EditState {
+  editing: boolean;
+  draft: Draft;
+  /** Validation messages keyed by field (e.g. Impact outside 0–100). */
+  errors: Record<string, string>;
+  saving: boolean;
+  conflict: string | null;
+  saveError: string | null;
+  onEdit: () => void;
+  onCancel: () => void;
+  onSave: () => void;
+  onReload: () => void;
+  onField: (key: string, value: string) => void;
 }
 
 const TAB_LABEL: Record<RecordTabId, string> = {
@@ -124,10 +147,84 @@ export function RecordPage({
     lists.experiments.refresh();
     lists.readings.refresh();
     lists.decisions.refresh();
+    lists.glossary.refresh();
   };
 
   const terms = toGlossaryTerms(related.glossary ?? []);
   const openTerm = (id: string) => onNavigate({ name: "record", id });
+
+  // Editing (OPS-1346): the record page's own edit affordance for genuine
+  // hand-input fields — seed Impact on an assumption above all (the only
+  // hand-scored number, `registry-schema.md`). Same edit/patch/save seam the
+  // drawer uses (`edit.ts`, `EditFields`, `useUpdate`), so the two surfaces
+  // never drift into different forms; derived numbers stay absent from
+  // `editableFields` and so never appear here either.
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState<Draft>({});
+  // The record as it was when editing began — diffing against this (not the
+  // live `record`) means a concurrent teammate edit to an untouched field
+  // survives a reload-and-retry (mirrors the drawer's conflict handling).
+  const [baseline, setBaseline] = useState<AnyRecord | null>(null);
+  const { save, saving, conflict, error: saveError, reset } = useUpdate(
+    register ?? backRegister,
+    basePath,
+  );
+
+  function startEditing() {
+    if (!record || !register) return;
+    setBaseline(record);
+    setDraft(draftFrom(register, record));
+    reset();
+    setEditing(true);
+  }
+
+  function cancelEditing() {
+    setEditing(false);
+    reset();
+  }
+
+  async function onSaveEdit() {
+    if (!record || !register || !baseline) return;
+    // Out-of-range values (e.g. Impact outside 0–100) never reach the API —
+    // the server's own check is a backstop, not the first line of defence.
+    if (Object.keys(draftErrors(register, draft)).length > 0) return;
+    const patch = buildPatch(register, baseline, draft);
+    patch.version = record.version; // write on top of the freshest known version
+    if (Object.keys(patch).length <= 1) {
+      setEditing(false); // only `version` present — nothing actually changed
+      return;
+    }
+    const result = await save(record.id, patch);
+    if (result.ok) {
+      setEditing(false);
+      refreshAll(); // pull the recomputed record back in
+    }
+    // On conflict/error the hook holds the message; stay in edit mode with
+    // the draft intact so nothing typed is lost.
+  }
+
+  function reloadLatest() {
+    reset();
+    refreshAll();
+  }
+
+  const setField = (key: string, value: string) =>
+    setDraft((d) => ({ ...d, [key]: value }));
+
+  const editErrors = editing && register ? draftErrors(register, draft) : {};
+  const edit: EditState = {
+    editing,
+    draft,
+    errors: editErrors,
+    saving,
+    conflict,
+    saveError,
+    onEdit: startEditing,
+    onCancel: cancelEditing,
+    onSave: onSaveEdit,
+    onReload: reloadLatest,
+    onField: setField,
+  };
 
   return (
     <div>
@@ -165,6 +262,7 @@ export function RecordPage({
           journey={journey}
           onJourneyChanged={refreshAll}
           onNavigate={onNavigate}
+          edit={edit}
         />
       )}
     </div>
@@ -185,6 +283,7 @@ function RecordBody({
   journey,
   onJourneyChanged,
   onNavigate,
+  edit,
 }: {
   register: Collection;
   record: AnyRecord;
@@ -199,10 +298,12 @@ function RecordBody({
   journey: ReturnType<typeof buildJourney>;
   onJourneyChanged: () => void;
   onNavigate: (route: Route) => void;
+  edit: EditState;
 }) {
   const page = buildRecordPage(register, record, related, { asOf });
   const activeTab = page.tabs.includes(tab) ? tab : "overview";
   const description = typeof record.Description === "string" ? record.Description : "";
+  const hasErrors = Object.keys(edit.errors).length > 0;
 
   return (
     <>
@@ -218,6 +319,15 @@ function RecordBody({
         </div>
         <div className="vos-spacer" />
         <span className="vos-verbadge">v{formatValue(record.version)}</span>
+        {!edit.editing ? (
+          <button
+            type="button"
+            onClick={edit.onEdit}
+            className="vos-btn vos-btn-ghost vos-btn-sm"
+          >
+            Edit
+          </button>
+        ) : null}
       </div>
 
       <div className="vos-tabs" role="tablist" aria-label="Record sections">
@@ -247,39 +357,80 @@ function RecordBody({
               />
             ))}
           </section>
-          {description ? (
-            <section className="vos-record-prose">
-              <h3 className="vos-section-title">Description</h3>
-              <p>
-                <GlossaryText
-                  text={description}
-                  terms={terms}
-                  selfId={register === "glossary" ? record.id : undefined}
-                  onOpenTerm={onOpenTerm}
-                />
-              </p>
+          {edit.editing ? (
+            <section className="vos-record-editor">
+              <h3 className="vos-section-title">Edit</h3>
+              {edit.conflict ? (
+                <ConflictBanner message={edit.conflict} onReload={edit.onReload} />
+              ) : null}
+              {edit.saveError ? (
+                <p role="alert" className="vos-error">
+                  {edit.saveError}
+                </p>
+              ) : null}
+              <EditFields
+                register={register}
+                draft={edit.draft}
+                errors={edit.errors}
+                onField={edit.onField}
+              />
+              <footer className="vos-drawer-footer">
+                <button
+                  type="button"
+                  onClick={edit.onCancel}
+                  disabled={edit.saving}
+                  className="vos-btn vos-btn-ghost vos-btn-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={edit.onSave}
+                  disabled={edit.saving || hasErrors}
+                  title={hasErrors ? "Fix the highlighted field before saving" : undefined}
+                  className="vos-btn vos-btn-sm"
+                >
+                  {edit.saving ? "Saving…" : "Save"}
+                </button>
+              </footer>
             </section>
-          ) : null}
-          {page.humanText.length ? (
-            <section className="vos-record-prose">
-              <h3 className="vos-section-title">
-                From a human <span className="vos-hint">— not computed</span>
-              </h3>
-              {page.humanText.map((h) => (
-                <div key={h.key} className="vos-human-field">
-                  <div className="vos-detail-k">{h.label}</div>
+          ) : (
+            <>
+              {description ? (
+                <section className="vos-record-prose">
+                  <h3 className="vos-section-title">Description</h3>
                   <p>
                     <GlossaryText
-                      text={h.text}
+                      text={description}
                       terms={terms}
                       selfId={register === "glossary" ? record.id : undefined}
                       onOpenTerm={onOpenTerm}
                     />
                   </p>
-                </div>
-              ))}
-            </section>
-          ) : null}
+                </section>
+              ) : null}
+              {page.humanText.length ? (
+                <section className="vos-record-prose">
+                  <h3 className="vos-section-title">
+                    From a human <span className="vos-hint">— not computed</span>
+                  </h3>
+                  {page.humanText.map((h) => (
+                    <div key={h.key} className="vos-human-field">
+                      <div className="vos-detail-k">{h.label}</div>
+                      <p>
+                        <GlossaryText
+                          text={h.text}
+                          terms={terms}
+                          selfId={register === "glossary" ? record.id : undefined}
+                          onOpenTerm={onOpenTerm}
+                        />
+                      </p>
+                    </div>
+                  ))}
+                </section>
+              ) : null}
+            </>
+          )}
         </div>
       ) : null}
 
@@ -348,6 +499,28 @@ function RecordBody({
 
 function PillView({ pill }: { pill: Pill }) {
   return <span className={PILL_CLASS[pill.tone]}>{pill.label}</span>;
+}
+
+/** The plain-language conflict prompt (spec user story 12) — a concurrent
+ * edit surfaced gently, with a re-fetch path, never version jargon. Mirrors
+ * the drawer's banner so the two edit surfaces read identically. */
+function ConflictBanner({
+  message,
+  onReload,
+}: {
+  message: string;
+  onReload: () => void;
+}) {
+  return (
+    <div role="alert" className="vos-banner vos-banner-warn">
+      <div className="vos-banner-body">
+        <span>{message}</span>
+      </div>
+      <button type="button" onClick={onReload}>
+        Review the latest
+      </button>
+    </div>
+  );
 }
 
 /** One leading-score meter — a bar (fraction fill), a signed value (centre
