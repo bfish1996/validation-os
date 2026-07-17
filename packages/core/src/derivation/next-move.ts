@@ -135,7 +135,18 @@ function bestFeasibility(
   return best;
 }
 
-/** The act a belief's stage demands (before the kill-lane override). */
+/**
+ * The act a belief's stage demands (before the kill-lane override).
+ *
+ * Deliberately NOT the `stage.ts` structural classifier: that answers "how far
+ * along the Framed→Planned→Tested→Known artifacts are" (framing completeness,
+ * bar-line settlement); this answers "what should the founder do next" from the
+ * evidence state (is it weighted, has evidence concluded, does a test run, does
+ * a decision rest on it). Same belief can be structurally `tested` yet owe a
+ * `decide` here — the journey rail (stage) and next-move card (act) are two
+ * readings of one belief, so they share the test-plan *meter* (`beliefTestMeters`)
+ * but not the classifier.
+ */
 function stageMove(
   a: NextMoveAssumptionInput,
   hasRunningTest: boolean,

@@ -19,16 +19,21 @@ import {
 } from "@validation-os/core";
 import {
   beliefRisk,
+  beliefTestMeters,
   confidence,
+  deriveBeliefStage,
   portfolioProgress,
   risk as riskOf,
   type PortfolioBeliefInput,
   type PortfolioProgress,
+  type StageExperimentInput,
+  type StageKey,
+  type TestMeter,
 } from "@validation-os/core/derivation";
 import { riskLevel, type Tone } from "./primitives.js";
 
 /** The four loop stages a belief travels, in order (OPS-1293). */
-export type StageKey = "framed" | "planned" | "tested" | "known";
+export type { StageKey };
 
 /** One live belief's row on the board. */
 export interface PipelineRow {
@@ -98,66 +103,46 @@ function derivedOf(rec: AnyRecord): {
 }
 
 /** killed = Invalidated, moot = the moot flag; moot wins if somehow both. */
-function resolvedKind(rec: AnyRecord): "killed" | "moot" | null {
+export function resolvedKind(rec: AnyRecord): "killed" | "moot" | null {
   if (rec.moot === true) return "moot";
   if (rec.Status === "Invalidated") return "killed";
   return null;
 }
 
-interface TestState {
-  planned: boolean;
-  settled: number;
-  total: number;
+/**
+ * Reduce an experiment record to the shape the shared meter logic reads: each
+ * bar line naming a belief (with whether it has settled) plus the convenience
+ * projection. Shared with the journey view-model so the board and a belief's
+ * rail derive test state one way.
+ */
+export function toStageExperimentInput(exp: AnyRecord): StageExperimentInput {
+  const bars = (exp.barLines as BarLine[] | undefined) ?? [];
+  return {
+    bars: bars.map((b) => ({
+      assumptionId: b.assumptionId,
+      settled: typeof b.barVerdict === "string" && b.barVerdict.trim() !== "",
+    })),
+    plannedAssumptionIds:
+      (exp.barLineAssumptionIds as string[] | undefined) ?? [],
+  };
 }
 
 /**
- * For every assumption, the state of the tests aimed at it: whether one is
- * designed (a bar line names it) and how many of its pre-registered bars have
- * settled — aggregated across all experiments.
+ * The stage-aware next move — the same ladder the prototype walks, now driven
+ * by the shared stage classification plus the kill-zone overlay.
  */
-function testStates(experiments: AnyRecord[]): Map<string, TestState> {
-  const byAssumption = new Map<string, TestState>();
-  const ensure = (id: string): TestState => {
-    let s = byAssumption.get(id);
-    if (!s) {
-      s = { planned: false, settled: 0, total: 0 };
-      byAssumption.set(id, s);
-    }
-    return s;
-  };
-  for (const exp of experiments) {
-    const bars = (exp.barLines as BarLine[] | undefined) ?? [];
-    for (const b of bars) {
-      if (!b.assumptionId) continue;
-      const s = ensure(b.assumptionId);
-      s.planned = true;
-      s.total += 1;
-      if (typeof b.barVerdict === "string" && b.barVerdict.trim() !== "") {
-        s.settled += 1;
-      }
-    }
-    // A designed test may name a belief via the convenience projection even if
-    // its bar lines aren't expanded here — still counts as Planned.
-    const ids = (exp.barLineAssumptionIds as string[] | undefined) ?? [];
-    for (const id of ids) ensure(id).planned = true;
+function nextMove(stage: StageKey, killZone: boolean): string {
+  if (killZone) return "Decide / kill";
+  switch (stage) {
+    case "framed":
+      return "Finish framing";
+    case "planned":
+      return "Design test";
+    case "tested":
+      return "Record reading";
+    case "known":
+      return "Decide / bank it";
   }
-  return byAssumption;
-}
-
-/** The stage-aware next move — the same ladder the prototype walks. */
-function nextMove(row: {
-  killZone: boolean;
-  framed: number;
-  planned: boolean;
-  tested: { settled: number; total: number };
-}): string {
-  if (row.killZone) return "Decide / kill";
-  if (row.framed < 100) return "Finish framing";
-  if (!row.planned) return "Design test";
-  if (row.tested.total === 0 || row.tested.settled < row.tested.total) {
-    return "Record reading";
-  }
-  return "Decide / bank it";
 }
 
 /**
@@ -169,7 +154,7 @@ export function buildPipeline(
   assumptions: AnyRecord[],
   experiments: AnyRecord[],
 ): PipelineView {
-  const tests = testStates(experiments);
+  const tests = beliefTestMeters(experiments.map(toStageExperimentInput));
 
   const rows: PipelineRow[] = [];
   const resolved: ResolvedRow[] = [];
@@ -200,23 +185,26 @@ export function buildPipeline(
       continue;
     }
 
-    const test = tests.get(a.id) ?? { planned: false, settled: 0, total: 0 };
+    const test: TestMeter = tests.get(a.id) ?? {
+      planned: false,
+      settled: 0,
+      total: 0,
+    };
     const framed = assumptionCompleteness(a as Record<string, unknown>);
-    const killZone = d.confidence <= -50;
-    const tested = { settled: test.settled, total: test.total };
+    const stage = deriveBeliefStage({ framed, confidence: d.confidence, test });
     rows.push({
       id: a.id,
       statement: str(a.Title),
       impact: d.derivedImpact,
       risk: d.risk,
       riskTone: riskLevel(d.risk) as PipelineRow["riskTone"],
-      confidence: d.confidence,
-      confSign: d.confidence > 0 ? "pos" : d.confidence < 0 ? "neg" : "zero",
-      killZone,
-      framed,
-      planned: test.planned,
-      tested,
-      nextMove: nextMove({ killZone, framed, planned: test.planned, tested }),
+      confidence: stage.confidence,
+      confSign: stage.confSign,
+      killZone: stage.killZone,
+      framed: stage.framed,
+      planned: stage.planned,
+      tested: stage.tested,
+      nextMove: nextMove(stage.stage, stage.killZone),
     });
   }
 
