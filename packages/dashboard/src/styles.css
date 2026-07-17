@@ -1419,3 +1419,247 @@ textarea.vos-input {
     grid-column: 2;
   }
 }
+
+/* ── front door: "next move" (OPS-1304) ────────────────────────────────── */
+.vos-next {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+/* The hero — one belief, one act, centred. */
+.vos-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 14px;
+  padding: 34px 28px;
+}
+.vos-hero-kill {
+  border-color: var(--vos-crit);
+}
+.vos-hero-eyebrow {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--vos-faint);
+  font-weight: 700;
+}
+.vos-hero-belief {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  color: var(--vos-text);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  max-width: 30ch;
+}
+.vos-hero-belief:hover {
+  color: var(--vos-accent-text);
+}
+.vos-hero-act {
+  height: 40px;
+  padding: 0 22px;
+  font-size: 14px;
+}
+.vos-hero-agent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.vos-agent-note {
+  font-size: 12px;
+  color: var(--vos-muted);
+}
+
+/* Risk chip — seen, not read: a bar and a plain label, no number. */
+.vos-riskchip {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+}
+.vos-riskchip .vos-risk-bar {
+  width: 84px;
+  height: 7px;
+}
+.vos-riskchip-label {
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+/* Why-this panel adapts the drawer's reveal to a standalone card. */
+.vos-next-why {
+  border: 1px solid var(--vos-border);
+  border-radius: var(--vos-radius);
+  margin-top: 0;
+  max-width: 640px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+}
+.vos-why-reason {
+  font-size: 13px;
+  color: var(--vos-text);
+  margin: 0;
+}
+.vos-why-formula {
+  font-size: 12.5px;
+  color: var(--vos-muted);
+  margin: 0;
+}
+.vos-why-rank {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.vos-why-rank li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12.5px;
+  color: var(--vos-muted);
+}
+.vos-why-rank-top {
+  color: var(--vos-text);
+  font-weight: 600;
+}
+.vos-why-rank-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.vos-why-rank-score {
+  font-family: var(--vos-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Stage stepper (Framed→Planned→Tested→Known) — hidden behind Why this. */
+.vos-stepper {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.vos-step {
+  font-size: 11px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--vos-surface-2);
+  color: var(--vos-faint);
+}
+.vos-step-done {
+  color: var(--vos-muted);
+}
+.vos-step-at {
+  background: var(--vos-accent-weak);
+  color: var(--vos-accent-text);
+  font-weight: 700;
+}
+
+/* On deck — title-only runners-up + an act pill. */
+.vos-ondeck {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.vos-ondeck-row {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 12px;
+  background: var(--vos-surface);
+  border: 1px solid var(--vos-border);
+  border-radius: var(--vos-radius);
+}
+.vos-ondeck-row .vos-risk-bar {
+  flex: 0 0 46px;
+}
+.vos-ondeck-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--vos-text);
+  font: inherit;
+  font-size: 13px;
+}
+.vos-ondeck-title:hover {
+  color: var(--vos-accent-text);
+}
+.vos-ondeck-act {
+  cursor: pointer;
+  border: none;
+  font: inherit;
+}
+
+.vos-override {
+  align-self: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--vos-muted);
+  font: inherit;
+  font-size: 12.5px;
+  padding: 4px;
+}
+.vos-override:hover {
+  color: var(--vos-accent-text);
+}
+.vos-linkbtn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--vos-accent-text);
+  font: inherit;
+  font-weight: 600;
+}
+
+/* Step-in form extras (score-impact slider + decision radios). */
+.vos-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.vos-slider {
+  flex: 1;
+  accent-color: var(--vos-accent);
+}
+.vos-slider-num {
+  width: 72px;
+  flex: 0 0 auto;
+}
+.vos-field-hint {
+  font-size: 11.5px;
+  color: var(--vos-muted);
+  margin: 6px 0 0;
+}
+.vos-radio {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--vos-text);
+  margin-top: 6px;
+  cursor: pointer;
+}
+.vos-radio input {
+  margin-top: 2px;
+  accent-color: var(--vos-accent);
+}

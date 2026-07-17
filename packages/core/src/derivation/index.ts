@@ -37,3 +37,12 @@ export type {
   PortfolioBeliefInput,
   PortfolioProgress,
 } from "./portfolio.js";
+export { rankNextMoves, KILL_LANE_THRESHOLD } from "./next-move.js";
+export type {
+  MoveKind,
+  NextMove,
+  NextMoveAssumptionInput,
+  NextMoveExperimentInput,
+  NextMoveDecisionInput,
+  NextMoveInput,
+} from "./next-move.js";

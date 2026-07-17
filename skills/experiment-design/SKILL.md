@@ -83,7 +83,11 @@ or note the exception.)
   asks which other beliefs the same run can honestly carry. (The standing
   **test-next surface** ranks designed experiments by Feasibility × the
   bundle's highest-Risk belief — `registry-schema.md §Status & derived
-  views`; this seed step is upstream of it.)
+  views`; this seed step is upstream of it.) The same Feasibility × Risk rule,
+  applied to *beliefs* for the dashboard front door, is specified once in
+  `ontology.yaml → derived_views.next_move` and implemented once in
+  `packages/core` (`derivation.rankNextMoves`) — rank off that spec, don't
+  reinvent it here.
 - **Named assumption.** User names one — load that record; it seeds the bundle.
 - **Already-chosen approach.** User says "interview to test X" — skip the
   rung recommendation in step 2, but still validate each belief maps to the
