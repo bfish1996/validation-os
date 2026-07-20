@@ -1,20 +1,22 @@
 import type { Collection } from "@validation-os/core";
 
 /**
- * The dashboard's client-owned navigation state, across the three workflow
+ * The dashboard's client-owned navigation state, across the workflow
  * altitudes plus the kept register tables (OPS-1298). One `<ValidationOSDashboard/>`
  * mounts at a single host route and drives everything off the URL hash — there
  * is no second entry point (OPS-1280).
  *
- *  - `next`     — the front door ("what's my next move"); the default landing.
- *  - `pipeline` — the step-back portfolio pipeline.
- *  - `records`  — one register's browse table (the manual-override surface,
- *                 kept from the original scheme).
- *  - `record`   — the per-belief drill-in (full record page).
+ *  - `next`       — the front door ("what's my next move"); the default landing.
+ *  - `pipeline`   — the step-back portfolio pipeline.
+ *  - `stage-grid` — the Lens × Stage heatmap (docs/stage-policy.md).
+ *  - `records`    — one register's browse table (the manual-override surface,
+ *                   kept from the original scheme).
+ *  - `record`     — the per-belief drill-in (full record page).
  */
 export type Route =
   | { name: "next" }
   | { name: "pipeline" }
+  | { name: "stage-grid" }
   | { name: "records"; register: Collection }
   | { name: "record"; id: string };
 
@@ -34,6 +36,7 @@ export function parseRoute(hash: string, registers: Collection[]): Route {
   const head = parts[0] ?? "";
   if (head === "next") return { name: "next" };
   if (head === "pipeline") return { name: "pipeline" };
+  if (head === "stage-grid") return { name: "stage-grid" };
   if (head === "record") {
     const id = parts.slice(1).join("/");
     return id ? { name: "record", id } : DEFAULT_ROUTE;

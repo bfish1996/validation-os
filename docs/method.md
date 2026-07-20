@@ -28,6 +28,14 @@ derived **Completeness %** — every structural slot present (Description,
 Lens, Impact, Scoring justification, dependencies traced) — not a stored
 checklist.
 
+Every assumption is tagged with a **Stage** — the kind of external-actor
+response it tests (Discovery → Validation → Scale → Maturity). The
+membership test is the subject-verb rule: the claim's subject must be an
+external actor (user, buyer, competitor, regulator, partner, distributor,
+investor) or the market, never "we" — there is no stage for "we can build
+X." The Lens × Stage heatmap reads where your bets cluster; see
+[stage-policy.md](stage-policy.md).
+
 Skills: `/assumptions` (build, grill, audit). Rules:
 `skills/_shared/assumption-guardrails.md`.
 

@@ -61,11 +61,12 @@ export const REGISTER_GROUPS: { label: string; registers: Collection[] }[] = [
 ];
 
 /** The workflow surfaces the sidebar lists above the register tables (OPS-1298):
- * the front door (default landing) and the portfolio pipeline. Kept beside the
- * register presentation data so all sidebar labels/icons live in one place. */
+ *  the front door (default landing), the Lens × Stage heatmap
+ *  (docs/stage-policy.md), and the portfolio pipeline. Kept beside the
+ *  register presentation data so all sidebar labels/icons live in one place. */
 export interface WorkflowNavItem {
   /** The route this item selects. */
-  route: "next" | "pipeline";
+  route: "next" | "pipeline" | "stage-grid";
   label: string;
   icon: string;
   /** The default landing — carries a "home" badge in the nav. */
@@ -74,5 +75,6 @@ export interface WorkflowNavItem {
 
 export const WORKFLOW_NAV: WorkflowNavItem[] = [
   { route: "next", label: "Next move", icon: "◈", isDefault: true },
-  { route: "pipeline", label: "Pipeline", icon: "▦" },
+  { route: "stage-grid", label: "Lens × Stage", icon: "▦" },
+  { route: "pipeline", label: "Pipeline", icon: "▤" },
 ];

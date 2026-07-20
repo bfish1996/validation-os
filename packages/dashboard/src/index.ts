@@ -137,6 +137,23 @@ export { RegisterBrowser } from "./register-browser.js";
 export type { RegisterBrowserProps } from "./register-browser.js";
 export { NextMoveSurface } from "./next-move-surface.js";
 export type { NextMoveSurfaceProps } from "./next-move-surface.js";
+export { StageGridSurface } from "./stage-grid-surface.js";
+export type { StageGridSurfaceProps } from "./stage-grid-surface.js";
+export {
+  buildStageGrid,
+  cellAt,
+  NO_LENS,
+  NO_STAGE,
+  rankByRisk,
+  STAGE_GLOSS,
+  STAGE_ORDER,
+  stageOf,
+} from "./stage-grid-model.js";
+export type {
+  StageGridCell,
+  StageGridView,
+  StageValue,
+} from "./stage-grid-model.js";
 export { movePresentation, toNextMoveInput } from "./next-move.js";
 export type {
   MovePresentation,

@@ -5,6 +5,7 @@ import { PipelineSurface } from "./pipeline-surface.js";
 import { RecordPage } from "./record-page.js";
 import { RegisterBrowser } from "./register-browser.js";
 import { NextMoveSurface } from "./next-move-surface.js";
+import { StageGridSurface } from "./stage-grid-surface.js";
 import { formatRoute, parseRoute, type Route } from "./route.js";
 import { SidebarNav } from "./sidebar-nav.js";
 import { useCounts, useNeedsHuman } from "./use-counts.js";
@@ -183,6 +184,8 @@ export function ValidationOSDashboard({ config = {} }: ValidationOSDashboardProp
           />
         ) : route.name === "pipeline" ? (
           <PipelineSurface key="pipeline" basePath={basePath} onNavigate={navigate} />
+        ) : route.name === "stage-grid" ? (
+          <StageGridSurface key="stage-grid" basePath={basePath} onNavigate={navigate} />
         ) : (
           <NextMoveSurface key="next" basePath={basePath} onNavigate={navigate} />
         )}

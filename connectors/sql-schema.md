@@ -21,6 +21,7 @@ registers:
       - {canonical: Title, backend: title, type: TEXT, derived: false}
       - {canonical: Description, backend: description, type: TEXT, derived: false}
       - {canonical: Lens, backend: lens, type: TEXT, derived: false, options_source: vocabulary.lens}
+      - {canonical: Stage, backend: stage, type: TEXT, derived: false, options_source: registry-schema}
       - {canonical: Theme, backend: themes, type: JSON, derived: false, options_source: registry-schema}
       - {canonical: Impact, backend: impact, type: INTEGER, derived: false}
       - {canonical: Derived Impact, backend: derived_impact, type: NUMERIC, derived: true, formula: "seed + (100 - seed) × S/(S + 100) over the dependency DAG, S = dependents' Derived Impact + 100 per standing decision Based on; experiments never contribute (assumption-guardrails.md §3); recomputed on every touching write (OPS-1251)"}
@@ -206,6 +207,7 @@ sql:
 | Title | `title` | TEXT | no |
 | Description | `description` | TEXT | no |
 | Lens | `lens` | TEXT | no |
+| Stage | `stage` | TEXT (`Discovery` \| `Validation` \| `Scale` \| `Maturity`) | no |
 | Theme | `themes` | JSON (array of strings) | no |
 | Impact | `impact` | INTEGER (0–100) | no |
 | Derived Impact | `derived_impact` | NUMERIC | yes |
@@ -425,9 +427,13 @@ proposes a default set and writes them into the config.
 Every other select column (`status` — including `Archived` for experiments,
 `reading_beliefs.result`, `reading_beliefs.rung`, `reading_beliefs.magnitude_band`,
 `planned_rung`, `bar_verdict`, `feasibility`, `closure_reason`, `outcome`,
-`reversibility`, `representativeness`, `credibility`) draws from the fixed lists
+`reversibility`, `representativeness`, `credibility`, `stage`) draws from the fixed lists
 in `skills/_shared/ontology.yaml §vocabularies` — never the config. Writing a
-value outside that list is an `illegal-select-value` finding.
+value outside that list is an `illegal-select-value` finding. The stored
+`stage` value is the **name** (`Discovery` | `Validation` | `Scale` |
+`Maturity`), not the ordinal 1–4 — the ordinal is for sorting only. See
+`docs/stage-policy.md` for the membership test (the subject-verb rule) and
+the Lens × Stage orthogonality.
 
 ## Relations
 
@@ -472,10 +478,12 @@ Reading leaves it unset.
 2. Create the five register tables plus the `experiment_bar_lines` and
    `reading_beliefs` child tables.
 3. Create junction tables for relations.
-4. Create indexes on `id`, `status`, `lens`, `area`, and every foreign-key
-   column, including `readings.experiment_id`, `reading_beliefs.reading_id`,
-   `reading_beliefs.assumption_id`, `experiment_bar_lines.experiment_id`, and
-   `experiment_bar_lines.assumption_id`.
+4. Create indexes on `id`, `status`, `lens`, `area`, `stage`, and every
+   foreign-key column, including `readings.experiment_id`,
+   `reading_beliefs.reading_id`, `reading_beliefs.assumption_id`,
+   `experiment_bar_lines.experiment_id`, and
+   `experiment_bar_lines.assumption_id`. The `assumptions.stage` index
+   backs the dashboard's Lens × Stage heatmap drill-through.
 5. If the database supports it, add `CHECK` constraints for:
    - vocabulary-driven columns (`lens`, `area`) using the current
      `validation-os.config.yaml` values, and
@@ -483,9 +491,9 @@ Reading leaves it unset.
      `reading_beliefs.result`, `reading_beliefs.rung`,
      `reading_beliefs.magnitude_band`, `readings.representativeness`,
      `readings.credibility`, `experiment_bar_lines.planned_rung`,
-     `experiment_bar_lines.bar_verdict`, `experiments.status` (now including
-     `Archived`), `experiments.outcome`, `glossary.status` — against
-     `skills/_shared/ontology.yaml §vocabularies`.
+      `experiment_bar_lines.bar_verdict`, `experiments.status` (now including
+      `Archived`), `experiments.outcome`, `glossary.status`, `assumptions.stage` —
+      against `skills/_shared/ontology.yaml §vocabularies`.
 
 ### seed_starter_records
 
