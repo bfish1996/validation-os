@@ -75,6 +75,5 @@ export interface WorkflowNavItem {
 
 export const WORKFLOW_NAV: WorkflowNavItem[] = [
   { route: "next", label: "Next move", icon: "◈", isDefault: true },
-  { route: "stage-grid", label: "Lens × Stage", icon: "▦" },
   { route: "pipeline", label: "Pipeline", icon: "▤" },
 ];

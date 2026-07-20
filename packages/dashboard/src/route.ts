@@ -17,7 +17,7 @@ export type Route =
   | { name: "next" }
   | { name: "pipeline" }
   | { name: "stage-grid" }
-  | { name: "records"; register: Collection }
+  | { name: "records"; register: Collection; lens?: string; stage?: string; view?: "all" }
   | { name: "record"; id: string };
 
 const DEFAULT_ROUTE: Route = { name: "next" };
@@ -32,8 +32,13 @@ const DEFAULT_ROUTE: Route = { name: "next" };
 export function parseRoute(hash: string, registers: Collection[]): Route {
   const h = hash.replace(/^#\/?/, "");
   if (!h) return DEFAULT_ROUTE;
-  const parts = h.split("/");
+  const [pathPart = "", queryPart = ""] = h.split("?");
+  const parts = pathPart.split("/");
   const head = parts[0] ?? "";
+  const query = new URLSearchParams(queryPart ?? "");
+  const lens = query.get("lens") ?? undefined;
+  const stage = query.get("stage") ?? undefined;
+  const view = (query.get("view") as "all" | null) ?? undefined;
   if (head === "next") return { name: "next" };
   if (head === "pipeline") return { name: "pipeline" };
   if (head === "stage-grid") return { name: "stage-grid" };
@@ -42,7 +47,7 @@ export function parseRoute(hash: string, registers: Collection[]): Route {
     return id ? { name: "record", id } : DEFAULT_ROUTE;
   }
   if ((registers as string[]).includes(head)) {
-    return { name: "records", register: head as Collection };
+    return { name: "records", register: head as Collection, lens, stage, view };
   }
   return DEFAULT_ROUTE;
 }
@@ -54,8 +59,14 @@ export function parseRoute(hash: string, registers: Collection[]): Route {
  */
 export function formatRoute(route: Route): string {
   switch (route.name) {
-    case "records":
-      return route.register;
+    case "records": {
+      const q = new URLSearchParams();
+      if (route.lens) q.set("lens", route.lens);
+      if (route.stage) q.set("stage", route.stage);
+      if (route.view) q.set("view", route.view);
+      const qs = q.toString();
+      return qs ? `${route.register}?${qs}` : route.register;
+    }
     case "record":
       return `record/${route.id}`;
     default:

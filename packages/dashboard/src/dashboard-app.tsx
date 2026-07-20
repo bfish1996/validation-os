@@ -167,13 +167,22 @@ export function ValidationOSDashboard({ config = {} }: ValidationOSDashboardProp
 
       <main className="vos-main">
         {route.name === "records" ? (
-          <RegisterBrowser
-            key={route.register}
-            register={route.register}
-            basePath={basePath}
-            subtitle={REGISTER_SUBTITLE[route.register]}
-            onOpenRecord={(id) => navigate({ name: "record", id })}
-          />
+          // The assumptions register renders the grid as its landing surface
+          // (#assumptions with no query); cell-click and "view all" drill into
+          // the filtered/unfiltered table by setting lens/stage/view on the route.
+          route.register === "assumptions" && !route.lens && !route.stage && route.view !== "all" ? (
+            <StageGridSurface key="stage-grid" basePath={basePath} onNavigate={navigate} />
+          ) : (
+            <RegisterBrowser
+              key={route.register + (route.lens ?? "") + (route.stage ?? "") + (route.view ?? "")}
+              register={route.register}
+              basePath={basePath}
+              subtitle={REGISTER_SUBTITLE[route.register]}
+              onOpenRecord={(id) => navigate({ name: "record", id })}
+              lens={route.lens}
+              stage={route.stage}
+            />
+          )
         ) : route.name === "record" ? (
           <RecordPage
             key={route.id}
