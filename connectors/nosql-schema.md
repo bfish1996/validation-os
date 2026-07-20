@@ -21,6 +21,7 @@ registers:
       - {canonical: Title, backend: Title, type: string, derived: false}
       - {canonical: Description, backend: Description, type: string, derived: false}
       - {canonical: Lens, backend: Lens, type: string, derived: false, options_source: vocabulary.lens}
+      - {canonical: Stage, backend: Stage, type: string, derived: false, options_source: registry-schema}
       - {canonical: Theme, backend: Theme, type: "string[]", derived: false, options_source: registry-schema}
       - {canonical: Impact, backend: Impact, type: number, derived: false}
       - {canonical: Derived Impact, backend: derived.derivedImpact, type: number, derived: true, formula: "seed + (100 - seed) × S/(S + 100), S = Σ dependents' Derived Impact + 100 per standing decision Based on assumption; experiments never contribute (assumption-guardrails.md §3); recomputed on every touching write (OPS-1251)"}
@@ -241,6 +242,7 @@ is no shared `type` field splitting one collection into two record kinds.
 | Title | `Title` | string | no |
 | Description | `Description` | string | no |
 | Lens | `Lens` | string | no |
+| Stage | `Stage` | string (`Discovery` \| `Validation` \| `Scale` \| `Maturity`) | no |
 | Theme | `Theme` | string[] | no |
 | Impact | `Impact` | number (0–100) | no |
 | Derived Impact | `derived.derivedImpact` | number | yes |
@@ -502,9 +504,12 @@ The following fields should only contain values from
 
 Every other select field (`Status`, `Feasibility`, `closureReason`, `Outcome`,
 `Rung`, `plannedRung`, `barVerdict`, `Result`, `Representativeness`,
-`Credibility`) draws its legal values from the fixed lists in
+`Credibility`, `Stage`) draws its legal values from the fixed lists in
 `skills/_shared/ontology.yaml §vocabularies` — never restated here, to avoid
-forking the semantics.
+forking the semantics. The stored `Stage` value is the **name**
+(`Discovery` | `Validation` | `Scale` | `Maturity`), not the ordinal 1–4 —
+the ordinal is for sorting only. See `docs/stage-policy.md` for the
+membership test (the subject-verb rule) and the Lens × Stage orthogonality.
 
 `/setup-validation-os` reads the config and proposes validation rules or
 lookup documents for the config-driven fields. If the config is missing the
@@ -564,8 +569,10 @@ write.
    collections), `beliefs.assumptionId` and each `assumptionIds` element
    (readings — a multi-key index so a reading is findable by any belief it
    scores), `experimentId` (readings), `barLines.assumptionId` (experiments),
-   and every top-level relation array (`dependsOnIds`, `enablesIds`,
-   `contradictsIds`, `readingIds`, `basedOnIds`, `resolvesIds`).
+   every top-level relation array (`dependsOnIds`, `enablesIds`,
+   `contradictsIds`, `readingIds`, `basedOnIds`, `resolvesIds`), and
+   `assumptions.Stage` (the dashboard's Lens × Stage heatmap filters by
+   Stage on every drill-through).
 4. Optionally create a `validationRules` or `_schema` document recording the
    current vocabulary values from `validation-os.config.yaml`, including the
    Reading, bar-line, and Glossary vocabularies, and the `dashboard_users`

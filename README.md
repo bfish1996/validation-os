@@ -46,6 +46,11 @@ Assumption → grill & score → Experiment (pre-registered pass/kill bars)
      → Evidence → Confidence moves → Risk follows → next test surfaces
 ```
 
+**Stage policy:** every assumption is a falsifiable claim about an external
+actor's response, tagged with one of four discovery stages (Discovery →
+Validation → Scale → Maturity). The Lens × Stage heatmap reads where your
+bets cluster — see [docs/stage-policy.md](docs/stage-policy.md).
+
 Theory, ladder, cadence, and goals: [docs/method.md](docs/method.md) ·
 [docs/evidence-ladder.md](docs/evidence-ladder.md) ·
 [docs/validated.md](docs/validated.md) ·

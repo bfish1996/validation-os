@@ -22,6 +22,10 @@ describe("parseRoute", () => {
     expect(parseRoute("#pipeline", REGISTERS)).toEqual({ name: "pipeline" });
   });
 
+  it("reads the Lens × Stage heatmap surface", () => {
+    expect(parseRoute("#stage-grid", REGISTERS)).toEqual({ name: "stage-grid" });
+  });
+
   it("reads a bare register name as its Records table (backward-compatible)", () => {
     expect(parseRoute("#assumptions", REGISTERS)).toEqual({
       name: "records",
@@ -59,12 +63,14 @@ describe("formatRoute", () => {
     expect(formatRoute({ name: "record", id: "A-014" })).toBe("record/A-014");
     expect(formatRoute({ name: "next" })).toBe("next");
     expect(formatRoute({ name: "pipeline" })).toBe("pipeline");
+    expect(formatRoute({ name: "stage-grid" })).toBe("stage-grid");
   });
 
   it("round-trips every route through a `#`-prefixed hash", () => {
     const routes: Route[] = [
       { name: "next" },
       { name: "pipeline" },
+      { name: "stage-grid" },
       { name: "records", register: "decisions" },
       { name: "record", id: "A-007" },
     ];

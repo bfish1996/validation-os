@@ -120,6 +120,15 @@ vocabularies:
       [Go-to-market, Product, UX, Business model, Technology, Regulatory,
        Market & competition, Trust & data]
 
+  # Stage — the kind of external-actor response a belief tests (the discovery
+  # taxonomy, docs/stage-policy.md). Names are the stored value (legible, the
+  # coordination contract with Team A's migration); the ordinal 1–4 is the
+  # sort order, never written. Membership is the subject-verb rule: a record
+  # in `Scale` is a claim about whether channels/cohorts/infra respond at
+  # volume, not "we can build X". The Lens × Stage pair is orthogonal — see
+  # `registry-schema.md §Field map — Assumptions`.
+  stage: [Discovery, Validation, Scale, Maturity]
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Derivations — computed fields. Never hand-written, in any backend
 # (connectors/SPEC.md). Backends without native formulas have the skill
@@ -205,6 +214,14 @@ entities:
       - { name: Title, type: title, required: true }
       - { name: Description, type: text, required: true }
       - { name: Lens, type: select, options: vocabularies.lens, required: true }
+      # Stage — the kind of external-actor response the belief tests
+      # (docs/stage-policy.md). Required: every assumption is a BET about an
+      # external actor's response, and the stage taxonomy is the membership
+      # test — no stage fits "we can build X", so a BUILD claim falls out of
+      # the register at write time. The stored value is the stage *name*
+      # (Discovery | Validation | Scale | Maturity); the ordinal 1–4 is for
+      # sorting only, never written.
+      - { name: Stage, type: select, options: vocabularies.stage, required: true }
       - { name: Theme, type: multi_select, options: vocabularies.theme }
       - { name: Impact, type: number, range: [0, 100], hand_scored: true }
       - { name: Derived Impact, type: number, derived: derivations.derived_impact }
@@ -672,6 +689,22 @@ integrity_rules:
     severity: error
     surfaced_by: ["/assumptions audit"]
     check: Two records asserting opposite truth values of the same proposition — a negation-duplicate; merge (assumption-guardrails.md §4a).
+
+  # Stage membership (docs/stage-policy.md)
+  - id: stage-actor-consistency
+    severity: warn
+    surfaced_by: ["/assumptions audit"]
+    check: >-
+      The claim's subject is inconsistent with its Stage's expected actor
+      (docs/stage-policy.md §The four stages). Advisory at first — the
+      membership test is the subject-verb rule: every assumption's subject
+      must be an external actor (user, buyer, competitor, regulator,
+      partner, distributor, investor) or the market, never "we". A Stage-4
+      (Maturity) record whose subject is "we" is suspect; a Stage-1
+      (Discovery) record framed as a build capability is suspect. Flag for
+      human re-framing — the gate's work is the stage taxonomy itself, so a
+      mis-staged record usually means the claim is a BUILD risk in disguise,
+      not a wrong tag.
 
   # Status coherence (assumptions × readings)
   - id: draft-live-completeness-invariant
