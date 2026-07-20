@@ -3,20 +3,35 @@ import type { AnyRecord } from "@validation-os/core";
 import { buildCycles, DIRECT_CYCLE_KEY } from "./cycles.js";
 
 function reading(over: Partial<AnyRecord> & { id: string }): AnyRecord {
+  const {
+    assumptionId = "b1",
+    Rung = "Prototype usage",
+    Result = "Validated",
+    magnitudeBand,
+    ...rest
+  } = over as Record<string, unknown> & { id: string };
   return {
     version: 0,
     createdAt: "",
     updatedAt: "",
     Title: "A reading",
     Source: over.id,
-    assumptionId: "b1",
     experimentId: null,
-    Rung: "Prototype usage",
     Representativeness: 1.0,
     Credibility: 1.0,
-    Result: "Validated",
     Date: null,
-    ...over,
+    beliefs: [
+      {
+        assumptionId,
+        Rung,
+        Result,
+        magnitudeBand,
+        "Grading justification": "",
+        derived: { strength: 0 },
+      },
+    ],
+    assumptionIds: [assumptionId],
+    ...rest,
   } as AnyRecord;
 }
 

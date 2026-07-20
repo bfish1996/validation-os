@@ -18,9 +18,17 @@ import {
   derivedNum,
   inKillLane,
   isTesting,
+  readingBeliefFor,
+  readingBeliefs,
   str,
   strList,
 } from "./derived-views.js";
+
+/** A reading is concluded when any of its belief-scores landed a verdict
+ * (Validated/Invalidated); Inconclusive-only readings move nothing. */
+function hasConcludedBelief(r: AnyRecord): boolean {
+  return readingBeliefs(r).some((b) => b.Result !== "Inconclusive");
+}
 
 // ── Shaped-query descriptor ──────────────────────────────────────────────────
 
@@ -86,20 +94,21 @@ interface InternalTab extends TabDef {
 }
 
 /** Proven (ontology derived view): a Live belief whose strongest concluded
- * linked reading is Validated. */
+ * belief-score across its readings is Validated. A reading scores per belief
+ * now (OPS-1305), so both the strength and the verdict are read off this
+ * belief's own entry in each reading's `beliefs[]`, not the retired row scalars. */
 function isProven(a: AnyRecord, ctx: RegisterContext): boolean {
   if (str(a.Status) !== "Live") return false;
-  const mine = (ctx.readings ?? []).filter(
-    (r) => r.assumptionId === a.id && str(r.Result) !== "Inconclusive",
-  );
-  if (mine.length === 0) return false;
-  const strongest = mine.reduce((best, r) =>
-    Math.abs(derivedNum(r, "strength") ?? 0) >
-    Math.abs(derivedNum(best, "strength") ?? 0)
-      ? r
+  const scores = (ctx.readings ?? [])
+    .map((r) => readingBeliefFor(r, a.id))
+    .filter((b): b is NonNullable<typeof b> => b != null && b.Result !== "Inconclusive");
+  if (scores.length === 0) return false;
+  const strongest = scores.reduce((best, b) =>
+    Math.abs(b.derived?.strength ?? 0) > Math.abs(best.derived?.strength ?? 0)
+      ? b
       : best,
   );
-  return str(strongest.Result) === "Validated";
+  return strongest.Result === "Validated";
 }
 
 /** An overdue running plan: a Deadline in the past relative to `asOf`. */
@@ -188,12 +197,12 @@ const TAB_CATALOGUE: Record<Collection, InternalTab[]> = {
     {
       id: "concluded",
       label: "± Concluded",
-      predicate: (r) => str(r.Result) !== "Inconclusive",
+      predicate: (r) => hasConcludedBelief(r),
     },
     {
       id: "inconclusive",
       label: "Inconclusive",
-      predicate: (r) => str(r.Result) === "Inconclusive",
+      predicate: (r) => !hasConcludedBelief(r),
     },
   ],
   decisions: [
@@ -321,12 +330,15 @@ export function groupRecords(
 
 // ── Filter & sort ─────────────────────────────────────────────────────────────
 
-/** Case-insensitive substring filter over Title + Description. */
+/** Case-insensitive substring filter over Title + Description + Source. Source
+ * (a reading's generator — person / dataset / cohort) is searchable so a
+ * teammate can pull every reading from one source by typing its name. */
 export function filterRecords(records: AnyRecord[], query: string): AnyRecord[] {
   const q = query.trim().toLowerCase();
   if (!q) return records;
   return records.filter((r) => {
-    const hay = `${str(r.Title) ?? ""} ${str(r.Description) ?? ""}`.toLowerCase();
+    const hay =
+      `${str(r.Title) ?? ""} ${str(r.Description) ?? ""} ${str(r.Source) ?? ""}`.toLowerCase();
     return hay.includes(q);
   });
 }

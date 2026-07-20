@@ -25,7 +25,7 @@ registers:
       - {canonical: Impact, backend: impact, type: INTEGER, derived: false}
       - {canonical: Derived Impact, backend: derived_impact, type: NUMERIC, derived: true, formula: "seed + (100 - seed) × S/(S + 100) over the dependency DAG, S = dependents' Derived Impact + 100 per standing decision Based on; experiments never contribute (assumption-guardrails.md §3); recomputed on every touching write (OPS-1251)"}
       - {canonical: Risk, backend: risk, type: NUMERIC, derived: true, formula: "derived_impact * (1 - max(0, confidence) / 100); skill-computed"}
-      - {canonical: Confidence, backend: confidence, type: NUMERIC, derived: true, formula: "signed weighted average of concluded readings with neutral prior w0=100, deduped by source (experiment-guardrails.md §2); skill-computed"}
+      - {canonical: Confidence, backend: confidence, type: NUMERIC, derived: true, formula: "signed weighted average of concluded reading_beliefs entries scored against this row, wi=|si|×source_quality×commitmentFactor (1.0 if the entry's reading has experiment_id else 0.85; never reorders rungs), neutral prior w0=100, deduped per (belief, source) (experiment-guardrails.md §2); skill-computed"}
       - {canonical: Completeness %, backend: completeness, type: NUMERIC, derived: true, formula: "filled slots / all slots × 100 over five structural slots: description, lens, impact, scoring_justification, dependencies traced (≥1 assumption_dependencies row); replaces the retired gaps/presence-field machinery (OPS-1305); skill-computed"}
       - {canonical: Status, backend: status, type: TEXT, derived: false, options_source: registry-schema}
       - {canonical: Owner, backend: owner, type: TEXT, derived: false, options_source: vocabulary.dashboard_users}
@@ -68,18 +68,28 @@ registers:
       - {canonical: Title, backend: title, type: TEXT, derived: false}
       - {canonical: Source, backend: source, type: TEXT, derived: false}
       - {canonical: "Context links", backend: context_links, type: JSON, derived: false, required: false}
-      - {canonical: Rung, backend: rung, type: TEXT, derived: false, options_source: registry-schema}
       - {canonical: Representativeness, backend: representativeness, type: NUMERIC, derived: false, options_source: registry-schema}
       - {canonical: Credibility, backend: credibility, type: NUMERIC, derived: false, options_source: registry-schema}
       - {canonical: Source quality, backend: source_quality, type: NUMERIC, derived: true, formula: "representativeness * credibility; skill-computed"}
-      - {canonical: Result, backend: result, type: TEXT, derived: false, options_source: registry-schema}
-      - {canonical: Strength, backend: strength, type: NUMERIC, derived: true, formula: "rung anchor (Market rungs: × magnitude band, Low/Typical/High) × sign(result); 0 unless result is Validated/Invalidated (experiment-guardrails.md §2); skill-computed"}
-      - {canonical: Grading justification, backend: grading_justification, type: TEXT, derived: false}
       - {canonical: Date, backend: date, type: DATE, derived: false}
       - {canonical: Owner, backend: owner, type: TEXT, derived: false, required: false, options_source: vocabulary.dashboard_users}
+      - {canonical: Body, backend: body, type: TEXT, derived: false, required: false}
     relations:
-      - {canonical: Assumption, backend: assumption_id, target: assumptions, cardinality: one}
+      - {canonical: Assumption, backend: "reading_beliefs.assumption_id (via child table)", target: assumptions, cardinality: many, inverse: Readings}
       - {canonical: Experiment, backend: experiment_id, target: experiments, cardinality: one, nullable: true, inverse: Readings}
+    reading_beliefs:
+      source: table
+      table: reading_beliefs
+      composed_into: readings
+      properties:
+        - {canonical: Rung, backend: rung, type: TEXT, derived: false, options_source: registry-schema}
+        - {canonical: Result, backend: result, type: TEXT, derived: false, options_source: registry-schema}
+        - {canonical: "Magnitude band", backend: magnitude_band, type: TEXT, derived: false, options_source: registry-schema, required: false}
+        - {canonical: Strength, backend: strength, type: NUMERIC, derived: true, formula: "rung anchor (Market rungs: × magnitude_band, Low/Typical/High) × sign(result); 0 unless result is Validated/Invalidated (experiment-guardrails.md §2); skill-computed per entry"}
+        - {canonical: Grading justification, backend: grading_justification, type: TEXT, derived: false}
+      relations:
+        - {canonical: Reading, backend: reading_id, target: readings, cardinality: one}
+        - {canonical: Assumption, backend: assumption_id, target: assumptions, cardinality: one}
   decisions:
     source: table
     config_key: sql.decisions_table
@@ -140,7 +150,7 @@ sql:
 |---|---|
 | Assumptions | `assumptions` |
 | Experiments (the plan) | `experiments`, with bar lines composed into child table `experiment_bar_lines` |
-| Readings | `readings` |
+| Readings | `readings`, with per-belief scoring composed into child table `reading_beliefs` |
 | Decisions | `decisions` |
 | Glossary | `glossary` |
 
@@ -150,23 +160,34 @@ sql:
   `GLS-001`).
 - Soft-delete: none; decisions are recorded as new rows or status changes.
 - Timestamps: `created_at TIMESTAMP`, `updated_at TIMESTAMP`, on every table.
-- Body: long-form content stored as `body TEXT` holding Markdown with the
-  canonical `##` section headings. Only `experiments` and `decisions` carry a
-  `body` column; `assumptions`, `readings`, and `glossary` have no body
+- Body: long-form content stored as `body TEXT` holding Markdown.
+  `experiments` and `decisions` carry a `body` with the canonical `##` section
+  headings; `readings` carry a **freeform** `body` (the artifact's verbatim
+  quote/excerpt — one per reading, no fixed headings — reintroduced as a
+  deliberate reversal of the OPS-1305 no-body slice, backfilled from Notion
+  and shown in the dashboard). `assumptions` and `glossary` have no body
   column at all (`OPS-1305`).
 - Multi-value scalar fields (themes, agreed_by, context_links, avoid) are JSON
   arrays in a `JSON` column (`TEXT` holding JSON where the engine has no JSON
   type).
 - Relations between records live in junction tables, never in array columns —
   the exceptions are the plain FK columns that cap a relation at one target:
-  `readings.assumption_id` (required — every Reading bears on exactly one
-  belief), `readings.experiment_id` (nullable — set for an experiment-born
-  Reading, unset for a bare/found one), and the bar-line child table's own
-  `experiment_id` / `assumption_id` pair.
+  `readings.experiment_id` (nullable — set only for a Reading that is the
+  direct output of concluding a committed experiment, unset for a bare/found
+  one), the bar-line child table's own `experiment_id` / `assumption_id` pair,
+  and the reading-belief child table's own `reading_id` / `assumption_id`
+  pair. A Reading no longer carries a single `assumption_id` — it bears on
+  **one-or-more** beliefs through the `reading_beliefs` child table.
 - **Bar lines are a child table, not a register.** `experiment_bar_lines`
   holds one row per belief bundled into an Experiment — it has its own `id`
   but is always fetched/written through its parent Experiment, never queried
   standalone as a top-level register.
+- **Reading beliefs are a child table, not a register** (mirroring bar lines).
+  `reading_beliefs` holds one row per belief a Reading scores — its own `id`,
+  a `reading_id` FK, an `assumption_id` FK, and the per-belief `rung` /
+  `result` / `magnitude_band` / `strength` / `grading_justification`. A
+  reading that bears on N beliefs has N `reading_beliefs` rows, never N
+  `readings` rows; always fetched/written through its parent Reading.
 - **Glossary is its own table**, not a `type`-split partition of `decisions`.
   Decisions and Glossary share no columns beyond `title`/`status`/`area` by
   convention, and their `status` vocabularies diverge (Glossary has no
@@ -213,8 +234,11 @@ dependents' Derived Impact plus 100 per standing decision naming the row via
 touching write alongside `risk`/`confidence`/`completeness` — no deliberate
 staleness (`OPS-1251`; `assumption-guardrails.md §3`).
 - `risk` = `derived_impact * (1 - max(0, confidence) / 100)`.
-- `confidence` is the signed weighted average of concluded, source-deduped
-`readings` against this row, with neutral prior `w0 = 100`
+- `confidence` is the signed weighted average of concluded `reading_beliefs`
+entries scored against this row (deduped per (belief, source); each entry's
+weight `|s| × source_quality × commitmentFactor`, where `commitmentFactor` is
+1.0 when the entry's reading has an `experiment_id` else 0.85 — a weight-only
+term that never reorders rungs), with neutral prior `w0 = 100`
 (`experiment-guardrails.md §2`).
 - `completeness` = filled slots / all slots × 100, over five structural
 slots: `description`, `lens`, `impact`, `scoring_justification`, dependencies
@@ -234,7 +258,7 @@ Readings a run produces. It bundles one-or-more beliefs through bar lines
 | Title | `title` | TEXT | no |
 | Instrument | `instrument` | TEXT | no |
 | Feasibility | `feasibility` | TEXT | no |
-| Status | `status` | TEXT (`Draft`/`Running`/`Closed`) | no |
+| Status | `status` | TEXT (`Draft`/`Running`/`Closed`/`Archived`) | no |
 | Closure reason | `closure_reason` | TEXT (nullable) | no |
 | Deadline | `deadline` | DATE (nullable) | no |
 | Outcome | `outcome` | TEXT (nullable, null until Closed) | no |
@@ -246,8 +270,11 @@ Readings a run produces. It bundles one-or-more beliefs through bar lines
 `Instrument` is a reference to an interview, a dataset, an analytics cohort,
 or a payment event (broadened with the unification, `OPS-1305`, to cover the
 instruments a Goal used to carry). `Closure reason` is null while
-`Status IN ('Draft', 'Running')`. `deadline` and `outcome` are folded in from
-the retired Goal table.
+`Status IN ('Draft', 'Running', 'Archived')` — only a `Closed` run has one.
+`Archived` is a Draft/Running plan retired without concluding (shelved out of
+the active + test-next views, never read back as evidence; distinct from
+`Closed`, which concluded against its bars). `deadline` and `outcome` are
+folded in from the retired Goal table.
 
 ### Bar lines — child table `experiment_bar_lines`
 
@@ -270,46 +297,66 @@ value.
 
 ## Field mapping — Readings (the evidence atom)
 
-One row = one artifact × one belief. A Reading has no draft/running state —
-it exists only once observed.
+One row = one artifact, scored per belief through the `reading_beliefs` child
+table (one child row per belief the artifact addresses). A Reading has no
+draft/running state — it exists only once observed.
+
+**Reading-level columns (one value per row — the source and origin):**
 
 | Canonical field | SQL column | Type | Derived |
 |---|---|---|---|
 | Title | `title` | TEXT | no |
 | Source | `source` | TEXT | no |
 | Context links | `context_links` | JSON (array of strings, nullable) | no |
-| Assumption | `assumption_id` | TEXT (FK → `assumptions.id`) | no |
 | Experiment | `experiment_id` | TEXT (FK → `experiments.id`, nullable) | no |
-| Rung | `rung` | TEXT | no |
 | Representativeness | `representativeness` | NUMERIC ({1.0, 0.7, 0.5}) | no |
 | Credibility | `credibility` | NUMERIC ({1.0, 0.7, 0.5}) | no |
 | Source quality | `source_quality` | NUMERIC | yes |
-| Result | `result` | TEXT | no |
-| Strength | `strength` | NUMERIC | yes |
-| Grading justification | `grading_justification` | TEXT | no |
 | Date | `date` | DATE | no |
 | Owner | `owner` | TEXT (nullable, dashboard-user reference) | no |
+| Body | `body` | TEXT (the artifact's verbatim quote/excerpt) | no |
 
 `Source` is the independence-dedupe key — narrowed to the generator (person /
-dataset / cohort) only: Readings sharing a source against one belief dedupe
-to the strongest (largest `|strength|`, most recent on ties). `Context links`
-carries provenance (recording, dashboard, CRM row, user id); it drives no math
-and never keys dedupe. `assumption_id` is required — exactly one belief per
-Reading. `experiment_id` is nullable; unset means a bare/found Reading — the
-`goal_id` column is gone. There is no `body` column on this table
-(`OPS-1305`) — `grading_justification` replaces the old `## Grading` section,
-and `## Notes` is cut.
+dataset / cohort) only: `reading_beliefs` entries sharing a source against one
+belief dedupe to the strongest (largest `|strength|`, most recent on ties) —
+dedupe is per (belief, source). `Context links` carries provenance (recording,
+dashboard, CRM row, user id); it drives no math and never keys dedupe.
+`experiment_id` is nullable; **set only for a Reading that is the direct output
+of concluding a committed experiment (and it must reference a live/non-archived
+experiment — `reading-orphaned-experiment`)**, unset means a bare/found Reading
+— the `goal_id` column is gone. The table **carries a freeform `body`** — the
+artifact's verbatim quote/excerpt — a deliberate reversal of the OPS-1305
+no-body slice (backfilled from Notion, shown in the dashboard); the per-belief
+`grading_justification` (scoring rationale) lives on `reading_beliefs`, and
+`## Notes` is cut.
+
+### Per-belief scoring — child table `reading_beliefs`
+
+Each belief a Reading scores gets one row here (mirroring
+`experiment_bar_lines`).
+
+| Canonical field | SQL column | Type | Derived |
+|---|---|---|---|
+| Reading | `reading_id` | TEXT (FK → `readings.id`) | no |
+| Assumption | `assumption_id` | TEXT (FK → `assumptions.id`) | no |
+| Rung | `rung` | TEXT | no |
+| Result | `result` | TEXT | no |
+| Magnitude band | `magnitude_band` | TEXT (nullable, Market rungs only) | no |
+| Strength | `strength` | NUMERIC | yes |
+| Grading justification | `grading_justification` | TEXT | no |
 
 ### Derived values
 
-- `source_quality` = `representativeness * credibility` (anchors {0.25, 0.35,
-0.5, 0.7, 1.0}).
-- `strength` = signed rung anchor × `sign(result)` — Validated positive,
-Invalidated negative, 0 on Inconclusive; Market rungs (Signed intent, Paying
-users) scale by magnitude band (Low/Typical/High) read off the experiment
-bar's two pre-registered bars (`experiment-guardrails.md §2`). Skills
-recompute and rewrite `source_quality` and `strength` on every touching
-write; never hand-edit.
+- `source_quality` (reading-level) = `representativeness * credibility`
+(anchors {0.25, 0.35, 0.5, 0.7, 1.0}); scales every `reading_beliefs` entry's
+weight in Confidence.
+- `reading_beliefs.strength` = signed rung anchor × `sign(result)` — Validated
+positive, Invalidated negative, 0 on Inconclusive; Market rungs (Signed
+intent, Paying users) scale by the entry's `magnitude_band` (Low/Typical/High)
+read off the experiment bar's two pre-registered bars
+(`experiment-guardrails.md §2`). One `s` per belief entry. Skills recompute and
+rewrite `source_quality` and each `strength` on every touching write; never
+hand-edit.
 
 ## Field mapping — Decisions
 
@@ -375,10 +422,11 @@ The following columns should only contain values from
 lookup tables for these values. If the config is missing the lists, it
 proposes a default set and writes them into the config.
 
-Every other select column (`status`, `result`, `rung`, `planned_rung`,
-`bar_verdict`, `feasibility`, `closure_reason`, `outcome`, `reversibility`,
-`representativeness`, `credibility`) draws from the fixed lists in
-`skills/_shared/ontology.yaml §vocabularies` — never the config. Writing a
+Every other select column (`status` — including `Archived` for experiments,
+`reading_beliefs.result`, `reading_beliefs.rung`, `reading_beliefs.magnitude_band`,
+`planned_rung`, `bar_verdict`, `feasibility`, `closure_reason`, `outcome`,
+`reversibility`, `representativeness`, `credibility`) draws from the fixed lists
+in `skills/_shared/ontology.yaml §vocabularies` — never the config. Writing a
 value outside that list is an `illegal-select-value` finding.
 
 ## Relations
@@ -387,8 +435,9 @@ value outside that list is an `illegal-select-value` finding.
 |---|---|---|---|
 | Depends on / Enables | junction table `assumption_dependencies` with `kind` column | assumptions | many |
 | Contradicts | junction table `assumption_contradictions` | assumptions | many |
-| Assumption / Readings | `readings.assumption_id` FK (required, one per reading); the assumption's Readings list is queried from it | assumptions ↔ readings | one per reading |
-| Reading / Experiment | `readings.experiment_id` FK, nullable; the experiment's Readings list is queried from it | readings ↔ experiments | one per reading |
+| Assumption / Readings | child table `reading_beliefs` with `reading_id` and `assumption_id` FKs; the assumption's Readings list is queried from it | assumptions ↔ readings | many-to-many, via belief entry |
+| Reading / Assumption (belief entry) | child table `reading_beliefs` with `reading_id` and `assumption_id` FKs | readings ↔ assumptions | many-to-many, via belief entry |
+| Reading / Experiment | `readings.experiment_id` FK, nullable, one per reading; the experiment's Readings list is queried from it | readings ↔ experiments | one per reading |
 | Experiment / Assumption (bar line) | child table `experiment_bar_lines` with `experiment_id` and `assumption_id` FKs | experiments ↔ assumptions | many, via bar line |
 | Related tension (Decision) | junction table `decision_tensions` | decisions | many |
 | Supersedes / Superseded by (Decision) | junction table `decision_supersedes` with `kind` column | decisions | many |
@@ -407,32 +456,35 @@ Reading leaves it unset.
 1. Connect using the harness-provided `connection_name`.
 2. Check that the configured schema exists.
 3. Check that `assumptions`, `experiments`, `experiment_bar_lines`,
-   `readings`, `decisions`, and `glossary` tables exist.
+   `readings`, `reading_beliefs`, `decisions`, and `glossary` tables exist.
 4. Check that every junction table exists: `assumption_dependencies`,
    `assumption_contradictions`, `decision_tensions`, `decision_supersedes`,
    `decision_based_on`, `decision_resolves`, `glossary_tensions`.
 5. For each table, compare columns to the mapping above.
 6. Report missing columns, wrong types, missing junction/child tables, and
-   missing indexes.
+   missing indexes; verify every `reading_beliefs.assumption_id` resolves to a
+   live assumption, and each `readings.experiment_id`, if set, resolves to a
+   non-archived experiment (`reading-orphaned-experiment`).
 
 ### create_backend
 
 1. Create the configured schema if it does not exist.
-2. Create the five register tables plus the `experiment_bar_lines` child
-   table.
+2. Create the five register tables plus the `experiment_bar_lines` and
+   `reading_beliefs` child tables.
 3. Create junction tables for relations.
 4. Create indexes on `id`, `status`, `lens`, `area`, and every foreign-key
-   column, including `readings.assumption_id`, `readings.experiment_id`,
-   `experiment_bar_lines.experiment_id`, and
+   column, including `readings.experiment_id`, `reading_beliefs.reading_id`,
+   `reading_beliefs.assumption_id`, `experiment_bar_lines.experiment_id`, and
    `experiment_bar_lines.assumption_id`.
 5. If the database supports it, add `CHECK` constraints for:
    - vocabulary-driven columns (`lens`, `area`) using the current
      `validation-os.config.yaml` values, and
    - fixed-list columns introduced or changed by this schema —
-     `readings.result`, `readings.rung`, `readings.representativeness`,
+     `reading_beliefs.result`, `reading_beliefs.rung`,
+     `reading_beliefs.magnitude_band`, `readings.representativeness`,
      `readings.credibility`, `experiment_bar_lines.planned_rung`,
-     `experiment_bar_lines.bar_verdict`, `experiments.status`,
-     `experiments.outcome`, `glossary.status` — against
+     `experiment_bar_lines.bar_verdict`, `experiments.status` (now including
+     `Archived`), `experiments.outcome`, `glossary.status` — against
      `skills/_shared/ontology.yaml §vocabularies`.
 
 ### seed_starter_records
@@ -440,9 +492,11 @@ Reading leaves it unset.
 Insert one example row per register (titles marked `(example)`) into
 `assumptions`, `experiments`, `readings`, `decisions`, and `glossary`, plus
 one example row in `experiment_bar_lines` linking the starter experiment to
-the starter assumption. Starter relations (e.g., starter decision → starter
-assumption) are inserted into the appropriate junction tables. This is a
-gated write: preview the `INSERT` statements before running.
+the starter assumption, and one example row in `reading_beliefs` linking the
+starter reading to the starter assumption (the starter reading also carries a
+`body`). Starter relations (e.g., starter decision → starter assumption) are
+inserted into the appropriate junction tables. This is a gated write: preview
+the `INSERT` statements before running.
 
 ### migrate_schema
 
@@ -453,15 +507,22 @@ failing silently. Migrating an existing registry off the retired
 six-table model follows `skills/_shared/registry-schema.md §Migration
 rules`: convert each legacy `goals` row into an `experiments` row (a
 `experiment_bar_lines` row + `deadline`/`outcome`) and drop the `goals` table;
-drop the `people` table and rewrite `owner`/`agreed_by` as `dashboard_user`
-references; drop `five_whys`/`metric_for_truth`/`gaps` and the `body` column
-from `assumptions`; split each reading's `source` into `source` +
-`context_links` and replace its `## Grading` body content with
-`grading_justification`, dropping `goal_id`; promote each decision's
-`## Decision` body to `statement` and its unanimity rationale to
-`unanimity_justification`, dropping the `## Source` section from `body`; move
-each glossary row's body headings into `definition`/`avoid`/
-`how_it_differs`, dropping the `body` column.
+add `Archived` to the `experiments.status` vocabulary/CHECK; drop the `people`
+table and rewrite `owner`/`agreed_by` as `dashboard_user` references; drop
+`five_whys`/`metric_for_truth`/`gaps` and the `body` column from `assumptions`;
+split each reading's `source` into `source` + `context_links`, dropping
+`goal_id`. **Fold each single-belief reading into the `reading_beliefs` child
+table:** create `reading_beliefs` and, for every reading, insert one row moving
+its old `assumption_id`, `rung`, `result`, magnitude, `strength`, and
+`## Grading` content (→ `grading_justification`) there, then drop those columns
+(and `assumption_id`) from `readings`; keep
+`source`/`representativeness`/`credibility`/`source_quality`/`experiment_id` on
+the row. **Add a `body` column to `readings` and backfill it** from the Notion
+verbatim quote/excerpt (the reintroduced reading body, reversing the OPS-1305
+cut for readings). Promote each decision's `## Decision` body to `statement`
+and its unanimity rationale to `unanimity_justification`, dropping the
+`## Source` section from `body`; move each glossary row's body headings into
+`definition`/`avoid`/`how_it_differs`, dropping the `body` column.
 
 ## Cautions
 
@@ -469,7 +530,11 @@ each glossary row's body headings into `definition`/`avoid`/
 - Derived columns are recomputed by the skill; never let humans type into
   them.
 - `experiment_bar_lines.bar_verdict` is a report only — never fold it into
-  `readings.strength` or `assumptions.confidence`.
+  `reading_beliefs.strength` or `assumptions.confidence`.
+- A Reading fans into `reading_beliefs` rows, never into multiple `readings`
+  rows; keep the one-artifact-one-row rule. Set `readings.experiment_id` only
+  for a Reading that is the executed output of a committed experiment, and only
+  to a live (non-archived) one (`reading-orphaned-experiment`).
 - `decision_resolves` is a separate relation from `decision_based_on`; never
   reuse one for the other.
 - Always back up or snapshot the database before `migrate_schema` runs.

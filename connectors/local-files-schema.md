@@ -25,7 +25,7 @@ registers:
       - {canonical: Impact, backend: Impact, type: number, derived: false}
       - {canonical: Derived Impact, backend: Derived Impact, type: number, derived: true, formula: "seed + (100 - seed) × S/(S + 100), S = Σ dependents' Derived Impact + 100 per standing decision Based on this row; experiments never contribute (assumption-guardrails.md §3); recomputed on every touching write (OPS-1251), bullet marked <!-- derived -->"}
       - {canonical: Risk, backend: Risk, type: number, derived: true, formula: "Derived Impact * (1 - max(0, Confidence) / 100); skill-computed, bullet marked <!-- derived -->"}
-      - {canonical: Confidence, backend: Confidence, type: number, derived: true, formula: "signed weighted average of concluded Validated/Invalidated Readings, weight = |Strength| × Source quality, neutral prior w0=100 (hard floor ≥98), deduped by source to the strongest/most-recent (experiment-guardrails.md §2); skill-computed, bullet marked <!-- derived -->"}
+      - {canonical: Confidence, backend: Confidence, type: number, derived: true, formula: "signed weighted average of concluded Validated/Invalidated belief entries scored against this row, weight = |Strength| × Source quality × commitmentFactor (1.0 if the entry's reading has an Experiment else 0.85; never reorders rungs), neutral prior w0=100 (hard floor ≥98), deduped per (belief, source) to the strongest/most-recent (experiment-guardrails.md §2); skill-computed, bullet marked <!-- derived -->"}
       - {canonical: Completeness %, backend: Completeness %, type: number, derived: true, formula: "filled slots / all slots × 100 over five structural slots: Description, Lens, Impact, Scoring justification, dependencies traced (≥1 Depends on/Enables link); replaces the retired Gaps/presence-field machinery (OPS-1305); skill-computed, bullet marked <!-- derived -->"}
       - {canonical: Status, backend: Status, type: text, derived: false, options_source: registry-schema}
       - {canonical: Owner, backend: Owner, type: text, derived: false, options_source: vocabulary.dashboard_users}
@@ -64,19 +64,27 @@ registers:
     properties:
       - {canonical: Title, backend: "## <ID>: <Title> heading", type: heading, derived: false}
       - {canonical: Source, backend: Source, type: text, derived: false}
-      - {canonical: Rung, backend: Rung, type: text, derived: false, options_source: registry-schema}
       - {canonical: Representativeness, backend: Representativeness, type: number, derived: false, options_source: registry-schema}
       - {canonical: Credibility, backend: Credibility, type: number, derived: false, options_source: registry-schema}
       - {canonical: Source quality, backend: Source quality, type: number, derived: true, formula: "Representativeness × Credibility, anchors {0.25, 0.35, 0.5, 0.7, 1.0} (experiment-guardrails.md §2); skill-computed, bullet marked <!-- derived -->"}
-      - {canonical: Result, backend: Result, type: text, derived: false, options_source: registry-schema}
-      - {canonical: Strength, backend: Strength, type: number, derived: true, formula: "signed rung anchor × sign(Result) — Validated positive, Invalidated negative, 0 on Inconclusive; Market rungs scale by magnitude band Low/Typical/High from the absolute outcome (experiment-guardrails.md §2); skill-computed, bullet marked <!-- derived -->"}
-      - {canonical: Grading justification, backend: Grading justification, type: text, derived: false}
       - {canonical: "Context links", backend: "Context links", type: text, derived: false, required: false}
       - {canonical: Date, backend: Date, type: text, derived: false}
       - {canonical: Owner, backend: Owner, type: text, derived: false, required: false, options_source: vocabulary.dashboard_users}
+      - {canonical: Body, backend: "freeform body (the artifact's verbatim quote/excerpt)", type: text, derived: false, required: false}
     relations:
-      - {canonical: Assumption, backend: Assumption, target: assumptions, cardinality: one, inverse: Readings}
+      - {canonical: Assumption, backend: "the `#### <Assumption ID>` sub-heading in the ### Beliefs block", target: assumptions, cardinality: many, inverse: Readings}
       - {canonical: Experiment, backend: Experiment, target: experiments, cardinality: one, nullable: true}
+    beliefs:
+      composed_into: readings
+      backend: "### Beliefs body block; one `#### <Assumption ID>` sub-block per scored belief"
+      properties:
+        - {canonical: Rung, backend: Rung, type: text, derived: false, options_source: registry-schema}
+        - {canonical: Result, backend: Result, type: text, derived: false, options_source: registry-schema}
+        - {canonical: "Magnitude band", backend: Magnitude band, type: text, derived: false, options_source: registry-schema, required: false}
+        - {canonical: Strength, backend: Strength, type: number, derived: true, formula: "signed rung anchor × sign(Result) — Validated positive, Invalidated negative, 0 on Inconclusive; Market rungs scale by Magnitude band Low/Typical/High from the absolute outcome (experiment-guardrails.md §2); skill-computed per entry, bullet marked <!-- derived -->"}
+        - {canonical: Grading justification, backend: Grading justification, type: text, derived: false}
+      relations:
+        - {canonical: "Reading / Assumption (belief entry)", backend: "the `#### <Assumption ID>` sub-heading itself", target: assumptions, cardinality: many, via: reading_belief}
   decisions:
     source: directory
     dir: decisions
@@ -134,7 +142,8 @@ per record named by ID (`<ID>.md`):
 - `assumptions/` — `ASM-###.md`
 - `experiments/` — `EXP-###.md` (bar lines nest inside the experiment file;
   there is no separate bar-line directory)
-- `readings/` — `RDG-###.md`
+- `readings/` — `RDG-###.md` (per-belief scoring nests inside the reading file
+  as a `### Beliefs` block; there is no separate belief-entry directory)
 - `decisions/` — `DEC-###.md`
 - `glossary/` — `GLO-###.md`
 
@@ -172,9 +181,11 @@ every touching write alongside Risk/Confidence — no deliberate staleness
 (`OPS-1251`; `assumption-guardrails.md §3`).
 - **Risk** = `Derived Impact * (1 - max(0, Confidence) / 100)`.
 - **Confidence** = signed weighted average of concluded Validated/Invalidated
-Readings, weight `|Strength| × Source quality`, neutral prior w₀ = 100,
-deduped by source to the strongest/most-recent (`experiment-guardrails.md
-§2`).
+belief entries scored against this row, weight `|Strength| × Source quality ×
+commitmentFactor` (commitmentFactor 1.0 when the entry's reading has an
+`Experiment` else 0.85 — a weight-only term that never reorders rungs), neutral
+prior w₀ = 100, deduped per (belief, source) to the strongest/most-recent
+(`experiment-guardrails.md §2`).
 - **Completeness %** = filled slots / all slots × 100, over five structural
 slots: Description, Lens, Impact, Scoring justification, dependencies traced
 (≥1 `Depends on`/`Enables` link). Replaces the retired `Gaps`/presence-field
@@ -203,7 +214,7 @@ with an `Outcome` — the commitment-grade behaviour a Goal used to give
 | Title | `## <ID>: <Title>` heading | heading | no |
 | Instrument | `- **Instrument**: ...` | text (interview/dataset/analytics-cohort/payment-event link) | no |
 | Feasibility | `- **Feasibility**: ...` | text | no |
-| Status | `- **Status**: ...` | text (`Draft`/`Running`/`Closed`) | no |
+| Status | `- **Status**: ...` | text (`Draft`/`Running`/`Closed`/`Archived`) | no |
 | Closure reason | `- **Closure reason**: ...` | text (optional) | no |
 | Deadline | `- **Deadline**: ...` | text (date, optional) | no |
 | Outcome | `- **Outcome**: ...` | text (optional, null until Closed) | no |
@@ -213,7 +224,10 @@ with an `Outcome` — the commitment-grade behaviour a Goal used to give
 No `Type`, no `Strength`, no `Interviewee` — all three are dead at plan
 level. Rung is per-belief (bar line / Reading); Strength lives only on
 Readings; who/role/company move to the Reading's `Grading justification`
-bullet.
+bullet. `Status` gains `Archived` — a Draft/Running plan retired without
+concluding (shelved out of the active + test-next views, never read back as
+evidence; distinct from `Closed`, which concluded against its bars);
+`Closure reason` stays null for an `Archived` plan.
 
 ### Bar lines (composed into the Experiment)
 
@@ -250,45 +264,72 @@ and sits between them.
 
 ## Field mapping — Readings (the evidence atom)
 
-One row = one artifact × one belief — the atomic unit Confidence reads. No
-draft/running state; a Reading exists only once observed.
+One row = one artifact, scored per belief through a `### Beliefs` block (one
+`#### <Assumption ID>` sub-block per belief the artifact addresses) — the
+atomic unit Confidence reads. No draft/running state; a Reading exists only
+once observed.
+
+**Reading-level bullets (one value each — the source and origin):**
 
 | Canonical field | Markdown bullet | Type | Derived |
 |---|---|---|---|
 | Title | `## <ID>: <Title>` heading | heading | no |
 | Source | `- **Source**: ...` | text/URL (the independence/dedupe key — the generator: person/dataset/cohort) | no |
 | Context links | `- **Context links**: ...` | text (IDs/URLs, 0..N, optional) | no |
-| Assumption | `- **Assumption**: ...` | text (ID, exactly one) | no |
 | Experiment | `- **Experiment**: ...` | text (ID, nullable) | no |
-| Rung | `- **Rung**: ...` | text | no |
 | Representativeness | `- **Representativeness**: ...` | number {1.0/0.7/0.5} | no |
 | Credibility | `- **Credibility**: ...` | number {1.0/0.7/0.5} | no |
 | Source quality | `- **Source quality**: ...` | number | yes |
-| Result | `- **Result**: ...` | text | no |
-| Strength | `- **Strength**: ...` | number | yes |
-| Grading justification | `- **Grading justification**: ...` | text | no |
 | Date | `- **Date**: ...` | text (date) | no |
 | Owner | `- **Owner**: ...` | text (optional, dashboard-user reference) | no |
 
-A Reading has one origin type: `Experiment` (set), or none (a bare found
-Reading) — the `Goal` field is gone.
+`Source` is the independence-dedupe key; belief entries sharing a source
+against one belief dedupe to the strongest (largest `|Strength|`, most recent
+on ties) — dedupe is per (belief, source). A Reading has one origin type:
+`Experiment` (set **only** for a Reading that is the direct output of
+concluding a committed experiment — and it must reference a live/non-archived
+one, `reading-orphaned-experiment`), or none (a bare found Reading) — the
+`Goal` field is gone.
+
+### Per-belief scoring — `### Beliefs` block (composed into the Reading)
+
+Each belief a Reading scores gets a `#### <Assumption ID>` sub-block under a
+`### Beliefs` heading, mirroring the Experiment's `### Bar lines`:
+
+```markdown
+### Beliefs
+
+#### ASM-014
+- **Rung**: Anecdotal
+- **Result**: Validated
+- **Magnitude band**: (Market rungs only; omit on Testing rungs)
+- **Strength**: 10 <!-- derived -->
+- **Grading justification**: Described reconciling by hand weekly, unprompted → Anecdotal, Validated. Rep 1.0, Cred 0.7.
+```
+
+One sub-block per scored assumption ID. A reading that bears on N beliefs has
+N sub-blocks, never N reading files.
 
 ### Derived values
 
-- **Source quality** = `Representativeness × Credibility` — anchors {0.25,
-0.35, 0.5, 0.7, 1.0}.
-- **Strength** = signed rung anchor × sign(Result) — Validated positive,
-Invalidated negative, 0 on Inconclusive; Market rungs (Signed intent, Paying
-users) scale by magnitude band Low/Typical/High from the absolute outcome.
-Canonical table: `experiment-guardrails.md §2`.
+- **Source quality** (reading-level) = `Representativeness × Credibility` —
+anchors {0.25, 0.35, 0.5, 0.7, 1.0}; scales every belief entry's weight.
+- **Strength** (per belief entry) = signed rung anchor × sign(Result) —
+Validated positive, Invalidated negative, 0 on Inconclusive; Market rungs
+(Signed intent, Paying users) scale by the entry's `Magnitude band`
+Low/Typical/High from the absolute outcome. Canonical table:
+`experiment-guardrails.md §2`.
 
 ### Body
 
-Readings carry **no body**. `Grading justification` (above) replaces the old
-`### Grading` section — rung + magnitude anchor justification, the
-Representativeness and Credibility picks with one-line justifications each,
-and the source person's name/role/company as prose, fetched from the CRM/DB
-the config names, never mirrored to a field. `### Notes` is cut.
+Readings **carry a freeform `body`** — the artifact's verbatim quote/excerpt —
+a **deliberate reversal** of the OPS-1305 no-body slice (brought back from
+Notion, shown in the dashboard). It is the record's freeform Markdown (no
+required subheadings). Per-belief scoring rationale stays in each belief
+entry's `Grading justification` (rung + magnitude anchor justification, the
+Representativeness and Credibility picks) — *what the source said* goes in
+`body`, *why it scored that way* in `Grading justification`. `### Notes` is
+cut.
 
 ## Field mapping — Decisions
 
@@ -358,11 +399,12 @@ values from `validation-os.config.yaml`:
 If the config omits these lists, `/setup-validation-os` proposes a default
 set and writes it into the config.
 
-Every other select-like field (`Status` on each register, `Theme`,
-`Feasibility`, `Closure reason`, `Outcome`, `Rung`, `Planned rung`, `Bar
-verdict`, `Representativeness`, `Credibility`, `Result`, `Reversibility`)
-draws from the fixed lists in `skills/_shared/ontology.yaml §vocabularies` —
-never restate the options here; that would fork the semantics.
+Every other select-like field (`Status` on each register — including
+`Archived` for experiments, `Theme`, `Feasibility`, `Closure reason`,
+`Outcome`, `Rung`, `Planned rung`, `Magnitude band`, `Bar verdict`,
+`Representativeness`, `Credibility`, `Result`, `Reversibility`) draws from the
+fixed lists in `skills/_shared/ontology.yaml §vocabularies` — never restate the
+options here; that would fork the semantics.
 
 ## Relations
 
@@ -372,11 +414,12 @@ relations map as follows:
 
 | Canonical relation | Stored in | Target | Cardinality |
 |---|---|---|---|
-| Assumption / Readings | `Readings:` (assumption) / `Assumption:` (reading) | readings / assumptions | many / one |
+| Assumption / Readings | `Readings:` (assumption) / `#### <Assumption ID>` sub-block under the reading's `### Beliefs` | readings / assumptions | many-to-many, via belief entry |
+| Reading / Assumption (belief entry) | `#### <Assumption ID>` sub-block under the reading's `### Beliefs` | assumptions | many-to-many, via belief entry |
 | Depends on / Enables | `Depends on:` / `Enables:` | assumptions | many |
 | Contradicts | `Contradicts:` | assumptions | many |
 | Experiment / Assumption (bar line) | `#### <Assumption ID>` sub-block under `### Bar lines` | assumptions | many |
-| Reading / Experiment | `Experiment:` (reading; nullable) | experiments | one |
+| Reading / Experiment | `Experiment:` (reading; nullable, one per reading) | experiments | one |
 | Related tension (Decision) | `Related tension:` (decision) | decisions | many |
 | Supersedes / Superseded by (Decision) | `Supersedes:` / `Superseded by:` (decision) | decisions | many |
 | Based on assumption (Decision) | `Based on assumption:` (decision) | assumptions | many |
@@ -396,12 +439,16 @@ Check that `registry_dir` exists and contains the `assumptions/`,
 `experiments/`, `readings/`, `decisions/`, and `glossary/` directories. For
 each, scan a few record files and verify the filename matches the record's
 heading ID, every required field bullet is present, body subheadings match
-the register's template verbatim (only Experiments and Decisions carry
-bodies), an Experiment's `### Bar lines` block has one `####` sub-block per
-bundled assumption, and derived values carry the `<!-- derived -->` marker.
-Report missing directories, malformed records, or missing fields. A register
-that is still a legacy single file (`assumptions.md`) validates against the
-same record rules, with a note to migrate.
+the register's template verbatim (Experiments and Decisions carry
+heading-structured bodies; Readings carry a freeform `body` — the verbatim
+quote/excerpt — with no required subheadings), an Experiment's `### Bar lines`
+block has one `####` sub-block per bundled assumption, a Reading's `### Beliefs`
+block has one `####` sub-block per scored assumption, and derived values carry
+the `<!-- derived -->` marker. Report missing directories, malformed records,
+or missing fields; flag any reading `Experiment:` that names a missing or
+`Archived` experiment (`reading-orphaned-experiment`). A register that is still
+a legacy single file (`assumptions.md`) validates against the same record
+rules, with a note to migrate.
 
 ### create_backend
 
@@ -419,8 +466,9 @@ self-documenting:
 - an Assumption
 - an Experiment carrying a `### Bar lines` block with one `#### <Assumption
   ID>` sub-block against the seed Assumption
-- a Reading against that same Assumption, with `Experiment:` set to the seed
-  Experiment
+- a Reading carrying a `### Beliefs` block with one `#### <Assumption ID>`
+  sub-block against that same Assumption, a freeform `body` (the verbatim
+  quote), and `Experiment:` set to the seed Experiment
 - a Decision
 - a Glossary term
 
@@ -431,12 +479,19 @@ This is a gated write: `/setup-validation-os` shows the diff before saving.
 Manual for local files. Existing registries on the retired six-register
 model follow the migration rules in `skills/_shared/registry-schema.md
 §Migration rules`: convert each legacy Goal record into an Experiment (bar
-line + `Deadline`/`Outcome`), drop `terminology/` if still present (already
-renamed to `glossary/`), drop `5 Whys`/`Metric for truth`/`Gaps` and the
+line + `Deadline`/`Outcome`) and treat `Archived` as a new legal
+`Status`, drop `terminology/` if still present (already renamed to
+`glossary/`), drop `5 Whys`/`Metric for truth`/`Gaps` and the
 `### Provenance & notes` section from every Assumption, split each Reading's
-`Source` into `Source` + `Context links` and replace `### Grading` with a
-`Grading justification` bullet, promote each Decision's `## Decision` to
-`Statement` and unanimity rationale to `Unanimity justification` while
+`Source` into `Source` + `Context links`. **Fold each single-belief Reading
+into the `### Beliefs` shape:** move its old `Assumption`/`Rung`/`Result`/
+magnitude/`Strength` bullets and `### Grading` content (→ per-entry `Grading
+justification`) into one `#### <Assumption ID>` sub-block under a new
+`### Beliefs` block, keeping `Source`/`Representativeness`/`Credibility`/
+`Source quality`/`Experiment` at reading level; **backfill the freeform reading
+`body`** from the Notion verbatim quote/excerpt (the reintroduced reading body,
+reversing the OPS-1305 cut for readings). Promote each Decision's `## Decision`
+to `Statement` and unanimity rationale to `Unanimity justification` while
 cutting `## Source`, and move each Glossary term's body headings into
 `Definition`/`Avoid`/`How it differs` bullets. The skill surfaces the diff
 and asks the user to apply it; auto-migration is intentionally manual here
@@ -449,7 +504,13 @@ to preserve git history clarity.
 confirmation, not silently.
 - Malformed records should be flagged for repair, not worked around.
 - Derived bullets (`Derived Impact`, `Risk`, `Confidence`, `Completeness %`
-on assumptions; `Source quality`, `Strength` on readings) must carry
-`<!-- derived -->` so hand-editing users know not to type into them.
-- An Experiment's bar line missing its `Planned rung` is a malformed
-record — flag it, never silently guess a rung.
+on assumptions; `Source quality` on the reading row and per-belief `Strength`
+inside each `### Beliefs` sub-block) must carry `<!-- derived -->` so
+hand-editing users know not to type into them.
+- An Experiment's bar line missing its `Planned rung`, or a Reading belief
+sub-block missing its `Rung`/`Result`, is a malformed record — flag it, never
+silently guess.
+- A Reading fans into `### Beliefs` sub-blocks, never into multiple reading
+files; keep the one-artifact-one-file rule. Set a reading's `Experiment:` only
+for a Reading that is the executed output of a committed experiment, and only
+to a live (non-archived) one (`reading-orphaned-experiment`).

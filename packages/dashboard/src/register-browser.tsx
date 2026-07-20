@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import type { AnyRecord, Collection } from "@validation-os/core";
-import { columnsFor } from "./columns.js";
+import { columnsFor, primaryLabel } from "./columns.js";
 import { DrawerShell } from "./drawer-shell.js";
 import { REGISTER_LABEL, REGISTER_SINGULAR } from "./labels.js";
 import {
@@ -139,6 +139,12 @@ export function RegisterBrowser({
     decisions: ctx.decisions,
   };
 
+  // Assumption id → title, so a reading row's belief chips (OPS-1305) read as
+  // titles. Loaded already for the readings register (see `contextNeeds`).
+  const assumptionTitles = new Map(
+    (ctx.assumptions ?? []).map((a) => [a.id, primaryLabel(a)]),
+  );
+
   const patch = (p: Partial<ViewDescriptor>) =>
     setDescriptor((d) => ({ ...d, ...p }));
 
@@ -257,6 +263,7 @@ export function RegisterBrowser({
           shaped={shaped}
           onRowClick={setOpenId}
           selectedId={openId}
+          assumptionTitles={assumptionTitles}
         />
       )}
 
@@ -414,11 +421,13 @@ function ShapedBody({
   shaped,
   onRowClick,
   selectedId,
+  assumptionTitles,
 }: {
   register: Collection;
   shaped: ReturnType<typeof shapeRegister>;
   onRowClick: (id: string) => void;
   selectedId: string | null;
+  assumptionTitles?: Map<string, string>;
 }) {
   if (shaped.nested) {
     if (shaped.nested.length === 0)
@@ -436,6 +445,7 @@ function ShapedBody({
               records={group.readings}
               onRowClick={onRowClick}
               selectedId={selectedId}
+              assumptionTitles={assumptionTitles}
             />
           </section>
         ))}
@@ -459,6 +469,7 @@ function ShapedBody({
               records={group.records}
               onRowClick={onRowClick}
               selectedId={selectedId}
+              assumptionTitles={assumptionTitles}
             />
           </section>
         ))}
@@ -472,6 +483,7 @@ function ShapedBody({
       records={shaped.rows}
       onRowClick={onRowClick}
       selectedId={selectedId}
+              assumptionTitles={assumptionTitles}
     />
   );
 }

@@ -184,12 +184,16 @@ export {
 } from "./edit.js";
 export type { Draft, FieldEditor, FieldKind } from "./edit.js";
 export {
+  bodyPreview,
   cellValue,
   columnsFor,
   formatValue,
   primaryLabel,
+  readingAssumptionChips,
 } from "./columns.js";
 export type { CellKind, ColumnDef } from "./columns.js";
+export { Markdown } from "./markdown.js";
+export { BeliefVerdicts } from "./belief-verdicts.js";
 export {
   emptyDraft,
   formFieldsFor,
@@ -215,10 +219,12 @@ export {
   headerPills,
   humanInputFields,
   leadingMeters,
+  readingBeliefVerdicts,
   scoreChip,
 } from "./record-view.js";
 export type {
   BacklinkItem,
+  BeliefVerdict,
   HumanText,
   Meter,
   Pill,

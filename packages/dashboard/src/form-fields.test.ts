@@ -36,16 +36,14 @@ describe("formFieldsFor", () => {
 
 describe("missingRequired", () => {
   it("flags a blank required field and clears once filled", () => {
+    // A reading's per-belief scores (Rung / Result) moved to `beliefs[]`
+    // (OPS-1305), so only the headline is required on the row now.
     expect(missingRequired("readings", emptyDraft("readings"))).toEqual([
       "Reading",
-      "Rung",
-      "Result",
     ]);
     const draft = {
       ...emptyDraft("readings"),
       Title: "A reading",
-      Rung: "Prototype usage",
-      Result: "Validated",
     };
     expect(missingRequired("readings", draft)).toEqual([]);
   });
@@ -62,18 +60,16 @@ describe("toCreatePayload", () => {
       ...emptyDraft("readings"),
       Title: "A reading",
       Source: "proto-1",
-      Rung: "Prototype usage",
-      Result: "Validated",
       Representativeness: "1",
       Credibility: "0.7",
       Date: "",
     };
     const payload = toCreatePayload("readings", draft);
+    // No row-level Rung/Result any more (OPS-1305) — the numeric quality selects
+    // still coerce, and the blank Date is dropped.
     expect(payload).toEqual({
       Title: "A reading",
       Source: "proto-1",
-      Rung: "Prototype usage",
-      Result: "Validated",
       Representativeness: 1,
       Credibility: 0.7,
     });

@@ -30,9 +30,11 @@ file defines the fields those records carry, whatever the backend.
   commitment-grade behaviour a Goal used to give. Created by
   `/experiment-design`, closed by `/find-evidence` and the humans running the
   test.
-- **Readings** — one row per **artifact × belief**: the atomic unit Confidence
-  reads. Born from an Experiment run, or found bare — the Goal origin is gone.
-  Logged by `/find-evidence` and the humans concluding a test.
+- **Readings** — one row per **artifact**, scored per belief through an
+  embedded `beliefs[]` array (one entry per assumption the artifact bears on):
+  the atomic unit Confidence reads. Born from an Experiment run, or found
+  bare — the Goal origin is gone. Logged by `/find-evidence` and the humans
+  concluding a test.
 - **Decisions** — the decision log. Owned by `/decisions`.
 - **Glossary** — the shared glossary (the *ubiquitous-language* discipline;
   only the register is named "Glossary"). Owned by `/decisions`; enforcement
@@ -52,14 +54,14 @@ file defines the fields those records carry, whatever the backend.
 | Impact | number 0–100 | **The intrinsic seed — the only hand-scored number.** Pure severity-if-false on anchored bands; never folds in dependents or decisions — the seed is purely intrinsic. `assumption-guardrails.md §3`. |
 | Derived Impact | derived | **Never hand-write.** = seed + (100 − seed) × S/(S + 100), where S sums the dependents' pull (dependent assumptions' Derived Impact + 100 per standing decision `Based on` node; an experiment never contributes). **Recomputed on every touching write** alongside Confidence and Risk — no deliberate staleness (`OPS-1251`); the batch pass is only a backstop for writes that bypass the dashboard. `assumption-guardrails.md §3`. |
 | Risk | derived | **Never hand-write.** = Derived Impact × (1 − max(0, Confidence)/100), ranges 0 to Derived Impact. Full-precision sort, rounded display. |
-| Confidence | derived | **Never hand-type.** Signed −100…100, 0 = no evidence: strength-weighted average of concluded linked **Readings** with neutral prior w₀ = 100, deduped by source. ≤ −50 = the kill zone (human review prompt). Full rule: `experiment-guardrails.md §2`. |
+| Confidence | derived | **Never hand-type.** Signed −100…100, 0 = no evidence: strength-weighted average of the concluded **Readings' `beliefs[]` entries scored against this belief** — every Confidence input, whatever its origin — with neutral prior w₀ = 100, deduped per (belief, source). ≤ −50 = the kill zone (human review prompt). Full rule: `experiment-guardrails.md §2`. |
 | Completeness % | derived | **Never hand-write.** = filled slots / all slots × 100, over five structural slots: Description, Lens, Impact, Scoring justification, dependencies traced (≥1 `Depends on`/`Enables` link). The Draft⇔open-work readiness meter — 100 = Live-ready, below 100 = open work. Replaces the retired Gaps/presence-field machinery (`OPS-1305`; `assumption-guardrails.md §3`). |
 | Status | select | The **lifecycle** and nothing else: `Draft` (Completeness % < 100 — record not yet trustworthy) → `Live` (the default forever-state, ranked by Risk) → `Invalidated` (rare, human-gated kill). There is **no `Validated`** — `docs/validated.md`. Testing, queue membership, mootness: derived views, §Status & derived views. |
 | Owner | dashboard user | Who voiced / champions the belief and is accountable for testing it. A reference to the auth-sourced dashboard-users list (`validation-os.config.yaml`), not free text and not a register (`OPS-1305`). |
 | Scoring justification | text | Why the seed `Impact` was scored as it was, incl. dated moot lines when a decision `Resolves` the belief (`decision-guardrails.md §8`). The one hand-typed rationale left on an assumption — narrowed to the Impact-seed reason only: the why-trace lives in `Depends on`/`Enables`, falsifiability is enforced by the grill, and the concrete threshold lives on the experiment bar (`OPS-1305`). |
 | Depends on / Enables | self-relation | The dependency graph. Relationships live HERE, not in the body. |
 | Contradicts | self-relation | Links two rows in **tension** (distinct claims that can't both hold). Set it on **both** rows; pairs with a provenance note naming the resolving experiment. Not for negation-duplicates — those merge (`assumption-guardrails.md §4`). |
-| Readings | relation | The concluded Readings scored against this belief — **every Confidence input**, whatever its origin (experiment run or bare). Inverse of the Reading's `Assumption` link. **Replaces the old `Experiments` relation** — the assumption never links an Experiment directly. |
+| Readings | relation | The concluded Readings scored against this belief — **every Confidence input**, whatever its origin (experiment run or bare). Inverse of the Reading's per-belief `Assumption` link (each Reading names this belief in one `beliefs[]` entry; one Reading may score several beliefs, so the link is many-to-many). **Replaces the old `Experiments` relation** — the assumption never links an Experiment directly. |
 
 There is **no stored `Experiments` relation** on the assumption. *Which
 experiments test this belief* is a **derived view over the Experiments'
@@ -113,13 +115,13 @@ Draft ──(grill close-out: Completeness ─────▶ Live ──(eviden
 | Experiments testing me | the Experiments whose bar-lines name this belief — a view over bar-lines, not a stored relation. Feeds `Testing` and the test-next surface |
 | Test-next surface | **experiments, not assumptions** (there is no Risk-ranked belief queue): candidate/designed (`Draft`) experiments on `Live` rows, ranked by `Feasibility` × the linked assumption's Risk. The exact ruleset, tie-breaks (most-negative signed Confidence first), and top-N cut are the experiment-prioritisation layer's |
 | Kill lane | `Live` + Confidence ≤ −50 — surfaced by audit for a human kill verdict, out of the test-next surface |
-| Proven set | `Live` + strongest (largest `\|Strength\|`) concluded Reading `Validated` — "what we currently know"; provisional, always |
+| Proven set | `Live` + strongest (largest `\|Strength\|`) concluded `beliefs[]` entry scored against it `Validated` — "what we currently know"; provisional, always |
 | Moot | seed Impact = 0 via a standing decision's `Resolves assumption` action; Derived Impact pins to 0 |
 
-**Derived facets (display-only; never stored — `OPS-1305`):** a reading's
-**quant vs qual** character is inferred from its `Rung` + instrument (a
-system-number instrument reads *quant*; recruited-sample testing rungs read
-*qual*), never a stored flag. An experiment's **commercial vs consumer**
+**Derived facets (display-only; never stored — `OPS-1305`):** a reading
+entry's **quant vs qual** character is inferred from its `beliefs[]` entry's
+`Rung` + instrument (a system-number instrument reads *quant*;
+recruited-sample testing rungs read *qual*), never a stored flag. An experiment's **commercial vs consumer**
 character reads through from the tested assumption's `Lens` / `Theme`, never
 set on the experiment — so the fact lives in one place. Neither is a field and
 no rule forks on them; the display computation is the dashboard layer's.
@@ -151,8 +153,8 @@ commitment-grade behaviour a Goal used to give.
 | Title | title | The specific question the run is designed to answer. |
 | Instrument | link | The reusable artifact the run is built on — an interview, a dataset, an analytics cohort, or a payment event (broadened with the unification, `OPS-1305`, to cover the instruments a Goal used to carry). Readings born from this run inherit it as their `Source`. |
 | Feasibility | select High/Medium/Low | How hard the run is to execute (access, cost, time). A property of the *run*. Set at design time. |
-| Status | select | `Draft` (pre-commit) → `Running` (collecting) → `Closed`. **This is where `Running` lives — never on a Reading.** |
-| Closure reason | select | `Completed` / `Early-stop` / `Kill` — why the run closed. Null while `Draft`/`Running`. |
+| Status | select | `Draft` (pre-commit) → `Running` (collecting) → `Closed`, plus `Archived` (a Draft/Running plan retired without conclusion — shelved, dropped out of the active and test-next views, never read back as evidence). **This is where `Running` lives — never on a Reading.** `Closed` = concluded against its bars; `Archived` = retired without concluding. |
+| Closure reason | select | `Completed` / `Early-stop` / `Kill` — why the run closed. Null while `Draft`/`Running`/`Archived`. |
 | Deadline | date (optional) | When a committed plan's bars are judged. Fixed at commit. Folded in from the retired Goal (`OPS-1305`). |
 | Outcome | select | `Achieved` / `Missed` / `Dropped` — null until `Closed`. Folded in from the retired Goal. |
 | Owner | dashboard user | Who runs the test. Optional at design time. |
@@ -190,33 +192,73 @@ A bundle = one instrument × one protocol run × one Lens-matched population
 
 ## Field map — Readings (the evidence atom)
 
-One row = **one artifact × one belief** — the atomic unit Confidence reads
-(`OPS-1175`). A Reading exists only once observed; it has no draft/running
-state. Its origin (an Experiment run, or none) lives here, never on the
-assumption — the Goal origin is gone (`OPS-1305`).
+One row = **one artifact × one-or-more beliefs, scored per belief** — the
+atomic unit Confidence reads (`OPS-1175`). A Reading is one artifact row
+carrying the source's identity and quality once, plus an embedded `beliefs[]`
+array with **one entry per assumption the artifact bears on**; each entry
+carries its own rung, result, and signed strength. A Reading exists only once
+observed; it has no draft/running state. Its origin (an Experiment run, or
+none) lives on the row, never on the assumption — the Goal origin is gone
+(`OPS-1305`).
+
+**Evidence is external.** A Reading records an observation from a source
+**outside the team** — a customer, user, prospect, partner, third-party
+dataset, published source, or observed market behaviour. **Internal meetings
+and discussions** (board, strategy, planning; founder/team opinion about the
+market) are **not evidence** — they are hypothesis/framing and belong in the
+assumption's `Scoring justification`, never as a Reading, and never contribute
+to Confidence. **Exception:** when an internal meeting *reports* a verifiable
+external fact (a customer's decision, a user's observed behaviour, a partner's
+commitment), that fact **is** evidence but recorded **second-hand** — grade the
+`beliefs[]` entry on the external event's rung, set `Source` to the external
+event/source (not the meeting), and set `Credibility` lower to reflect the
+second-hand relay.
+
+**Reading-level fields (the artifact row — one value per Reading):**
 
 | Field | Type | Rule |
 |---|---|---|
 | Title | title | Short handle for the observation. |
-| Source | link | **First-class** link to the artifact it came from — narrowed to the **independence-dedupe key**: the generator (person / dataset / cohort) only (Readings sharing a source against one belief dedupe to the strongest, largest `\|Strength\|`, most recent on ties). Reference the artifact's home; never mirror it (`OPS-1305`). |
+| Source | link | **First-class** link to the artifact it came from — narrowed to the **independence-dedupe key**: the generator (person / dataset / cohort) only, and it must be **external to the team** — a customer, user, prospect, partner, third-party dataset, published source, or observed market behaviour (never an internal meeting or team opinion; §Evidence is external, below). When an internal meeting *relays* an external fact, `Source` is the **external event/source it reports**, never "the meeting". Readings sharing a source dedupe **per belief**: for each belief, entries against the same source keep the strongest, largest `\|Strength\|`, most recent on ties. Reference the artifact's home; never mirror it (`OPS-1305`). |
 | Context links | multi-link (optional) | Provenance — recording, dashboard, CRM row, user id. 0..N. Drives no math and never keys dedupe (`OPS-1305`). |
-| Assumption | relation | **Exactly one** belief this Reading bears on. Inverse of the assumption's `Readings`. |
-| Experiment | relation (nullable) | The originating plan, as provenance. Null for bare/found Readings — the Goal origin is gone (`OPS-1305`). |
-| Rung | select | The ladder rung this Reading sits on — inherited from the bar line at logging, or set directly for bare Readings. The single 8-rung activity-and-strength ladder (`experiment-guardrails.md §2`): 🧪 Testing — `Opinion` · `Pitch-deck reaction` · `Anecdotal` · `Desk research` · `Survey at scale` · `Prototype usage`; 🎯 Market — `Signed intent` · `Paying users` (two pre-registered bars, magnitude bands). Renamed from "Goals" with the unification (`OPS-1305`). |
-| Representativeness | select {1.0, 0.7, 0.5} | How well the source represents the ICP/Lens. |
-| Credibility | select {1.0, 0.7, 0.5} | How much *this* source's word is worth. |
-| Source quality | derived | **Never hand-write.** = `Representativeness × Credibility` — anchors {0.25, 0.35, 0.5, 0.7, 1.0}. Scales the Reading's *weight* in the Confidence average, within its rung, never across. |
-| Result | select | `Validated` / `Invalidated` / `Inconclusive` — the sign of the evidence, set at logging. **No `Running`.** |
-| Strength | derived | **Never hand-write.** The signed reading value `s`: rung anchor (Market rungs: × magnitude band, Low/Typical/High from the absolute outcome) × sign(Result); 0 on `Inconclusive`. The assumption's Confidence reads this. |
-| Grading justification | text | Rationale for the rung / representativeness / credibility picks — presence-checked (`reading-ungraded` warns when empty). Promoted from the `## Grading` body (`OPS-1305`). |
+| Experiment | relation (nullable) | The originating plan, as provenance — **one origin per Reading, whatever its `beliefs[]` count**. Null for bare/found Readings — the Goal origin is gone (`OPS-1305`). Set only when the Reading is the direct output of concluding this committed Experiment; a live (non-archived) experiment is required (`ontology.yaml` `reading-orphaned-experiment`). Its presence drives the reading-level `commitmentFactor` in the Confidence weight (`experiment-guardrails.md §2`). |
+| Representativeness | select {1.0, 0.7, 0.5} | How well the source represents the ICP/Lens. A property of the source, so one value per Reading. |
+| Credibility | select {1.0, 0.7, 0.5} | How much *this* source's word is worth. A property of the source, so one value per Reading. |
+| Source quality | derived | **Never hand-write.** = `Representativeness × Credibility` — anchors {0.25, 0.35, 0.5, 0.7, 1.0}. Scales each `beliefs[]` entry's *weight* in that belief's Confidence average, within its rung, never across. |
 | Date | date | When it was observed. |
 | Owner | dashboard user (optional) | Who logged it. |
+| Body | text | The artifact's **verbatim / narrative text** — the quote(s) or source excerpt the reading rests on — one shared body per reading. **Reintroduced as a deliberate reversal of the OPS-1305 "readings carry no body" slice** (the verbatim text is backfilled from Notion and shown in the dashboard). Distinct from the per-belief `Grading justification`: `body` is *what the source said*, `Grading justification` is *why it scored the way it did*. |
 
 A Reading has **one origin type**: an `Experiment`, or none (a bare found
 Reading) — the Goal origin is gone (`OPS-1305`).
 
-Readings carry **no body** (`OPS-1305`) — `Grading justification` (above)
-replaces the `## Grading` heading; the `## Notes` section is cut.
+### beliefs[] — the per-belief scoring (composed into the Reading)
+
+Each belief the artifact addresses gets a **`beliefs[]` entry**: an
+association-with-attributes between the Reading and one Assumption. It is
+**not a register** — each entry belongs to exactly one Reading and is realized
+backend-natively (a child table in SQL, an embedded array in NoSQL, a nested
+block keyed by belief in Markdown; see the connector schema guides), mirroring
+the Experiment's bar lines. Attributes:
+
+| Field | Type | Rule |
+|---|---|---|
+| Assumption | relation | The **one** belief this entry scores. Inverse of the assumption's `Readings`; a Reading with N entries links N assumptions (the row's `assumptionIds` is the projection of these). |
+| Rung | select | The ladder rung this entry sits on — inherited from the belief's bar line at logging, or set directly for bare Readings — judged from what the artifact shows *for this belief*, independent of the bar lines. The single 8-rung activity-and-strength ladder (`experiment-guardrails.md §2`): 🧪 Testing — `Opinion` · `Pitch-deck reaction` · `Anecdotal` · `Desk research` · `Survey at scale` · `Prototype usage`; 🎯 Market — `Signed intent` · `Paying users` (two pre-registered bars, magnitude bands). Renamed from "Goals" with the unification (`OPS-1305`). |
+| Result | select | `Validated` / `Invalidated` / `Inconclusive` — the sign of the evidence for this belief, set at logging. **No `Running`.** |
+| Magnitude band | select {Low, Typical, High} (Market rungs only) | The magnitude this entry landed at on a 🎯 Market rung, from the absolute outcome (never %-of-target); null on Testing rungs. Feeds the `Strength` derivation. |
+| Strength | derived | **Never hand-write.** The signed reading value `s` for this belief: rung anchor (Market rungs: × `Magnitude band`) × sign(`Result`); 0 on `Inconclusive`. The assumption's Confidence reads this. |
+| Grading justification | text | Rationale for this entry's rung / result / (Market) magnitude picks plus the shared representativeness / credibility picks — presence-checked (`reading-ungraded` warns when empty). Promoted from the `## Grading` body (`OPS-1305`). |
+
+One artifact bearing on N beliefs is **one Reading with N `beliefs[]`
+entries**, never N Readings — a rich interview scores each belief it addressed
+in its own entry, sharing the row's source, quality, and origin.
+
+Readings **carry a `body`** — the verbatim artifact text — a **deliberate
+reversal** of the OPS-1305 "readings carry no body" slice (the quote/excerpt is
+brought back from Notion and rendered in the dashboard). The per-entry
+`Grading justification` is a distinct concern (scoring rationale, not source
+text) and stays; the old `## Notes` section remains cut.
 
 ## Field map — Decisions
 
@@ -299,10 +341,19 @@ stays with the risk-scoring model — not re-checked here.
 4. **Readings.** Split the old `Source` value into `Source` (keep only the
    generator — person/dataset/cohort) and populate `Context links` from
    whatever provenance detail (recording, CRM row, user id) rode along on the
-   old value. Replace the `## Grading` body with the `Grading justification`
-   field (carry the prose over verbatim); cut `## Notes`. Drop the `Goal`
-   relation — a Reading that pointed at a Goal now points at the Experiment
-   created in rule 1.
+   old value. **Fold each single-belief Reading into the `beliefs[]` shape:**
+   move its old row-level `Assumption`, `Rung`, `Result`, magnitude, `Strength`,
+   and `Grading justification` into one `beliefs[]` entry pointing at that
+   assumption; `Representativeness` / `Credibility` / `Source quality` /
+   `Source` / `Experiment` stay on the row. Two migrated Readings that share
+   one artifact (`Source`, origin, and date) and score different beliefs may be
+   merged into one row with two `beliefs[]` entries, but a mechanical
+   one-entry-per-old-row migration is also valid. Carry the `## Grading` prose
+   into the per-entry `Grading justification` field verbatim; **backfill the
+   row-level `body` from the Notion verbatim quote/excerpt** (the reintroduced
+   body — this reverses the OPS-1305 cut for readings); cut `## Notes`. Drop the
+   `Goal` relation — a Reading that pointed at a Goal now points at the
+   Experiment created in rule 1.
 5. **Decisions.** Promote the `## Decision` body to `Statement`, and the
    unanimity-scoring rationale (wherever it lived in `## Rationale`) to
    `Unanimity justification`. Cut `## Source` (it mirrored the `Source`

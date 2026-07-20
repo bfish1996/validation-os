@@ -2,21 +2,39 @@ import { describe, expect, it } from "vitest";
 import type { AnyRecord } from "@validation-os/core";
 import { buildUnderstanding } from "./understanding.js";
 
+// A reading scores per belief now (OPS-1305): the fixture takes the same
+// assumptionId / Rung / Result / magnitudeBand overrides but folds them into a
+// single `beliefs[]` entry (with the row-level Source / quality / Date shared).
 function reading(over: Partial<AnyRecord> = {}): AnyRecord {
+  const {
+    assumptionId = "ASM-1",
+    Rung = "Prototype usage",
+    Result = "Validated",
+    magnitudeBand,
+    ...rest
+  } = over as Record<string, unknown>;
   return {
     id: "RDG-x",
     version: 0,
     createdAt: "",
     updatedAt: "",
-    assumptionId: "ASM-1",
     Source: "src",
-    Rung: "Prototype usage",
-    Result: "Validated",
     Representativeness: 1.0,
     Credibility: 1.0,
     Date: "2026-01-01",
     experimentId: null,
-    ...over,
+    beliefs: [
+      {
+        assumptionId,
+        Rung,
+        Result,
+        magnitudeBand,
+        "Grading justification": "",
+        derived: { strength: 0 },
+      },
+    ],
+    assumptionIds: [assumptionId],
+    ...rest,
   } as AnyRecord;
 }
 
@@ -150,6 +168,17 @@ describe("buildUnderstanding", () => {
     const byKey = Object.fromEntries(u.otherMovers.map((m) => [m.key, m]));
     expect(byKey["direct"]!.kind).toBe("direct");
     expect(u.otherMovers.every((m) => m.kind === "direct")).toBe(true);
+  });
+
+  it("never surfaces an archived plan as a mover or a row (OPS-1305)", () => {
+    // A reading points at an Archived plan; the plan must not appear at all,
+    // not even as a mover — archived evidence plans are retired from the UI.
+    const u = buildUnderstanding(
+      asm,
+      [reading({ id: "r1", experimentId: "EXP-arch" })],
+      [experiment({ id: "EXP-arch", Status: "Archived", barLineAssumptionIds: ["ASM-1"] })],
+    );
+    expect(u.experiments).toEqual([]);
   });
 
   it("ranks experiments by how hard they push, strongest first", () => {

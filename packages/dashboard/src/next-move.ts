@@ -9,12 +9,13 @@
  *  - `movePresentation` maps each act to its front-door copy and whether it's a
  *    human step-in form or an agent-run act shown for review (OPS-1291/1294).
  */
-import type { AnyRecord, Feasibility, Result } from "@validation-os/core";
+import type { AnyRecord, Feasibility } from "@validation-os/core";
 import {
   isConcluded,
   type MoveKind,
   type NextMoveInput,
 } from "@validation-os/core/derivation";
+import { readingBeliefs } from "./derived-views.js";
 
 function str(record: AnyRecord, key: string): string | null {
   const v = record[key];
@@ -46,13 +47,13 @@ export interface NextMoveRecords {
 export function toNextMoveInput(records: NextMoveRecords): NextMoveInput {
   const concludedByAssumption = new Map<string, number>();
   for (const r of records.readings) {
-    const assumptionId = str(r, "assumptionId");
-    if (!assumptionId) continue;
-    const result = str(r, "Result") as Result | null;
-    if (result && isConcluded(result)) {
+    // A reading row scores several beliefs at once (OPS-1305); each concluded
+    // belief-score counts toward its own assumption's "evidence is in" tally.
+    for (const b of readingBeliefs(r)) {
+      if (!b.assumptionId || !isConcluded(b.Result)) continue;
       concludedByAssumption.set(
-        assumptionId,
-        (concludedByAssumption.get(assumptionId) ?? 0) + 1,
+        b.assumptionId,
+        (concludedByAssumption.get(b.assumptionId) ?? 0) + 1,
       );
     }
   }

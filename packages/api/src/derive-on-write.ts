@@ -15,25 +15,50 @@ import {
   recomputeStrength,
   type AnyRecord,
   type AssumptionRecord,
+  type BeliefScore,
   type DataProvider,
   type DecisionRecord,
   type ReadingRecord,
 } from "@validation-os/core";
 
-/** Stamp Source quality + Strength onto a reading's `derived` field. */
+/**
+ * Stamp the derived values a reading owns:
+ *  - the row's `derived.sourceQuality` (Representativeness × Credibility), a
+ *    property of the artifact, shared by every belief it scores;
+ *  - each belief's `derived.strength` (rung anchor × sign(Result) [× band]);
+ *  - `assumptionIds`, the projection of `beliefs[].assumptionId`, kept in sync
+ *    whenever beliefs[] is written (mirrors barLineAssumptionIds).
+ * A partial patch that omits a field leaves that derivation untouched.
+ */
 export function deriveReadingFields(data: Partial<AnyRecord>): Partial<AnyRecord> {
   const r = data as Partial<ReadingRecord>;
-  if (r.Rung == null || r.Result == null) return data; // not enough to derive
-  const sourceQuality = recomputeSourceQuality(
-    Number(r.Representativeness ?? 0),
-    Number(r.Credibility ?? 0),
-  );
-  const strength = recomputeStrength({
-    rung: r.Rung,
-    result: r.Result,
-    magnitudeBand: r.magnitudeBand,
-  });
-  return { ...data, derived: { sourceQuality, strength } };
+  const out: Partial<AnyRecord> = { ...data };
+
+  if (r.Representativeness != null && r.Credibility != null) {
+    out.derived = {
+      sourceQuality: recomputeSourceQuality(
+        Number(r.Representativeness),
+        Number(r.Credibility),
+      ),
+    };
+  }
+
+  if (Array.isArray(r.beliefs)) {
+    const beliefs = r.beliefs.map((b) => ({
+      ...b,
+      derived: {
+        strength: recomputeStrength({
+          rung: b.Rung,
+          result: b.Result,
+          magnitudeBand: b.magnitudeBand,
+        }),
+      },
+    })) as BeliefScore[];
+    out.beliefs = beliefs;
+    out.assumptionIds = beliefs.map((b) => b.assumptionId);
+  }
+
+  return out;
 }
 
 /**

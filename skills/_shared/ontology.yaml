@@ -58,7 +58,11 @@ vocabularies:
   # Experiment (the unified evidence plan) lifecycle + why it closed + terminal
   # outcome. `Draft` is the pre-commit state; commit is the Draft→Running gate;
   # conclude+verdict is the Running→Closed gate. Outcome null until Closed.
-  experiment_status: [Draft, Running, Closed]
+  # `Archived` = a Draft/Running plan retired without concluding — shelved out
+  # of the active + test-next views, never read back as evidence (distinct from
+  # Closed, which concluded against its bars). A reading's experimentId must
+  # reference a live (non-archived) experiment (integrity reading-orphaned-experiment).
+  experiment_status: [Draft, Running, Closed, Archived]
   experiment_closure_reason: [Completed, Early-stop, Kill]
   experiment_outcome: [Achieved, Missed, Dropped]
 
@@ -145,15 +149,23 @@ derivations:
     field: assumptions.Confidence
     formula: >-
       (w0·0 + Σ wi·si) / (w0 + Σ wi), w0 = 100 (hard floor ≥ 98),
-      wi = |si| × Source quality, si = the reading's signed Strength. Only
-      concluded Validated/Invalidated Readings enter; Readings sharing a
-      source against one belief dedupe to the strongest (largest |si|, most
-      recent on ties). No corroboration bump. ≤ -50 = kill zone: audit
-      prompts a human kill verdict, never an auto-flip
+      wi = |si| × Source quality × commitmentFactor, si = the signed Strength
+      of a beliefs[] entry scored against this assumption (across all readings).
+      commitmentFactor is reading-level: 1.0 when the entry's reading carries an
+      experimentId (direct output of concluding a committed Experiment), else
+      0.85 (found/bare evidence) — discounts found evidence but, like Source
+      quality, scales weight only, never si, so it can NEVER reorder rungs (the
+      rung sets the ceiling; commitmentFactor never lets a discounted found
+      reading outrank a stronger experiment-born one). Only concluded
+      Validated/Invalidated entries enter; entries sharing a source against the
+      same assumption dedupe to the strongest (largest |si|, most recent on
+      ties) — dedupe is per (belief, source). No corroboration bump. ≤ -50 =
+      kill zone: audit prompts a human kill verdict, never an auto-flip
       (experiment-guardrails.md §2).
     range: [-100, 100]
+    commitment_factor: { experiment_born: 1.0, found: 0.85 }
   strength:
-    field: readings.Strength
+    field: reading_belief.Strength   # per beliefs[] entry, one s per belief scored
     formula: >-
       rung anchor (Market rungs: × magnitude band, Low/Typical/High from the
       absolute outcome) × sign(Result) — Validated positive, Invalidated
@@ -242,22 +254,38 @@ entities:
       - { name: Bar verdict, type: select, options: vocabularies.bar_verdict, required: false }
 
   readings:
-    description: One artifact × one belief — the atomic unit Confidence reads. Exists only once observed (no draft/running state). Origin (Experiment | none) lives here, never on the assumption; the Goal origin is gone (OPS-1305).
+    description: One artifact scored per belief — the atomic unit Confidence reads. One artifact row carrying source identity + quality once, a freeform `body` (the artifact's verbatim quote/excerpt — reintroduced as a deliberate reversal of the OPS-1305 no-body slice, backfilled from Notion, shown in the dashboard), plus an embedded beliefs[] array (entities.reading_belief) with one entry per assumption it bears on. Exists only once observed (no draft/running state). Origin (Experiment | none) lives on the row, never on the assumption; the Goal origin is gone (OPS-1305). EVIDENCE IS EXTERNAL — Source must be outside the team (customer/user/prospect/partner/third-party dataset/published source/observed market behaviour); internal meetings and team opinion are hypothesis/framing (→ assumption Scoring justification), never a reading, never a Confidence input (integrity internal-sourced-reading). An internal meeting that reports a verifiable external fact is second-hand evidence — attribute Source to the external event, grade on its rung, lower Credibility (experiment-guardrails.md §0).
     properties:
       - { name: Title, type: title, required: true }
       - { name: Source, type: link, required: true }   # the independence/dedupe key — the generator (person / dataset / cohort)
       - { name: Context links, type: multi_link, required: false }   # provenance (recording, dashboard, CRM row, user id); 0..N; drives no math
-      - { name: Rung, type: select, options: vocabularies.rung, required: true }
-      - { name: Representativeness, type: select, options: vocabularies.source_quality.picks, required: true }
-      - { name: Credibility, type: select, options: vocabularies.source_quality.picks, required: true }
-      - { name: Source quality, type: number, derived: true }   # = Representativeness × Credibility
-      - { name: Result, type: select, options: vocabularies.reading_result,
-          machine: status_machines.reading_result, required: true }
-      - { name: Strength, type: number, derived: derivations.strength }
-      - { name: Grading justification, type: text }   # rationale for the rung/representativeness/credibility picks (presence-checked, warn)
+      - { name: Representativeness, type: select, options: vocabularies.source_quality.picks, required: true }   # source-level: one value per reading (grades the source, not the belief)
+      - { name: Credibility, type: select, options: vocabularies.source_quality.picks, required: true }   # source-level: one value per reading
+      - { name: Source quality, type: number, derived: true }   # = Representativeness × Credibility; scales each beliefs[] entry's weight
       - { name: Date, type: date }
       - { name: Owner, type: dashboard_user, required: false }
-    body_headings: []   # no body — a reading is a clean scored artifact
+    body_headings: []   # freeform `body` = the artifact's verbatim quote/excerpt (row-level, one per reading), reintroduced as a deliberate reversal of the OPS-1305 no-body slice — backfilled from Notion, shown in the dashboard; no fixed headings. Distinct from beliefs[].Grading justification (per-belief scoring rationale).
+
+  reading_belief:
+    description: >-
+      The per-belief scoring on a Reading — an association-with-attributes
+      between one Reading and one Assumption, mirroring the Experiment's bar
+      line. NOT a register: each entry belongs to exactly one Reading and is
+      realized backend-natively (child table / embedded beliefs[] array /
+      nested block keyed by belief; see connector guides). Rung, Result,
+      Magnitude band, Strength, and Grading justification are PER belief; a rich
+      artifact bearing on N beliefs is one Reading with N of these entries,
+      never N Readings (OPS-1305 evidence remodel). The row's assumptionIds is
+      the projection of these entries' assumption references.
+    composed_into: readings
+    references: assumptions   # one assumption per beliefs[] entry
+    properties:
+      - { name: Rung, type: select, options: vocabularies.rung, required: true }
+      - { name: Result, type: select, options: vocabularies.reading_result,
+          machine: status_machines.reading_result, required: true }
+      - { name: Magnitude band, type: select, options: vocabularies.magnitude_band, required: false }   # Market rungs only; null on Testing rungs
+      - { name: Strength, type: number, derived: derivations.strength }
+      - { name: Grading justification, type: text }   # rationale for this entry's rung/result/(Market) magnitude + the shared rep/cred picks (presence-checked, warn)
 
   decisions:
     description: The decision log. A row here IS a decision (the register is the discriminator — no Type field). No Kind field.
@@ -315,15 +343,18 @@ relations:
 
   - name: Assumption / Readings
     kind: directed
-    forward: Assumption          # on the reading row (exactly one)
+    forward: Assumption          # per beliefs[] entry (one assumption each); the row's assumptionIds is the projection
     inverse: Readings            # on the assumption row
     source: readings
     target: assumptions
-    cardinality: many-to-one
+    cardinality: many-to-many    # one reading scores N beliefs via beliefs[]; one belief has N readings
+    realized_by: reading_belief  # composed beliefs[] entries + the assumptionIds projection
     meaning: >-
-      The concluded Readings scored against a belief — EVERY Confidence input,
-      whatever the origin. Replaces the old Assumption / Experiments relation;
-      the assumption never links an Experiment directly.
+      The concluded readings — via their beliefs[] entries — scored against a
+      belief: EVERY Confidence input, whatever the origin. A reading links one
+      assumption per beliefs[] entry and may link several; dedupe is per
+      (belief, source). Replaces the old Assumption / Experiments relation; the
+      assumption never links an Experiment directly.
 
   - name: Reading / Experiment
     kind: directed
@@ -425,8 +456,15 @@ status_machines:
       - { from: Running, to: Closed,
           by: "/find-evidence close-out or human conclusion", gate: gated,
           trigger: "the run ends — a Closure reason (Completed / Early-stop / Kill) is set, each bar line takes its Bar verdict, and (for a committed plan) the Outcome (Achieved/Missed/Dropped) is set" }
+      - { from: [Draft, Running], to: Archived,
+          by: "human retire action", gate: gated,
+          trigger: "the plan is shelved without concluding — a Draft never committed, or a Running plan abandoned before it produced attributable evidence; it leaves the active + test-next views with no closure rollup. Re-point or bare any readings still attributed to it first (reading-orphaned-experiment)" }
+      - { from: Archived, to: Draft,
+          by: "human reopen", gate: gated,
+          trigger: "a shelved plan is picked back up for redesign" }
     forbidden:
       - A Closed experiment is never reverted to Running.
+      - Archived is a retire off-ramp, not a conclusion — a plan read back against its bars is Closed, never Archived; an Archived plan emits no evidence and takes no Bar verdict / Outcome.
       - The plan carries no rung and no strength — those are on the Readings it produced.
       - Outcome is null until Closed.
       - Evidence maturity (readings-in vs planned N) is derived, never stored, and never auto-concludes — concluding is a deliberate human act.
@@ -519,9 +557,10 @@ derived_views:
   # reading/experiment without the operator setting the same fact twice. The
   # display computation itself is the dashboard layer's (Spec B / OPS-1308).
   quant_qual: >-
-    A reading's quant-vs-qual character, inferred from its Rung + instrument
-    (a system-number instrument at any rung reads "quant"; recruited-sample
-    testing rungs read "qual"). A derived display tag, never a stored flag.
+    A reading entry's quant-vs-qual character, inferred from its beliefs[]
+    entry's Rung + instrument (a system-number instrument at any rung reads
+    "quant"; recruited-sample testing rungs read "qual"). A derived display
+    tag, never a stored flag.
   commercial_consumer: >-
     An experiment's commercial-vs-consumer character, read through from the
     tested assumption's Lens / Theme — never set on the experiment, so the
@@ -546,7 +585,7 @@ integrity_rules:
   - id: body-template-missing-heading
     severity: warn
     surfaced_by: ["/assumptions audit", "/decisions audit"]
-    check: A record is missing one of its type's verbatim body_headings. Only Experiments (## Method protocol / ## Closure rollup) and Decisions (## Rationale / ## Alternatives considered) carry bodies now; assumptions, readings, and glossary have no body (OPS-1305). A Decision missing "## Rationale" silently escapes its check — always flag it.
+    check: A record is missing one of its type's verbatim body_headings. Experiments (## Method protocol / ## Closure rollup) and Decisions (## Rationale / ## Alternatives considered) carry heading-structured bodies; Readings carry a freeform `body` (the artifact's verbatim quote/excerpt — reintroduced as a deliberate reversal of the OPS-1305 no-body slice) with no required headings, so nothing to check here; assumptions and glossary have no body (OPS-1305). A Decision missing "## Rationale" silently escapes its check — always flag it.
   - id: two-way-relation-one-ended
     severity: error
     surfaced_by: ["/assumptions audit", "/decisions audit"]
@@ -558,32 +597,55 @@ integrity_rules:
     surfaced_by: ["/assumptions audit"]
     check: >-
       Stored Confidence/Risk/Derived Impact (assumptions) or Strength/Source
-      quality (readings) differs from recomputing its derivation (formula-less
-      backends). All four assumption derivations are recomputed on every
-      touching write (OPS-1251), so a mismatch is a real defect — no field is
-      stale by design. A Derived Impact below its seed or > 100 is always a
-      finding.
+      quality (readings — Strength per beliefs[] entry, Source quality on the
+      row) differs from recomputing its derivation (formula-less backends). All
+      four assumption derivations are recomputed on every touching write
+      (OPS-1251), so a mismatch is a real defect — no field is stale by design.
+      A Derived Impact below its seed or > 100 is always a finding.
   - id: strength-not-gated
     severity: error
     surfaced_by: ["/assumptions audit"]
-    check: A Reading's Strength ≠ 0 while its Result is Inconclusive.
+    check: A beliefs[] entry's Strength ≠ 0 while that entry's Result is Inconclusive.
   - id: reading-ungraded
     severity: warn
     surfaced_by: ["/assumptions audit"]
     check: >-
-      A concluded Validated/Invalidated Reading whose Grading justification
-      field is empty — it should carry the rung + (Market rungs) magnitude
-      anchor + Representativeness × Credibility rationale
-      (experiment-guardrails.md §2). An ungraded reading's weight can't be
-      audited.
+      A concluded Validated/Invalidated beliefs[] entry whose Grading
+      justification field is empty — it should carry the entry's rung + (Market
+      rungs) magnitude anchor + the reading's Representativeness × Credibility
+      rationale (experiment-guardrails.md §2). An ungraded entry's weight can't
+      be audited.
   - id: market-rung-no-floor
     severity: error
     surfaced_by: ["/assumptions audit", "/find-evidence audit"]
     check: >-
-      A Market-rung (Signed intent / Paying users) Reading concluded Invalidated
-      whose originating Experiment bar has no pre-registered We're wrong if bar —
-      no floor, no negative: an uncontrolled absence of the outcome is
-      Inconclusive (experiment-guardrails.md §2).
+      A Market-rung (Signed intent / Paying users) beliefs[] entry concluded
+      Invalidated whose originating Experiment bar has no pre-registered We're
+      wrong if bar — no floor, no negative: an uncontrolled absence of the
+      outcome is Inconclusive (experiment-guardrails.md §2).
+  - id: reading-orphaned-experiment
+    severity: error
+    surfaced_by: ["/assumptions audit", "/find-evidence audit"]
+    check: >-
+      A Reading whose experimentId is set but resolves to no experiment, or to
+      an Archived one — a reading's origin must reference a live (non-archived)
+      Experiment (experiment-guardrails.md §6). Re-point it, or bare the reading
+      (null the experimentId), which also drops its commitmentFactor to 0.85.
+  - id: internal-sourced-reading
+    severity: warn
+    surfaced_by: ["/assumptions audit", "/find-evidence audit"]
+    check: >-
+      A Reading whose Source looks INTERNAL to the team rather than external —
+      a best-effort heuristic on Source/body: internal-meeting or team-opinion
+      markers (e.g. "board meeting", "standup", "strategy/planning session",
+      "our call", "team thinks", "we believe", a source that is a teammate/
+      founder rather than a customer/user/prospect/partner/dataset/published
+      source). EVIDENCE IS EXTERNAL (experiment-guardrails.md §0): flag for a
+      human to either (a) move it to the assumption's Scoring justification as
+      rationale and delete the reading (pure internal opinion — never a
+      Confidence input), or (b) if the meeting relayed a real external fact,
+      re-attribute Source to that external event, grade on its rung, and lower
+      Credibility (second-hand). A heuristic flag, not a hard block.
   - id: stale-representativeness
     severity: warn
     surfaced_by: ["/assumptions audit"]
@@ -633,7 +695,7 @@ integrity_rules:
   - id: unrolled-verdict
     severity: warn
     surfaced_by: ["/assumptions audit"]
-    check: A concluded Invalidated Reading was never folded into the linked assumption's stored Confidence (the score predates the verdict) — the miss was never rolled up; recompute, and if the result lands in the kill zone, flag for a gated close-out (human verdict).
+    check: A concluded Invalidated beliefs[] entry was never folded into the linked assumption's stored Confidence (the score predates the verdict) — the miss was never rolled up; recompute, and if the result lands in the kill zone, flag for a gated close-out (human verdict).
   - id: moot-without-resolver
     severity: error
     surfaced_by: ["/assumptions audit", "/decisions audit"]
@@ -691,7 +753,7 @@ integrity_rules:
   - id: outcome-unread
     severity: error
     surfaced_by: ["/find-evidence audit"]
-    check: An experiment Closed as Achieved/Missed whose outcome was never decomposed — no per-belief Reading against any belief it bars. The outcome IS the evidence; closing without reading it back is the one thing the two-level model exists to prevent. Dropped is exempt, emitting no evidence.
+    check: An experiment Closed as Achieved/Missed whose outcome was never decomposed — no beliefs[] entry (on any reading linking this experiment) against any belief it bars. The outcome IS the evidence; closing without reading it back is the one thing the two-level model exists to prevent. Dropped is exempt, emitting no evidence.
   - id: stale-seed-anchor
     severity: warn
     surfaced_by: ["/assumptions audit"]

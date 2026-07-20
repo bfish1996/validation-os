@@ -15,6 +15,7 @@
  */
 import type { AnyRecord, BarLine, Collection } from "@validation-os/core";
 import { fieldLabel, formatValue, primaryLabel } from "./columns.js";
+import { isArchivedExperiment } from "./derived-views.js";
 import type { RelatedSet } from "./record-view.js";
 
 export type { RelatedSet };
@@ -34,7 +35,15 @@ export const META_FIELDS = new Set([
  * `barLines[].assumptionId` (`connectors/nosql-schema.md`), and the `bar-lines`
  * row below already links each assumption.
  */
-const SUPPRESSED_FIELDS = new Set(["barLineAssumptionIds"]);
+const SUPPRESSED_FIELDS = new Set([
+  "barLineAssumptionIds",
+  // A reading's `beliefs[]` is rendered as the richer per-belief verdict list
+  // (OPS-1305), never as raw JSON in the generic row list.
+  "beliefs",
+  // `body` (a reading's quote / an experiment's narrative) renders as Markdown
+  // in its own block, not as a raw-text row.
+  "body",
+]);
 
 /** Which register a relation id/id-list field points at (mirrors the `from`
  * side of `RELATIONS` in `@validation-os/core`, plus the inverse single-id
@@ -45,6 +54,7 @@ const RELATION_TARGET: Partial<Record<string, Collection>> = {
   contradictsIds: "assumptions",
   readingIds: "readings",
   assumptionId: "assumptions",
+  assumptionIds: "assumptions",
   experimentId: "experiments",
   basedOnIds: "assumptions",
   resolvesIds: "assumptions",
@@ -165,7 +175,17 @@ export function detailRows(
 
     const target = RELATION_TARGET[key];
     if (target) {
-      const items = idsOf(value).map((id) => resolveItem(related, target, id));
+      let items = idsOf(value).map((id) => resolveItem(related, target, id));
+      // Archived plans never surface as a relation (OPS-1305): drop any
+      // experiment target that resolves to an Archived record.
+      if (target === "experiments") {
+        const archived = new Set(
+          (related.experiments ?? [])
+            .filter((e) => isArchivedExperiment(e))
+            .map((e) => e.id),
+        );
+        items = items.filter((it) => !archived.has(it.id));
+      }
       return { key, label, kind: "relation", items };
     }
 

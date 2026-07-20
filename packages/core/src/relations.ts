@@ -32,7 +32,7 @@ export interface RelationSpec {
 export const RELATIONS: Record<Relation, RelationSpec> = {
   "assumption-reading": {
     from: { register: "assumptions", field: "readingIds", cardinality: "many" },
-    to: { register: "readings", field: "assumptionId", cardinality: "one" },
+    to: { register: "readings", field: "assumptionIds", cardinality: "many" },
     targetRegister: "readings",
   },
   "assumption-depends-on": {

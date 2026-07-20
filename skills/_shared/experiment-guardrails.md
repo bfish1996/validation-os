@@ -46,12 +46,37 @@ running the test.
   belief, the signed value per reading; anything experiment-level is a
   closure-time **report** (§6), never a Confidence input.
 
-**Evidence is readings** — one reading per **artifact × belief it actually
-addressed**. Quotes from one artifact against one belief group inside that
-one reading, never fan into several. A reading carries its rung (inherited
-from its bar line at logging; assigned honestly at logging for off-plan and
-bare readings), `Source quality`, `Result`, the derived signed `Strength`,
-and its source artifact's canonical link.
+**Evidence is readings** — one reading per **artifact**, scored per belief
+through an embedded `beliefs[]` array: one **entry per belief the artifact
+actually addressed**. A rich artifact (an interview) bearing on N beliefs is
+**one reading with N `beliefs[]` entries**, never N readings — they share the
+row's source, `Source quality`, canonical link, and origin. Each `beliefs[]`
+entry carries its own `Rung` (inherited from that belief's bar line at
+logging; assigned honestly at logging for off-plan and bare readings),
+`Result`, and derived signed `Strength` — the rung, result, and strength are
+**per belief**, not per reading. Source identity and quality
+(`Representativeness` / `Credibility` / `Source quality`) live once on the
+row, because they describe the source, not the belief.
+
+**Evidence is external — a reading records an observation from a source
+OUTSIDE the team.** The generator behind every reading is a customer, user,
+prospect, partner, third-party dataset, published source, or observed market
+behaviour — the world talking back, never the team talking to itself. **Internal
+meetings and discussions are not evidence:** a board meeting, a strategy or
+planning session, a founder's or the team's opinion about the market is
+**hypothesis and framing**, not a reading — it belongs in the assumption's
+`Scoring justification` (its rationale) and **never contributes to
+Confidence**. Logging team opinion as a reading is the failure mode this rule
+exists to stop: it launders a bet into "evidence" for itself.
+
+- **Exception — an internal meeting that *reports* a verifiable external
+  fact** (a customer's decision, a user's observed behaviour, a partner's
+  commitment) carries real evidence, recorded **second-hand**. Grade it on the
+  **external event's** rung (what actually happened out there), set the reading's
+  `Source` to that **external event/source** — the customer, the signed
+  contract, the usage data — **not "the meeting"**, and set `Credibility` lower
+  to reflect the second-hand relay (nobody on the team witnessed it directly).
+  The meeting is the *channel*, never the source.
 
 **Bars come from the plan; readings come from the artifacts.** Off-plan
 readings — signal the run yielded on beliefs that weren't bundled — are
@@ -63,8 +88,9 @@ A round's reading count is bounded by actual signal, not the plan grid.
 row carries the plan (Instrument, Feasibility, Status, Deadline, Outcome);
 each bundled belief gets its own composed **bar line** (`We're right if` /
 `We're wrong if` / Planned rung / Bar verdict) realized backend-natively
-inside the Experiment; the rung and signed value live on the Reading. There
-is no run-level `Type` or `Strength`.
+inside the Experiment; the rung and signed value live on the Reading's
+per-belief `beliefs[]` entry (`registry-schema.md §Field map — Readings`).
+There is no run-level `Type` or `Strength`.
 
 **Source artifacts — identity, routing, no Sources register:**
 
@@ -91,20 +117,24 @@ is no run-level `Type` or `Strength`.
   copy-paste (email thread, screenshot, unrecorded-call notes) is filed into
   the designated **"Raw evidence" Drive folder** (listed in the source-map
   like any other home), which mints its canonical link. Quoting an excerpt
-  in a reading's body is fine — that's the reading's evidence note — but the
-  whole artifact lives exactly once, at its link; pasting it into rows as
-  the primary copy is banned (it recreates N-copy drift).
+  in the reading's `body` (its verbatim quote/excerpt — readings carry a `body`
+  again, reversing that OPS-1305 slice) is fine — but the whole artifact lives
+  exactly once, at its link; pasting it into rows as the primary copy is banned
+  (it recreates N-copy drift).
 - **Quality stays per-reading** (`Source quality`, §2) — source identity
   dedupes, it never grades.
 
-**One reading ↔ one belief, linkage binary.** The unit entering the
-Confidence average is one concluded reading against exactly one assumption —
-bar, rung, `Result`, and `Strength` are all per-belief. A rich artifact (an
-interview) that bears on N beliefs fans into up to N readings sharing a
-canonical link; there is no partial-credit "directness" discount — a weak
-proxy for the claim reads as a lower rung or `Inconclusive`, never a
+**Per-belief scoring, one entry per assumption.** The unit entering a belief's
+Confidence average is one concluded `beliefs[]` entry against exactly one
+assumption — bar, rung, `Result`, and `Strength` are all per-belief. A rich
+artifact (an interview) that bears on N beliefs is **one reading carrying N
+`beliefs[]` entries**, sharing one canonical link and one `Source quality`;
+there is no partial-credit "directness" discount — a weak proxy for a claim
+reads as a lower rung or `Inconclusive` in that belief's entry, never a
 discounted strong reading. Evidence on a sibling or dependency never flows
-across the graph into this belief's Confidence.
+across the graph into this belief's Confidence — an artifact scores a belief
+only through its own `beliefs[]` entry, never by spillover from a sibling
+entry.
 
 **Ladder integrity, always:** the Confidence average is bounded by its
 strongest reading's value, and source quality only scales weight — so weak
@@ -173,7 +203,11 @@ of it piles up.
   canonical link (§0). Every new round — new population, new beliefs, or new
   bars — is a **new experiment row** referencing the same instrument link.
   **A bundle never grows after design**: adding a belief mid-run is
-  retro-registration, which origination forbids (§6).
+  retro-registration, which origination forbids (§6). The **one exception is
+  a merge** — consolidating several already-pre-registered plans that turn out
+  to be one honest run into a single Experiment, every bar line carried
+  verbatim (no bar invented or re-cut); `/experiment-design`'s Merge mode owns
+  the procedure, archiving the folded-in plans.
 - **Duplicate seam.** If the **same pre-registered bar — the same reading —
   would resolve two candidate beliefs, they are one assumption**: merge
   (`assumption-guardrails.md §4`). Beliefs that each need their own bar to
@@ -250,7 +284,8 @@ belief often needs several records: a feasible weak test now, a stronger one
 when access opens.
 
 **Reading value `s` (canonical — every backend implements exactly this).**
-`Strength` holds the signed reading value, gated to a conclusive `Result`
+`Strength` holds the signed reading value **per `beliefs[]` entry** (one `s`
+per belief the reading scores), gated to that entry's conclusive `Result`
 (0 while `Running` or `Inconclusive`):
 
 - `s = rung anchor × sign(Result)` — `Validated` positive, `Invalidated`
@@ -295,12 +330,29 @@ and the segment fixed.** (End-user activity and amount paid are the
 it rides the Impact seed. Neither is source quality.)
 
 **Confidence (canonical aggregation).** The assumption's Confidence is the
-signed, strength-weighted average of its concluded readings, shrunk toward 0
-by a neutral prior:
+signed, strength-weighted average of the concluded `beliefs[]` entries scored
+against it (across all readings), shrunk toward 0 by a neutral prior:
 
 ```
-Confidence = (w₀·0 + Σ wᵢ·sᵢ) / (w₀ + Σ wᵢ)     w₀ = 100,  wᵢ = |sᵢ| × source_qualityᵢ
+Confidence = (w₀·0 + Σ wᵢ·sᵢ) / (w₀ + Σ wᵢ)
+             w₀ = 100,  wᵢ = |sᵢ| × source_qualityᵢ × commitmentFactorᵢ
 ```
+
+- **`commitmentFactor`** discounts *found* (non-experiment) evidence: it is
+  `1.0` when the entry's reading carries an `experimentId` (the reading is the
+  direct output of concluding a committed Experiment) and `0.85` otherwise (a
+  bare/found reading). It is a **reading-level** factor — every `beliefs[]`
+  entry of one reading shares it — reflecting that a pre-registered, executed
+  plan is worth marginally more than the same signal stumbled on after the
+  fact. `0.85` is the one commitment knob; leave it there unless the
+  scoring-model owner changes it.
+- **Rung dominates — `commitmentFactor` never reorders rungs (invariant).**
+  Like `source_quality`, `commitmentFactor` scales an entry's *weight*, never
+  its value `sᵢ` (the rung sets the ceiling). So the average stays bounded by
+  the strongest entry's `|s|`, and a discounted found reading can never
+  outrank a stronger experiment-born one: a found `Prototype usage` still
+  beats an experiment `Opinion`. The discount changes how fast Confidence
+  approaches a ceiling, never which ceiling applies.
 
 - **Signed, −100…100; no evidence = 0.** Stored signed; Risk clamps the
   negative zone to 0 (`assumption-guardrails.md §3`).
@@ -309,11 +361,13 @@ Confidence = (w₀·0 + Σ wᵢ·sᵢ) / (w₀ + Σ wᵢ)     w₀ = 100,  wᵢ 
   no other pre-conclusion state, `registry-schema.md §Field map —
   Readings`); a belief with only inconclusive tests sits at the prior
   because it has no mass.
-- **Independence dedupes by source:** readings sharing a canonical link
-  against the same belief count once — only the strongest (largest `|s|`;
-  most recent on ties) enters the sum. N readings cut from one interview are
-  one unit of corroborating mass, not N. **Market-rung readings are the
-  deliberate exception:** each *closed committed plan* is its own unit —
+- **Independence dedupes per (belief, source):** `beliefs[]` entries sharing a
+  canonical link against the **same linked assumption** count once — only the
+  strongest (largest `|s|`; most recent on ties) enters that belief's sum. Two
+  readings cut from one interview, or two entries against different beliefs,
+  are handled independently per assumption; N corroborating entries on one
+  belief from one source are one unit of mass, not N. **Market-rung readings
+  are the deliberate exception:** each *closed committed plan* is its own unit —
   successive cycles on the same instrument never dedupe (a series of misses
   could otherwise never accumulate to the kill zone). Re-counting an
   unchanged world is prevented by the bar ratchet, not by dedupe
@@ -335,19 +389,21 @@ Backends never encode this in a native formula — a connector-agnostic script
 `Confidence`, and `Risk` from the stored fields.
 
 **The `Grading justification` field — what makes a reading auditable.**
-Every concluded reading records its grading in this one field (readings
-carry no body, `OPS-1305`), so the numbers are reproducible from the record
-alone:
+Every concluded `beliefs[]` entry records its **scoring rationale** in this
+per-entry field (distinct from the reading-level `body`, which holds the
+verbatim quote/excerpt the entry is graded from), so the numbers are
+reproducible from the record alone:
 
-- the **rung** and, on Market rungs, the **magnitude pick** with the
+- the entry's **rung** and, on Market rungs, the **magnitude pick** with the
   absolute anchor it keys to ("2 paying pilots at £500/mo → Paying, Low");
-- the **Representativeness** and **Credibility** picks, one-line
-  justification each;
+- the reading's **Representativeness** and **Credibility** picks, one-line
+  justification each (shared across the reading's entries — they grade the
+  source, not the belief);
 - the **source** — the artifact's canonical link the independence dedupe
   keys off.
 
-A reading with an empty `Grading justification` can't be audited into the
-average — the `reading-ungraded` check flags it (`ontology.yaml`).
+A `beliefs[]` entry with an empty `Grading justification` can't be audited
+into the average — the `reading-ungraded` check flags it (`ontology.yaml`).
 
 **Volume lives in rung choice, not in a record count.** Same-source records
 don't stack (the dedupe), and weak records can't out-average strong ones. If
@@ -496,9 +552,12 @@ this skill's).
     never flips any assumption status: committing an Experiment to `Running`
     makes each bundled `Live` row show in the derived Testing view
     automatically.
-  - **Experiment `Status`** = `Draft` → `Running` → `Closed` — this is where
-    `Running` lives, never on a Reading. `/experiment-design` only ever
-    commits to `Running`.
+  - **Experiment `Status`** = `Draft` → `Running` → `Closed`, plus
+    `Archived` (a Draft/Running plan retired without concluding — shelved out
+    of the active and test-next views, never read back as evidence; distinct
+    from `Closed`, which concluded against its bars). This is where `Running`
+    lives, never on a Reading. `/experiment-design` only ever commits to
+    `Running`; archiving is a separate retire action.
   - **Reading `Result`** = set once at logging, conclusive from the start
     (`Validated` / `Invalidated` / `Inconclusive` — no `Running`). Readings
     conclude rolling as evidence is logged (§6) — a verdict moves Confidence
@@ -552,6 +611,15 @@ by sweeps (the weekly ritual / `register-audit.md`), prompted by:
 - the underlying assumption mooted (Impact 0) or merged away;
 - superseded by a cheaper same-belief design;
 - cost ballooned past the design-time `Feasibility`.
+
+**Archive vs. close.** A plan that yielded readings and reached its bars
+**closes** (bar verdicts rendered, evidence read back). A plan that will never
+be read back — a Draft never committed, or a `Running` plan abandoned before it
+produced attributable evidence — is **`Archived`** instead: it leaves the
+active and test-next views without a closure rollup. A reading's `experimentId`
+must point at a *live* (non-archived) experiment — archiving a plan that still
+has readings attributed to it orphans them (`ontology.yaml`
+`reading-orphaned-experiment`), so re-point or bare those readings first.
 
 **Ordering: Risk picks the belief, Feasibility picks the experiment.** The
 test-next queue (Risk alone) says which belief deserves testing; among

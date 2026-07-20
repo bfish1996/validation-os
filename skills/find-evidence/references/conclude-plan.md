@@ -50,20 +50,24 @@ surfaced an unclosed one.
    sits between the two bars, say so plainly and let them call it.
 
 4. **Decompose — the hard gate** (`Achieved`/`Missed` only). The outcome must
-   be read back onto the linked beliefs, **one verdict per bar line**, run
-   **in-skill** here — the shared evidence procedure
-   (`../../_shared/historic-evidence.md`), same gates, each reading linking
-   the closing Experiment. `/find-evidence` owns this end to end; it is not
-   a `/experiment-design` job.
+   be read back onto the linked beliefs as **one `beliefs[]` entry per bar
+   line** (typically on a single Reading representing the plan's outcome —
+   never fan one artifact into several Readings), run **in-skill** here — the
+   shared evidence procedure (`../../_shared/historic-evidence.md`), same
+   gates. This is the **one case that sets `experimentId`**: the readings are
+   the direct output of executing this committed plan, so each links the
+   closing Experiment as its origin (`commitmentFactor` 1.0).
+   `/find-evidence` owns this end to end; it is not a `/experiment-design`
+   job.
    - A hit is revealed-tier evidence for the beliefs underneath — real
      commitment, really given.
    - A miss usually invalidates one belief specifically. Find which. "We
      missed" is a scoreboard fact; "we missed *because* ASM-15 was wrong" is
      what the register is for.
-   - **Grade the reading by interpolation**, not a threshold flip: hit/beat
+   - **Grade each entry by interpolation**, not a threshold flip: hit/beat
      `We're right if` → full positive; at/below `We're wrong if` → negative;
-     between → a partial positive at the magnitude of what materialised
-     (absolute anchors, `experiment-guardrails.md §2`).
+     between → a partial positive at the magnitude (`Magnitude band`) of what
+     materialised (absolute anchors, `experiment-guardrails.md §2`).
    - **First close of a found-number plan banks the discovered truth — once.**
      The standing level (the 15 customers that already exist at the deadline)
      reads as an interpolated positive at the magnitude of what materialised.
@@ -75,9 +79,10 @@ surfaced an unclosed one.
      (`experiment-guardrails.md §2`), so a series of misses can accumulate
      toward the kill zone instead of collapsing to one.
    - **A committed plan cannot close as Achieved/Missed with zero per-belief
-     readings** (`outcome-unread`, `../../_shared/ontology.yaml`). If the
-     user wants to skip it, that is a refusal to close: leave the plan
-     `Running`, say why, and offer to come back to it.
+     `beliefs[]` entries** across the readings linking it (`outcome-unread`,
+     `../../_shared/ontology.yaml`). If the user wants to skip it, that is a
+     refusal to close: leave the plan `Running`, say why, and offer to come
+     back to it.
 
 5. **`Dropped` instead.** Exempt from decomposition — a plan abandoned
    because the world changed has nothing to read back, and forcing a fake

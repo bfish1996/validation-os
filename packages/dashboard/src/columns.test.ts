@@ -1,12 +1,14 @@
 import type { AnyRecord } from "@validation-os/core";
 import { describe, expect, it } from "vitest";
 import {
+  bodyPreview,
   cellValue,
   columnsFor,
   derivedLabel,
   fieldLabel,
   formatValue,
   primaryLabel,
+  readingAssumptionChips,
 } from "./columns.js";
 
 const rec = (data: Partial<AnyRecord>): AnyRecord =>
@@ -33,6 +35,17 @@ describe("columnsFor", () => {
     expect(by("Impact")?.kind).toBeUndefined(); // plain text
   });
 
+  it("shows Reading, Source, Date and a Quote preview on readings (OPS-1305)", () => {
+    // The per-belief Result / Rung / Strength moved to the verdict list; the
+    // table previews the quote and carries Source + Date instead.
+    expect(columnsFor("readings").map((c) => c.header)).toEqual([
+      "Reading",
+      "Source",
+      "Date",
+      "Quote",
+    ]);
+  });
+
   it("leads every register with a headline column", () => {
     for (const register of [
       "assumptions",
@@ -43,6 +56,41 @@ describe("columnsFor", () => {
     ] as const) {
       expect(columnsFor(register).length).toBeGreaterThan(0);
     }
+  });
+});
+
+describe("bodyPreview", () => {
+  it("collapses whitespace and trims", () => {
+    expect(bodyPreview("  hello   world \n more  ")).toBe("hello world more");
+  });
+
+  it("ellipsises past the cap", () => {
+    // 10-char cap → 9 chars + ellipsis.
+    expect(bodyPreview("x".repeat(100), 10)).toBe("xxxxxxxxx…");
+  });
+
+  it("reads a missing / non-string body as empty", () => {
+    expect(bodyPreview(null)).toBe("");
+    expect(bodyPreview(undefined)).toBe("");
+    expect(bodyPreview(42)).toBe("");
+  });
+});
+
+describe("readingAssumptionChips", () => {
+  const rec = (ids: unknown): AnyRecord =>
+    ({ id: "r", version: 0, createdAt: "", updatedAt: "", assumptionIds: ids }) as AnyRecord;
+
+  it("resolves ids to titles, falling back to the bare id", () => {
+    const titles = new Map([["a1", "Users want speed"]]);
+    expect(readingAssumptionChips(rec(["a1", "a2"]), titles)).toEqual([
+      "Users want speed",
+      "a2",
+    ]);
+  });
+
+  it("shows bare ids when no lookup is given, and nothing for no beliefs", () => {
+    expect(readingAssumptionChips(rec(["a1", "a2"]))).toEqual(["a1", "a2"]);
+    expect(readingAssumptionChips(rec(undefined))).toEqual([]);
   });
 });
 

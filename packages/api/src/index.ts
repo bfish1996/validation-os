@@ -206,6 +206,8 @@ export interface ValidationOsApi {
   update(req: Request, ctx: RouteContext): Promise<Response>;
   /** POST /api/link — body { relation, from, to }; sets both ends. */
   link(req: Request): Promise<Response>;
+  /** POST /api/unlink — body { relation, from, to }; removes both ends. */
+  unlink(req: Request): Promise<Response>;
   /** GET /api/counts — per-register row counts (the walking-skeleton value). */
   counts(req: Request): Promise<Response>;
   /** POST /api/recompute — run the derived-fields backstop pass. */
@@ -233,6 +235,21 @@ export function createApi(options: CreateApiOptions): ValidationOsApi {
 
   async function maybeRecompute(register: Collection): Promise<void> {
     if (deriveOn && DERIVED_TRIGGERS.has(register)) {
+      await recomputeAllDerived(provider);
+    }
+  }
+
+  /**
+   * A relation can move a derived number (a reading joins a belief, a standing
+   * decision lands, a dependency edge appears), so link/unlink run the same
+   * backstop recompute the write routes use whenever either end is a trigger.
+   */
+  async function maybeRecomputeRelation(relation: Relation): Promise<void> {
+    const spec = RELATIONS[relation];
+    if (
+      DERIVED_TRIGGERS.has(spec.from.register) ||
+      (spec.to != null && DERIVED_TRIGGERS.has(spec.to.register))
+    ) {
       await recomputeAllDerived(provider);
     }
   }
@@ -308,17 +325,20 @@ export function createApi(options: CreateApiOptions): ValidationOsApi {
         await guard(req);
         const { relation, from, to } = parseLinkBody(await req.json());
         await provider.link(relation, from, to);
-        // A relation can move a derived number (a reading joins a belief, a
-        // standing decision lands, a dependency edge appears), so run the same
-        // backstop recompute the write routes use whenever an end is a trigger.
-        const spec = RELATIONS[relation];
-        if (
-          DERIVED_TRIGGERS.has(spec.from.register) ||
-          (spec.to != null && DERIVED_TRIGGERS.has(spec.to.register))
-        ) {
-          await recomputeAllDerived(provider);
-        }
+        await maybeRecomputeRelation(relation);
         return json({ data: { linked: true } });
+      } catch (e) {
+        return handle(e);
+      }
+    },
+
+    async unlink(req) {
+      try {
+        await guard(req);
+        const { relation, from, to } = parseLinkBody(await req.json());
+        await provider.unlink(relation, from, to);
+        await maybeRecomputeRelation(relation);
+        return json({ data: { unlinked: true } });
       } catch (e) {
         return handle(e);
       }

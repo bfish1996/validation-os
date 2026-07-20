@@ -73,14 +73,16 @@ const COLUMNS: Record<Collection, ColumnDef[]> = {
   ],
   readings: [
     { key: "Title", header: "Reading" },
-    { key: "Result", header: "Result" },
-    { key: "Rung", header: "Rung" },
+    { key: "Source", header: "Source" },
+    { key: "Date", header: "Date" },
+    // The row's per-belief Result / Rung / Strength are gone (OPS-1305) — they
+    // live in the reading detail's per-belief verdict list. The table instead
+    // previews the quote (`body`) so a row is legible at a glance; assumption
+    // chips (see `readingAssumptionChips`) disambiguate same-titled readings.
     {
-      key: "strength",
-      header: "Strength",
-      align: "right",
-      derived: true,
-      accessor: derivedField("strength"),
+      key: "body",
+      header: "Quote",
+      accessor: (r) => bodyPreview(r.body),
     },
   ],
   decisions: [
@@ -96,6 +98,29 @@ const COLUMNS: Record<Collection, ColumnDef[]> = {
 /** The columns to render for a register. */
 export function columnsFor(register: Collection): ColumnDef[] {
   return COLUMNS[register];
+}
+
+/** A one-line, length-capped preview of a reading's free-text `body` (its
+ * quote), for the readings table. Collapses whitespace and ellipsises; a
+ * missing/empty body reads as the empty string (formatted to an em dash). */
+export function bodyPreview(value: unknown, max = 80): string {
+  if (typeof value !== "string") return "";
+  const oneLine = value.replace(/\s+/g, " ").trim();
+  if (oneLine.length <= max) return oneLine;
+  return `${oneLine.slice(0, max - 1).trimEnd()}…`;
+}
+
+/** The belief chips for a reading row — the assumptions it grades, resolved to
+ * titles when a lookup is given, else their bare ids. Disambiguates readings
+ * that share a Title by showing which belief(s) each one actually scored. */
+export function readingAssumptionChips(
+  record: AnyRecord,
+  titleById: Map<string, string> = new Map(),
+): string[] {
+  const ids = Array.isArray(record.assumptionIds)
+    ? record.assumptionIds.filter((x): x is string => typeof x === "string")
+    : [];
+  return ids.map((id) => titleById.get(id) ?? id);
 }
 
 /** Read a column's raw value from a record (accessor, else `record[key]`). */
@@ -153,7 +178,9 @@ const FIELD_LABEL: Record<string, string> = {
   contradictsIds: "Contradicts",
   readingIds: "Readings",
   assumptionId: "Assumption",
-  experimentId: "Experiment",
+  assumptionIds: "Beliefs",
+  experimentId: "Evidence plan",
+  body: "Quote",
   contextLinks: "Context links",
   basedOnIds: "Based on",
   resolvesIds: "Resolves",

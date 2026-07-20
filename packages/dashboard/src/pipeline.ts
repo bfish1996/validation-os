@@ -13,9 +13,10 @@
  */
 import {
   assumptionCompleteness,
-  toReadingInput,
+  readingBeliefInputs,
   type AnyRecord,
   type BarLine,
+  type BeliefReadingInput,
 } from "@validation-os/core";
 import {
   beliefRisk,
@@ -30,6 +31,7 @@ import {
   type StageKey,
   type TestMeter,
 } from "@validation-os/core/derivation";
+import { liveExperiments } from "./derived-views.js";
 import { riskLevel, type Tone } from "./primitives.js";
 
 /** The four loop stages a belief travels, in order (OPS-1293). */
@@ -154,7 +156,13 @@ export function buildPipeline(
   assumptions: AnyRecord[],
   experiments: AnyRecord[],
 ): PipelineView {
-  const tests = beliefTestMeters(experiments.map(toStageExperimentInput));
+  // "Evidence ≠ tested" (OPS-1305): a belief's Planned / Tested stage is driven
+  // by a LIVE plan's bar lines, never by whether readings exist. Archived plans
+  // are dropped here, so a belief whose only plan is archived (or that has bare
+  // readings but no live plan) reads as Framed → "Design test", not Tested.
+  const tests = beliefTestMeters(
+    liveExperiments(experiments).map(toStageExperimentInput),
+  );
 
   const rows: PipelineRow[] = [];
   const resolved: ResolvedRow[] = [];
@@ -250,24 +258,25 @@ export function weekOverWeekDelta(
   if (!anyDated) return null;
 
   const cutoff = now.getTime() - 7 * 24 * 60 * 60 * 1000;
-  const byAssumption = new Map<string, AnyRecord[]>();
-  for (const r of readings) {
-    const id = str(r.assumptionId);
-    if (!id) continue;
-    const arr = byAssumption.get(id);
-    if (arr) arr.push(r);
-    else byAssumption.set(id, [r]);
+  // Fan every reading row out into one input per belief, then group by the
+  // belief it scores — a single row can now score several beliefs (OPS-1305).
+  const byAssumption = new Map<string, BeliefReadingInput[]>();
+  for (const input of readings.flatMap(readingBeliefInputs)) {
+    if (!input.assumptionId) continue;
+    const arr = byAssumption.get(input.assumptionId);
+    if (arr) arr.push(input);
+    else byAssumption.set(input.assumptionId, [input]);
   }
 
   const percentAsOf = (limit: number | null): number => {
     const inputs: PortfolioBeliefInput[] = assumptions.map((a) => {
       const d = derivedOf(a);
-      const mine = (byAssumption.get(a.id) ?? []).filter((r) => {
+      const mine = (byAssumption.get(a.id) ?? []).filter((i) => {
         if (limit === null) return true;
-        const t = Date.parse(str(r.Date));
+        const t = Date.parse(i.date ?? "");
         return !Number.isNaN(t) && t <= limit;
       });
-      const conf = confidence(mine.map(toReadingInput));
+      const conf = confidence(mine);
       return {
         id: a.id,
         derivedImpact: d.derivedImpact,

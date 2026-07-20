@@ -29,6 +29,9 @@ reviewed there.
 - **Tag every scoring question to the belief(s) it feeds.** A question that
   feeds no bundled belief's bar is cut. Signal the survey happens to collect
   on an un-bundled belief is off-plan (no bar; `experiment-guardrails.md §0`).
+  At capture (`/find-evidence`), the run is **one Reading with a `beliefs[]`
+  entry per belief it scored** — never one Reading per belief — each entry
+  graded over qualified respondents against that belief's bar.
 
 ## Render into the Experiment body
 

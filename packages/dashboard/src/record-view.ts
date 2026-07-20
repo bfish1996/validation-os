@@ -8,7 +8,14 @@
  * this seam; `RecordPage` renders what it returns and the understanding layer
  * supplies the "Why?" attribution unchanged.
  */
-import type { AnyRecord, BarLine, Collection } from "@validation-os/core";
+import type {
+  AnyRecord,
+  BarLine,
+  Collection,
+  MagnitudeBand,
+  Result,
+  Rung,
+} from "@validation-os/core";
 import { experimentProgress } from "@validation-os/core/derivation";
 import {
   confidenceTone,
@@ -21,7 +28,11 @@ import { primaryLabel } from "./columns.js";
 import {
   derivedNum,
   inKillLane,
+  isArchivedExperiment,
   isTesting,
+  liveExperiments,
+  readingBeliefs,
+  readingGrades,
   str,
   strList,
   testsAssumption,
@@ -155,16 +166,10 @@ export function leadingMeters(register: Collection, record: AnyRecord): Meter[] 
         },
       ];
     case "readings":
+      // Strength and Result are per belief now (OPS-1305) — they live in the
+      // per-belief verdict list (`readingBeliefVerdicts`), not as row meters.
+      // Source quality is the only row-level score left.
       return [
-        {
-          key: "strength",
-          label: "Strength",
-          kind: "signed",
-          value: derivedNum(record, "strength"),
-          tone: "neutral",
-          min: -100,
-          max: 100,
-        },
         {
           key: "sourceQuality",
           label: "Source quality",
@@ -176,13 +181,6 @@ export function leadingMeters(register: Collection, record: AnyRecord): Meter[] 
               : Math.round((derivedNum(record, "sourceQuality") ?? 0) * 100),
           tone: "neutral",
           max: 100,
-        },
-        {
-          key: "Result",
-          label: "Result",
-          kind: "pill",
-          value: str(record.Result),
-          tone: statusTone(str(record.Result) ?? ""),
         },
       ];
     case "experiments": {
@@ -263,6 +261,56 @@ export function humanInputFields(
     .filter((f) => f.text !== "");
 }
 
+// ── Per-belief verdict list (reading detail) ─────────────────────────────────
+
+/** One belief a reading grades, prepared for the reading detail's verdict list
+ * (OPS-1305). Modelled on the experiment bar-line view: the assumption resolved
+ * to a title + navigable id, plus this belief's own Rung / Result / derived
+ * Strength / magnitude band and the grading justification. */
+export interface BeliefVerdict {
+  assumptionId: string;
+  /** The belief's title if it's in the loaded set, else its bare id. */
+  title: string;
+  /** True when the assumption resolved — drives whether the title links. */
+  linked: boolean;
+  rung: Rung | null;
+  result: Result | null;
+  /** Derived per-belief strength (signed −100…100). */
+  strength: number | null;
+  magnitudeBand: MagnitudeBand | null;
+  justification: string;
+}
+
+/** The per-belief verdicts a reading carries, in stored order — the reading
+ * detail's answer to "what did this artifact say about each belief?". Pure:
+ * resolves each belief-score against the loaded assumptions for its title. */
+export function readingBeliefVerdicts(
+  reading: AnyRecord,
+  assumptions: AnyRecord[] = [],
+): BeliefVerdict[] {
+  const byId = new Map(assumptions.map((a) => [a.id, a]));
+  return readingBeliefs(reading).map((b) => {
+    const hit = byId.get(b.assumptionId);
+    const strength =
+      b.derived && typeof b.derived.strength === "number"
+        ? b.derived.strength
+        : null;
+    return {
+      assumptionId: b.assumptionId,
+      title: hit ? primaryLabel(hit) : b.assumptionId,
+      linked: hit != null,
+      rung: (b.Rung as Rung | undefined) ?? null,
+      result: (b.Result as Result | undefined) ?? null,
+      strength,
+      magnitudeBand: (b.magnitudeBand as MagnitudeBand | undefined) ?? null,
+      justification:
+        typeof b["Grading justification"] === "string"
+          ? b["Grading justification"]
+          : "",
+    };
+  });
+}
+
 // ── Backlink panels ───────────────────────────────────────────────────────────
 
 /** A glance-readable score chip for a linked record (story 9). */
@@ -295,10 +343,12 @@ export function scoreChip(register: Collection, record: AnyRecord): ScoreChip {
     return { label: "Confidence", value: formatSigned(c), tone: confidenceTone(c) };
   }
   if (register === "readings") {
-    const s = derivedNum(record, "strength");
+    // Strength is per belief now (OPS-1305); the row's glance score is its
+    // Source quality (0–1 → 0–100), a property of the artifact, not a belief.
+    const sq = derivedNum(record, "sourceQuality");
     return {
-      label: "Strength",
-      value: s === null ? "—" : formatSigned(s),
+      label: "Source quality",
+      value: sq === null ? "—" : String(Math.round(sq * 100)),
       tone: "neutral",
     };
   }
@@ -319,7 +369,8 @@ const PANELS: Record<Collection, PanelDef[]> = {
       id: "readings",
       label: "Readings",
       register: "readings",
-      resolve: (r, rel) => (rel.readings ?? []).filter((x) => x.assumptionId === r.id),
+      resolve: (r, rel) =>
+        (rel.readings ?? []).filter((x) => readingGrades(x, r.id)),
     },
     {
       id: "depends-on",
@@ -343,7 +394,11 @@ const PANELS: Record<Collection, PanelDef[]> = {
       id: "tested-by",
       label: "Tested by",
       register: "experiments",
-      resolve: (r, rel) => (rel.experiments ?? []).filter((e) => testsAssumption(e, r.id)),
+      // Archived plans never surface as a relation (OPS-1305) — live plans only.
+      resolve: (r, rel) =>
+        liveExperiments(rel.experiments ?? []).filter((e) =>
+          testsAssumption(e, r.id),
+        ),
     },
     {
       id: "decisions-based",
@@ -363,15 +418,21 @@ const PANELS: Record<Collection, PanelDef[]> = {
   readings: [
     {
       id: "assumption",
-      label: "Belief",
+      label: "Beliefs",
       register: "assumptions",
-      resolve: (r, rel) => byIds(rel.assumptions, [str(r.assumptionId) ?? ""].filter(Boolean)),
+      // A reading grades several beliefs now (OPS-1305) — resolve them all.
+      resolve: (r, rel) => byIds(rel.assumptions, strList(r.assumptionIds)),
     },
     {
       id: "experiment",
       label: "Evidence plan",
       register: "experiments",
-      resolve: (r, rel) => byIds(rel.experiments, [str(r.experimentId) ?? ""].filter(Boolean)),
+      // Only ever surface a NON-archived plan (OPS-1305): an archived origin
+      // reads as no plan at all, never a leaked backlink.
+      resolve: (r, rel) =>
+        byIds(rel.experiments, [str(r.experimentId) ?? ""].filter(Boolean)).filter(
+          (e) => !isArchivedExperiment(e),
+        ),
     },
   ],
   experiments: [

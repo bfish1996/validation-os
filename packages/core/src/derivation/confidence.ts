@@ -3,7 +3,8 @@
  *
  * Formula (`ontology.yaml` → `derivations.confidence`):
  *   (w0·0 + Σ wi·si) / (w0 + Σ wi),  w0 = 100,
- *   wi = |si| × Source quality,  si = the reading's signed Strength.
+ *   wi = |si| × Source quality × commitment,  si = the reading's signed Strength,
+ *   commitment = 1.0 for an experiment-linked reading, 0.85 for a found one.
  *
  * Only concluded Validated/Invalidated readings enter. Readings sharing a
  * Source against one belief dedupe to the strongest (largest |si|, most
@@ -19,6 +20,15 @@ import { isConcluded, readingStrength } from "./strength.js";
 /** The neutral prior weight — a hard floor per the guardrails. */
 export const W0 = 100;
 
+/**
+ * Commitment factor for a *found* reading — one with no originating experiment.
+ * A pre-registered (experiment-linked) reading weighs at full commitment (1.0);
+ * a found reading is discounted to this. It is a SMALL tiebreaker: it scales the
+ * weight only, never the Strength, so it can never reorder readings across rungs
+ * ("Rung dominates").
+ */
+export const COMMITMENT_FOUND = 0.85;
+
 export interface ConfidenceReadingInput {
   id: string;
   /** The independence-dedupe key. Null falls back to the reading's own id. */
@@ -30,13 +40,23 @@ export interface ConfidenceReadingInput {
   /** ISO date; used only as the dedupe tie-break (most recent wins). */
   date?: string | null;
   magnitudeBand?: MagnitudeBand;
+  /**
+   * The originating experiment, or null/undefined for a *found* reading. Drives
+   * the commitment factor in the weight (found → {@link COMMITMENT_FOUND}).
+   */
+  experimentId?: string | null;
+}
+
+/** The commitment weighting for a reading: full for committed, discounted for found. */
+export function commitmentFactor(experimentId: string | null | undefined): number {
+  return experimentId ? 1.0 : COMMITMENT_FOUND;
 }
 
 export interface Scored {
   input: ConfidenceReadingInput;
   strength: number;
   sq: number;
-  /** The reading's weight in the average: |strength| × Source quality. */
+  /** The reading's weight in the average: |strength| × Source quality × commitment. */
   weight: number;
 }
 
@@ -53,7 +73,8 @@ export function scoreAndDedupe(readings: ConfidenceReadingInput[]): Scored[] {
     .map((r) => {
       const strength = readingStrength(r);
       const sq = sourceQuality(r.representativeness, r.credibility);
-      return { input: r, strength, sq, weight: Math.abs(strength) * sq };
+      const weight = Math.abs(strength) * sq * commitmentFactor(r.experimentId);
+      return { input: r, strength, sq, weight };
     })
     .filter((x) => x.strength !== 0);
 

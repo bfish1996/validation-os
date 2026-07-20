@@ -59,16 +59,6 @@ const sel = (
   nullable = false,
 ): FieldEditor => ({ key, label, kind: "select", options, nullable });
 
-const READING_RUNGS = [
-  "Opinion",
-  "Pitch-deck reaction",
-  "Anecdotal",
-  "Desk research",
-  "Survey at scale",
-  "Prototype usage",
-  "Signed intent",
-  "Paying users",
-] as const;
 const SOURCE_QUALITY = ["1", "0.7", "0.5"] as const;
 
 /**
@@ -113,12 +103,14 @@ const EDITORS: Record<Collection, FieldEditor[]> = {
   readings: [
     t("Title", "Reading"),
     t("Source", "Source"),
-    sel("Rung", "Rung", READING_RUNGS),
-    sel("Result", "Result", ["Validated", "Invalidated", "Inconclusive"]),
+    // Rung / Result / Magnitude band / Grading justification are PER BELIEF now
+    // (OPS-1305) — they live in each entry of `beliefs[]`, not on the row, so
+    // they are deliberately absent here rather than writing dead row-level
+    // fields. Editing a reading's per-belief scores is a deferred follow-up (a
+    // `beliefs[]` editor); this form edits only the row-level fields that remain.
     sel("Representativeness", "Representativeness", SOURCE_QUALITY),
     sel("Credibility", "Credibility", SOURCE_QUALITY),
-    sel("magnitudeBand", "Magnitude band", ["Low", "Typical", "High"], true),
-    area("Grading justification", "Grading justification"),
+    area("body", "Quote"),
     t("Date", "Date"),
   ],
   decisions: [

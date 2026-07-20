@@ -51,20 +51,35 @@ function experiment(over: Partial<AnyRecord> & { id: string }): AnyRecord {
 }
 
 function reading(over: Partial<AnyRecord> & { id: string }): AnyRecord {
+  const {
+    assumptionId = "",
+    Rung = "Prototype usage",
+    Result = "Validated",
+    magnitudeBand,
+    ...rest
+  } = over as Record<string, unknown> & { id: string };
   return {
     version: 0,
     createdAt: "",
     updatedAt: "",
     Title: "A reading",
     Source: over.id,
-    assumptionId: "",
     experimentId: null,
-    Rung: "Prototype usage",
     Representativeness: 1.0,
     Credibility: 1.0,
-    Result: "Validated",
     Date: null,
-    ...over,
+    beliefs: [
+      {
+        assumptionId,
+        Rung,
+        Result,
+        magnitudeBand,
+        "Grading justification": "",
+        derived: { strength: 0 },
+      },
+    ],
+    assumptionIds: [assumptionId],
+    ...rest,
   } as AnyRecord;
 }
 

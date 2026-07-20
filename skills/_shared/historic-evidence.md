@@ -10,11 +10,13 @@ an assumption. Evidence "already exists" in two flavours of the same task —
   official statistics, competitor pricing, an industry benchmark, precedent.
 
 The **only** thing that differs between them is the `sources` list; the
-triage, the write, and the honesty rails are identical. Each qualifying hit
-becomes a **bare Reading** — no Experiment origin — with `Result` set once
-at logging to the outcome the evidence already produced (Validated /
-Invalidated / Inconclusive; a Reading has no other state, `OPS-1305`). The
-assumption's `Confidence` then rolls up on its own.
+triage, the write, and the honesty rails are identical. Each qualifying
+artifact becomes **one Reading carrying a `beliefs[]` entry per belief it
+addresses** — **bare** by default (`experimentId` null, no Experiment
+origin) — with each entry's `Result` set once at logging to the outcome the
+evidence already produced (Validated / Invalidated / Inconclusive; a Reading
+has no other state, `OPS-1305`). The linked assumptions' `Confidence` then
+rolls up on its own.
 
 This is the **retrospective sibling of `/experiment-design`**. That skill
 designs a *new* forward-looking Experiment plan (`Status = Running`, no
@@ -29,10 +31,10 @@ register; `/experiment-design` writes to the Experiments register.
 |  | New evidence (`/experiment-design`) | Existing evidence (here) |
 |---|---|---|
 | Direction | Forward — designs a plan to run | Backward — finds what already exists |
-| Record type | Experiment (the plan) | Reading (bare — no Experiment origin) |
-| `Result` | n/a — the plan hasn't yielded evidence yet | Conclusive at logging (Validated / Invalidated / Inconclusive) — a Reading has no other state |
+| Record type | Experiment (the plan) | Reading (one artifact row + a `beliefs[]` entry per belief; bare — `experimentId` null) |
+| `Result` | n/a — the plan hasn't yielded evidence yet | Conclusive at logging, **per `beliefs[]` entry** (Validated / Invalidated / Inconclusive) — a Reading has no other state |
 | `Date` | Today (start) | When the evidence occurred; for desk, the research date |
-| Write-up | Protocol into the Experiment body | `Grading justification` field only — Readings carry no body |
+| Write-up | Protocol into the Experiment body | Verbatim quote/excerpt into the reading's `body`; per-belief scoring rationale into each entry's `Grading justification` |
 | Touches assumption `Status`? | **Never** — a `Running` Experiment puts the row in the derived Testing view | **Never** (Confidence-only) |
 
 ---
@@ -79,7 +81,8 @@ rolls up Confidence nowhere.
 
 ## Procedure
 
-One piece of evidence at a time.
+One artifact at a time — each becomes **one Reading** whose `beliefs[]`
+entries cover every belief that artifact addresses.
 
 ### 1. Search the sources
 
@@ -119,67 +122,113 @@ cited on a reading.
 
 ### 2. Triage each candidate
 
-Does it genuinely bear on *this* claim? Map it to the assumption's
-`description` + `lens` — evidence for a sibling or dependency doesn't count
-for this record. Weigh it on the **say < do < commit** ladder (the rung),
-**and** on *who* said it (`Source quality`, `experiment-guardrails.md §2`).
-Drop anything that doesn't map; note it as considered-and-dropped so the
-caller can show its work.
+**External-source gate (first — before anything else): is the source external
+to the team?** Evidence is an observation from **outside the team** — a
+customer, user, prospect, partner, third-party dataset, published source, or
+observed market behaviour. **Internal opinion is not evidence:** a board /
+strategy / planning meeting, a founder's or the team's view of the market, an
+internal doc is **hypothesis/framing** — capture it as the assumption's
+`Scoring justification` (rationale) via `/assumptions`, **not a reading**, and
+it never moves Confidence. **From an internal meeting, extract only the
+external facts it reports** (a customer's decision, a user's observed
+behaviour, a partner's commitment) and attribute them to the **true external
+source** — `Source` = that event, graded on its rung, `Credibility` lowered for
+the second-hand relay (`experiment-guardrails.md §0`). If the candidate is
+purely internal, drop it from the sweep (note it as considered-and-dropped,
+"internal → framing, not evidence").
 
-### 3. Set the record, per piece
+Does the artifact genuinely bear on *this* claim? Map it to the assumption's
+`description` + `lens` — evidence for a sibling or dependency doesn't count as
+an entry for this belief. Weigh it on the **say < do < commit** ladder (the
+rung), **and** on *who* the source is (`Source quality`,
+`experiment-guardrails.md §2`). If the **same artifact** also clearly
+addresses other live beliefs, note them — they become **additional `beliefs[]`
+entries on the same Reading** (§3), never separate Readings. Drop anything that
+doesn't map; note it as considered-and-dropped so the caller can show its work.
 
-A found piece of evidence becomes a **bare Reading** (`Experiment` relation
-null) — never an Experiment row:
+### 3. Set the record, per artifact
 
-- **`Rung`** = the rung matching the evidence's strength
-  (`experiment-guardrails.md §2`) — **Testing rungs only**: a hypothetical
-  "I'd use that" → 🧪 `Opinion`; users describing something they **actually
-  did**, unprompted → 🧪 `Anecdotal`; a structured questionnaire already
-  run → 🧪 `Survey at scale`; regulation / published data / competitor
-  fact → 🧪 `Desk research`; unpaid real use → 🧪 `Prototype usage`.
-  **Found evidence never mints a 🎯 Market-rung reading** — there are no
-  bare Market-rung readings (`experiment-guardrails.md §6`). A measured
-  scoreboard number (product metric, CRM level) is Market-side: don't log
-  it — surface it and route to `/experiment-design` to mint a forward
-  committed plan calibrated off it (`docs/goals.md §Found numbers`).
+A found artifact becomes **one Reading** — an artifact row plus one `beliefs[]`
+entry per belief it addressed. **Reading-level fields (one value each,
+describing the source and origin):**
+
 - **`Source`** = the independence-dedupe key: the generator (person /
   dataset / cohort) only. **`Context links`** = whatever provenance detail
   (recording, CRM row, user id) rode along with it — 0..N, drives no math.
 - **`Representativeness`** / **`Credibility`** = each picked from
-  {1.0, 0.7, 0.5} (`experiment-guardrails.md §2`). `Source quality` is
-  derived from their product. Scales the reading's weight **within** the
-  rung, never its value across rungs.
-- **`Result`** = Validated / Invalidated / Inconclusive, judged honestly
-  against the assumption's **current** `description`.
+  {1.0, 0.7, 0.5} (`experiment-guardrails.md §2`) — they grade the **source**,
+  so one pick per Reading, shared across its entries. `Source quality` is
+  derived from their product. Scales each entry's weight **within** its rung,
+  never its value across rungs.
+- **`Experiment`** (`experimentId`) = **default `null` — found evidence is
+  bare.** Set it **only** when this Reading is the *direct output of executing
+  a pre-registered plan* — i.e. the artifact was generated by concluding a
+  committed `Running` experiment (confirm it against the one live plan first;
+  that path is really conclude mode, `../find-evidence/references/conclude-plan.md`).
+  **Never** set it just because the artifact happens to bear on a belief the
+  experiment also tests. **Gate: "Was this generated by executing a
+  pre-registered plan? If unsure, it's found"** → leave `experimentId` null.
+  Its presence sets the reading-level `commitmentFactor` to 1.0 vs 0.85 for
+  bare, so a mis-set origin silently inflates weight.
 - **`Date`** = when the evidence occurred (historic internal) or the
   research date (desk), never a future date.
 - **`Owner`** if known.
-- **`Grading justification`** — the one text field a Reading carries
-  (readings have no body, `OPS-1305`): rung + magnitude anchor on Market
-  rungs + the Rep×Cred picks with one-line justifications. For desk
-  evidence, also fold in the per-sub-question findings with tier + dates +
-  exact quotes, conflicts and how they were weighed, caveats (single-sourced
-  or stale claims), and the sources considered & dropped — all in this one
-  field.
+- **`body`** = the artifact's **verbatim quote(s) / excerpt** — the raw source
+  text the reading rests on, one shared body per Reading (readings carry a
+  `body` again — a deliberate reversal of the OPS-1305 no-body slice;
+  `registry-schema.md §Field map — Readings`). This is *what the source said*;
+  the per-belief scoring rationale goes in each entry's `Grading justification`
+  below, never here. For desk evidence, the key quotes/figures with their URLs.
+
+**Then, one `beliefs[]` entry per belief the artifact addressed:**
+
+- **`Assumption`** = the one belief this entry scores. The target belief
+  always gets an entry; add further entries for any other live belief the
+  **same artifact** clearly addresses (surfaced at the gate, §5).
+- **`Rung`** = the rung matching this belief's evidence strength, **graded
+  from what the artifact shows for this belief** (`experiment-guardrails.md
+  §2`) — **Testing rungs only**: a hypothetical "I'd use that" → 🧪 `Opinion`;
+  users describing something they **actually did**, unprompted → 🧪
+  `Anecdotal`; a structured questionnaire already run → 🧪 `Survey at scale`;
+  regulation / published data / competitor fact → 🧪 `Desk research`; unpaid
+  real use → 🧪 `Prototype usage`. **Found evidence never mints a 🎯
+  Market-rung entry** — there are no bare Market-rung readings
+  (`experiment-guardrails.md §6`). A measured scoreboard number (product
+  metric, CRM level) is Market-side: don't log it — surface it and route to
+  `/experiment-design` to mint a forward committed plan calibrated off it
+  (`docs/goals.md §Found numbers`). One artifact may sit at **different rungs
+  for different beliefs** — grade each entry on its own.
+- **`Result`** = Validated / Invalidated / Inconclusive for this belief,
+  judged honestly against that assumption's **current** `description`.
+- **`Strength`** = derived per entry from its rung × sign(`Result`).
+- **`Grading justification`** — the per-entry scoring rationale (distinct from
+  the reading-level `body`, which holds the verbatim text): this entry's rung +
+  `Result` reasoning + the shared Rep×Cred picks with one-line justifications.
+  For desk evidence, also fold in the per-sub-question findings with tier +
+  dates, how conflicts were weighed, caveats (single-sourced or stale claims),
+  and the sources considered & dropped — the reasoning here, the raw quotes in
+  `body`.
 
 ### 4. Retrospective-honesty guardrail
 
 No pass/kill bar was pre-registered, so the read is exposed to post-hoc fit.
 Counter it deliberately — both flavours:
 
-> **Exception — the run of a `Running` plan (§5).** When the evidence is the
+> **Exception — the run of a `Running` plan (§5).** When the artifact is the
 > run of an existing `Running` plan that carries a pre-registered `We're right
-> if` / `We're wrong if` bar line for a belief, judge that belief's reading
-> against **that bar**, not this retrospective rail. The bar predates the
-> evidence, so post-hoc fit isn't a risk — this is the *stronger* read. One
-> artifact yields one reading **per bundled belief it actually addressed**,
-> each judged against its own bar; signal on a belief the plan didn't bundle
-> is an **off-plan reading** (no bar, experiment link as provenance —
-> `experiment-guardrails.md §0`). Fall back to the rail below only for a
-> belief with no bar written in the plan.
+> if` / `We're wrong if` bar line for a belief, judge that belief's `beliefs[]`
+> entry against **that bar**, not this retrospective rail. The bar predates the
+> evidence, so post-hoc fit isn't a risk — this is the *stronger* read, and it
+> is the one case that sets `experimentId` (the artifact was generated by
+> executing the plan). One artifact is **one Reading with a `beliefs[]` entry
+> per belief it actually addressed**, each entry judged against its own bar;
+> signal on a belief the plan didn't bundle is an **off-plan entry** (no bar,
+> the same experiment origin as provenance — `experiment-guardrails.md §0`).
+> Even then, grade each entry's **rung** from what the artifact shows, not from
+> the bar. Fall back to the rail below only for a belief with no bar in the plan.
 
-- Judge against the assumption's `description` **as written** — don't
-  reshape the bar to fit the hit you found.
+- Judge each entry against its assumption's `description` **as written** —
+  don't reshape the bar to fit the hit you found.
 - Prefer **Inconclusive** when the material wasn't built to test this
   belief (most incidental internal mentions are Inconclusive; so is desk
   evidence that only sets a **base rate** for a *your-user behaviour* —
@@ -191,26 +240,32 @@ Counter it deliberately — both flavours:
 
 ### 5. Write — gated or logged, per `gate_mode`
 
-- **`interactive`** → gated write (`gated-writes.md`). Render the record
-  (`Rung`, `Result`, `Date`, `Source`, `Context links`, relations,
-  `Grading justification`) — no body — confirm, then create it and link the
-  `Assumption` relation. One record per distinct piece of evidence.
+- **`interactive`** → gated write (`gated-writes.md`). Render the record —
+  reading-level fields (`Source`, `Context links`, `Representativeness`,
+  `Credibility`, `Experiment`, `Date`, `body` = the verbatim quote/excerpt)
+  plus each `beliefs[]` entry (`Assumption`, `Rung`, `Result`, `Grading
+  justification`) — confirm, then create it and link each entry's `Assumption`.
+  **One Reading per artifact**, with as many `beliefs[]` entries as beliefs it
+  addressed — never several Readings for one artifact.
 - **`autonomous`** → write directly (no gate) and append to the run-log
-  (record id, source link, `Rung`, `Result`) so every mutation is auditable.
+  (record id, source link, and per entry: `Assumption`, `Rung`, `Result`) so
+  every mutation is auditable.
 
 "Swept with no qualifying hit" is a valid, complete outcome — record the
 absence; don't manufacture a weak record to fill space.
 
-**Logging a reading against an open plan instead of duplicating it.** When a
-found artifact is *the run of* one of the `Running` plans pulled in §1,
-conclude a **reading per bundled belief it addressed** against that plan —
-judged against each belief's pre-registered bar (§4) — rather than minting a
-fresh record; set the outcome `Date` and write the findings into
-`Grading justification`. The match is **proposed, never assumed**: surface the
-candidate `Running` plan alongside the matching signals (interviewee, a date
-after the plan was created, topic overlap) and let the caller confirm *log
-against this* vs *log a new record*. If nothing plausibly matches, create a
-new conclusive record as normal — never overwrite on a weak match.
+**Logging entries against an open plan instead of duplicating it.** When a
+found artifact is *the run of* one of the `Running` plans pulled in §1, add a
+`beliefs[]` **entry per bundled belief it addressed** to one Reading — judged
+against each belief's pre-registered bar (§4), with `experimentId` set to that
+plan (the one origin-setting case, §3) — rather than minting fresh records; set
+the `Date` and write each entry's findings into its `Grading justification`.
+The match is **proposed, never assumed**: surface the candidate `Running` plan
+alongside the matching signals (interviewee, a date after the plan was created,
+topic overlap) and let the caller confirm *log against this* vs *log a bare
+Reading*. If nothing plausibly matches, create a new **bare** Reading
+(`experimentId` null) as normal — never overwrite on a weak match, and never
+set the origin on a mere topic overlap.
 
 **A concluded reading is not a closed plan.** Logging the reading concludes
 the *reading*; **closure of the plan** — rendering each per-belief bar verdict
@@ -222,14 +277,17 @@ When the readings you just logged bring the plan to its pre-registered N,
 
 ### 6. After writing
 
-`Confidence` recomputes from the new reading (only **concluded**
-Validated/Invalidated readings enter the signed weighted average — `Strength`
-is 0 otherwise; same-source readings dedupe — `experiment-guardrails.md
-§2`), and `Risk` follows. On the local-files connector, the skill recomputes
-and rewrites both in the same gated edit (`connectors/local-files.md
-§Derived fields`). **Never** flip the assumption `Status` — but if the
-recomputed Confidence lands at or below **−50**, say so: the row is in the
-kill lane and audit will chase a human kill verdict (`register-audit.md`).
+Each linked assumption's `Confidence` recomputes from the new entry against it
+(only **concluded** Validated/Invalidated entries enter the signed weighted
+average — `Strength` is 0 otherwise; entries dedupe per (belief, source), and
+each entry's weight carries the reading-level `commitmentFactor` — 0.85 for the
+bare reading you just wrote — `experiment-guardrails.md §2`), and `Risk`
+follows. A multi-entry Reading rolls up into **each** belief it named. On the
+local-files connector, the skill recomputes and rewrites both in the same gated
+edit (`connectors/local-files.md §Derived fields`). **Never** flip the
+assumption `Status` — but if a recomputed Confidence lands at or below **−50**,
+say so: the row is in the kill lane and audit will chase a human kill verdict
+(`register-audit.md`).
 
 There is no corroboration count to maintain — replication is just more
 evidence mass in the average.
@@ -243,6 +301,16 @@ evidence mass in the average.
   `Running` plan whose test **has** now happened is the opposite case:
   close it out in place (§5) — don't leave it stale or duplicate it.
 - Never flip the assumption `Status` from logging evidence.
+- Never log internal opinion as evidence — a board/strategy/planning meeting or
+  team view of the market is hypothesis/framing, not a reading (it goes in the
+  assumption's `Scoring justification`). Evidence is external; from an internal
+  meeting log only the external facts it reports, attributed to the external
+  source at lower `Credibility` (`experiment-guardrails.md §0`).
+- Never fan one artifact into several Readings — one artifact is one Reading
+  with a `beliefs[]` entry per belief it addressed.
+- Never set `experimentId` on found evidence unless the Reading is the direct
+  output of executing a pre-registered plan (§3 gate) — a shared topic with a
+  running experiment is not an origin; if unsure, leave it bare.
 - Never cherry-pick supporting hits — log disconfirming evidence too, and
   capture conflicting sources.
 - Never write a `Rung` value that isn't live in the register.
