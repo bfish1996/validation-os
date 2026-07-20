@@ -52,6 +52,9 @@ Theory, ladder, cadence, and goals: [docs/method.md](docs/method.md) ·
 [docs/weekly-ritual.md](docs/weekly-ritual.md) ·
 [docs/goals.md](docs/goals.md). Not just product — sales outreach,
 pricing, fundraising, partnerships: [docs/domains.md](docs/domains.md).
+Where this sits among risk / product / compliance frameworks, and why
+AI makes the risk *method* more necessary but the risk *framework* less:
+[docs/risk-positioning.md](docs/risk-positioning.md).
 Where the OS hands off to its build/sharpen neighbours:
 [docs/seams.md](docs/seams.md).
 
