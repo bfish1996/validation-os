@@ -1,6 +1,6 @@
 {
   "name": "@validation-os/core",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "description": "The DataProvider seam, the shared derivation module (pure functions), and shared registry types for validation-os.",
   "license": "MIT",
   "type": "module",
