@@ -333,10 +333,10 @@ describe("derive-on-write", () => {
       derivedImpact: number;
     };
     // Prototype-usage Validated, sq=1, found → w=30×0.85=25.5.
-    // 25.5×30 / (100+25.5) = 765/125.5 = 6.095… → 6.10
-    expect(derived.confidence).toBe(6.1);
+    // W0[Prototype usage] = 140. 25.5×30 / (140+25.5) = 765/165.5 = 4.622… → 4.62
+    expect(derived.confidence).toBe(4.62);
     expect(derived.derivedImpact).toBe(50);
-    expect(derived.risk).toBe(46.95); // 50 × (1 − 6.10/100)
+    expect(derived.risk).toBe(47.69); // 50 × (1 − 4.62/100) = 50 × 0.9538 = 47.69
   });
 });
 

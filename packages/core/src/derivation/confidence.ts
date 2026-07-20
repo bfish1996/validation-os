@@ -2,9 +2,18 @@
  * Confidence — signed −100…100, 0 = no evidence.
  *
  * Formula (`ontology.yaml` → `derivations.confidence`):
- *   (w0·0 + Σ wi·si) / (w0 + Σ wi),  w0 = 100,
+ *   (Σ wi·si) / (Σ_rung W0[rung] + Σ wi),  per-rung W0,
  *   wi = |si| × Source quality × commitment,  si = the reading's signed Strength,
  *   commitment = 1.0 for an experiment-linked reading, 0.85 for a found one.
+ *
+ * W0 is per-rung: each rung has its own prior weight controlling how many
+ * distinct sources it takes to approach that rung's anchor (cap). Desk
+ * research has a low W0 (2 — one authoritative source nearly saturates);
+ * talk rungs have a higher W0 (6.5 — needs ~10 readings to approach the
+ * cap); do-rungs (Survey/Prototype/Signed/Paying) have high W0s (~120-410
+ * — needs ~20 readings to reach 75% of cap). When readings span multiple
+ * rungs, each rung with evidence contributes its W0 to the denominator
+ * once (one prior per evidence stream).
  *
  * Only concluded Validated/Invalidated readings enter. Readings sharing a
  * Source against one belief dedupe to the strongest (largest |si|, most
@@ -17,7 +26,39 @@ import { isMarketRung } from "./rung.js";
 import { sourceQuality } from "./source-quality.js";
 import { isConcluded, readingStrength } from "./strength.js";
 
-/** The neutral prior weight — a hard floor per the guardrails. */
+/**
+ * Per-rung prior weight — controls how many distinct sources approach the
+ * rung's anchor. Tuned so: Desk 2 readings → 90% of cap; talk rungs 10
+ * readings → 90% of cap; do-rungs 20 readings → 75% of cap. See
+ * `docs/evidence-ladder.md` for the derivation.
+ */
+export const W0_BY_RUNG: Record<Rung, number> = {
+  // Talk rungs — 10 readings → ~90% of cap.
+  Anecdotal: 6.5,
+  "Pitch-deck reaction": 6.5,
+  // Desk research — 2 readings → ~90% of cap (authoritative, rare).
+  "Desk research": 2,
+  // Do-rungs — 20 readings → ~75% of cap.
+  "Survey at scale": 116.7,
+  "Prototype usage": 140,
+  "Signed intent": 317.3,
+  "Paying users": 410.7,
+};
+
+/**
+ * The neutral prior weight for a rung — how much evidence at this rung is
+ * needed to overcome the prior. Per-rung (not a flat constant): see
+ * {@link W0_BY_RUNG}.
+ */
+export function w0ForRung(rung: Rung): number {
+  return W0_BY_RUNG[rung] ?? 100;
+}
+
+/**
+ * The legacy flat W0 — retained for backwards compatibility only. New code
+ * should use {@link w0ForRung}. Equal to the old default of 100.
+ * @deprecated Use {@link w0ForRung} for per-rung priors.
+ */
 export const W0 = 100;
 
 /**
@@ -98,8 +139,14 @@ export function scoreAndDedupe(readings: ConfidenceReadingInput[]): Scored[] {
 
 export function confidence(readings: ConfidenceReadingInput[]): number {
   const winners = scoreAndDedupe(readings);
+  // Per-rung prior: sum W0 once for each rung that has ≥1 concluded reading.
+  // This preserves each rung's accumulation behaviour independently — desk
+  // stays fast (low W0), talk stays slow (high W0) — and mixed-rung evidence
+  // gets each rung's prior added once (one prior per evidence stream).
+  const rungsPresent = new Set(winners.map((x) => x.input.rung));
+  let den = 0;
+  for (const rung of rungsPresent) den += w0ForRung(rung);
   let num = 0;
-  let den = W0;
   for (const x of winners) {
     num += x.weight * x.strength;
     den += x.weight;

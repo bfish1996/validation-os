@@ -29,6 +29,8 @@ export {
   commitmentFactor,
   COMMITMENT_FOUND,
   W0,
+  W0_BY_RUNG,
+  w0ForRung,
 } from "./confidence.js";
 export type { ConfidenceReadingInput, Scored } from "./confidence.js";
 export { confidenceAttribution } from "./attribution.js";
