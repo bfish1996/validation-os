@@ -53,15 +53,15 @@ export type MagnitudeBand = "Low" | "Typical" | "High";
 export type Feasibility = "High" | "Medium" | "Low";
 
 /**
- * The 8-rung activity-and-strength ladder (order = strength, weakest first).
- * Two categories: Testing (recruited-sample instruments) and Market (open-world
- * targets — the category formerly called "Goals", renamed with the unification,
- * OPS-1305). The anchors and physics are unchanged by the rename.
+ * The activity-and-strength ladder (order = strength, weakest first). Two
+ * categories: Testing (recruited-sample instruments) and Market (open-world
+ * targets — the category formerly called "Goals", OPS-1305). `Opinion` was
+ * merged into `Anecdotal` (OPS 0.10): a bare opinion is just the weakest
+ * anecdote, so `Anecdotal` is now the floor and inherits the old Opinion anchor.
  */
 export const TESTING_RUNGS = [
-  "Opinion",
-  "Pitch-deck reaction",
   "Anecdotal",
+  "Pitch-deck reaction",
   "Desk research",
   "Survey at scale",
   "Prototype usage",
@@ -114,21 +114,18 @@ export interface AssumptionRecord extends BaseRecord {
 /**
  * One belief's scoring inside a reading — the per-assumption verdict an
  * artifact carries. A reading (one artifact ROW) may score several beliefs at
- * once, so the rung/result/justification that used to live on the row now live
- * here, one entry per assumption. Mirrors how {@link BarLine} embeds on an
- * experiment: no identity of its own, and its `strength` is derived (never
- * hand-typed). Source quality stays row-level — it is a property of the
- * artifact, not the belief.
+ * once. The Rung is a property of the artifact, so it (and the market magnitude
+ * band) lives on the row, ONE per artifact (OPS 0.10): a reading is at a single
+ * evidence rung and reads for/against each belief at that rung. Only the Result
+ * and its rationale vary per belief. `strength` is derived (row rung × sign of
+ * this belief's Result), never hand-typed.
  */
 export interface BeliefScore {
   assumptionId: string;
-  Rung: Rung;
   Result: Result;
-  /** For Market-rung readings: the magnitude band from the absolute outcome. */
-  magnitudeBand?: MagnitudeBand;
-  /** The rationale for the rung / representativeness / credibility picks. */
+  /** The rationale for this belief's Result at the row's rung. */
   "Grading justification": string;
-  /** Derived per belief: rung anchor × sign(Result) [× magnitude band]. */
+  /** Derived per belief: row rung anchor × sign(Result) [× row magnitude band]. */
   derived: { strength: number };
   /** Provenance: the original reading id this belief was migrated from. */
   sourceReadingId?: string;
@@ -148,6 +145,10 @@ export interface ReadingRecord extends BaseRecord {
   contextLinks: string[];
   /** The originating plan, or null for a bare/found reading (no Goal origin). */
   experimentId: string | null;
+  /** The evidence rung — one per artifact; every belief is scored at it (OPS 0.10). */
+  Rung: Rung;
+  /** For a Market-rung reading: the magnitude band from the absolute outcome. */
+  magnitudeBand?: MagnitudeBand;
   Representativeness: SourceQualityPick;
   Credibility: SourceQualityPick;
   Date: string | null;

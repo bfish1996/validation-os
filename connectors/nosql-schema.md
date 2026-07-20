@@ -80,8 +80,11 @@ registers:
       - {canonical: Representativeness, backend: Representativeness, type: number, derived: false, options_source: registry-schema}
       - {canonical: Credibility, backend: Credibility, type: number, derived: false, options_source: registry-schema}
       - {canonical: Source quality, backend: derived.sourceQuality, type: number, derived: true, formula: "Representativeness × Credibility (anchors 0.25/0.35/0.5/0.7/1.0); skill-computed"}
+      - {canonical: Rung, backend: Rung, type: string, derived: false, options_source: registry-schema}
+      - {canonical: Magnitude band, backend: magnitudeBand, type: string, derived: false, options_source: registry-schema, required: false}
       - {canonical: Date, backend: Date, type: string, derived: false}
       - {canonical: Owner, backend: Owner, type: "object[]", derived: false, required: false, options_source: vocabulary.dashboard_users}
+      - {canonical: Body, backend: body, type: string, derived: false, required: false}
     relations:
       - {canonical: Assumption, backend: assumptionIds, target: assumptions, cardinality: many, inverse: Readings}
       - {canonical: Experiment, backend: experimentId, target: experiments, cardinality: one, inverse: Readings, required: false}
@@ -93,10 +96,8 @@ registers:
         composed_into: readings
         properties:
           - {canonical: Assumption, backend: assumptionId, type: string, target: assumptions, cardinality: one, derived: false}
-          - {canonical: Rung, backend: Rung, type: string, derived: false, options_source: registry-schema}
           - {canonical: Result, backend: Result, type: string, derived: false, options_source: registry-schema}
-          - {canonical: Magnitude band, backend: magnitudeBand, type: string, derived: false, options_source: registry-schema, required: false}
-          - {canonical: Strength, backend: derived.strength, type: number, derived: true, formula: "rung anchor (Market rungs: × magnitudeBand, Low/Typical/High) × sign(Result); 0 on Inconclusive (experiment-guardrails.md §2); skill-computed per entry"}
+          - {canonical: Strength, backend: derived.strength, type: number, derived: true, formula: "row-level Rung anchor (Market rungs: × row-level magnitudeBand, Low/Typical/High) × sign(this entry's Result); 0 on Inconclusive (experiment-guardrails.md §2); skill-computed per entry"}
           - {canonical: Grading justification, backend: "Grading justification", type: string, derived: false}
       - name: assumptionIds
         canonical: "Reading assumption IDs (projection)"
@@ -181,12 +182,13 @@ is no shared `type` field splitting one collection into two record kinds.
 - Version: an integer `version` field for optimistic concurrency, bumped on
   every write.
 - Body: long-form content stored as `body` — one Markdown string.
-  `experiments` and `decisions` carry a `body` with the canonical `##` section
-  headings; `readings` carry a **freeform** `body` (the artifact's verbatim
-  quote/excerpt — one per reading, no fixed headings — reintroduced as a
-  deliberate reversal of the OPS-1305 no-body slice, backfilled from Notion and
-  shown in the dashboard). Assumptions and glossary have no body field at all
-  (`OPS-1305`).
+  `experiments` and `decisions` carry a `body` with their canonical `##`
+  section headings; `readings` carry a `body` on the canonical **`## Quote`
+  (verbatim what the source said/did) + `## Source` (who/when/link)** template —
+  one per reading, reintroduced as a deliberate reversal of the OPS-1305
+  no-body slice, backfilled from Notion and shown in the dashboard; analysis
+  stays out of the body (it lives in `beliefs[].Grading justification`).
+  Assumptions and glossary have no body field at all (`OPS-1305`).
 - Derived fields live in a `derived` sub-object (`derived.risk`,
   `derived.confidence`, `derived.derivedImpact`, `derived.completeness`,
   `derived.sourceQuality`) so humans know not to edit them directly. A
@@ -215,15 +217,16 @@ is no shared `type` field splitting one collection into two record kinds.
   `assumptionId` values, kept in sync by the adapter.
 - **Reading `beliefs[]` are embedded, not a collection** (mirroring bar
   lines). Each reading document carries a `beliefs` array; each entry is one
-  per-belief scoring (`assumptionId`, `Rung`, `Result`, `magnitudeBand`,
-  `derived.strength`, `Grading justification`) — a reading that bears on N
-  beliefs holds N entries, never N reading documents. There is no `beliefs`
-  collection and no top-level `id` on a `beliefs[]` entry — it has no identity
-  outside its parent reading. `assumptionIds` is a convenience projection of
-  the `beliefs[].assumptionId` values, kept in sync by the adapter. Source
-  identity + quality (`Source`, `Representativeness`, `Credibility`,
-  `derived.sourceQuality`) and `experimentId` stay on the row (one per
-  reading).
+  per-belief scoring (`assumptionId`, `Result`, `derived.strength`,
+  `Grading justification`) — a reading that bears on N beliefs holds N entries,
+  never N reading documents. There is no `beliefs` collection and no top-level
+  `id` on a `beliefs[]` entry — it has no identity outside its parent reading.
+  `assumptionIds` is a convenience projection of the `beliefs[].assumptionId`
+  values, kept in sync by the adapter. Source identity + quality (`Source`,
+  `Representativeness`, `Credibility`, `derived.sourceQuality`), **`Rung` +
+  `magnitudeBand` (one rung per artifact, 0.10)**, `body`, and `experimentId`
+  all stay on the row (one per reading). A mixed-rung artifact is split into
+  separate reading documents, one per rung.
 - **Glossary is its own collection**, not a `type`-split slice of `decisions`.
   The old "one `decisions` collection split by `type`" model is gone.
 - `Owner` and `Agreed by` are arrays of dashboard-user objects
@@ -361,23 +364,27 @@ embedded `beliefs[]` array — one entry per assumption the artifact bears on.
 | Representativeness | `Representativeness` | number {1.0, 0.7, 0.5} | no |
 | Credibility | `Credibility` | number {1.0, 0.7, 0.5} | no |
 | Source quality | `derived.sourceQuality` | number | yes |
+| Rung | `Rung` | string (**row-level — one rung per artifact**) | no |
+| Magnitude band | `magnitudeBand` | string (row-level, optional, Market rungs only) | no |
 | Date | `Date` | string (ISO 8601) | no |
 | Owner | `Owner` | object[] (optional, `{id, name}`) | no |
-| Body | `body` | string (Markdown; the artifact's verbatim quote/excerpt) | no |
+| Body | `body` | string (Markdown; canonical template `## Quote` + `## Source`) | no |
 | Assumption | `assumptionIds` (projection of `beliefs[].assumptionId`) | string[] (FKs) | no |
+
+`Rung` (and `magnitudeBand`) are **row-level**: one rung per artifact. An
+artifact that spans two rungs is **split into separate reading documents, one
+per rung** (`experiment-guardrails.md §0`) — never two rungs in one document.
 
 ### beliefs[] (embedded)
 
 One entry per belief the artifact scores — mirroring the Experiment's
-`barLines`. Each entry:
+`barLines`. Rung/magnitude are on the row (above); each entry carries only:
 
 | Canonical field | Document path (within `beliefs[i]`) | Type | Derived |
 |---|---|---|---|
 | Assumption | `assumptionId` | string (FK) | no |
-| Rung | `Rung` | string | no |
 | Result | `Result` | string | no |
-| Magnitude band | `magnitudeBand` | string (optional, Market rungs only, null on Testing) | no |
-| Strength | `derived.strength` | number | yes |
+| Strength | `derived.strength` | number (reads the row's `Rung`/`magnitudeBand`) | yes |
 | Grading justification | `Grading justification` | string | no |
 
 Example shape:
@@ -395,51 +402,55 @@ Example shape:
   "Representativeness": 1.0,
   "Credibility": 0.7,
   "derived": { "sourceQuality": 0.7 },
+  "Rung": "Anecdotal",
+  "magnitudeBand": null,
   "Date": "2026-07-02",
   "Owner": [],
-  "body": "> \"We reconcile by hand every Friday — takes me two hours.\"\n> — owner, verbatim from the call transcript",
+  "body": "## Quote\n\"We reconcile by hand every Friday — takes me two hours. I've started skipping weeks.\"\n\n## Source\nJane Doe, owner @ Acme (ICP), call 2026-07-02 — fireflies:transcript/abc123",
   "beliefs": [
     {
       "assumptionId": "ASM-042",
-      "Rung": "Anecdotal",
       "Result": "Validated",
-      "magnitudeBand": null,
       "derived": { "strength": 10 },
-      "Grading justification": "Described reconciling by hand weekly, unprompted → Anecdotal, Validated. Rep 1.0 (dead-centre ICP), Cred 0.7 (owner, mild pitch bias)."
+      "Grading justification": "Described reconciling by hand weekly, unprompted → Validated against ASM-042. (Reading rung Anecdotal; Rep 1.0 dead-centre ICP, Cred 0.7 owner mild bias.)"
     },
     {
       "assumptionId": "ASM-050",
-      "Rung": "Pitch-deck reaction",
       "Result": "Inconclusive",
-      "magnitudeBand": null,
       "derived": { "strength": 0 },
-      "Grading justification": "Reacted to the mock but no behaviour behind it → Pitch-deck reaction, Inconclusive."
+      "Grading justification": "Mentioned the pain but said nothing about willingness to switch tools → Inconclusive against ASM-050."
     }
   ],
   "assumptionIds": ["ASM-042", "ASM-050"]
 }
 ```
 
+Both belief entries share the reading's single row-level `Rung` (`Anecdotal`);
+if the call had also included a genuine prototype-usage demo, that portion would
+be a **separate** reading document at `Prototype usage`
+(`experiment-guardrails.md §0`).
+
 A Reading has one origin type: `experimentId` set, or unset (a bare found
 reading) — the `goalId` field is gone. `experimentId` is set only when the
 reading is the direct output of concluding a committed Experiment, and must
 reference a **live (non-archived)** experiment (`reading-orphaned-experiment`,
-`skills/_shared/ontology.yaml`). The reading document **carries a freeform
-`body`** — the artifact's verbatim quote/excerpt — a deliberate reversal of the
-OPS-1305 no-body slice (backfilled from Notion, shown in the dashboard); the
-per-entry `Grading justification` (scoring rationale, a distinct concern)
-replaces the old `## Grading` section, and `## Notes` is cut.
+`skills/_shared/ontology.yaml`). The reading document **carries a `body`** on
+the canonical **`## Quote` + `## Source`** template — verbatim source text —
+a deliberate reversal of the OPS-1305 no-body slice (backfilled from Notion,
+shown in the dashboard). Analysis/reasoning stays out of the body: it lives in
+the per-entry `Grading justification`. `## Notes` is cut.
 
 ### Derived values
 
 - `derived.sourceQuality` = `Representativeness × Credibility` (anchors
   0.25/0.35/0.5/0.7/1.0) — row-level, one per reading; scales every
   `beliefs[]` entry's weight in Confidence.
-- `beliefs[].derived.strength` = signed rung anchor × sign(that entry's
-  Result) — Validated positive, Invalidated negative, 0 on Inconclusive;
-  Market rungs (Signed intent, Paying users) scale by the entry's
-  `magnitudeBand` (Low/Typical/High) read off the experiment bar's two
-  pre-registered bars. One `s` per belief entry. Canonical table:
+- `beliefs[].derived.strength` = the **row-level** `Rung` anchor × sign(that
+  entry's Result) — Validated positive, Invalidated negative, 0 on
+  Inconclusive; Market rungs (Signed intent, Paying users) scale by the
+  **row-level** `magnitudeBand` (Low/Typical/High) read off the experiment
+  bar's two pre-registered bars. Rung/magnitude are per-artifact; only Result
+  (the sign) is per belief. One `s` per belief entry. Canonical table:
   `experiment-guardrails.md §2`.
 
 ## Field mapping — Decisions
@@ -551,10 +562,10 @@ write.
    `glossary` collections exist.
 4. Sample documents from each collection and verify that the fields above are
    present with plausible types, including the embedded `barLines` array on
-   experiment documents and the embedded `beliefs` array (with its
-   `assumptionId` / `Rung` / `Result` / `magnitudeBand` / `derived.strength` /
-   `Grading justification` entries) plus the `assumptionIds` projection on
-   reading documents.
+   experiment documents; the row-level `Rung` / `magnitudeBand` / `body` on
+   reading documents; and the embedded `beliefs` array (with its `assumptionId`
+   / `Result` / `derived.strength` / `Grading justification` entries) plus the
+   `assumptionIds` projection.
 5. Report missing collections, missing fields, missing indexes, and missing
    relation arrays; verify each `beliefs[].assumptionId` (and each
    `assumptionIds` element) resolves to a live assumption, and each reading's
@@ -603,15 +614,17 @@ legal `Status` value for experiments; drop the `people` collection and rewrite
 `fiveWhys`/`metricForTruth`/`gaps` and the `body` field from every
 `assumptions` document; split each reading's `Source` into `Source` +
 `contextLinks`, dropping `goalId`. **Fold each single-belief reading into the
-`beliefs[]` shape:** move its old row-level `assumptionId`, `Rung`, `Result`,
-magnitude, `derived.strength`, and `## Grading` content (→ per-entry
-`Grading justification`) into one `beliefs[]` entry, keeping
+`beliefs[]` shape:** move its old row-level `assumptionId`, `Result`,
+`derived.strength`, and `## Grading` content (→ per-entry
+`Grading justification`) into one `beliefs[]` entry, and write the
+`assumptionIds` projection over the new entries; **keep `Rung` and
+`magnitudeBand` on the row** (rung is per-artifact, 0.10) alongside
 `Source`/`Representativeness`/`Credibility`/`derived.sourceQuality`/
-`experimentId` on the row, and write the `assumptionIds` projection over the
-new entries; drop the old row-level `assumptionId`/`Rung`/`Result`/
+`experimentId`; drop the old row-level `assumptionId`/`Result`/
 `derived.strength`/`Grading justification` fields. **Backfill the row-level
-`body`** from the Notion verbatim quote/excerpt (the reintroduced reading body,
-reversing the OPS-1305 cut for readings). Two migrated readings that
+`body`** on the `## Quote` + `## Source` template from the Notion verbatim
+quote/excerpt (the reintroduced reading body, reversing the OPS-1305 cut for
+readings). Two migrated readings that
 share one artifact (same `Source`, `experimentId`, and `Date`) scoring
 different beliefs may be merged into one document with two `beliefs[]` entries,
 but a mechanical one-entry-per-old-document migration is also valid. Promote

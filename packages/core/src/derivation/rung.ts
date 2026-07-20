@@ -10,9 +10,8 @@ import type { MarketRung, MagnitudeBand, Rung, TestingRung } from "../types.js";
 import { MARKET_RUNG_VALUES } from "../types.js";
 
 export const RUNG_ANCHOR: Record<TestingRung, number> = {
-  Opinion: 3,
+  Anecdotal: 3, // floor — absorbs the retired "Opinion" rung (OPS 0.10)
   "Pitch-deck reaction": 6,
-  Anecdotal: 10,
   "Desk research": 15,
   "Survey at scale": 25,
   "Prototype usage": 30,

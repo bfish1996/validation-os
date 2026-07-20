@@ -5,6 +5,7 @@
  * headers are plain language and derived numbers are shown, never hidden.
  */
 import type { AnyRecord, Collection } from "@validation-os/core";
+import { readingMagnitudeBand, readingRung } from "./derived-views.js";
 
 /**
  * How a cell renders. `text` is plain formatted text; `status` is a colored
@@ -75,10 +76,17 @@ const COLUMNS: Record<Collection, ColumnDef[]> = {
     { key: "Title", header: "Reading" },
     { key: "Source", header: "Source" },
     { key: "Date", header: "Date" },
-    // The row's per-belief Result / Rung / Strength are gone (OPS-1305) — they
-    // live in the reading detail's per-belief verdict list. The table instead
-    // previews the quote (`body`) so a row is legible at a glance; assumption
-    // chips (see `readingAssumptionChips`) disambiguate same-titled readings.
+    // Rung + magnitude band are row-level attributes of the artifact (0.10): the
+    // evidence tier and its intensity, one per reading, not per belief. They lead
+    // the row's evidential weight, so each earns a column. Both helpers fall back
+    // to a belief's value on pre-migration data so the columns are never blank
+    // during the rollout.
+    { key: "Rung", header: "Rung", accessor: (r) => readingRung(r) },
+    { key: "magnitudeBand", header: "Band", accessor: (r) => readingMagnitudeBand(r) },
+    // The row's per-belief Result / Strength stay in the reading detail's
+    // verdict list (OPS-1305). The table previews the quote (`body`) so a row is
+    // legible at a glance; assumption chips (see `readingAssumptionChips`)
+    // disambiguate same-titled readings.
     {
       key: "body",
       header: "Quote",

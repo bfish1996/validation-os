@@ -2488,8 +2488,12 @@ textarea.vos-input {
 /* Markdown prose (a reading's quote / an experiment's narrative). */
 .vos-md {
   font-size: 14px;
-  line-height: 1.55;
+  /* Roomy leading: this prose is often long, and light-on-dark reads lighter,
+     so it wants more breathing room than a UI label (typography.md). */
+  line-height: 1.65;
   color: var(--vos-text);
+  /* A comfortable measure — long lines are the hardest thing to scan. */
+  max-width: 68ch;
 }
 .vos-md > :first-child {
   margin-top: 0;
@@ -2497,15 +2501,32 @@ textarea.vos-input {
 .vos-md > :last-child {
   margin-bottom: 0;
 }
+/* Vertical rhythm keyed to the line-height: paragraph gaps are ~0.85em, the
+   space *above* a heading is larger than below it so a section reads as owned
+   by the heading that opens it (hierarchy through space, not size alone). */
 .vos-md p {
-  margin: 0 0 8px;
+  margin: 0 0 0.85em;
 }
 .vos-md h3,
 .vos-md h4,
 .vos-md h5,
 .vos-md h6 {
-  margin: 12px 0 6px;
+  margin: 1.5em 0 0.5em;
   line-height: 1.3;
+  font-weight: 600;
+}
+.vos-md h3 {
+  font-size: 15px;
+}
+.vos-md h4 {
+  font-size: 14px;
+}
+.vos-md h5,
+.vos-md h6 {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--vos-muted);
 }
 .vos-md a {
   color: var(--vos-accent-text);
@@ -2525,57 +2546,163 @@ textarea.vos-input {
   border-radius: var(--vos-radius);
   padding: 10px 12px;
   overflow-x: auto;
-  margin: 0 0 8px;
+  margin: 0 0 0.85em;
 }
 .vos-md pre.vos-md-pre code {
   background: none;
   padding: 0;
 }
 .vos-md blockquote.vos-md-quote {
-  margin: 0 0 8px;
-  padding-left: 12px;
+  margin: 0.85em 0;
+  padding: 2px 0 2px 14px;
   border-left: 3px solid var(--vos-border-strong);
   color: var(--vos-muted);
 }
 .vos-md ul.vos-md-ul,
 .vos-md ol.vos-md-ol {
-  margin: 0 0 8px;
-  padding-left: 20px;
+  margin: 0 0 0.85em;
+  padding-left: 22px;
 }
 .vos-md li {
-  margin: 2px 0;
+  margin: 3px 0;
+}
+.vos-md li::marker {
+  color: var(--vos-faint);
+}
+.vos-md-hr {
+  border: none;
+  border-top: 1px solid var(--vos-border);
+  margin: 1.5em 0;
 }
 
-/* Per-belief verdict list on a reading (modelled on the bar-line list). */
+/* ── Evidence body: a merged reading split into scannable findings ───────── */
+.vos-evidence {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+}
+.vos-evidence-parts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.vos-evidence-part {
+  padding: 12px 14px;
+  border: 1px solid var(--vos-border);
+  border-radius: var(--vos-radius);
+  background: var(--vos-surface);
+}
+.vos-evidence-n {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--vos-faint);
+}
+.vos-evidence-of {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* ── Per-belief verdicts: the reading detail's centrepiece ───────────────── */
+.vos-verdicts-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+/* The one-line tally that leads the list: total, then each non-zero outcome
+   toned and dot-marked so the verdict mix reads at a glance. */
+.vos-verdict-tally {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 14px;
+  margin: 0;
+  font-size: 13px;
+}
+.vos-tally-total {
+  font-weight: 600;
+  color: var(--vos-text);
+}
+.vos-tally-part {
+  position: relative;
+  padding-left: 15px;
+}
+.vos-tally-part::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.vos-tally-good {
+  color: var(--vos-good);
+}
+.vos-tally-neutral {
+  color: var(--vos-muted);
+}
+.vos-tally-crit {
+  color: var(--vos-crit);
+}
 .vos-verdicts {
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 .vos-verdict {
   border: 1px solid var(--vos-border);
+  /* A colour rail carries the verdict before a word is read. */
+  border-left: 3px solid var(--vos-border-strong);
   border-radius: var(--vos-radius);
-  padding: 8px 10px;
+  padding: 12px 14px;
   background: var(--vos-surface);
+}
+.vos-verdict.is-good {
+  border-left-color: var(--vos-good);
+}
+.vos-verdict.is-crit {
+  border-left-color: var(--vos-crit);
+}
+.vos-verdict.is-neutral {
+  border-left-color: var(--vos-border-strong);
 }
 .vos-verdict-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 10px;
 }
 .vos-verdict-title {
   font-weight: 600;
+  font-size: 14px;
+}
+span.vos-verdict-title {
+  color: var(--vos-text);
+}
+button.vos-verdict-title {
+  text-align: left;
 }
 .vos-verdict-meta {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 6px;
-  margin-top: 4px;
+  margin-top: 8px;
 }
 .vos-verdict-strength {
   font-family: var(--vos-mono);
@@ -2583,8 +2710,11 @@ textarea.vos-input {
   color: var(--vos-muted);
 }
 .vos-verdict-why {
-  margin: 6px 0 0;
+  margin: 10px 0 0;
+  padding-left: 12px;
+  border-left: 2px solid var(--vos-border);
   font-size: 13px;
+  line-height: 1.6;
   color: var(--vos-muted);
 }
 

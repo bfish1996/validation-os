@@ -10,7 +10,7 @@ import { EditFields } from "./edit-fields.js";
 import type { RelatedSet } from "./record-view.js";
 import { useUpdate } from "./use-records.js";
 import { UnderstandingPanel } from "./understanding-panel.js";
-import { Markdown } from "./markdown.js";
+import { EvidenceBody } from "./markdown.js";
 import { BeliefVerdicts } from "./belief-verdicts.js";
 
 export interface RecordDrawerProps {
@@ -272,7 +272,10 @@ export function RecordDrawer({
                     <div className="vos-detail-k">
                       {register === "readings" ? "Quote" : "Narrative"}
                     </div>
-                    <Markdown text={record.body} />
+                    <EvidenceBody
+                      text={record.body}
+                      partLabel={register === "readings" ? "Finding" : "Part"}
+                    />
                   </section>
                 ) : null}
                 {register === "readings" ? (

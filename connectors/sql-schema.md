@@ -72,6 +72,8 @@ registers:
       - {canonical: Representativeness, backend: representativeness, type: NUMERIC, derived: false, options_source: registry-schema}
       - {canonical: Credibility, backend: credibility, type: NUMERIC, derived: false, options_source: registry-schema}
       - {canonical: Source quality, backend: source_quality, type: NUMERIC, derived: true, formula: "representativeness * credibility; skill-computed"}
+      - {canonical: Rung, backend: rung, type: TEXT, derived: false, options_source: registry-schema}
+      - {canonical: "Magnitude band", backend: magnitude_band, type: TEXT, derived: false, options_source: registry-schema, required: false}
       - {canonical: Date, backend: date, type: DATE, derived: false}
       - {canonical: Owner, backend: owner, type: TEXT, derived: false, required: false, options_source: vocabulary.dashboard_users}
       - {canonical: Body, backend: body, type: TEXT, derived: false, required: false}
@@ -83,10 +85,8 @@ registers:
       table: reading_beliefs
       composed_into: readings
       properties:
-        - {canonical: Rung, backend: rung, type: TEXT, derived: false, options_source: registry-schema}
         - {canonical: Result, backend: result, type: TEXT, derived: false, options_source: registry-schema}
-        - {canonical: "Magnitude band", backend: magnitude_band, type: TEXT, derived: false, options_source: registry-schema, required: false}
-        - {canonical: Strength, backend: strength, type: NUMERIC, derived: true, formula: "rung anchor (Market rungs: × magnitude_band, Low/Typical/High) × sign(result); 0 unless result is Validated/Invalidated (experiment-guardrails.md §2); skill-computed per entry"}
+        - {canonical: Strength, backend: strength, type: NUMERIC, derived: true, formula: "the parent reading's row-level rung anchor (Market rungs: × the row's magnitude_band, Low/Typical/High) × sign(this row's result); 0 unless result is Validated/Invalidated (experiment-guardrails.md §2); skill-computed per entry"}
         - {canonical: Grading justification, backend: grading_justification, type: TEXT, derived: false}
       relations:
         - {canonical: Reading, backend: reading_id, target: readings, cardinality: one}
@@ -162,12 +162,13 @@ sql:
 - Soft-delete: none; decisions are recorded as new rows or status changes.
 - Timestamps: `created_at TIMESTAMP`, `updated_at TIMESTAMP`, on every table.
 - Body: long-form content stored as `body TEXT` holding Markdown.
-  `experiments` and `decisions` carry a `body` with the canonical `##` section
-  headings; `readings` carry a **freeform** `body` (the artifact's verbatim
-  quote/excerpt — one per reading, no fixed headings — reintroduced as a
-  deliberate reversal of the OPS-1305 no-body slice, backfilled from Notion
-  and shown in the dashboard). `assumptions` and `glossary` have no body
-  column at all (`OPS-1305`).
+  `experiments` and `decisions` carry a `body` with their canonical `##`
+  section headings; `readings` carry a `body` on the canonical **`## Quote`
+  (verbatim what the source said/did) + `## Source` (who/when/link)** template —
+  one per reading, reintroduced as a deliberate reversal of the OPS-1305
+  no-body slice, backfilled from Notion and shown in the dashboard; analysis
+  stays out of the body (it lives in `reading_beliefs.grading_justification`).
+  `assumptions` and `glossary` have no body column at all (`OPS-1305`).
 - Multi-value scalar fields (themes, agreed_by, context_links, avoid) are JSON
   arrays in a `JSON` column (`TEXT` holding JSON where the engine has no JSON
   type).
@@ -185,10 +186,13 @@ sql:
   standalone as a top-level register.
 - **Reading beliefs are a child table, not a register** (mirroring bar lines).
   `reading_beliefs` holds one row per belief a Reading scores — its own `id`,
-  a `reading_id` FK, an `assumption_id` FK, and the per-belief `rung` /
-  `result` / `magnitude_band` / `strength` / `grading_justification`. A
-  reading that bears on N beliefs has N `reading_beliefs` rows, never N
-  `readings` rows; always fetched/written through its parent Reading.
+  a `reading_id` FK, an `assumption_id` FK, and the per-belief `result` /
+  `strength` / `grading_justification`. The artifact's `rung` and
+  `magnitude_band` are **row-level on `readings`** (one rung per artifact,
+  0.10), not on this child table. A reading that bears on N beliefs has N
+  `reading_beliefs` rows, never N `readings` rows; always fetched/written
+  through its parent Reading. A mixed-rung artifact is split into separate
+  `readings` rows, one per rung.
 - **Glossary is its own table**, not a `type`-split partition of `decisions`.
   Decisions and Glossary share no columns beyond `title`/`status`/`area` by
   convention, and their `status` vocabularies diverge (Glossary has no
@@ -314,21 +318,27 @@ draft/running state — it exists only once observed.
 | Representativeness | `representativeness` | NUMERIC ({1.0, 0.7, 0.5}) | no |
 | Credibility | `credibility` | NUMERIC ({1.0, 0.7, 0.5}) | no |
 | Source quality | `source_quality` | NUMERIC | yes |
+| Rung | `rung` | TEXT (**row-level — one rung per artifact**) | no |
+| Magnitude band | `magnitude_band` | TEXT (row-level, nullable, Market rungs only) | no |
 | Date | `date` | DATE | no |
 | Owner | `owner` | TEXT (nullable, dashboard-user reference) | no |
-| Body | `body` | TEXT (the artifact's verbatim quote/excerpt) | no |
+| Body | `body` | TEXT (Markdown; canonical template `## Quote` + `## Source`) | no |
 
-`Source` is the independence-dedupe key — narrowed to the generator (person /
-dataset / cohort) only: `reading_beliefs` entries sharing a source against one
-belief dedupe to the strongest (largest `|strength|`, most recent on ties) —
-dedupe is per (belief, source). `Context links` carries provenance (recording,
-dashboard, CRM row, user id); it drives no math and never keys dedupe.
-`experiment_id` is nullable; **set only for a Reading that is the direct output
-of concluding a committed experiment (and it must reference a live/non-archived
-experiment — `reading-orphaned-experiment`)**, unset means a bare/found Reading
-— the `goal_id` column is gone. The table **carries a freeform `body`** — the
-artifact's verbatim quote/excerpt — a deliberate reversal of the OPS-1305
-no-body slice (backfilled from Notion, shown in the dashboard); the per-belief
+`rung` (and `magnitude_band`) are **row-level** columns on `readings`: one rung
+per artifact. An artifact that spans two rungs is **split into separate
+`readings` rows, one per rung** (`experiment-guardrails.md §0`), never two rungs
+in one row. `Source` is the independence-dedupe key — narrowed to the generator
+(person / dataset / cohort) only: `reading_beliefs` entries sharing a source
+against one belief dedupe to the strongest (largest `|strength|`, most recent on
+ties) — dedupe is per (belief, source). `Context links` carries provenance
+(recording, dashboard, CRM row, user id); it drives no math and never keys
+dedupe. `experiment_id` is nullable; **set only for a Reading that is the direct
+output of concluding a committed experiment (and it must reference a
+live/non-archived experiment — `reading-orphaned-experiment`)**, unset means a
+bare/found Reading — the `goal_id` column is gone. The table **carries a `body`**
+on the canonical **`## Quote` + `## Source`** template (verbatim source text) —
+a deliberate reversal of the OPS-1305 no-body slice (backfilled from Notion,
+shown in the dashboard); analysis stays out of the body — the per-belief
 `grading_justification` (scoring rationale) lives on `reading_beliefs`, and
 `## Notes` is cut.
 
@@ -341,24 +351,27 @@ Each belief a Reading scores gets one row here (mirroring
 |---|---|---|---|
 | Reading | `reading_id` | TEXT (FK → `readings.id`) | no |
 | Assumption | `assumption_id` | TEXT (FK → `assumptions.id`) | no |
-| Rung | `rung` | TEXT | no |
 | Result | `result` | TEXT | no |
-| Magnitude band | `magnitude_band` | TEXT (nullable, Market rungs only) | no |
-| Strength | `strength` | NUMERIC | yes |
+| Strength | `strength` | NUMERIC (reads the parent `readings.rung` / `magnitude_band`) | yes |
 | Grading justification | `grading_justification` | TEXT | no |
+
+`rung` and `magnitude_band` are **not** on this child table — they are
+row-level on `readings` (one rung per artifact, 0.10). Only `result` (and
+therefore the sign of `strength`) varies per belief.
 
 ### Derived values
 
 - `source_quality` (reading-level) = `representativeness * credibility`
 (anchors {0.25, 0.35, 0.5, 0.7, 1.0}); scales every `reading_beliefs` entry's
 weight in Confidence.
-- `reading_beliefs.strength` = signed rung anchor × `sign(result)` — Validated
-positive, Invalidated negative, 0 on Inconclusive; Market rungs (Signed
-intent, Paying users) scale by the entry's `magnitude_band` (Low/Typical/High)
-read off the experiment bar's two pre-registered bars
-(`experiment-guardrails.md §2`). One `s` per belief entry. Skills recompute and
-rewrite `source_quality` and each `strength` on every touching write; never
-hand-edit.
+- `reading_beliefs.strength` = the parent `readings.rung` anchor × `sign(result)`
+— Validated positive, Invalidated negative, 0 on Inconclusive; Market rungs
+(Signed intent, Paying users) scale by the row-level `readings.magnitude_band`
+(Low/Typical/High) read off the experiment bar's two pre-registered bars
+(`experiment-guardrails.md §2`). Rung/magnitude are per-artifact (on `readings`);
+only `result` (the sign) is per belief. One `s` per belief entry. Skills
+recompute and rewrite `source_quality` and each `strength` on every touching
+write; never hand-edit.
 
 ## Field mapping — Decisions
 
@@ -488,12 +501,12 @@ Reading leaves it unset.
    - vocabulary-driven columns (`lens`, `area`) using the current
      `validation-os.config.yaml` values, and
    - fixed-list columns introduced or changed by this schema —
-     `reading_beliefs.result`, `reading_beliefs.rung`,
-     `reading_beliefs.magnitude_band`, `readings.representativeness`,
-     `readings.credibility`, `experiment_bar_lines.planned_rung`,
-      `experiment_bar_lines.bar_verdict`, `experiments.status` (now including
-      `Archived`), `experiments.outcome`, `glossary.status`, `assumptions.stage` —
-      against `skills/_shared/ontology.yaml §vocabularies`.
+     `reading_beliefs.result`, `readings.rung`, `readings.magnitude_band`
+     (row-level, 0.10), `readings.representativeness`, `readings.credibility`,
+     `experiment_bar_lines.planned_rung`, `experiment_bar_lines.bar_verdict`,
+     `experiments.status` (now including `Archived`), `experiments.outcome`,
+     `glossary.status`, `assumptions.stage` —
+     against `skills/_shared/ontology.yaml §vocabularies`.
 
 ### seed_starter_records
 
@@ -521,13 +534,14 @@ table and rewrite `owner`/`agreed_by` as `dashboard_user` references; drop
 split each reading's `source` into `source` + `context_links`, dropping
 `goal_id`. **Fold each single-belief reading into the `reading_beliefs` child
 table:** create `reading_beliefs` and, for every reading, insert one row moving
-its old `assumption_id`, `rung`, `result`, magnitude, `strength`, and
-`## Grading` content (→ `grading_justification`) there, then drop those columns
-(and `assumption_id`) from `readings`; keep
-`source`/`representativeness`/`credibility`/`source_quality`/`experiment_id` on
-the row. **Add a `body` column to `readings` and backfill it** from the Notion
-verbatim quote/excerpt (the reintroduced reading body, reversing the OPS-1305
-cut for readings). Promote each decision's `## Decision` body to `statement`
+its old `assumption_id`, `result`, `strength`, and `## Grading` content
+(→ `grading_justification`) there, then drop those columns (and `assumption_id`)
+from `readings`; **keep `rung` and `magnitude_band` as row-level columns on
+`readings`** (rung is per-artifact, 0.10) alongside
+`source`/`representativeness`/`credibility`/`source_quality`/`experiment_id`.
+**Add a `body` column to `readings` and backfill it** on the `## Quote` +
+`## Source` template from the Notion verbatim quote/excerpt (the reintroduced
+reading body, reversing the OPS-1305 cut for readings). Promote each decision's `## Decision` body to `statement`
 and its unanimity rationale to `unanimity_justification`, dropping the
 `## Source` section from `body`; move each glossary row's body headings into
 `definition`/`avoid`/`how_it_differs`, dropping the `body` column.

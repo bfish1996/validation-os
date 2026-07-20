@@ -50,13 +50,26 @@ running the test.
 through an embedded `beliefs[]` array: one **entry per belief the artifact
 actually addressed**. A rich artifact (an interview) bearing on N beliefs is
 **one reading with N `beliefs[]` entries**, never N readings — they share the
-row's source, `Source quality`, canonical link, and origin. Each `beliefs[]`
-entry carries its own `Rung` (inherited from that belief's bar line at
-logging; assigned honestly at logging for off-plan and bare readings),
-`Result`, and derived signed `Strength` — the rung, result, and strength are
-**per belief**, not per reading. Source identity and quality
-(`Representativeness` / `Credibility` / `Source quality`) live once on the
-row, because they describe the source, not the belief.
+row's source, `Source quality`, canonical link, origin, **and `Rung`**. The
+`Rung` (and, on Market rungs, the `Magnitude band`) is a property of the
+**artifact**, set once on the **reading row** — one rung per reading. Each
+`beliefs[]` entry carries only its own `Result` and derived signed `Strength`
+(the row's rung anchor × sign of that entry's `Result`) plus its
+`Grading justification` — so **result and strength are per belief, but rung is
+per artifact**. Source identity and quality (`Representativeness` /
+`Credibility` / `Source quality`) also live once on the row, because they
+describe the source, not the belief.
+
+**One rung per artifact — split a mixed-rung artifact into separate readings.**
+Because rung is row-level, an artifact must sit at a **single** rung. When one
+raw artifact genuinely spans two rungs — e.g. a call that includes a real
+`Prototype usage` demo **and** a past-behaviour discussion — it becomes
+**multiple readings, one per rung** (the prototype-usage portion is its own
+reading, `Prototype usage`; the discussion its own, `Anecdotal`), each with its
+own `beliefs[]` entries and its own `## Quote`/`## Source` body slice. Never
+average two rungs into one reading, and never stretch one rung to cover
+signal it doesn't fit. `Prototype usage` is reserved for **genuine
+prototype-usage sessions** — not a demo watched, not a pitch reaction.
 
 **Evidence is external — a reading records an observation from a source
 OUTSIDE the team.** The generator behind every reading is a customer, user,
@@ -88,9 +101,10 @@ A round's reading count is bounded by actual signal, not the plan grid.
 row carries the plan (Instrument, Feasibility, Status, Deadline, Outcome);
 each bundled belief gets its own composed **bar line** (`We're right if` /
 `We're wrong if` / Planned rung / Bar verdict) realized backend-natively
-inside the Experiment; the rung and signed value live on the Reading's
-per-belief `beliefs[]` entry (`registry-schema.md §Field map — Readings`).
-There is no run-level `Type` or `Strength`.
+inside the Experiment; the reading's `Rung` (and `Magnitude band`) live on the
+reading **row**, and the signed `Strength` on each per-belief `beliefs[]`
+entry (`registry-schema.md §Field map — Readings`). There is no run-level
+`Type` or `Strength`.
 
 **Source artifacts — identity, routing, no Sources register:**
 
@@ -126,15 +140,16 @@ There is no run-level `Type` or `Strength`.
 
 **Per-belief scoring, one entry per assumption.** The unit entering a belief's
 Confidence average is one concluded `beliefs[]` entry against exactly one
-assumption — bar, rung, `Result`, and `Strength` are all per-belief. A rich
-artifact (an interview) that bears on N beliefs is **one reading carrying N
-`beliefs[]` entries**, sharing one canonical link and one `Source quality`;
-there is no partial-credit "directness" discount — a weak proxy for a claim
-reads as a lower rung or `Inconclusive` in that belief's entry, never a
-discounted strong reading. Evidence on a sibling or dependency never flows
-across the graph into this belief's Confidence — an artifact scores a belief
-only through its own `beliefs[]` entry, never by spillover from a sibling
-entry.
+assumption — its `Result` and derived `Strength` are per-belief, reading the
+artifact's **row-level** `Rung`. A rich artifact (an interview) that bears on N
+beliefs is **one reading carrying N `beliefs[]` entries**, sharing one canonical
+link, one `Source quality`, and one `Rung`; there is no partial-credit
+"directness" discount — a weak proxy for a claim reads as `Inconclusive` in
+that belief's entry (or, if the artifact truly sits at a weaker rung, it's a
+lower-rung reading of its own, §one-rung-per-artifact), never a discounted
+strong reading. Evidence on a sibling or dependency never flows across the
+graph into this belief's Confidence — an artifact scores a belief only through
+its own `beliefs[]` entry, never by spillover from a sibling entry.
 
 **Ladder integrity, always:** the Confidence average is bounded by its
 strongest reading's value, and source quality only scales weight — so weak
@@ -219,31 +234,33 @@ of it piles up.
 
 Choosing each belief's **rung** is a trade-off of **two axes**, not one:
 
-**Axis A — evidence strength (climb as high as the belief needs).** The 8
+**Axis A — evidence strength (climb as high as the belief needs).** The 7
 rungs, weakest → strongest, in **two categories**
 (`docs/evidence-ladder.md`). The gaps *between* rungs reflect **commitment**
 — what the signal cost the person to give:
 
 - 🧪 **Testing** (instruments run on a sample you can enumerate; plateau ±30):
-  - `Opinion` (±3) — what someone says about a **hypothetical**: "I think
-    users would like this". Includes self / team / advisor. Pure stated
-    preference, no behaviour behind it.
+  - `Anecdotal` (±3) — **the floor** (absorbed the old `Opinion`, 0.10):
+    anything from a bare stated opinion about a **hypothetical** ("I think
+    users would like this" — self / team / advisor) up to an unprompted report
+    of something that **actually happened** ("three users told us they've been
+    doing this manually in a spreadsheet"). A bare opinion is just the weakest
+    anecdote, so both land here at the floor anchor; a specific past behaviour
+    is a stronger anecdote but still `Anecdotal` — push for a higher rung when
+    the belief needs it.
   - `Pitch-deck reaction` (±6) — a verbal "yes, I'd…" to a pitch or mock.
     Still stated, but to a concrete stimulus.
-  - `Anecdotal` (±10) — a report of something that **actually happened**: a
-    specific past behaviour or an unprompted real complaint ("three users
-    told us they've been doing this manually in a spreadsheet"). It
-    references real behaviour, so it's a weak, small-N *shadow* of revealed
-    preference — **that's why it sits above `Opinion`**, not below.
   - `Desk research` (±15) — regulation, published data, competitor /
     prior-internal facts. *Always ask first: "is this already knowable in
     hours, no participants?"*
   - `Survey at scale` (±25) — a structured questionnaire at larger N. This
     is **where volume lives**: 100 people who validate a belief = **one
     `Survey at scale` record**, not 100 `Anecdotal` records.
-  - `Prototype usage` (±30) — real use of a throwaway / Wizard-of-Oz build.
-    Genuine behaviour, but it measures **comprehension / usability /
-    engagement**, not demand — and it's novelty-biased, drawn from
+  - `Prototype usage` (±30) — **genuine prototype-usage sessions only**: real,
+    hands-on use of a throwaway / Wizard-of-Oz build. A demo merely watched or
+    a pitch reaction is **not** `Prototype usage` (that's `Pitch-deck reaction`
+    / `Anecdotal`). Genuine behaviour, but it measures **comprehension /
+    usability / engagement**, not demand — and it's novelty-biased, drawn from
     non-representative early users. Demand needs a Market rung.
 - 🎯 **Market** (open-world targets with a deadline, two pre-registered
   bars, closed by the market — renamed from "Goals" with the Goal→Experiment
@@ -285,14 +302,15 @@ when access opens.
 
 **Reading value `s` (canonical — every backend implements exactly this).**
 `Strength` holds the signed reading value **per `beliefs[]` entry** (one `s`
-per belief the reading scores), gated to that entry's conclusive `Result`
-(0 while `Running` or `Inconclusive`):
+per belief the reading scores), reading the artifact's **row-level `Rung`** and
+gated to that entry's conclusive `Result` (0 while `Running` or `Inconclusive`):
 
-- `s = rung anchor × sign(Result)` — `Validated` positive, `Invalidated`
+- `s = rung anchor × sign(Result)` — the **row-level** `Rung`'s anchor times
+  the sign of *this entry's* `Result`; `Validated` positive, `Invalidated`
   negative. Symmetric: a −95 is as strong, and as hard to earn, as a +95.
-- Rung anchors: `Opinion` 3 · `Pitch-deck reaction` 6 · `Anecdotal` 10 ·
-  `Desk research` 15 · `Survey at scale` 25 · `Prototype usage` 30 ·
-  `Signed intent` 55/68/80 · `Paying users` 75/88/99.
+- Rung anchors: `Anecdotal` 3 (the floor, absorbed `Opinion`) ·
+  `Pitch-deck reaction` 6 · `Desk research` 15 · `Survey at scale` 25 ·
+  `Prototype usage` 30 · `Signed intent` 55/68/80 · `Paying users` 75/88/99.
 - **Magnitude (Low / Typical / High) exists only on the Market rungs** —
   picked from what actually materialised (commitment size × count ×
   activity depth) on absolute anchors, **never %-of-target**. Target 1,
@@ -351,7 +369,7 @@ Confidence = (w₀·0 + Σ wᵢ·sᵢ) / (w₀ + Σ wᵢ)
   its value `sᵢ` (the rung sets the ceiling). So the average stays bounded by
   the strongest entry's `|s|`, and a discounted found reading can never
   outrank a stronger experiment-born one: a found `Prototype usage` still
-  beats an experiment `Opinion`. The discount changes how fast Confidence
+  beats an experiment `Anecdotal`. The discount changes how fast Confidence
   approaches a ceiling, never which ceiling applies.
 
 - **Signed, −100…100; no evidence = 0.** Stored signed; Risk clamps the
@@ -394,13 +412,18 @@ per-entry field (distinct from the reading-level `body`, which holds the
 verbatim quote/excerpt the entry is graded from), so the numbers are
 reproducible from the record alone:
 
-- the entry's **rung** and, on Market rungs, the **magnitude pick** with the
-  absolute anchor it keys to ("2 paying pilots at £500/mo → Paying, Low");
+- the entry's **`Result`** against the belief and why the reading's
+  (row-level) **rung** — and, on Market rungs, the **magnitude pick** with the
+  absolute anchor it keys to ("2 paying pilots at £500/mo → Paying, Low") —
+  bears on it;
 - the reading's **Representativeness** and **Credibility** picks, one-line
   justification each (shared across the reading's entries — they grade the
   source, not the belief);
 - the **source** — the artifact's canonical link the independence dedupe
   keys off.
+
+(The rung and magnitude live once on the reading row; the per-entry
+justification explains the belief-specific `Result`, not a per-entry rung.)
 
 A `beliefs[]` entry with an empty `Grading justification` can't be audited
 into the average — the `reading-ungraded` check flags it (`ontology.yaml`).
@@ -500,7 +523,7 @@ you show a prototype in the interview?").
 
 | Discovering… | Build | Rung it belongs on |
 |---|---|---|
-| Problem **existence / severity** — did it happen, how often, how painful (past behaviour) | **Nothing** — interview without stimulus | `Opinion` / `Anecdotal` |
+| Problem **existence / severity** — did it happen, how often, how painful (past behaviour) | **Nothing** — interview without stimulus | `Anecdotal` |
 | Solution **comprehension / usability / engagement** — do they get it, can they use it, do they come back | **Prototype** (throwaway; Wizard-of-Oz allowed) | `Prototype usage` |
 | **Willingness to commit** before anything is built | **Fake-door / landing page** — not a full prototype | `Signed intent` |
 | Facts **already knowable** from published sources | **Nothing** — desk research | `Desk research` |

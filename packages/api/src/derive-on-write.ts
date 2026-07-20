@@ -25,7 +25,9 @@ import {
  * Stamp the derived values a reading owns:
  *  - the row's `derived.sourceQuality` (Representativeness × Credibility), a
  *    property of the artifact, shared by every belief it scores;
- *  - each belief's `derived.strength` (rung anchor × sign(Result) [× band]);
+ *  - each belief's `derived.strength` = the ROW's rung anchor × sign(the
+ *    belief's Result) [× the row's market magnitude band] (OPS 0.10 — one rung
+ *    per artifact, per-belief Result);
  *  - `assumptionIds`, the projection of `beliefs[].assumptionId`, kept in sync
  *    whenever beliefs[] is written (mirrors barLineAssumptionIds).
  * A partial patch that omits a field leaves that derivation untouched.
@@ -47,10 +49,11 @@ export function deriveReadingFields(data: Partial<AnyRecord>): Partial<AnyRecord
     const beliefs = r.beliefs.map((b) => ({
       ...b,
       derived: {
+        // Rung + magnitude band are row-level; only the Result varies per belief.
         strength: recomputeStrength({
-          rung: b.Rung,
+          rung: r.Rung!,
           result: b.Result,
-          magnitudeBand: b.magnitudeBand,
+          magnitudeBand: r.magnitudeBand,
         }),
       },
     })) as BeliefScore[];

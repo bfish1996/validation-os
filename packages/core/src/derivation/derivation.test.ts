@@ -42,9 +42,13 @@ describe("sign", () => {
 
 describe("readingStrength", () => {
   it("uses the rung anchor × sign for testing rungs", () => {
-    expect(readingStrength({ rung: "Opinion", result: "Validated" })).toBe(3);
+    // Anecdotal is the merged floor at 3 (absorbs the retired Opinion rung).
+    expect(readingStrength({ rung: "Anecdotal", result: "Validated" })).toBe(3);
     expect(readingStrength({ rung: "Anecdotal", result: "Invalidated" })).toBe(
-      -10,
+      -3,
+    );
+    expect(readingStrength({ rung: "Desk research", result: "Invalidated" })).toBe(
+      -15,
     );
     expect(
       readingStrength({ rung: "Prototype usage", result: "Validated" }),
@@ -83,7 +87,7 @@ describe("readingStrength", () => {
   it("classifies market vs testing rungs", () => {
     expect(isMarketRung("Paying users")).toBe(true);
     expect(isMarketRung("Signed intent")).toBe(true);
-    expect(isMarketRung("Opinion")).toBe(false);
+    expect(isMarketRung("Anecdotal")).toBe(false);
   });
 });
 
@@ -128,10 +132,10 @@ describe("confidence", () => {
   });
 
   it("dedupes readings sharing a source to the strongest", () => {
-    // Same source: a Prototype (30) and an Opinion (3). Only the 30 counts.
+    // Same source: a Prototype (30) and an Anecdotal (3). Only the 30 counts.
     const deduped = confidence([
       reading({ id: "a", source: "same", rung: "Prototype usage" }),
-      reading({ id: "b", source: "same", rung: "Opinion" }),
+      reading({ id: "b", source: "same", rung: "Anecdotal" }),
     ]);
     expect(deduped).toBe(confidence([reading({ rung: "Prototype usage" })]));
   });
@@ -142,7 +146,7 @@ describe("confidence", () => {
     // aren't even part of the derivation input.
     const shared = confidence([
       reading({ id: "a", source: "person-7", rung: "Prototype usage" }),
-      reading({ id: "b", source: "person-7", rung: "Opinion" }),
+      reading({ id: "b", source: "person-7", rung: "Anecdotal" }),
     ]);
     expect(shared).toBe(confidence([reading({ rung: "Prototype usage" })]));
 
@@ -200,12 +204,12 @@ describe("confidence — commitment factor", () => {
   it("keeps Rung dominant: a high-rung found reading outweighs a low-rung committed one", () => {
     // The commitment factor is a small tiebreaker, never a rung-reorderer.
     // found high rung:      Prototype (30) × 0.85 → 6.10
-    // committed low rung:   Opinion (3)  × 1.00 → 3×3 / (100+3) = 0.087… → 0.09
+    // committed low rung:   Anecdotal (3) × 1.00 → 3×3 / (100+3) = 0.087… → 0.09
     const foundHigh = confidence([
       reading({ rung: "Prototype usage", experimentId: null }),
     ]);
     const committedLow = confidence([
-      reading({ rung: "Opinion", experimentId: "EXP-1" }),
+      reading({ rung: "Anecdotal", experimentId: "EXP-1" }),
     ]);
     expect(foundHigh).toBeGreaterThan(committedLow);
   });
