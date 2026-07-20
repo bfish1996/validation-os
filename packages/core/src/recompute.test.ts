@@ -60,7 +60,8 @@ function reading(over: Partial<ReadingRecord> = {}): ReadingRecord {
     Source: "src-1",
     contextLinks: [],
     experimentId: null,
-    Rung: "Prototype usage",
+    Rung: "Observed usage",
+    magnitudeBand: "Low",
     Representativeness: 1.0,
     Credibility: 1.0,
     Date: "2026-01-01",
@@ -76,7 +77,7 @@ const NO_DECISIONS: DecisionRecord[] = [];
 
 describe("recomputeDerived — row-level rung, per-belief result", () => {
   it("derives each belief's strength from the ROW rung and the belief's own Result", () => {
-    // One artifact, ONE rung (Prototype usage = 30), committed, sq=1. Two
+    // One artifact, ONE rung (Observed usage Low = 30), committed, sq=1. Two
     // beliefs with opposite Results: strength = 30 × sign(Result).
     //  ASM-1 Validated   → s=+30, w=30 → 30×30/(140+30)  =  5.29
     //  ASM-2 Invalidated → s=-30, w=30 → -900/170        = -5.29
@@ -87,7 +88,8 @@ describe("recomputeDerived — row-level rung, per-belief result", () => {
       ],
       readings: [
         reading({
-          Rung: "Prototype usage",
+          Rung: "Observed usage",
+          magnitudeBand: "Low",
           experimentId: "EXP-1",
           beliefs: [
             belief({ assumptionId: "ASM-1", Result: "Validated" }),
@@ -102,7 +104,7 @@ describe("recomputeDerived — row-level rung, per-belief result", () => {
   });
 
   it("still discounts a found reading via the commitment factor", () => {
-    // Prototype usage (30), Validated, sq=1. W0[Prototype] = 140.
+    // Observed usage Low (30), Validated, sq=1. W0[Observed usage] = 140.
     //  found:     w=30×0.85=25.5 → 25.5×30/165.5 = 4.62
     //  committed: w=30           → 900/170        = 5.29
     const found = recomputeDerived({
@@ -130,11 +132,12 @@ describe("recomputeDerived — row-level rung, per-belief result", () => {
         {
           id: "RDG-1",
           source: "src-1",
-          rung: "Prototype usage",
+          rung: "Observed usage",
           result: "Validated",
           representativeness: 1.0,
           credibility: 1.0,
           date: "2026-01-01",
+          magnitudeBand: "Low",
           experimentId: null,
         },
       ]),
@@ -143,19 +146,19 @@ describe("recomputeDerived — row-level rung, per-belief result", () => {
 
   it("dedupes per (assumption, Source), keeping the strongest rung", () => {
     // Two rows, same Source "bob", same belief ASM-1, different ROW rungs:
-    //   Prototype usage (30) vs Anecdotal (3, the merged floor).
-    // Dedupe keeps the 30 → 5.29, identical to a lone Prototype row.
+    //   Observed usage Low (30) vs Talk Low (3, the merged floor).
+    // Dedupe keeps the 30 → 5.29, identical to a lone Observed-usage row.
     const derived = recomputeDerived({
       assumptions: [assumption()],
       readings: [
-        reading({ id: "R1", Source: "bob", Rung: "Prototype usage", experimentId: "EXP-1" }),
-        reading({ id: "R2", Source: "bob", Rung: "Anecdotal", experimentId: "EXP-1" }),
+        reading({ id: "R1", Source: "bob", Rung: "Observed usage", magnitudeBand: "Low", experimentId: "EXP-1" }),
+        reading({ id: "R2", Source: "bob", Rung: "Talk", magnitudeBand: "Low", experimentId: "EXP-1" }),
       ],
       decisions: NO_DECISIONS,
     }).get("ASM-1")!;
     const lone = recomputeDerived({
       assumptions: [assumption()],
-      readings: [reading({ Rung: "Prototype usage", experimentId: "EXP-1" })],
+      readings: [reading({ Rung: "Observed usage", magnitudeBand: "Low", experimentId: "EXP-1" })],
       decisions: NO_DECISIONS,
     }).get("ASM-1")!;
     expect(derived.confidence).toBe(lone.confidence);

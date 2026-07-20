@@ -14,6 +14,7 @@ import {
   assumptionCompleteness,
   confidence,
   derivedImpacts,
+  experimentConfidence,
   risk,
 } from "./derivation/index.js";
 import { readingBeliefInputs } from "./reading-input.js";
@@ -23,6 +24,8 @@ import type {
   AssumptionDerived,
   AssumptionRecord,
   DecisionRecord,
+  ExperimentDerived,
+  ExperimentRecord,
   ReadingRecord,
 } from "./types.js";
 
@@ -98,3 +101,51 @@ export {
   sourceQuality as recomputeSourceQuality,
   readingStrength as recomputeStrength,
 } from "./derivation/index.js";
+
+/**
+ * Recompute the derived numbers for every experiment in the register.
+ *
+ * Groups readings by `experimentId`, filters each experiment's readings to its
+ * `barLineAssumptionIds`, and calls {@link experimentConfidence}.
+ */
+export function recomputeExperimentDerived(input: {
+  experiments: ExperimentRecord[];
+  readings: ReadingRecord[];
+}): Map<string, ExperimentDerived> {
+  const out = new Map<string, ExperimentDerived>();
+  const byExperiment = new Map<string, ReadingRecord[]>();
+  for (const r of input.readings) {
+    if (!r.experimentId) continue;
+    const list = byExperiment.get(r.experimentId);
+    if (list) list.push(r);
+    else byExperiment.set(r.experimentId, [r]);
+  }
+  for (const exp of input.experiments) {
+    const barIds = new Set(exp.barLineAssumptionIds);
+    const expReadings = (byExperiment.get(exp.id) ?? []).filter((r) =>
+      r.beliefs.some((b) => barIds.has(b.assumptionId)),
+    );
+    const bars = exp.barLines.map((b) => ({
+      assumptionId: b.assumptionId,
+      barVerdict: b.barVerdict ?? null,
+    }));
+    const readings = expReadings.flatMap((r) =>
+      r.beliefs
+        .filter((b) => barIds.has(b.assumptionId))
+        .map((b) => ({
+          id: r.id,
+          source: r.Source,
+          rung: r.Rung,
+          result: b.Result,
+          magnitudeBand: r.magnitudeBand,
+          representativeness: r.Representativeness,
+          credibility: r.Credibility,
+          assumptionId: b.assumptionId,
+        })),
+    );
+    out.set(exp.id, {
+      experimentConfidence: experimentConfidence(bars, readings),
+    });
+  }
+  return out;
+}

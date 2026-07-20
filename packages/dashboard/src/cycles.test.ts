@@ -5,9 +5,9 @@ import { buildCycles, DIRECT_CYCLE_KEY } from "./cycles.js";
 function reading(over: Partial<AnyRecord> & { id: string }): AnyRecord {
   const {
     assumptionId = "b1",
-    Rung = "Prototype usage",
+    Rung = "Observed usage",
     Result = "Validated",
-    magnitudeBand,
+    magnitudeBand = "Low",
     ...rest
   } = over as Record<string, unknown> & { id: string };
   return {
@@ -91,7 +91,7 @@ describe("buildCycles", () => {
       [
         experiment({
           id: "e1",
-          barLines: [{ assumptionId: "b1", rightIf: "…", plannedRung: "Survey at scale", barVerdict: null }],
+          barLines: [{ assumptionId: "b1", rightIf: "…", plannedRung: "Observed usage", barVerdict: null }],
         }),
       ],
     );
@@ -114,8 +114,8 @@ describe("buildCycles", () => {
         experiment({
           id: "e1",
           barLines: [
-            { assumptionId: "b1", rightIf: "…", plannedRung: "Survey at scale", barVerdict: "Validated" },
-            { assumptionId: "b2", rightIf: "…", plannedRung: "Survey at scale", barVerdict: "Invalidated" },
+            { assumptionId: "b1", rightIf: "…", plannedRung: "Observed usage", barVerdict: "Validated" },
+            { assumptionId: "b2", rightIf: "…", plannedRung: "Observed usage", barVerdict: "Invalidated" },
           ],
         }),
       ],
@@ -169,8 +169,8 @@ describe("buildCycles", () => {
     const cycles = buildCycles(
       "b1",
       [
-        reading({ id: "r1", experimentId: "e1", Date: "2026-01-01", Rung: "Prototype usage" }),
-        reading({ id: "r2", Date: "2026-02-01", Rung: "Anecdotal" }), // direct
+        reading({ id: "r1", experimentId: "e1", Date: "2026-01-01", Rung: "Observed usage", magnitudeBand: "Low" }),
+        reading({ id: "r2", Date: "2026-02-01", Rung: "Talk", magnitudeBand: "Low" }), // direct
       ],
       [experiment({ id: "e1" })],
     );

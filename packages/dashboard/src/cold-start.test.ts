@@ -118,7 +118,7 @@ describe("journeyColdState", () => {
             Source: "r1",
             assumptionId: "b1",
             experimentId: null,
-            Rung: "Prototype usage",
+            Rung: "Observed usage",
             Representativeness: 1.0,
             Credibility: 1.0,
             Result: "Validated",

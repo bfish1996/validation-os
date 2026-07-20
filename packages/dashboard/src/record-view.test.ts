@@ -112,12 +112,12 @@ describe("headerPills", () => {
       createdAt: "",
       updatedAt: "",
       Status: "Logged",
-      Rung: "Anecdotal",
+      Rung: "Talk",
       magnitudeBand: "High",
     };
     const pills = headerPills("readings", reading);
-    expect(pills.map((p) => p.label)).toEqual(["Logged", "Anecdotal · High"]);
-    expect(pills[1]).toEqual({ label: "Anecdotal · High", tone: "accent" });
+    expect(pills.map((p) => p.label)).toEqual(["Logged", "Talk · High"]);
+    expect(pills[1]).toEqual({ label: "Talk · High", tone: "accent" });
   });
 
   it("shows Rung alone when the row has no band", () => {
@@ -146,14 +146,14 @@ describe("headerPills", () => {
       beliefs: [
         {
           assumptionId: "a",
-          Rung: "Prototype usage",
+          Rung: "Observed usage",
           magnitudeBand: "Typical",
           Result: "Validated",
         },
       ],
     };
     const pills = headerPills("readings", reading);
-    expect(pills.map((p) => p.label)).toEqual(["Logged", "Prototype usage · Typical"]);
+    expect(pills.map((p) => p.label)).toEqual(["Logged", "Observed usage · Typical"]);
     expect(pills[1]!.tone).toBe("accent");
   });
 
@@ -265,7 +265,7 @@ describe("backlinkPanels", () => {
         beliefs: [
           {
             assumptionId: "a1",
-            Rung: "Survey at scale",
+            Rung: "Observed usage",
             Result: "Validated",
             "Grading justification": "",
             derived: { strength: 40 },
@@ -399,7 +399,7 @@ describe("backlinkPanels", () => {
       beliefs: [
         {
           assumptionId: "a1",
-          Rung: "Survey at scale",
+          Rung: "Observed usage",
           Result: "Validated",
           "Grading justification": "",
           derived: { strength: 40 },
@@ -424,14 +424,14 @@ describe("readingBeliefVerdicts", () => {
       beliefs: [
         {
           assumptionId: "a1",
-          Rung: "Survey at scale",
+          Rung: "Observed usage",
           Result: "Validated",
           "Grading justification": "clear signal",
           derived: { strength: 40 },
         },
         {
           assumptionId: "gone",
-          Rung: "Opinion",
+          Rung: "Talk",
           Result: "Inconclusive",
           "Grading justification": "",
           derived: { strength: 0 },

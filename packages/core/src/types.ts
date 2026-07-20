@@ -53,18 +53,27 @@ export type MagnitudeBand = "Low" | "Typical" | "High";
 export type Feasibility = "High" | "Medium" | "Low";
 
 /**
- * The activity-and-strength ladder (order = strength, weakest first). Two
- * categories: Testing (recruited-sample instruments) and Market (open-world
- * targets — the category formerly called "Goals", OPS-1305). `Opinion` was
- * merged into `Anecdotal` (OPS 0.10): a bare opinion is just the weakest
- * anecdote, so `Anecdotal` is now the floor and inherits the old Opinion anchor.
+ * The lens-aware ladder (0.14). A rung is an evidence TYPE; magnitude band
+ * (Low/Typical/High) is the intensity *within* a type. The band now applies to
+ * EVERY rung, not just Market rungs, so every rung looks up its anchor through
+ * `RUNG_ANCHOR[rung][band]`.
+ *
+ *   Talk:           3 / 6 / 10   (was Opinion / Pitch-deck / Anecdotal —
+ *                                collapsed into one rung with bands)
+ *   Desk research:  15 / 15 / 15 (flat — desk research has no meaningful bands,
+ *                                but the field exists for uniformity)
+ *   Observed usage: 30 / 50 / 70 (was Prototype usage + Survey at scale —
+ *                                collapsed; old anchors 25 and 30 both lift to
+ *                                the new Low(30) floor, with new Typical/High
+ *                                anchors for stronger observed evidence)
+ *
+ * Market rungs (Signed intent, Paying users) keep their old anchors, now also
+ * expressed as Low/Typical/High bands.
  */
 export const TESTING_RUNGS = [
-  "Anecdotal",
-  "Pitch-deck reaction",
+  "Talk",
   "Desk research",
-  "Survey at scale",
-  "Prototype usage",
+  "Observed usage",
 ] as const;
 export const MARKET_RUNG_VALUES = ["Signed intent", "Paying users"] as const;
 export type TestingRung = (typeof TESTING_RUNGS)[number];
@@ -176,6 +185,15 @@ export interface BarLine {
   barVerdict?: Result | null;
 }
 
+/**
+ * The derived numbers stored on an experiment (never hand-typed).
+ * `experimentConfidence` is the [0, 100] confidence gauge (50 = neutral),
+ * coverage-gated and verdict-aligned; see `derivation/experiment-confidence.ts`.
+ */
+export interface ExperimentDerived {
+  experimentConfidence: number;
+}
+
 export interface ExperimentRecord extends BaseRecord {
   Title: string;
   Instrument: string | null;
@@ -195,6 +213,8 @@ export interface ExperimentRecord extends BaseRecord {
   barLines: BarLine[];
   /** Convenience projection: the assumptions the bar lines test. */
   barLineAssumptionIds: string[];
+  /** Derived numbers — recomputed on every touching write. */
+  derived?: ExperimentDerived;
 }
 
 export interface DecisionRecord extends BaseRecord {

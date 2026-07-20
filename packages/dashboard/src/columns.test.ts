@@ -58,9 +58,9 @@ describe("columnsFor", () => {
     expect(cellValue(bandCol, row)).toBe("High");
     // Pre-migration: no row values yet → fall back to the first belief's.
     const pre = rec({
-      beliefs: [{ assumptionId: "a", Rung: "Anecdotal", magnitudeBand: "Low" }],
+      beliefs: [{ assumptionId: "a", Rung: "Talk", magnitudeBand: "Low" }],
     });
-    expect(cellValue(rungCol, pre)).toBe("Anecdotal");
+    expect(cellValue(rungCol, pre)).toBe("Talk");
     expect(cellValue(bandCol, pre)).toBe("Low");
     // Neither → null (formats to an em dash downstream).
     expect(cellValue(rungCol, rec({}))).toBeNull();
