@@ -28,6 +28,7 @@ registers:
       - {canonical: Confidence, backend: Confidence, type: number, derived: true, formula: "signed weighted average of concluded Validated/Invalidated belief entries scored against this row, weight = |Strength| × Source quality × commitmentFactor (1.0 if the entry's reading has an Experiment else 0.85; never reorders rungs), neutral prior w0=100 (hard floor ≥98), deduped per (belief, source) to the strongest/most-recent (experiment-guardrails.md §2); skill-computed, bullet marked <!-- derived -->"}
       - {canonical: Completeness %, backend: Completeness %, type: number, derived: true, formula: "filled slots / all slots × 100 over five structural slots: Description, Lens, Impact, Scoring justification, dependencies traced (≥1 Depends on/Enables link); replaces the retired Gaps/presence-field machinery (OPS-1305); skill-computed, bullet marked <!-- derived -->"}
       - {canonical: Status, backend: Status, type: text, derived: false, options_source: registry-schema}
+      - {canonical: Stage, backend: Stage, type: text, derived: false, options_source: registry-schema}
       - {canonical: Owner, backend: Owner, type: text, derived: false, options_source: vocabulary.dashboard_users}
       - {canonical: Scoring justification, backend: "### Scoring justification section", type: text, derived: false}
     relations:
@@ -161,6 +162,7 @@ per record named by ID (`<ID>.md`):
 | Confidence | `- **Confidence**: ...` | number | yes |
 | Completeness % | `- **Completeness %**: ...` | number | yes |
 | Status | `- **Status**: ...` | text | no |
+| Stage | `- **Stage**: ...` | text (`Discovery`/`Validation`/`Scale`/`Maturity`) | no |
 | Owner | `- **Owner**: ...` | text (dashboard-user reference) | no |
 | Scoring justification | `- **Scoring justification**: ...` | text | no |
 | Depends on / Enables | `- **Depends on**: ...` / `- **Enables**: ...` | text (IDs) | no |
