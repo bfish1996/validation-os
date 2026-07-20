@@ -21,26 +21,32 @@
  * is its own unit). No corroboration bump.
  */
 import type { MagnitudeBand, Result, Rung } from "../types.js";
+import { MARKET_RUNG_VALUES } from "../types.js";
 import { round2 } from "./round.js";
-import { isMarketRung } from "./rung.js";
 import { sourceQuality } from "./source-quality.js";
 import { isConcluded, readingStrength } from "./strength.js";
 
+/** Market rungs never dedupe (each closed commitment is its own unit). */
+const MARKET_RUNG_SET = new Set<Rung>(MARKET_RUNG_VALUES);
+function isMarketRung(rung: Rung): boolean {
+  return MARKET_RUNG_SET.has(rung);
+}
+
 /**
  * Per-rung prior weight — controls how many distinct sources approach the
- * rung's anchor. Tuned so: Desk 2 readings → 90% of cap; talk rungs 10
- * readings → 90% of cap; do-rungs 20 readings → 75% of cap. See
+ * rung's anchor. Tuned so: Desk 2 readings → ~90% of cap; talk rungs 10
+ * readings → ~90% of cap; do-rungs 20 readings → ~75% of cap. See
  * `docs/evidence-ladder.md` for the derivation.
  */
 export const W0_BY_RUNG: Record<Rung, number> = {
-  // Talk rungs — 10 readings → ~90% of cap.
-  Anecdotal: 6.5,
-  "Pitch-deck reaction": 6.5,
+  // Talk — 10 readings → ~90% of cap (inherits the old Anecdotal W0).
+  Talk: 6.5,
   // Desk research — 2 readings → ~90% of cap (authoritative, rare).
   "Desk research": 2,
-  // Do-rungs — 20 readings → ~75% of cap.
-  "Survey at scale": 116.7,
-  "Prototype usage": 140,
+  // Observed usage — 20 readings → ~75% of cap (was Prototype usage's W0;
+  // the rung now spans 30-70, but the prior strength for the rung is unchanged).
+  "Observed usage": 140,
+  // Market do-rungs — 20 readings → ~75% of cap.
   "Signed intent": 317.3,
   "Paying users": 410.7,
 };

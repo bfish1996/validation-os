@@ -14,12 +14,12 @@ function reading(
   return {
     id: over.id ?? "RDG-001",
     source: over.source ?? "src-1",
-    rung: over.rung ?? "Prototype usage",
+    rung: over.rung ?? "Observed usage",
     result: over.result ?? "Validated",
     representativeness: over.representativeness ?? 1.0,
     credibility: over.credibility ?? 1.0,
     date: "date" in over ? over.date : "2026-01-01",
-    magnitudeBand: over.magnitudeBand,
+    magnitudeBand: over.magnitudeBand ?? "Low",
     experimentId: over.experimentId ?? null,
   };
 }
@@ -33,7 +33,7 @@ describe("confidenceAttribution", () => {
 
   it("attributes a single reading to its experiment, contribution = confidence", () => {
     const a = confidenceAttribution([reading({ experimentId: "EXP-1" })]);
-    // Prototype usage (30), Validated, sq=1, committed. W0[Prototype] = 140.
+    // Observed usage Low (30), Validated, sq=1, committed. W0[Observed usage] = 140.
     // s=30, w=30 → 30×30/(140+30) = 5.29
     expect(a.confidence).toBe(5.29);
     expect(a.movers).toHaveLength(1);
@@ -54,7 +54,8 @@ describe("confidenceAttribution", () => {
         id: "b",
         source: "sb",
         experimentId: "EXP-2",
-        rung: "Anecdotal",
+        rung: "Talk",
+        magnitudeBand: "Low",
         result: "Invalidated",
       }),
       reading({ id: "c", source: "sc", experimentId: "EXP-2" }),
@@ -67,12 +68,13 @@ describe("confidenceAttribution", () => {
 
   it("ranks movers by |contribution|, strongest first", () => {
     const a = confidenceAttribution([
-      reading({ id: "a", source: "sa", experimentId: "weak", rung: "Anecdotal" }),
+      reading({ id: "a", source: "sa", experimentId: "weak", rung: "Talk", magnitudeBand: "Low" }),
       reading({
         id: "b",
         source: "sb",
         experimentId: "strong",
-        rung: "Prototype usage",
+        rung: "Observed usage",
+        magnitudeBand: "Low",
       }),
     ]);
     expect(a.movers.map((m) => m.experimentId)).toEqual(["strong", "weak"]);
@@ -102,8 +104,8 @@ describe("confidenceAttribution", () => {
 
   it("honours Source dedupe, so a shadowed reading never doubles a mover", () => {
     const a = confidenceAttribution([
-      reading({ id: "a", source: "same", experimentId: "EXP-1", rung: "Prototype usage" }),
-      reading({ id: "b", source: "same", experimentId: "EXP-1", rung: "Anecdotal" }),
+      reading({ id: "a", source: "same", experimentId: "EXP-1", rung: "Observed usage", magnitudeBand: "Low" }),
+      reading({ id: "b", source: "same", experimentId: "EXP-1", rung: "Talk", magnitudeBand: "Low" }),
     ]);
     expect(a.movers[0]!.readingCount).toBe(1);
     expect(a.movers[0]!.readingIds).toEqual(["a"]);
@@ -159,7 +161,7 @@ describe("confidenceTrajectory", () => {
   it("emits one ascending point per dated conclusion, ending at today's confidence", () => {
     const readings = [
       reading({ id: "a", source: "sa", date: "2026-01-01" }),
-      reading({ id: "b", source: "sb", date: "2026-03-01", result: "Invalidated", rung: "Anecdotal" }),
+      reading({ id: "b", source: "sb", date: "2026-03-01", result: "Invalidated", rung: "Talk", magnitudeBand: "Low" }),
       reading({ id: "c", source: "sc", date: "2026-02-01" }),
     ];
     const t = confidenceTrajectory(readings);

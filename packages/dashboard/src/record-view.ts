@@ -108,7 +108,7 @@ export function headerPills(
   } else if (register === "readings") {
     // Rung + magnitude band are the reading's own evidence tier + intensity
     // (0.10, row-level) — one per artifact, so they lead the header as a single
-    // paired badge ("Anecdotal · High"), not the per-belief cards. Both fall
+    // paired badge ("Talk · High"), not the per-belief cards. Both fall
     // back to a belief's value on pre-migration data.
     const rung = readingRung(record);
     const band = readingMagnitudeBand(record);

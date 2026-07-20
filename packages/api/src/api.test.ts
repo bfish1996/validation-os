@@ -184,7 +184,8 @@ describe("createApi link", () => {
       id: "RDG-1",
       Source: "proto-1",
       experimentId: null,
-      Rung: "Prototype usage",
+      Rung: "Observed usage",
+        magnitudeBand: "Low",
       Representativeness: 1.0,
       Credibility: 1.0,
       beliefs: [
@@ -283,7 +284,8 @@ describe("derive-on-write", () => {
         Title: "Prototype run",
         Source: "proto-1",
         experimentId: null,
-        Rung: "Prototype usage",
+        Rung: "Observed usage",
+        magnitudeBand: "Low",
         Representativeness: 1.0,
         Credibility: 1.0,
         beliefs: [
@@ -313,7 +315,8 @@ describe("derive-on-write", () => {
         id: "RDG-1",
         Source: "proto-1",
         experimentId: null,
-        Rung: "Prototype usage",
+        Rung: "Observed usage",
+        magnitudeBand: "Low",
         Representativeness: 1.0,
         Credibility: 1.0,
         beliefs: [
@@ -333,7 +336,7 @@ describe("derive-on-write", () => {
       derivedImpact: number;
     };
     // Prototype-usage Validated, sq=1, found → w=30×0.85=25.5.
-    // W0[Prototype usage] = 140. 25.5×30 / (140+25.5) = 765/165.5 = 4.622… → 4.62
+    // W0[Observed usage] = 140. 25.5×30 / (140+25.5) = 765/165.5 = 4.622… → 4.62
     expect(derived.confidence).toBe(4.62);
     expect(derived.derivedImpact).toBe(50);
     expect(derived.risk).toBe(47.69); // 50 × (1 − 4.62/100) = 50 × 0.9538 = 47.69

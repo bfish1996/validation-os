@@ -3,7 +3,6 @@ import {
   COMMITMENT_FOUND,
   confidence,
   derivedImpacts,
-  isMarketRung,
   readingStrength,
   risk,
   sign,
@@ -24,7 +23,7 @@ function reading(
   return {
     id: over.id ?? "RDG-001",
     source: over.source ?? "src-1",
-    rung: over.rung ?? "Prototype usage",
+    rung: over.rung ?? "Observed usage",
     result: over.result ?? "Validated",
     representativeness: over.representativeness ?? 1.0,
     credibility: over.credibility ?? 1.0,
@@ -43,30 +42,48 @@ describe("sign", () => {
 });
 
 describe("readingStrength", () => {
-  it("uses the rung anchor × sign for testing rungs", () => {
-    // Anecdotal is the merged floor at 3 (absorbs the retired Opinion rung).
-    expect(readingStrength({ rung: "Anecdotal", result: "Validated" })).toBe(3);
-    expect(readingStrength({ rung: "Anecdotal", result: "Invalidated" })).toBe(
-      -3,
-    );
-    expect(readingStrength({ rung: "Desk research", result: "Invalidated" })).toBe(
-      -15,
-    );
+  it("uses the rung anchor × magnitude band × sign (0.14 lens-aware ladder)", () => {
+    // Talk is the collapsed floor rung — bands L/T/H carry the old
+    // Opinion (3) / Pitch-deck (6) / Anecdotal (10) anchors.
     expect(
-      readingStrength({ rung: "Prototype usage", result: "Validated" }),
+      readingStrength({ rung: "Talk", result: "Validated", magnitudeBand: "Low" }),
+    ).toBe(3);
+    expect(
+      readingStrength({ rung: "Talk", result: "Invalidated", magnitudeBand: "Low" }),
+    ).toBe(-3);
+    // Desk research is flat across bands (15).
+    expect(
+      readingStrength({ rung: "Desk research", result: "Invalidated" }),
+    ).toBe(-15);
+    // Observed usage: Low(30) / Typical(50) / High(70).
+    expect(
+      readingStrength({ rung: "Observed usage", result: "Validated", magnitudeBand: "Low" }),
     ).toBe(30);
+    expect(
+      readingStrength({ rung: "Observed usage", result: "Validated", magnitudeBand: "High" }),
+    ).toBe(70);
+  });
+
+  it("defaults the band to Typical for every rung", () => {
+    // Observed usage Typical = 50 (was Prototype usage single-anchor 30).
+    expect(
+      readingStrength({ rung: "Observed usage", result: "Validated" }),
+    ).toBe(50);
+    expect(
+      readingStrength({ rung: "Talk", result: "Validated" }),
+    ).toBe(6);
   });
 
   it("is 0 for Inconclusive regardless of rung", () => {
     expect(
-      readingStrength({ rung: "Prototype usage", result: "Inconclusive" }),
+      readingStrength({ rung: "Observed usage", result: "Inconclusive" }),
     ).toBe(0);
     expect(
       readingStrength({ rung: "Paying users", result: "Inconclusive" }),
     ).toBe(0);
   });
 
-  it("reads the magnitude band for market rungs, defaulting to Typical", () => {
+  it("reads the magnitude band for market rungs", () => {
     expect(
       readingStrength({ rung: "Signed intent", result: "Validated" }),
     ).toBe(68); // Typical default
@@ -84,12 +101,6 @@ describe("readingStrength", () => {
         magnitudeBand: "High",
       }),
     ).toBe(-99);
-  });
-
-  it("classifies market vs testing rungs", () => {
-    expect(isMarketRung("Paying users")).toBe(true);
-    expect(isMarketRung("Signed intent")).toBe(true);
-    expect(isMarketRung("Anecdotal")).toBe(false);
   });
 });
 
@@ -113,37 +124,43 @@ describe("confidence", () => {
   });
 
   it("computes a signed weighted average with the w0 prior", () => {
-    // One Prototype-usage Validated reading, full source quality.
-    // s = 30, w = |30| × 1 × 1.0 = 30. W0[Prototype] = 140.
+    // One Observed-usage (Low) Validated reading, full source quality.
+    // s = 30, w = |30| × 1 × 1.0 = 30. W0[Observed usage] = 140.
     // num = 30×30 = 900. den = 140 + 30 = 170. 900 / 170 = 5.294… → 5.29
-    expect(confidence([reading()])).toBe(5.29);
+    expect(
+      confidence([reading({ magnitudeBand: "Low" })]),
+    ).toBe(5.29);
     // W0 is per-rung now; the flat constant is retained (legacy) at 100.
     expect(W0).toBe(100);
-    expect(w0ForRung("Prototype usage")).toBe(140);
+    expect(w0ForRung("Observed usage")).toBe(140);
     expect(w0ForRung("Desk research")).toBe(2);
     expect(W0_BY_RUNG["Desk research"]).toBe(2);
   });
 
   it("goes negative when evidence is against", () => {
     // s = -30, num = -900, den = 170 → -5.29
-    expect(confidence([reading({ result: "Invalidated" })])).toBe(-5.29);
+    expect(
+      confidence([reading({ result: "Invalidated", magnitudeBand: "Low" })]),
+    ).toBe(-5.29);
   });
 
   it("nets opposing readings from independent sources", () => {
     const c = confidence([
-      reading({ id: "a", source: "src-a", result: "Validated" }),
-      reading({ id: "b", source: "src-b", result: "Invalidated" }),
+      reading({ id: "a", source: "src-a", result: "Validated", magnitudeBand: "Low" }),
+      reading({ id: "b", source: "src-b", result: "Invalidated", magnitudeBand: "Low" }),
     ]);
     expect(c).toBe(0); // symmetric strengths cancel in the numerator
   });
 
   it("dedupes readings sharing a source to the strongest", () => {
-    // Same source: a Prototype (30) and an Anecdotal (3). Only the 30 counts.
+    // Same source: an Observed-usage (30) and a Talk (3). Only the 30 counts.
     const deduped = confidence([
-      reading({ id: "a", source: "same", rung: "Prototype usage" }),
-      reading({ id: "b", source: "same", rung: "Anecdotal" }),
+      reading({ id: "a", source: "same", rung: "Observed usage", magnitudeBand: "Low" }),
+      reading({ id: "b", source: "same", rung: "Talk", magnitudeBand: "Low" }),
     ]);
-    expect(deduped).toBe(confidence([reading({ rung: "Prototype usage" })]));
+    expect(deduped).toBe(
+      confidence([reading({ rung: "Observed usage", magnitudeBand: "Low" })]),
+    );
   });
 
   it("dedupes off Source alone — Context links never enter the math", () => {
@@ -151,15 +168,17 @@ describe("confidence", () => {
     // (OPS-1305) keys dedupe off Source only; Context links drive nothing and
     // aren't even part of the derivation input.
     const shared = confidence([
-      reading({ id: "a", source: "person-7", rung: "Prototype usage" }),
-      reading({ id: "b", source: "person-7", rung: "Anecdotal" }),
+      reading({ id: "a", source: "person-7", rung: "Observed usage", magnitudeBand: "Low" }),
+      reading({ id: "b", source: "person-7", rung: "Talk", magnitudeBand: "Low" }),
     ]);
-    expect(shared).toBe(confidence([reading({ rung: "Prototype usage" })]));
+    expect(shared).toBe(
+      confidence([reading({ rung: "Observed usage", magnitudeBand: "Low" })]),
+    );
 
     // Different Source → both count independently, even against one belief.
     const independent = confidence([
-      reading({ id: "a", source: "person-7", result: "Validated" }),
-      reading({ id: "b", source: "person-9", result: "Validated" }),
+      reading({ id: "a", source: "person-7", result: "Validated", magnitudeBand: "Low" }),
+      reading({ id: "b", source: "person-9", result: "Validated", magnitudeBand: "Low" }),
     ]);
     expect(independent).toBeGreaterThan(shared);
   });
@@ -168,10 +187,10 @@ describe("confidence", () => {
     // Equal strength, same source — the later date wins. Both Validated here
     // so the value is identical, but the count must be one, not two.
     const one = confidence([
-      reading({ id: "a", source: "s", date: "2026-01-01" }),
-      reading({ id: "b", source: "s", date: "2026-06-01" }),
+      reading({ id: "a", source: "s", date: "2026-01-01", magnitudeBand: "Low" }),
+      reading({ id: "b", source: "s", date: "2026-06-01", magnitudeBand: "Low" }),
     ]);
-    expect(one).toBe(confidence([reading()]));
+    expect(one).toBe(confidence([reading({ magnitudeBand: "Low" })]));
   });
 
   it("never dedupes market-rung readings (each is its own unit)", () => {
@@ -196,11 +215,15 @@ describe("confidence", () => {
 
 describe("confidence — commitment factor", () => {
   it("discounts a found reading (no experiment) to 0.85 of its weight", () => {
-    // Prototype-usage Validated, sq=1. s=30.
+    // Observed-usage (Low) Validated, sq=1. s=30.
     // committed:  w = 30 × 1 × 1.00 = 30    → 30×30 / (140+30)  = 5.294… → 5.29
     // found:      w = 30 × 1 × 0.85 = 25.5  → 25.5×30 / (140+25.5) = 4.622… → 4.62
-    const committed = confidence([reading({ experimentId: "EXP-1" })]);
-    const found = confidence([reading({ experimentId: null })]);
+    const committed = confidence([
+      reading({ experimentId: "EXP-1", magnitudeBand: "Low" }),
+    ]);
+    const found = confidence([
+      reading({ experimentId: null, magnitudeBand: "Low" }),
+    ]);
     expect(committed).toBe(5.29);
     expect(found).toBe(4.62);
     expect(found).toBeLessThan(committed);
@@ -209,13 +232,13 @@ describe("confidence — commitment factor", () => {
 
   it("keeps Rung dominant: a high-rung found reading outweighs a low-rung committed one", () => {
     // The commitment factor is a small tiebreaker, never a rung-reorderer.
-    // found high rung:      Prototype (30) × 0.85 → 4.62
-    // committed low rung:  Anecdotal (3) × 1.00  → 3×3 / (6.5+3) = 0.947… → 0.95
+    // found high rung:      Observed usage Low (30) × 0.85 → 4.62
+    // committed low rung:  Talk Low (3) × 1.00  → 3×3 / (6.5+3) = 0.947… → 0.95
     const foundHigh = confidence([
-      reading({ rung: "Prototype usage", experimentId: null }),
+      reading({ rung: "Observed usage", magnitudeBand: "Low", experimentId: null }),
     ]);
     const committedLow = confidence([
-      reading({ rung: "Anecdotal", experimentId: "EXP-1" }),
+      reading({ rung: "Talk", magnitudeBand: "Low", experimentId: "EXP-1" }),
     ]);
     expect(foundHigh).toBeGreaterThan(committedLow);
   });

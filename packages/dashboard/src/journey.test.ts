@@ -115,8 +115,8 @@ describe("buildJourney", () => {
             Date: "2026-02-01",
             barLineAssumptionIds: ["b1"],
             barLines: [
-              { assumptionId: "b1", rightIf: "…", plannedRung: "Survey at scale", barVerdict: "Validated" },
-              { assumptionId: "b1", rightIf: "…", plannedRung: "Survey at scale", barVerdict: null },
+              { assumptionId: "b1", rightIf: "…", plannedRung: "Observed usage", barVerdict: "Validated" },
+              { assumptionId: "b1", rightIf: "…", plannedRung: "Observed usage", barVerdict: null },
             ],
           }),
         ],
@@ -205,7 +205,7 @@ describe("buildJourney", () => {
       experiments: [
         experiment({
           id: "e1",
-          barLines: [{ assumptionId: "b1", rightIf: "…", plannedRung: "Survey at scale", barVerdict: null }],
+          barLines: [{ assumptionId: "b1", rightIf: "…", plannedRung: "Observed usage", barVerdict: null }],
         }),
       ],
     });

@@ -6,7 +6,8 @@ function reading(
 ): AttributionReadingInput {
   return {
     source: over.id,
-    rung: "Prototype usage",
+    rung: "Observed usage",
+    magnitudeBand: "Low",
     result: "Validated",
     representativeness: 1.0,
     credibility: 1.0,

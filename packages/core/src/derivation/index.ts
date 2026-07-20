@@ -7,11 +7,7 @@
  * kept in lock-step with `skills/_shared/ontology.yaml`.
  */
 export { round2 } from "./round.js";
-export {
-  RUNG_ANCHOR,
-  MARKET_RUNG_ANCHOR,
-  isMarketRung,
-} from "./rung.js";
+export { RUNG_ANCHOR } from "./rung.js";
 export {
   COMPLETENESS_SLOTS,
   completenessSlotPresence,
@@ -42,6 +38,11 @@ export type {
 } from "./attribution.js";
 export { experimentProgress } from "./progress.js";
 export type { BarLineInput, Progress } from "./progress.js";
+export { experimentConfidence, MAX_STRENGTH } from "./experiment-confidence.js";
+export type {
+  ExperimentConfidenceBarInput,
+  ExperimentConfidenceReadingInput,
+} from "./experiment-confidence.js";
 export { confidenceTrajectory } from "./trajectory.js";
 export type { TrajectoryPoint } from "./trajectory.js";
 export { derivedImpacts } from "./impact.js";

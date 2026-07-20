@@ -9,9 +9,9 @@ import { buildUnderstanding } from "./understanding.js";
 function reading(over: Partial<AnyRecord> = {}): AnyRecord {
   const {
     assumptionId = "ASM-1",
-    Rung = "Prototype usage",
+    Rung = "Observed usage",
     Result = "Validated",
-    magnitudeBand,
+    magnitudeBand = "Low",
     ...rest
   } = over as Record<string, unknown>;
   return {
@@ -186,8 +186,8 @@ describe("buildUnderstanding", () => {
     const u = buildUnderstanding(
       asm,
       [
-        reading({ id: "a", Source: "sa", experimentId: "weak", Rung: "Anecdotal" }),
-        reading({ id: "b", Source: "sb", experimentId: "strong", Rung: "Prototype usage" }),
+        reading({ id: "a", Source: "sa", experimentId: "weak", Rung: "Talk", magnitudeBand: "Low" }),
+        reading({ id: "b", Source: "sb", experimentId: "strong", Rung: "Observed usage", magnitudeBand: "Low" }),
       ],
       [experiment({ id: "weak" }), experiment({ id: "strong" })],
     );

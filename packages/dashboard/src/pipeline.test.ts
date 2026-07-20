@@ -41,9 +41,9 @@ function experiment(over: Partial<AnyRecord> & { id: string }): AnyRecord {
 function reading(over: Partial<AnyRecord> & { id: string }): AnyRecord {
   const {
     assumptionId = "",
-    Rung = "Survey at scale",
+    Rung = "Observed usage",
     Result = "Validated",
-    magnitudeBand,
+    magnitudeBand = "Low",
     ...rest
   } = over as Record<string, unknown> & { id: string };
   return {
@@ -101,8 +101,8 @@ describe("buildPipeline", () => {
         experiment({
           id: "e1",
           barLines: [
-            { assumptionId: "b1", rightIf: "…", plannedRung: "Survey at scale", barVerdict: "Validated" },
-            { assumptionId: "b1", rightIf: "…", plannedRung: "Survey at scale", barVerdict: null },
+            { assumptionId: "b1", rightIf: "…", plannedRung: "Observed usage", barVerdict: "Validated" },
+            { assumptionId: "b1", rightIf: "…", plannedRung: "Observed usage", barVerdict: null },
           ],
         }),
       ],
@@ -136,7 +136,7 @@ describe("buildPipeline", () => {
 
   it("does not count an archived plan as a designed test (evidence ≠ tested)", () => {
     const bars = [
-      { assumptionId: "b1", rightIf: "…", plannedRung: "Survey at scale", barVerdict: null },
+      { assumptionId: "b1", rightIf: "…", plannedRung: "Observed usage", barVerdict: null },
     ];
     // Same plan, only the Status differs: Archived must not make the belief Planned.
     const archived = buildPipeline(
@@ -216,7 +216,7 @@ describe("weekOverWeekDelta", () => {
           id: "r1",
           assumptionId: "a",
           Date: "2026-07-15",
-          Rung: "Prototype usage",
+          Rung: "Observed usage",
           Result: "Validated",
         }),
       ],

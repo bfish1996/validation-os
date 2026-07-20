@@ -2,11 +2,14 @@
  * Strength — the signed reading value `s` the Confidence average reads.
  *
  * Formula (`ontology.yaml` → `derivations.strength`):
- *   rung anchor (Market rungs: × magnitude band) × sign(Result)
+ *   rung anchor × magnitude band × sign(Result)
  *   — Validated positive, Invalidated negative; 0 unless Validated/Invalidated.
+ *
+ * Every rung now carries a magnitude band (0.14); the lookup is the same for
+ * testing and market rungs.
  */
 import type { MagnitudeBand, Result, Rung } from "../types.js";
-import { MARKET_RUNG_ANCHOR, RUNG_ANCHOR, isMarketRung } from "./rung.js";
+import { RUNG_ANCHOR } from "./rung.js";
 
 export function sign(result: Result): -1 | 0 | 1 {
   if (result === "Validated") return 1;
@@ -24,16 +27,13 @@ export function isConcluded(result: Result): boolean {
 export interface StrengthInput {
   rung: Rung;
   result: Result;
-  /** Only read for Market rungs; defaults to "Typical" when absent. */
+  /** Magnitude band; defaults to "Typical" when absent. Applies to ALL rungs. */
   magnitudeBand?: MagnitudeBand;
 }
 
 export function readingStrength(input: StrengthInput): number {
   const s = sign(input.result);
   if (s === 0) return 0; // Inconclusive contributes nothing.
-  if (isMarketRung(input.rung)) {
-    const band = input.magnitudeBand ?? "Typical";
-    return MARKET_RUNG_ANCHOR[input.rung][band] * s;
-  }
-  return (RUNG_ANCHOR[input.rung] ?? 0) * s;
+  const band = input.magnitudeBand ?? "Typical";
+  return (RUNG_ANCHOR[input.rung]?.[band] ?? 0) * s;
 }
