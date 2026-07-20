@@ -9,7 +9,7 @@
  *   Goals never contribute. Moot rows pin to 0 and contribute nothing.
  *
  * One reverse-topological pass (dependents first) with memoization and a
- * cycle guard, matching `doshi-validation-os/migration/remodel.mjs`.
+ * cycle guard, matching the instance's `migration/remodel.mjs`.
  */
 import { round2 } from "./round.js";
 

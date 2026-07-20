@@ -152,7 +152,7 @@
   Next.js/webpack builds consuming `@validation-os/dashboard/styles.css`.
   Gives `.vos-why-rank` (an `<ol>`) a list reset and `.vos-why-rank-title`
   a flex-grow + ellipsis body matching the `<span>` next to the score.
-  Found while migrating the `doshi-validation-os` instance to 0.6.0/0.6.1.
+  Found while migrating a `validation-os` instance to 0.6.0/0.6.1.
 
   - @validation-os/core@0.6.2
 
@@ -165,7 +165,7 @@
   The `.vos-radio input` rule was missing its closing brace, producing an
   `Unclosed block (1776:1)` error that crashed any Next.js/webpack build
   consuming `@validation-os/dashboard/styles.css`. Found while migrating
-  the `doshi-validation-os` instance to 0.6.0.
+  a `validation-os` instance to 0.6.0.
 
   - @validation-os/core@0.6.1
 

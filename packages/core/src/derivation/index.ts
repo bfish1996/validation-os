@@ -3,7 +3,7 @@
  *
  * The same module the dashboard, the API (derive-on-write), and Claude Code
  * audits all call, so every writer computes the four derived numbers
- * identically. Ported from `doshi-validation-os/migration/remodel.mjs` and
+ * identically. Ported from the instance's `migration/remodel.mjs` and
  * kept in lock-step with `skills/_shared/ontology.yaml`.
  */
 export { round2 } from "./round.js";

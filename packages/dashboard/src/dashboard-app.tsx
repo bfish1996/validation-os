@@ -20,7 +20,7 @@ import { useCounts, useNeedsHuman } from "./use-counts.js";
 export interface DashboardConfig {
   /** Where the API is mounted (default `/api`). */
   basePath?: string;
-  /** Topbar backend indicator, e.g. "Firestore · doshi-crm". */
+  /** Topbar backend indicator, e.g. "Firestore · my-register". */
   backendLabel?: string;
   /** Optional product branding for the sidebar. */
   branding?: {
