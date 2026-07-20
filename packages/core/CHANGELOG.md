@@ -1,5 +1,11 @@
 # @validation-os/core
 
+## 0.11.0
+
+### Minor Changes
+
+- a5f7151: Stage policy: add Stage field to assumptions + Lens × Stage heatmap dashboard grid. The stage taxonomy (Discovery / Validation / Scale / Maturity) embeds the membership test — every assumption must be a falsifiable claim about an external actor's response. See `docs/stage-policy.md`.
+
 ## 0.10.0
 
 ### Minor Changes
