@@ -1,5 +1,17 @@
 # @validation-os/dashboard
 
+## 0.11.0
+
+### Minor Changes
+
+- a5f7151: Lens × Stage grid is now the landing for `#assumptions`. Cell click drills into a filtered assumptions table (`#assumptions?lens=X&stage=Y`); "View all" opens the unfiltered table (`#assumptions?view=all`). The standalone "Lens × Stage" nav item is gone — the grid lives on the register it filters. The `#stage-grid` URL still works for backward compatibility.
+- a5f7151: Stage policy: add Stage field to assumptions + Lens × Stage heatmap dashboard grid. The stage taxonomy (Discovery / Validation / Scale / Maturity) embeds the membership test — every assumption must be a falsifiable claim about an external actor's response. See `docs/stage-policy.md`.
+
+### Patch Changes
+
+- Updated dependencies [a5f7151]
+  - @validation-os/core@0.11.0
+
 ## 0.10.0
 
 ### Minor Changes
