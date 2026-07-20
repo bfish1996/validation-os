@@ -23,7 +23,13 @@ export type { CompletenessSlot, CompletenessInput } from "./completeness.js";
 export { sign, isConcluded, readingStrength } from "./strength.js";
 export type { StrengthInput } from "./strength.js";
 export { sourceQuality } from "./source-quality.js";
-export { confidence, scoreAndDedupe, W0 } from "./confidence.js";
+export {
+  confidence,
+  scoreAndDedupe,
+  commitmentFactor,
+  COMMITMENT_FOUND,
+  W0,
+} from "./confidence.js";
 export type { ConfidenceReadingInput, Scored } from "./confidence.js";
 export { confidenceAttribution } from "./attribution.js";
 export type {

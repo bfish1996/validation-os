@@ -10,6 +10,8 @@ import { EditFields } from "./edit-fields.js";
 import type { RelatedSet } from "./record-view.js";
 import { useUpdate } from "./use-records.js";
 import { UnderstandingPanel } from "./understanding-panel.js";
+import { Markdown } from "./markdown.js";
+import { BeliefVerdicts } from "./belief-verdicts.js";
 
 export interface RecordDrawerProps {
   register: Collection;
@@ -255,15 +257,35 @@ export function RecordDrawer({
                 onField={setField}
               />
             ) : (
-              <div className="vos-detail-list">
-                {rows.map((row) => (
-                  <DetailRowView
-                    key={row.key}
-                    row={row}
-                    onOpenRecord={onOpenRecord}
-                  />
-                ))}
-              </div>
+              <>
+                <div className="vos-detail-list">
+                  {rows.map((row) => (
+                    <DetailRowView
+                      key={row.key}
+                      row={row}
+                      onOpenRecord={onOpenRecord}
+                    />
+                  ))}
+                </div>
+                {typeof record.body === "string" && record.body.trim() ? (
+                  <section className="vos-record-prose">
+                    <div className="vos-detail-k">
+                      {register === "readings" ? "Quote" : "Narrative"}
+                    </div>
+                    <Markdown text={record.body} />
+                  </section>
+                ) : null}
+                {register === "readings" ? (
+                  <section className="vos-record-prose">
+                    <div className="vos-detail-k">Per-belief verdicts</div>
+                    <BeliefVerdicts
+                      reading={record}
+                      assumptions={related?.assumptions ?? []}
+                      onOpenRecord={onOpenRecord}
+                    />
+                  </section>
+                ) : null}
+              </>
             )}
           </>
         )}

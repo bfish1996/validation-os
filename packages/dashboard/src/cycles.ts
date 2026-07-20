@@ -29,13 +29,20 @@
  * out of the OPS-1251 on-write recompute.
  */
 import {
-  toReadingInput,
+  readingBeliefInputs,
   type AnyRecord,
   type BarLine,
   type Result,
 } from "@validation-os/core";
 import { confidenceAttribution } from "@validation-os/core/derivation";
-import { str, testsAssumption } from "./derived-views.js";
+import {
+  isArchivedExperiment,
+  liveExperiments,
+  readingBeliefFor,
+  readingGrades,
+  str,
+  testsAssumption,
+} from "./derived-views.js";
 
 /** The round's key: the experiment id, or `"direct"` for the bare-reading bucket. */
 export const DIRECT_CYCLE_KEY = "direct";
@@ -74,11 +81,13 @@ function readingDate(r: AnyRecord): string | null {
   return str(r.Date);
 }
 
-function toCycleReading(r: AnyRecord): CycleReadingView {
+/** One reading reduced for the timeline — its verdict is this belief's own
+ * belief-score Result (the row no longer carries a scalar Result). */
+function toCycleReading(r: AnyRecord, assumptionId: string): CycleReadingView {
   return {
     id: r.id,
     date: readingDate(r),
-    result: (r.Result as Result | null) ?? null,
+    result: readingBeliefFor(r, assumptionId)?.Result ?? null,
   };
 }
 
@@ -108,8 +117,11 @@ export function buildCycles(
   readings: AnyRecord[],
   experiments: AnyRecord[],
 ): CycleView[] {
-  const mine = readings.filter((r) => r.assumptionId === assumptionId);
-  const { movers } = confidenceAttribution(mine.map(toReadingInput));
+  const mine = readings.filter((r) => readingGrades(r, assumptionId));
+  const inputs = readings
+    .flatMap(readingBeliefInputs)
+    .filter((i) => i.assumptionId === assumptionId);
+  const { movers } = confidenceAttribution(inputs);
   const moverByKey = new Map(movers.map((m) => [m.key, m]));
 
   const byExperiment = new Map<string, AnyRecord[]>();
@@ -126,17 +138,25 @@ export function buildCycles(
   }
 
   const experimentsById = new Map(experiments.map((e) => [e.id, e]));
-  // Every experiment testing this belief (a bar line naming it) plus any
+  // Every LIVE experiment testing this belief (a bar line naming it) plus any
   // experiment a reading points at that isn't linked via bar lines — the same
-  // union `understanding.ts` builds, so no round is silently dropped.
+  // union `understanding.ts` builds, so no round is silently dropped. Archived
+  // plans never form a round (OPS-1305); an absent (missing) plan still does.
   const experimentIds = new Set<string>([
-    ...experiments.filter((e) => testsAssumption(e, assumptionId)).map((e) => e.id),
-    ...byExperiment.keys(),
+    ...liveExperiments(experiments)
+      .filter((e) => testsAssumption(e, assumptionId))
+      .map((e) => e.id),
+    ...[...byExperiment.keys()].filter((id) => {
+      const e = experimentsById.get(id);
+      return !e || !isArchivedExperiment(e);
+    }),
   ]);
 
   const cycles: CycleView[] = [...experimentIds].map((id) => {
     const exp = experimentsById.get(id);
-    const readingViews = sortByDate((byExperiment.get(id) ?? []).map(toCycleReading));
+    const readingViews = sortByDate(
+      (byExperiment.get(id) ?? []).map((r) => toCycleReading(r, assumptionId)),
+    );
     const mover = moverByKey.get(id);
     const date = (exp ? str(exp.Date) : null) ?? readingViews[0]?.date ?? null;
     return {
@@ -153,7 +173,9 @@ export function buildCycles(
   });
 
   if (direct.length > 0) {
-    const readingViews = sortByDate(direct.map(toCycleReading));
+    const readingViews = sortByDate(
+      direct.map((r) => toCycleReading(r, assumptionId)),
+    );
     const mover = moverByKey.get(DIRECT_CYCLE_KEY);
     cycles.push({
       key: DIRECT_CYCLE_KEY,

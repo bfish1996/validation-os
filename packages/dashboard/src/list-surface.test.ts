@@ -31,20 +31,51 @@ function assumption(id: string, o: Partial<AnyRecord> = {}): AnyRecord {
     ...o,
   };
 }
+// A reading scores per belief now (OPS-1305). The fixture keeps the terse
+// call-sites (assumptionId / Result / a row-level `derived.strength` via `d()`)
+// and folds them into one `beliefs[]` entry; strength/quality land where the
+// new model keeps them (per belief / row-level `sourceQuality`).
 function reading(id: string, o: Partial<AnyRecord> = {}): AnyRecord {
+  const {
+    assumptionId = null,
+    Rung = "Prototype usage",
+    Result = "Inconclusive",
+    derived,
+    ...rest
+  } = o as Record<string, unknown>;
+  const strength =
+    derived && typeof (derived as Record<string, unknown>).strength === "number"
+      ? ((derived as Record<string, number>).strength as number)
+      : 0;
+  const sourceQuality =
+    derived &&
+    typeof (derived as Record<string, unknown>).sourceQuality === "number"
+      ? ((derived as Record<string, number>).sourceQuality as number)
+      : 1;
   return {
     id,
     version: 1,
     createdAt: "",
     updatedAt: "",
     Title: id,
-    assumptionId: null,
+    Source: null,
     experimentId: null,
-    Result: "Inconclusive",
     Date: null,
-    derived: { sourceQuality: 1, strength: 0 },
-    ...o,
-  };
+    beliefs: assumptionId
+      ? [
+          {
+            assumptionId,
+            Rung,
+            Result,
+            "Grading justification": "",
+            derived: { strength },
+          },
+        ]
+      : [],
+    assumptionIds: assumptionId ? [assumptionId] : [],
+    derived: { sourceQuality },
+    ...rest,
+  } as AnyRecord;
 }
 function experiment(id: string, o: Partial<AnyRecord> = {}): AnyRecord {
   return {
@@ -156,8 +187,8 @@ describe("assumption tab membership", () => {
     expect(
       shapeRegister("assumptions", [belief], { tabId: "proven" }, ctx).rows.map((r) => r.id),
     ).toEqual(["a1"]);
-    // Flip the strongest reading to Invalidated → no longer proven.
-    ctx.readings![1]!.Result = "Invalidated";
+    // Flip the strongest reading's belief-score to Invalidated → no longer proven.
+    (ctx.readings![1]!.beliefs as { Result: string }[])[0]!.Result = "Invalidated";
     expect(
       shapeRegister("assumptions", [belief], { tabId: "proven" }, ctx).rows,
     ).toHaveLength(0);
@@ -261,6 +292,14 @@ describe("filter", () => {
       "a",
       "b",
     ]);
+  });
+
+  it("also matches a reading's Source (OPS-1305)", () => {
+    const records = [
+      reading("r1", { Source: "Acme cohort" }),
+      reading("r2", { Source: "Beta list" }),
+    ];
+    expect(filterRecords(records, "acme").map((r) => r.id)).toEqual(["r1"]);
   });
 });
 

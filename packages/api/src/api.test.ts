@@ -160,7 +160,7 @@ describe("createApi link", () => {
     await provider.create("readings", {
       id: "RDG-1",
       Title: "A reading",
-      assumptionId: "",
+      assumptionIds: [],
     });
     const api = createApi({ provider, authenticate: ALLOW, roster: ROSTER });
     const res = await api.link(
@@ -174,21 +174,29 @@ describe("createApi link", () => {
     const asm = await provider.get("assumptions", "ASM-1");
     const rdg = await provider.get("readings", "RDG-1");
     expect(asm.readingIds).toContain("RDG-1");
-    expect(rdg.assumptionId).toBe("ASM-1");
+    expect(rdg.assumptionIds).toContain("ASM-1");
   });
 
   it("recomputes derived numbers after linking a concluded reading", async () => {
     const provider = seededProvider();
-    // A concluded reading whose assumptionId is not yet wired.
+    // A concluded reading scoring ASM-1, whose readingIds inverse isn't wired yet.
     await provider.create("readings", {
       id: "RDG-1",
       Source: "proto-1",
-      assumptionId: "",
-      Rung: "Prototype usage",
-      Result: "Validated",
+      experimentId: null,
       Representativeness: 1.0,
       Credibility: 1.0,
-      derived: { sourceQuality: 1, strength: 30 },
+      beliefs: [
+        {
+          assumptionId: "ASM-1",
+          Rung: "Prototype usage",
+          Result: "Validated",
+          "Grading justification": "why",
+          derived: { strength: 30 },
+        },
+      ],
+      assumptionIds: ["ASM-1"],
+      derived: { sourceQuality: 1 },
     });
     const api = createApi({ provider, authenticate: ALLOW, roster: ROSTER });
     await api.link(
@@ -217,8 +225,56 @@ describe("createApi link", () => {
   });
 });
 
+describe("createApi unlink", () => {
+  function linkReq(body: unknown) {
+    return new Request("http://test/api/link", {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+  }
+
+  it("removes the relation from both ends", async () => {
+    const provider = seededProvider();
+    await provider.create("readings", {
+      id: "RDG-1",
+      Title: "A reading",
+      assumptionIds: [],
+    });
+    const api = createApi({ provider, authenticate: ALLOW, roster: ROSTER });
+    const body = {
+      relation: "assumption-reading",
+      from: { register: "assumptions", id: "ASM-1" },
+      to: { register: "readings", id: "RDG-1" },
+    };
+    await api.link(linkReq(body));
+    // Precondition: both ends wired.
+    expect((await provider.get("assumptions", "ASM-1")).readingIds).toContain(
+      "RDG-1",
+    );
+
+    const res = await api.unlink(linkReq(body));
+    expect(res.status).toBe(200);
+    const asm = await provider.get("assumptions", "ASM-1");
+    const rdg = await provider.get("readings", "RDG-1");
+    expect(asm.readingIds).not.toContain("RDG-1");
+    expect(rdg.assumptionIds).not.toContain("ASM-1");
+  });
+
+  it("rejects an unauthenticated unlink with 401", async () => {
+    const api = createApi({ provider: seededProvider(), authenticate: DENY, roster: ROSTER });
+    const res = await api.unlink(
+      linkReq({
+        relation: "assumption-reading",
+        from: { register: "assumptions", id: "ASM-1" },
+        to: { register: "readings", id: "RDG-1" },
+      }),
+    );
+    expect(res.status).toBe(401);
+  });
+});
+
 describe("derive-on-write", () => {
-  it("stamps a reading's Source quality and Strength on create", async () => {
+  it("stamps the row's Source quality and each belief's Strength on create", async () => {
     const provider = seededProvider();
     const api = createApi({ provider, authenticate: ALLOW, roster: ROSTER });
     const res = await api.create(
@@ -226,31 +282,47 @@ describe("derive-on-write", () => {
         id: "RDG-1",
         Title: "Prototype run",
         Source: "proto-1",
-        assumptionId: "ASM-1",
-        Rung: "Prototype usage",
-        Result: "Validated",
+        experimentId: null,
         Representativeness: 1.0,
         Credibility: 1.0,
+        beliefs: [
+          {
+            assumptionId: "ASM-1",
+            Rung: "Prototype usage",
+            Result: "Validated",
+            "Grading justification": "why",
+          },
+        ],
       }),
       ctx({ register: "readings" }),
     );
     expect(res.status).toBe(201);
     const body = await res.json();
-    expect(body.data.derived).toEqual({ sourceQuality: 1, strength: 30 });
+    // Source quality is a row property; Strength is per belief.
+    expect(body.data.derived).toEqual({ sourceQuality: 1 });
+    expect(body.data.beliefs[0].derived).toEqual({ strength: 30 });
+    // assumptionIds is kept in sync as the beliefs[] projection.
+    expect(body.data.assumptionIds).toEqual(["ASM-1"]);
   });
 
-  it("recomputes the linked assumption's Confidence and Risk after a reading write", async () => {
+  it("recomputes the scored assumption's Confidence and Risk after a reading write", async () => {
     const provider = seededProvider();
     const api = createApi({ provider, authenticate: ALLOW, roster: ROSTER });
     await api.create(
       req({
         id: "RDG-1",
         Source: "proto-1",
-        assumptionId: "ASM-1",
-        Rung: "Prototype usage",
-        Result: "Validated",
+        experimentId: null,
         Representativeness: 1.0,
         Credibility: 1.0,
+        beliefs: [
+          {
+            assumptionId: "ASM-1",
+            Rung: "Prototype usage",
+            Result: "Validated",
+            "Grading justification": "why",
+          },
+        ],
       }),
       ctx({ register: "readings" }),
     );
@@ -260,9 +332,11 @@ describe("derive-on-write", () => {
       risk: number;
       derivedImpact: number;
     };
-    expect(derived.confidence).toBe(6.92);
+    // Prototype-usage Validated, sq=1, found → w=30×0.85=25.5.
+    // 25.5×30 / (100+25.5) = 765/125.5 = 6.095… → 6.10
+    expect(derived.confidence).toBe(6.1);
     expect(derived.derivedImpact).toBe(50);
-    expect(derived.risk).toBe(46.54); // 50 × (1 − 6.92/100)
+    expect(derived.risk).toBe(46.95); // 50 × (1 − 6.10/100)
   });
 });
 

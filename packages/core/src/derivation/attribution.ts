@@ -16,10 +16,12 @@
 import { W0, scoreAndDedupe, type ConfidenceReadingInput } from "./confidence.js";
 import { round2 } from "./round.js";
 
-export interface AttributionReadingInput extends ConfidenceReadingInput {
-  /** The experiment that produced the reading, if any. */
-  experimentId?: string | null;
-}
+/**
+ * The reading shape the attribution reveal consumes. `experimentId` (the
+ * grouping key, and the commitment-factor driver) lives on
+ * {@link ConfidenceReadingInput}; this alias marks the attribution call sites.
+ */
+export type AttributionReadingInput = ConfidenceReadingInput;
 
 /** What a mover is anchored to — an experiment, or nothing (direct). */
 export type MoverKind = "experiment" | "direct";

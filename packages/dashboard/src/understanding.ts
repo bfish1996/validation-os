@@ -6,10 +6,13 @@
  * also moves the number, and the Confidence-over-time trajectory.
  *
  * The record → derivation-input mapping is `@validation-os/core`'s shared
- * `toReadingInput`, so a reading is read here exactly as it is server-side.
+ * `readingBeliefInputs`, which fans a reading row out into one input per belief;
+ * we keep this belief's inputs, so a reading is read here exactly as it is
+ * server-side. Archived experiments never surface here (OPS-1305) — the "Why?"
+ * only ever shows a live plan or direct evidence.
  */
 import {
-  toReadingInput,
+  readingBeliefInputs,
   type AnyRecord,
   type BarLine,
 } from "@validation-os/core";
@@ -22,7 +25,12 @@ import {
   type Progress,
   type TrajectoryPoint,
 } from "@validation-os/core/derivation";
-import { str, testsAssumption } from "./derived-views.js";
+import {
+  isArchivedExperiment,
+  liveExperiments,
+  str,
+  testsAssumption,
+} from "./derived-views.js";
 
 /** An experiment testing this assumption: how hard it moves Confidence, and
  * how close it is to concluding. `contribution` is 0 for a running experiment
@@ -70,8 +78,9 @@ export function buildUnderstanding(
   readings: AnyRecord[],
   experiments: AnyRecord[],
 ): Understanding {
-  const mine = readings.filter((r) => r.assumptionId === assumption.id);
-  const inputs = mine.map(toReadingInput);
+  const inputs = readings
+    .flatMap(readingBeliefInputs)
+    .filter((i) => i.assumptionId === assumption.id);
   const { confidence, movers } = confidenceAttribution(inputs);
 
   const experimentsById = new Map(experiments.map((e) => [e.id, e]));
@@ -79,12 +88,19 @@ export function buildUnderstanding(
     movers.filter((m) => m.kind === "experiment").map((m) => [m.experimentId!, m]),
   );
 
-  // Every experiment testing this belief — whether or not it has moved the
+  // Every live experiment testing this belief — whether or not it has moved the
   // number yet — plus any experiment a reading points at that isn't linked via
-  // bar lines. So a freshly-started experiment with no readings still shows.
+  // bar lines. So a freshly-started plan with no readings still shows. Archived
+  // plans are dropped entirely (OPS-1305): never a mover, never a row. A plan a
+  // reading points at but that isn't in the register is kept (absent ≠ archived).
   const experimentIds = new Set<string>([
-    ...experiments.filter((e) => testsAssumption(e, assumption.id)).map((e) => e.id),
-    ...moverByExperiment.keys(),
+    ...liveExperiments(experiments)
+      .filter((e) => testsAssumption(e, assumption.id))
+      .map((e) => e.id),
+    ...[...moverByExperiment.keys()].filter((id) => {
+      const e = experimentsById.get(id);
+      return !e || !isArchivedExperiment(e);
+    }),
   ]);
 
   const experimentViews: ExperimentView[] = [...experimentIds].map((id) => {

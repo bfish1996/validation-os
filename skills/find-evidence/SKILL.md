@@ -13,9 +13,12 @@ description: >-
   internal; can run both. Desk research runs under a trust harness
   (sub-question decomposition, A/B/C/D source tiering, triangulation,
   recency, provenance for every claim, an adversarial refute pass,
-  base-rate≠validation). Each qualifying hit is triaged against the
-  assumption's Description + Lens and written as a bare, conclusive Reading —
-  gated per record. Confidence recomputes automatically (signed:
+  base-rate≠validation). Each qualifying artifact is triaged against the
+  assumption's Description + Lens and written as ONE bare Reading carrying a
+  conclusive per-belief beliefs[] entry (one per belief it addresses) —
+  experimentId stays null unless the reading is the direct output of concluding
+  a committed plan — gated per record. Confidence recomputes automatically
+  (signed:
   evidence-against lowers it); the assumption's Status moves only on a
   human-affirmed kill (Confidence in the kill zone, ≤ −50, gated Live to
   Invalidated). Conclude mode: close a Running Experiment (Testing or
@@ -117,6 +120,17 @@ thread. Call transcripts are the primary internal source when available.
 
 **Neither — don't force a flavour:**
 
+- **Internal opinion is not evidence.** A board / strategy / planning meeting,
+  or the founder's / team's view of the market, is **hypothesis and framing**,
+  not a reading — it belongs in the assumption's `Scoring justification`
+  (`/assumptions`), never here, and never moves Confidence. **Evidence is
+  external** (a customer, user, prospect, partner, third-party dataset,
+  published source, observed market behaviour). Gate every candidate: *"Is the
+  source external to the team?"* If an internal meeting **reports** an external
+  fact (a customer's decision, a user's behaviour, a partner's commitment), log
+  only that fact — `Source` = the external event, graded on its rung,
+  `Credibility` lowered for the second-hand relay
+  (`../_shared/experiment-guardrails.md §0`).
 - **"Will *our* users do/pay/engage X?"** is a behavioural claim. Desk
   research can set a *base rate* but can't validate it, and there may be no
   internal signal yet → say so and point to `/experiment-design`. Log a
@@ -151,9 +165,12 @@ retrospective-honesty check, the gated write, and the Confidence roll-up.
 Follow it verbatim — don't re-derive the schema here. It first **pulls the
 assumption's open `Running` plans** (interview guides, `Desk research`
 tests) so that a found transcript which is *the run of* one of those plans
-**closes that bar line out** — logs the reading against it, judged against
-the pre-registered bar — rather than creating a duplicate. The match is
-proposed and confirmed at the gate, never auto-applied. **When `web` is in
+**closes that bar line out** — logs a `beliefs[]` entry against each bundled
+belief it addressed, `experimentId` set to that plan (the executed-plan case),
+judged against the pre-registered bar — rather than creating a duplicate. The
+match is proposed and confirmed at the gate, never auto-applied; a mere topic
+overlap with a `Running` plan does **not** set the origin — the artifact must
+be the plan's actual run. **When `web` is in
 `sources` it applies the desk disciplines in `../_shared/historic-evidence.md`
 §1 and §4** — tiering, triangulation, exact quotes with dates, the
 counter-case search — the rigor that makes a published fact trustworthy
@@ -168,9 +185,11 @@ the read is auditable. Search the disconfirming case too.
 
 ### 4. Close out
 
-- Report what changed: for each record, say whether it was a **new** bare
-  Reading or a reading logged against an existing `Running` plan's bar line,
-  with links, and Confidence before → after.
+- Report what changed: for each Reading, say whether it was a **new** bare
+  Reading (`experimentId` null) or entries logged against an existing `Running`
+  plan (origin set — the executed-plan case), which beliefs its `beliefs[]`
+  entries scored, with links, and each affected belief's Confidence before →
+  after.
 - Any verdict changes nothing on the assumption beyond Confidence — an
   invalidating one lowers it (re-test signal). If the recompute lands the
   Confidence at or below **−50**, the row is in the kill lane: propose the
@@ -205,9 +224,19 @@ standing committed plans resting on the belief.
   one exception is the kill: Confidence at or below −50 flips `Live` →
   `Invalidated`, gated and human-affirmed.
 - Never log a *not-yet-run* test as existing evidence — designing a future
-  test is `/experiment-design`. But **do** log a reading against a
-  `Running` plan's bar line once its interview has actually happened
-  (that's the default flow's §3 reconciliation, not a duplicate).
+  test is `/experiment-design`. But **do** log a `beliefs[]` entry against a
+  `Running` plan's bar line once its interview has actually happened, with
+  `experimentId` set to that plan (that's the default flow's §3
+  reconciliation, not a duplicate).
+- Never fan one artifact into several Readings, and never set `experimentId`
+  on found evidence for a mere topic overlap — one artifact is one Reading
+  with a per-belief `beliefs[]` entry, bare (origin null) unless it is the
+  executed output of the committed plan.
+- Never log internal opinion as evidence — a board/strategy/planning meeting
+  or team view of the market is hypothesis/framing (→ the assumption's
+  `Scoring justification`), never a reading. Evidence is external; from an
+  internal meeting log only the external facts it reports, attributed to the
+  external source at lower `Credibility`.
 - Never cherry-pick supporting hits — log disconfirming evidence
   (internal) and capture conflicting sources (desk).
 - Never write a desk fact you didn't fetch and quote, and never mark a

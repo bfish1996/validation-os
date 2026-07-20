@@ -266,11 +266,19 @@ prompts a human-affirmed kill (never automatic).
 **Volume lives in rung choice, not record count.** 100 people validating a
 belief = one `Survey at scale` record, not 100 `Anecdotal` records — the
 average is bounded by the strongest reading and same-source readings dedupe,
-so weak records don't stack. Two filters before a signal counts at all: (a)
+so weak records don't stack. Three filters before a signal counts at all: (a)
 it must test *this* claim — evidence for a sibling or dependency doesn't
-bear on this record (linkage is binary, one reading ↔ one belief); (b) a
-*planned* test ("X wants a demo") isn't evidence yet — it's an experiment to
-design.
+bear on this record; a reading that addresses several beliefs scores each in
+its own `beliefs[]` entry, and only the entry naming *this* assumption counts
+here, never spillover from a sibling entry; (b) a *planned* test ("X wants a
+demo") isn't evidence yet — it's an experiment to design; (c) **the source
+must be external to the team** — a customer, user, prospect, partner,
+third-party dataset, published source, or observed market behaviour. Internal
+meetings/discussions and team opinion about the market are **hypothesis, not
+evidence**: they belong in this `Scoring justification` as rationale, never as
+a reading, and never move Confidence. (An internal meeting that *reports* a
+verifiable external fact is second-hand evidence — attribute it to the true
+external source at lower `Credibility`, `experiment-guardrails.md §0`.)
 
 **Always record the chosen Impact band + a one-line reason** in the body's
 Scoring justification — so the number is auditable. A seed that contradicts
@@ -283,11 +291,13 @@ the record's own severity (e.g. "the thesis dies" scored 10) is a flag.
 - **Atomicity.** One assumption = one falsifiable claim. If the statement has
   "and"/"or"/";" joining separable claims, or needs two different metrics to
   disprove, **split it**.
-- **Duplicate test (merge).** Two assumptions are duplicates if **the same
-  pre-registered bar — the same reading — would resolve both**. Merge; keep
-  the most specific wording. ("One experiment tests both" is *not* the
-  test: one experiment legitimately bundles several distinct beliefs, each
-  with its own bar — `experiment-guardrails.md §1b`.)
+- **Duplicate test (merge).** Two assumptions are duplicates if **a single
+  pre-registered bar — one reading `beliefs[]` entry — would resolve both**.
+  Merge; keep the most specific wording. ("One experiment tests both" is *not*
+  the test: one experiment legitimately bundles several distinct beliefs, each
+  with its own bar — `experiment-guardrails.md §1b`; likewise one reading
+  legitimately scores several beliefs in separate `beliefs[]` entries — that
+  is not duplication either.)
 - **Distinctness test (keep).** They're distinct if their truth values are
   **independent** — one can be true while the other is false — i.e. each
   needs its own bar to fail independently. Distinct beliefs may still share
@@ -295,8 +305,8 @@ the record's own severity (e.g. "the thesis dies" scored 10) is a flag.
 - **Dependency ≠ duplicate.** "A builds on B" is a `Depends on` edge, not an
   overlap. Chains (need→feasibility, behaviour→why→threat) are kept, wired,
   not merged.
-- **Contradictions.** Two flavours — the test that separates them is *"could
-  one reading resolve both?"*
+- **Contradictions.** Two flavours — the test that separates them is *"could a
+  single bar (one reading `beliefs[]` entry) resolve both?"*
   - **(a) Direct contradiction (merge).** Two records asserting opposite
     truth values of the *same* proposition ("X IS a driver" / "X is NOT a
     driver") are **not two assumptions** — reconcile into **one**. The same

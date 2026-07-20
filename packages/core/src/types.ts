@@ -40,7 +40,7 @@ export type AssumptionStatus = "Draft" | "Live" | "Invalidated";
  * commit clears (Draft→Running); conclude+verdict stays the Running→Closed
  * gate. Absorbs what the retired Goal record's status used to carry.
  */
-export type ExperimentStatus = "Draft" | "Running" | "Closed";
+export type ExperimentStatus = "Draft" | "Running" | "Closed" | "Archived";
 export type DecisionStatus =
   | "Active"
   | "Provisional"
@@ -111,6 +111,31 @@ export interface AssumptionRecord extends BaseRecord {
   derived: AssumptionDerived;
 }
 
+/**
+ * One belief's scoring inside a reading — the per-assumption verdict an
+ * artifact carries. A reading (one artifact ROW) may score several beliefs at
+ * once, so the rung/result/justification that used to live on the row now live
+ * here, one entry per assumption. Mirrors how {@link BarLine} embeds on an
+ * experiment: no identity of its own, and its `strength` is derived (never
+ * hand-typed). Source quality stays row-level — it is a property of the
+ * artifact, not the belief.
+ */
+export interface BeliefScore {
+  assumptionId: string;
+  Rung: Rung;
+  Result: Result;
+  /** For Market-rung readings: the magnitude band from the absolute outcome. */
+  magnitudeBand?: MagnitudeBand;
+  /** The rationale for the rung / representativeness / credibility picks. */
+  "Grading justification": string;
+  /** Derived per belief: rung anchor × sign(Result) [× magnitude band]. */
+  derived: { strength: number };
+  /** Provenance: the original reading id this belief was migrated from. */
+  sourceReadingId?: string;
+  /** Optional review caveat, e.g. a second-hand-credibility note. */
+  reviewNote?: string;
+}
+
 export interface ReadingRecord extends BaseRecord {
   Title: string;
   /** The independence/dedupe key — the generator (person / dataset / cohort). */
@@ -121,20 +146,19 @@ export interface ReadingRecord extends BaseRecord {
    * dedupe key stays narrow.
    */
   contextLinks: string[];
-  assumptionId: string;
   /** The originating plan, or null for a bare/found reading (no Goal origin). */
   experimentId: string | null;
-  Rung: Rung;
   Representativeness: SourceQualityPick;
   Credibility: SourceQualityPick;
-  /** For Market-rung readings: the magnitude band from the absolute outcome. */
-  magnitudeBand?: MagnitudeBand;
-  Result: Result;
-  /** The rationale for the rung / representativeness / credibility picks. */
-  "Grading justification": string;
   Date: string | null;
   Owner: string[];
-  derived: { sourceQuality: number; strength: number };
+  /** Free-text narrative of the reading. */
+  body?: string;
+  /** Per-belief scores — one artifact row can score several beliefs at once. */
+  beliefs: BeliefScore[];
+  /** Convenience projection of `beliefs[].assumptionId`; kept in sync on write. */
+  assumptionIds: string[];
+  derived: { sourceQuality: number };
 }
 
 /**
@@ -156,6 +180,8 @@ export interface ExperimentRecord extends BaseRecord {
   Instrument: string | null;
   Feasibility: Feasibility | null;
   Status: ExperimentStatus;
+  /** Free-text narrative of the plan. */
+  body?: string;
   closureReason: "Completed" | "Early-stop" | "Kill" | null;
   /** Optional deadline a committed plan carries (folded in from the Goal). */
   Deadline: string | null;

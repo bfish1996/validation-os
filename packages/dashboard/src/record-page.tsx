@@ -10,7 +10,10 @@ import { toGlossaryTerms } from "./glossary.js";
 import { buildJourney } from "./journey.js";
 import { BeliefJourney } from "./journey-surface.js";
 import { REGISTER_LABEL, REGISTER_SINGULAR } from "./labels.js";
+import { readingBeliefs } from "./derived-views.js";
 import { nestReadingsByPlan } from "./list-surface.js";
+import { Markdown } from "./markdown.js";
+import { BeliefVerdicts } from "./belief-verdicts.js";
 import {
   formatSigned,
   riskFraction,
@@ -303,6 +306,7 @@ function RecordBody({
   const page = buildRecordPage(register, record, related, { asOf });
   const activeTab = page.tabs.includes(tab) ? tab : "overview";
   const description = typeof record.Description === "string" ? record.Description : "";
+  const bodyText = typeof record.body === "string" ? record.body : "";
   const hasErrors = Object.keys(edit.errors).length > 0;
 
   return (
@@ -407,6 +411,24 @@ function RecordBody({
                       onOpenTerm={onOpenTerm}
                     />
                   </p>
+                </section>
+              ) : null}
+              {bodyText ? (
+                <section className="vos-record-prose">
+                  <h3 className="vos-section-title">
+                    {register === "readings" ? "Quote" : "Narrative"}
+                  </h3>
+                  <Markdown text={bodyText} />
+                </section>
+              ) : null}
+              {register === "readings" ? (
+                <section className="vos-record-prose">
+                  <h3 className="vos-section-title">Per-belief verdicts</h3>
+                  <BeliefVerdicts
+                    reading={record}
+                    assumptions={related.assumptions ?? []}
+                    onOpenRecord={onOpenRecord}
+                  />
                 </section>
               ) : null}
               {page.humanText.length ? (
@@ -744,8 +766,12 @@ function EvidenceTab({
                   onClick={() => onOpenRecord(r.id)}
                 >
                   <span className="vos-backlink-title">{formatValue(r.Title)}</span>
+                  {/* A reading grades per belief now (OPS-1305) — the verdict is
+                      no longer a row scalar; open the reading for its verdicts.
+                      The chip shows how many beliefs it scored. */}
                   <span className="vos-chip vos-pill vos-pill-neutral">
-                    {formatValue(r.Result)}
+                    {readingBeliefs(r).length} belief
+                    {readingBeliefs(r).length === 1 ? "" : "s"}
                   </span>
                 </button>
               </li>

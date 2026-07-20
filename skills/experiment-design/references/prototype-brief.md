@@ -72,7 +72,9 @@ key each to the belief it does NOT compromise.>
 ## Instrumentation
 <The events / counts / observations that feed each belief's pass bar — each
 observation keyed to the belief and the "We're right if" it clears. If it
-can't be observed, it can't clear that bar.>
+can't be observed, it can't clear that bar. At capture (`/find-evidence`) the
+session becomes **one Reading with a `beliefs[]` entry per belief it scored**
+(never one Reading per belief); each observation set feeds its belief's entry.>
 
 ## Out of scope
 <Explicit list. Anything not needed to clear or kill a bundled belief's bar

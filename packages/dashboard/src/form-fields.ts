@@ -6,11 +6,7 @@
  * linking (see `relations.ts` / the relation editor), so id/relation fields are
  * deliberately absent. Vocabularies mirror `core`'s type unions.
  */
-import {
-  MARKET_RUNG_VALUES,
-  TESTING_RUNGS,
-  type Collection,
-} from "@validation-os/core";
+import type { Collection } from "@validation-os/core";
 import type { FieldKind } from "./edit.js";
 
 // The create form and the edit form speak the same field-kind vocabulary
@@ -38,11 +34,7 @@ const CLOSURE_REASON = ["Completed", "Early-stop", "Kill"] as const;
 const EXPERIMENT_OUTCOME = ["Achieved", "Missed", "Dropped"] as const;
 const DECISION_STATUS = ["Active", "Provisional", "Superseded", "Reversed"] as const;
 const GLOSSARY_STATUS = ["Active", "Provisional", "Superseded"] as const;
-const RESULT = ["Validated", "Invalidated", "Inconclusive"] as const;
-const MAGNITUDE = ["Low", "Typical", "High"] as const;
 const FEASIBILITY = ["High", "Medium", "Low"] as const;
-/** The full evidence ladder, weakest first — the canonical runtime lists. */
-const RUNGS = [...TESTING_RUNGS, ...MARKET_RUNG_VALUES] as const;
 /** Representativeness / Credibility picks, as labelled numeric options. */
 const QUALITY = ["1", "0.7", "0.5"] as const;
 
@@ -77,8 +69,10 @@ const FIELDS: Record<Collection, FormField[]> = {
   readings: [
     { key: "Title", label: "Reading", kind: "text", required: true },
     { key: "Source", label: "Source", kind: "text" },
-    { key: "Rung", label: "Rung", kind: "select", options: RUNGS, required: true },
-    { key: "Result", label: "Result", kind: "select", options: RESULT, required: true },
+    // Rung / Result / Magnitude band / Grading justification are PER BELIEF now
+    // (OPS-1305) — carried in `beliefs[]`, not on the row. They are omitted here
+    // so the create form can never write a dead row-level field; grading a
+    // reading's beliefs is a deferred follow-up (a `beliefs[]` editor).
     {
       key: "Representativeness",
       label: "Representativeness",
@@ -93,17 +87,7 @@ const FIELDS: Record<Collection, FormField[]> = {
       options: QUALITY,
       coerce: "number",
     },
-    {
-      key: "magnitudeBand",
-      label: "Magnitude band",
-      kind: "select",
-      options: MAGNITUDE,
-    },
-    {
-      key: "Grading justification",
-      label: "Grading justification",
-      kind: "textarea",
-    },
+    { key: "body", label: "Quote", kind: "textarea" },
     { key: "Date", label: "Date", kind: "text", placeholder: "YYYY-MM-DD" },
   ],
   decisions: [

@@ -55,11 +55,13 @@ describe("toNextMoveInput", () => {
     const input = toNextMoveInput({
       assumptions: [rec({ id: "ASM-1", derived: {} })],
       experiments: [],
+      // A reading scores per belief now (OPS-1305): each concluded belief-score
+      // counts toward its own assumption.
       readings: [
-        rec({ id: "R1", assumptionId: "ASM-1", Result: "Validated" }),
-        rec({ id: "R2", assumptionId: "ASM-1", Result: "Invalidated" }),
-        rec({ id: "R3", assumptionId: "ASM-1", Result: "Inconclusive" }),
-        rec({ id: "R4", assumptionId: "OTHER", Result: "Validated" }),
+        rec({ id: "R1", beliefs: [{ assumptionId: "ASM-1", Result: "Validated" }] }),
+        rec({ id: "R2", beliefs: [{ assumptionId: "ASM-1", Result: "Invalidated" }] }),
+        rec({ id: "R3", beliefs: [{ assumptionId: "ASM-1", Result: "Inconclusive" }] }),
+        rec({ id: "R4", beliefs: [{ assumptionId: "OTHER", Result: "Validated" }] }),
       ],
       decisions: [],
     });

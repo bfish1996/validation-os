@@ -21,7 +21,7 @@
  */
 import {
   assumptionCompleteness,
-  toReadingInput,
+  readingBeliefInputs,
   type AnyRecord,
 } from "@validation-os/core";
 import {
@@ -38,7 +38,7 @@ import {
 import { resolvedKind, toStageExperimentInput } from "./pipeline.js";
 import { toNextMoveInput, type NextMoveRecords } from "./next-move.js";
 import type { Tone } from "./primitives.js";
-import { testsAssumption } from "./derived-views.js";
+import { liveExperiments, testsAssumption } from "./derived-views.js";
 import { buildCycles, type CycleView } from "./cycles.js";
 
 /** A journey event with its front-door copy attached. */
@@ -150,17 +150,20 @@ export function buildJourney(
   const confidence =
     typeof derived.confidence === "number" ? derived.confidence : 0;
 
+  // The rail's test meters read only LIVE plans (OPS-1305): an archived plan is
+  // no longer a test in flight, so a belief whose only plan is archived reads as
+  // Planned (design a test), never Tested — the "evidence ≠ tested" rule.
+  const live = liveExperiments(records.experiments);
   const test =
-    beliefTestMeters(records.experiments.map(toStageExperimentInput)).get(
-      assumptionId,
-    ) ?? emptyTestMeter();
+    beliefTestMeters(live.map(toStageExperimentInput)).get(assumptionId) ??
+    emptyTestMeter();
   const framed = assumptionCompleteness(belief as Record<string, unknown>);
   const stage = deriveBeliefStage({ framed, confidence, test });
 
-  const myReadings = records.readings.filter(
-    (r) => r.assumptionId === assumptionId,
-  );
-  const myExperiments = records.experiments
+  const myReadingInputs = records.readings
+    .flatMap(readingBeliefInputs)
+    .filter((i) => i.assumptionId === assumptionId);
+  const myExperiments = live
     .filter((e) => testsAssumption(e, assumptionId))
     .map((e) => ({ id: e.id, date: str(e.Date) || str(e.createdAt) || null }));
 
@@ -169,7 +172,7 @@ export function buildJourney(
       createdAt: str(belief.createdAt) || null,
       impactScored: belief.Impact != null,
     },
-    readings: myReadings.map(toReadingInput),
+    readings: myReadingInputs,
     experiments: myExperiments,
     now,
   }).map((event) => ({ ...event, label: labelFor(event) }));

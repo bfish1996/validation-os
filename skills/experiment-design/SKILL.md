@@ -59,7 +59,8 @@ work the register through the active connector (`connectors/SPEC.md`).
   honestly share one run** (`experiment-guardrails.md §0/§1b`): one instrument,
   one protocol, one Lens-matched population, one `Feasibility`, and a bar line
   per belief under test. Evidence arrives later as **readings** (one per
-  artifact × belief), not designed here.
+  artifact, scored per belief through an embedded `beliefs[]` array), not
+  designed here.
 - **Assumptions** — the candidate source and the relation target. Read
   Description, Lens, Risk, Status, Confidence. **Read-only** — creating the
   `Running` experiment is what moves each bundled row into the derived
@@ -102,6 +103,9 @@ the test lane — send it there first, or note the exception.)
   `Status = Running` experiment, skip steps 1–6, jump straight to step 7
   (Prepare) and route by its **method**. If any bundled belief is missing
   `We're right if`, stop: finish the design first.
+- **Merge running experiments.** User says several designed/running plans are
+  really one run ("these three interviews are the same session", "merge X and
+  Y") — go to **Merge mode** below instead of the gauntlet.
 
 ## The design + prep gauntlet (one question at a time — every write gated)
 
@@ -233,6 +237,57 @@ before opening the next; the write is gated at the end.
    "build from the brief", "send the survey") and **stop** — running the test
    is not this skill.
 
+## Merge mode (consolidate several running plans into one)
+
+The **documented exception to "a bundle never grows after design"** (`§1b`,
+Safety). Growing a *single* bundle mid-run is banned because it's
+retro-registration — inventing a bar after seeing signal. **Merge is
+different:** it consolidates two or more already-pre-registered plans that turn
+out to be **one honest run** into a single Experiment, carrying **every bar
+line across verbatim**. No bar is invented or re-cut, so no goalpost moves —
+only execution is consolidated.
+
+Use it when several `Draft`/`Running` experiments are really the same session
+(one instrument, one Lens-matched population, one protocol) split across
+records — e.g. three interview plans that will run as one call.
+
+**Gate — all must hold (else keep them separate):**
+
+- **Same run:** one instrument, one Lens-matched population, one protocol/method
+  across every plan being merged (the `§1b` membership rule — same Lens is a
+  hard gate).
+- **Bars carried verbatim:** each plan's `We're right if` / `We're wrong if` /
+  `Planned rung` become bar lines on the survivor **unchanged**. If merging
+  would tempt you to soften or rewrite a bar, stop — that's retro-registration,
+  not a merge.
+- **No belief's measurement poisons another's** across the combined protocol
+  (`§1b` cross-contamination check, applied to the union).
+- **Duplicate seam:** if two merged bars are the *same* pre-registered bar,
+  their beliefs are one assumption — merge the assumptions
+  (`assumption-guardrails.md §4`), don't carry two identical bars.
+
+**Procedure (gated):**
+
+1. **Select the survivor** — usually the earliest / most-complete plan; the
+   others fold into it.
+2. **Union the bar lines** — copy every belief's bar line verbatim onto the
+   survivor; dedupe identical bars per the seam rule.
+3. **Merge the protocol, surfacing the questions per belief** — one combined
+   guide/spec whose per-belief signal blocks (interview-guide.md /
+   survey.md / prototype-brief.md) name **each belief and its questions**, so
+   the merged run still shows what clears every belief's bar. Re-run the
+   ordering check (past-behaviour core before any stimulus) over the union.
+4. **Archive the folded-in plans** — set their `Status = Archived` (retired,
+   superseded by the survivor); **re-point any readings** already attributed to
+   them at the survivor's `experimentId` first, or bare them, so none is
+   orphaned (`reading-orphaned-experiment`, `../_shared/ontology.yaml`).
+5. **Gated write** — render the survivor (unioned bar lines + merged protocol)
+   and the archive/re-point of each folded plan as sequential cards; confirm
+   before writing. Then continue to step 7 (Prepare) on the survivor.
+
+Merge never touches any assumption's `Status` or bars. If the plans are *not*
+one honest run, don't merge — run them separately.
+
 ## Guardrail summary
 
 See `../_shared/experiment-guardrails.md §1`. Reject a design that fails any:
@@ -257,7 +312,9 @@ theme).
   to hand off to (`OPS-1305`).
 - **Never grow a bundle after design** — adding a belief mid-run is
   retro-registration (`§6`); design a new experiment referencing the same
-  instrument.
+  instrument. The **one exception is Merge mode** (above): consolidating
+  several already-pre-registered plans that are one honest run into a single
+  Experiment, every bar line carried verbatim — no new bar invented.
 - **Never write the assumption's `Status`.** The `Running` record alone puts
   the row in the derived Testing view; Confidence rolls up on its own — never
   hand-edit `Strength` / `Confidence`.

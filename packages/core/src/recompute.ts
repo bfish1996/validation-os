@@ -6,8 +6,9 @@
  * non-dashboard writes.
  *
  * The stored-record → derivation-input mapping lives in `reading-input.ts`
- * (`toReadingInput`), shared with the dashboard's understanding layer so a
- * reading is read identically wherever Confidence is derived or explained.
+ * (`readingBeliefInputs`, which fans a reading's beliefs[] out into one input
+ * per belief), shared with the dashboard's understanding layer so a reading is
+ * read identically wherever Confidence is derived or explained.
  */
 import {
   assumptionCompleteness,
@@ -15,7 +16,8 @@ import {
   derivedImpacts,
   risk,
 } from "./derivation/index.js";
-import { toReadingInput } from "./reading-input.js";
+import { readingBeliefInputs } from "./reading-input.js";
+import type { ConfidenceReadingInput } from "./derivation/index.js";
 import type {
   AnyRecord,
   AssumptionDerived,
@@ -39,18 +41,21 @@ export function recomputeDerived(
 ): Map<string, AssumptionDerived> {
   const { assumptions, readings, decisions } = input;
 
-  // Confidence: group concluded readings by assumption.
-  const readingsByAssumption = new Map<string, ReadingRecord[]>();
-  for (const a of assumptions) readingsByAssumption.set(a.id, []);
-  for (const r of readings) readingsByAssumption.get(r.assumptionId)?.push(r);
+  // Confidence: fan each reading row out into its per-belief inputs and group
+  // those by the assumption each belief scores. A row that scores several
+  // beliefs contributes one input to each of their assumptions; every input
+  // carries the row-level Source, source quality, and experiment (commitment).
+  const inputsByAssumption = new Map<string, ConfidenceReadingInput[]>();
+  for (const a of assumptions) inputsByAssumption.set(a.id, []);
+  for (const r of readings) {
+    for (const input of readingBeliefInputs(r as unknown as AnyRecord)) {
+      inputsByAssumption.get(input.assumptionId)?.push(input);
+    }
+  }
 
   const confidenceById = new Map<string, number>();
   for (const a of assumptions) {
-    const rs = readingsByAssumption.get(a.id) ?? [];
-    confidenceById.set(
-      a.id,
-      confidence(rs.map((r) => toReadingInput(r as unknown as AnyRecord))),
-    );
+    confidenceById.set(a.id, confidence(inputsByAssumption.get(a.id) ?? []));
   }
 
   // Derived Impact: standing-decision `Based on` links count +100 each.

@@ -94,8 +94,18 @@ export class InMemoryProvider implements DataProvider {
 
   async link(relation: Relation, from: RecordRef, to: RecordRef): Promise<void> {
     const spec = RELATIONS[relation];
-    this.applyEnd(spec.from, from.register, from.id, to.id);
-    if (spec.to) this.applyEnd(spec.to, to.register, to.id, from.id);
+    this.applyEnd(spec.from, from.register, from.id, to.id, "add");
+    if (spec.to) this.applyEnd(spec.to, to.register, to.id, from.id, "add");
+  }
+
+  async unlink(
+    relation: Relation,
+    from: RecordRef,
+    to: RecordRef,
+  ): Promise<void> {
+    const spec = RELATIONS[relation];
+    this.applyEnd(spec.from, from.register, from.id, to.id, "remove");
+    if (spec.to) this.applyEnd(spec.to, to.register, to.id, from.id, "remove");
   }
 
   private applyEnd(
@@ -103,6 +113,7 @@ export class InMemoryProvider implements DataProvider {
     register: Collection,
     ownerId: string,
     otherId: string,
+    op: "add" | "remove",
   ): void {
     const rec = this.col(register).get(ownerId);
     if (!rec) throw new NotFoundError(register, ownerId);
@@ -110,10 +121,16 @@ export class InMemoryProvider implements DataProvider {
       const arr = Array.isArray(rec[end.field])
         ? (rec[end.field] as string[])
         : [];
-      if (!arr.includes(otherId)) arr.push(otherId);
-      rec[end.field] = arr;
+      if (op === "add") {
+        if (!arr.includes(otherId)) arr.push(otherId);
+        rec[end.field] = arr;
+      } else {
+        rec[end.field] = arr.filter((x) => x !== otherId);
+      }
     } else {
-      rec[end.field] = otherId;
+      // A single-valued end: set it on add, clear it on remove (when it matches).
+      if (op === "add") rec[end.field] = otherId;
+      else if (rec[end.field] === otherId) rec[end.field] = null;
     }
     rec.version += 1;
     rec.updatedAt = this.now();

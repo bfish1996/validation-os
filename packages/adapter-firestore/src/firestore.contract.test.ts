@@ -72,4 +72,17 @@ describe.skipIf(!RUN)("FirestoreProvider (emulator)", () => {
     expect(a.dependsOnIds).toContain("ASM-B");
     expect(b.enablesIds).toContain("ASM-A");
   });
+
+  it("unlink removes the relation from both ends", async () => {
+    await provider.create("assumptions", { id: "ASM-U1", dependsOnIds: [] });
+    await provider.create("assumptions", { id: "ASM-U2", enablesIds: [] });
+    const from = { register: "assumptions" as const, id: "ASM-U1" };
+    const to = { register: "assumptions" as const, id: "ASM-U2" };
+    await provider.link("assumption-depends-on", from, to);
+    await provider.unlink("assumption-depends-on", from, to);
+    const a = await provider.get("assumptions", "ASM-U1");
+    const b = await provider.get("assumptions", "ASM-U2");
+    expect(a.dependsOnIds ?? []).not.toContain("ASM-U2");
+    expect(b.enablesIds ?? []).not.toContain("ASM-U1");
+  });
 });

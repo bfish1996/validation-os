@@ -4,6 +4,7 @@ import {
   columnsFor,
   formatValue,
   primaryLabel,
+  readingAssumptionChips,
   type ColumnDef,
 } from "./columns.js";
 import { ConfidenceCell, RiskBar, StatusPill } from "./primitives-view.js";
@@ -15,6 +16,9 @@ export interface RegisterTableProps {
   onRowClick?: (id: string) => void;
   /** The id of the currently-open record, highlighted in the list. */
   selectedId?: string | null;
+  /** Assumption id → title, so a reading row's belief chips read as titles
+   * rather than ids (OPS-1305). Omitted → chips fall back to the bare ids. */
+  assumptionTitles?: Map<string, string>;
 }
 
 /**
@@ -30,6 +34,7 @@ export function RegisterTable({
   records,
   onRowClick,
   selectedId,
+  assumptionTitles,
 }: RegisterTableProps) {
   const columns = columnsFor(register);
 
@@ -79,7 +84,16 @@ export function RegisterTable({
                     key={c.key}
                     className={c.align === "right" ? "vos-r" : undefined}
                   >
-                    <Cell column={c} record={record} headline={i === 0} />
+                    <Cell
+                      column={c}
+                      record={record}
+                      headline={i === 0}
+                      chips={
+                        i === 0 && register === "readings"
+                          ? readingAssumptionChips(record, assumptionTitles)
+                          : undefined
+                      }
+                    />
                   </td>
                 ))}
               </tr>
@@ -97,10 +111,14 @@ function Cell({
   column,
   record,
   headline,
+  chips,
 }: {
   column: ColumnDef;
   record: AnyRecord;
   headline: boolean;
+  /** Belief chips shown under the headline (readings only) to disambiguate
+   * same-titled readings by the belief(s) each one grades. */
+  chips?: string[];
 }) {
   const raw = cellValue(column, record);
 
@@ -126,5 +144,19 @@ function Cell({
     headline && (raw === null || raw === undefined || raw === "")
       ? primaryLabel(record)
       : formatValue(raw);
+  if (headline && chips && chips.length > 0) {
+    return (
+      <span className="vos-ttl-wrap">
+        <span className="vos-ttl">{text}</span>
+        <span className="vos-reading-chips">
+          {chips.map((chip, n) => (
+            <span key={n} className="vos-chip vos-pill vos-pill-neutral">
+              {chip}
+            </span>
+          ))}
+        </span>
+      </span>
+    );
+  }
   return <span className={headline ? "vos-ttl" : undefined}>{text}</span>;
 }

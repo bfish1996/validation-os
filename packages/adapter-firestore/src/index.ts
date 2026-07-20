@@ -100,12 +100,30 @@ export class FirestoreProvider implements DataProvider {
   }
 
   async link(relation: Relation, from: RecordRef, to: RecordRef): Promise<void> {
+    await this.applyRelation("add", relation, from, to);
+  }
+
+  async unlink(
+    relation: Relation,
+    from: RecordRef,
+    to: RecordRef,
+  ): Promise<void> {
+    await this.applyRelation("remove", relation, from, to);
+  }
+
+  /** Write both ends of a relation in one batch — added or removed together. */
+  private async applyRelation(
+    op: "add" | "remove",
+    relation: Relation,
+    from: RecordRef,
+    to: RecordRef,
+  ): Promise<void> {
     const spec = RELATIONS[relation];
     const ts = this.now();
     const batch = this.db.batch();
-    this.applyEnd(batch, spec.from, from.register, from.id, to.id, ts);
+    this.applyEnd(batch, spec.from, from.register, from.id, to.id, ts, op);
     if (spec.to) {
-      this.applyEnd(batch, spec.to, to.register, to.id, from.id, ts);
+      this.applyEnd(batch, spec.to, to.register, to.id, from.id, ts, op);
     }
     await batch.commit();
   }
@@ -117,10 +135,19 @@ export class FirestoreProvider implements DataProvider {
     ownerId: string,
     otherId: string,
     ts: string,
+    op: "add" | "remove",
   ): void {
     const ref = this.db.collection(register).doc(ownerId);
+    // Many-ends arrayUnion/arrayRemove; a single-valued end is set on add and
+    // cleared to null on remove.
     const value =
-      end.cardinality === "many" ? FieldValue.arrayUnion(otherId) : otherId;
+      end.cardinality === "many"
+        ? op === "add"
+          ? FieldValue.arrayUnion(otherId)
+          : FieldValue.arrayRemove(otherId)
+        : op === "add"
+          ? otherId
+          : null;
     batch.set(
       ref,
       {

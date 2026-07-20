@@ -39,20 +39,35 @@ function experiment(over: Partial<AnyRecord> & { id: string }): AnyRecord {
 }
 
 function reading(over: Partial<AnyRecord> & { id: string }): AnyRecord {
+  const {
+    assumptionId = "",
+    Rung = "Survey at scale",
+    Result = "Validated",
+    magnitudeBand,
+    ...rest
+  } = over as Record<string, unknown> & { id: string };
   return {
     version: 0,
     createdAt: "",
     updatedAt: "",
     Title: "A reading",
     Source: over.id,
-    assumptionId: "",
     experimentId: null,
-    Rung: "Survey at scale",
     Representativeness: 1.0,
     Credibility: 1.0,
-    Result: "Validated",
     Date: null,
-    ...over,
+    beliefs: [
+      {
+        assumptionId,
+        Rung,
+        Result,
+        magnitudeBand,
+        "Grading justification": "",
+        derived: { strength: 0 },
+      },
+    ],
+    assumptionIds: [assumptionId],
+    ...rest,
   } as AnyRecord;
 }
 
@@ -115,6 +130,35 @@ describe("buildPipeline", () => {
     ).rows[0]!;
     expect(killable.killZone).toBe(true);
     expect(killable.nextMove).toBe("Decide / kill");
+  });
+
+  it("does not count an archived plan as a designed test (evidence ≠ tested)", () => {
+    const bars = [
+      { assumptionId: "b1", rightIf: "…", plannedRung: "Survey at scale", barVerdict: null },
+    ];
+    // Same plan, only the Status differs: Archived must not make the belief Planned.
+    const archived = buildPipeline(
+      [assumption({ id: "b1" })],
+      [experiment({ id: "e1", Status: "Archived", barLines: bars, barLineAssumptionIds: ["b1"] })],
+    ).rows[0]!;
+    expect(archived.planned).toBe(false);
+    expect(archived.tested).toEqual({ settled: 0, total: 0 });
+    expect(archived.nextMove).toBe("Design test");
+
+    const running = buildPipeline(
+      [assumption({ id: "b1" })],
+      [experiment({ id: "e1", Status: "Running", barLines: bars, barLineAssumptionIds: ["b1"] })],
+    ).rows[0]!;
+    expect(running.planned).toBe(true);
+  });
+
+  it("keeps a belief with readings but no live plan out of Tested", () => {
+    // Readings never advance the stage — only a live plan's bar lines do. A
+    // fully-framed belief with no experiment reads as Planned → "Design test".
+    const row = buildPipeline([assumption({ id: "b1" })], []).rows[0]!;
+    expect(row.planned).toBe(false);
+    expect(row.tested).toEqual({ settled: 0, total: 0 });
+    expect(row.nextMove).toBe("Design test");
   });
 
   it("sets apart killed and moot beliefs and totals retired risk", () => {

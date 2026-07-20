@@ -25,6 +25,8 @@ export interface DataProvider {
   ): Promise<AnyRecord>;
   /** Set a relation on both ends in one logical write. */
   link(relation: Relation, from: RecordRef, to: RecordRef): Promise<void>;
+  /** Remove a relation from both ends in one logical write (the inverse of {@link link}). */
+  unlink(relation: Relation, from: RecordRef, to: RecordRef): Promise<void>;
 }
 
 /**

@@ -102,14 +102,16 @@ different rungs.
 
 ## Capture (what happens after the run — not this skill)
 
-One interview artifact yields **one reading per belief it actually
-addressed**, judged against that belief's bar (`experiment-guardrails.md §0`).
+One interview artifact yields **one Reading carrying a `beliefs[]` entry per
+belief it actually addressed**, each entry judged against that belief's bar
+(`experiment-guardrails.md §0`) — never several Readings for the one call.
 Signal the interview yielded on a belief that wasn't bundled is **off-plan**:
-it becomes an off-plan reading keeping the experiment link as provenance, with
-**no bar** — never retro-fitted into the plan. There is **no** "one row per
-interview, tally toward ≥N of M" scoring line: readings are per belief, and
-the closure verdict against the pre-registered N is a separate human act at
-close (`§6`). Capture itself runs in `/find-evidence`.
+it becomes an off-plan `beliefs[]` entry on the same Reading, keeping the
+experiment origin as provenance, with **no bar** — never retro-fitted into the
+plan. There is **no** "one row per interview, tally toward ≥N of M" scoring
+line: scoring is per belief entry, and the closure verdict against the
+pre-registered N is a separate human act at close (`§6`). Capture itself runs
+in `/find-evidence`.
 
 ## The conduct sheet (a one-page live aid, rendered with the guide)
 

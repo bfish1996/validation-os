@@ -6,6 +6,7 @@ import {
   headerPills,
   humanInputFields,
   leadingMeters,
+  readingBeliefVerdicts,
   scoreChip,
   type RelatedSet,
 } from "./record-view.js";
@@ -194,8 +195,17 @@ describe("backlinkPanels", () => {
         createdAt: "",
         updatedAt: "",
         Title: "Survey",
-        assumptionId: "a1",
-        derived: { strength: 40, sourceQuality: 1 },
+        assumptionIds: ["a1"],
+        beliefs: [
+          {
+            assumptionId: "a1",
+            Rung: "Survey at scale",
+            Result: "Validated",
+            "Grading justification": "",
+            derived: { strength: 40 },
+          },
+        ],
+        derived: { sourceQuality: 1 },
       },
     ],
     experiments: [
@@ -228,9 +238,11 @@ describe("backlinkPanels", () => {
     const byId = Object.fromEntries(panels.map((p) => [p.id, p]));
 
     expect(byId["readings"]!.items.map((i) => i.title)).toEqual(["Survey"]);
+    // A reading's glance chip is its Source quality now (0–1 → 0–100); Strength
+    // moved per belief (OPS-1305).
     expect(byId["readings"]!.items[0]!.chip).toEqual({
-      label: "Strength",
-      value: "+40",
+      label: "Source quality",
+      value: "100",
       tone: "neutral",
     });
 
@@ -250,6 +262,65 @@ describe("backlinkPanels", () => {
     expect(contradicts.items).toEqual([]);
   });
 
+  it("never surfaces an archived plan as a reading's evidence-plan backlink", () => {
+    const reading: AnyRecord = {
+      id: "r1",
+      version: 1,
+      createdAt: "",
+      updatedAt: "",
+      Title: "Survey",
+      assumptionIds: [],
+      experimentId: "e-arch",
+      beliefs: [],
+      derived: { sourceQuality: 1 },
+    };
+    const archivedRel: RelatedSet = {
+      experiments: [
+        {
+          id: "e-arch",
+          version: 1,
+          createdAt: "",
+          updatedAt: "",
+          Title: "Old plan",
+          Status: "Archived",
+        },
+      ],
+    };
+    const exp = backlinkPanels("readings", reading, archivedRel).find(
+      (p) => p.id === "experiment",
+    )!;
+    expect(exp.items).toEqual([]);
+  });
+
+  it("keeps archived plans out of a belief's Tested-by panel", () => {
+    const testedRel: RelatedSet = {
+      experiments: [
+        {
+          id: "e-live",
+          version: 1,
+          createdAt: "",
+          updatedAt: "",
+          Title: "Live plan",
+          Status: "Running",
+          barLines: [{ assumptionId: "a1", barVerdict: null }],
+        },
+        {
+          id: "e-arch",
+          version: 1,
+          createdAt: "",
+          updatedAt: "",
+          Title: "Archived plan",
+          Status: "Archived",
+          barLines: [{ assumptionId: "a1", barVerdict: null }],
+        },
+      ],
+    };
+    const tested = backlinkPanels("assumptions", assumption("a1"), testedRel).find(
+      (p) => p.id === "tested-by",
+    )!;
+    expect(tested.items.map((i) => i.title)).toEqual(["Live plan"]);
+  });
+
   it("resolves a reading's belief and evidence-plan panels", () => {
     const reading: AnyRecord = {
       id: "r1",
@@ -257,14 +328,76 @@ describe("backlinkPanels", () => {
       createdAt: "",
       updatedAt: "",
       Title: "Survey",
-      assumptionId: "a1",
+      assumptionIds: ["a1"],
       experimentId: "e1",
-      derived: { strength: 40, sourceQuality: 1 },
+      beliefs: [
+        {
+          assumptionId: "a1",
+          Rung: "Survey at scale",
+          Result: "Validated",
+          "Grading justification": "",
+          derived: { strength: 40 },
+        },
+      ],
+      derived: { sourceQuality: 1 },
     };
     const panels = backlinkPanels("readings", reading, rel);
     const byId = Object.fromEntries(panels.map((p) => [p.id, p.items.map((i) => i.id)]));
     expect(byId["assumption"]).toEqual(["a1"]);
     expect(byId["experiment"]).toEqual(["e1"]);
+  });
+});
+
+describe("readingBeliefVerdicts", () => {
+  it("prepares one verdict per belief, resolving assumption titles", () => {
+    const reading: AnyRecord = {
+      id: "r",
+      version: 1,
+      createdAt: "",
+      updatedAt: "",
+      beliefs: [
+        {
+          assumptionId: "a1",
+          Rung: "Survey at scale",
+          Result: "Validated",
+          "Grading justification": "clear signal",
+          derived: { strength: 40 },
+        },
+        {
+          assumptionId: "gone",
+          Rung: "Opinion",
+          Result: "Inconclusive",
+          "Grading justification": "",
+          derived: { strength: 0 },
+        },
+      ],
+    };
+    const verdicts = readingBeliefVerdicts(reading, [
+      assumption("a1", { Title: "Users want speed" }),
+    ]);
+    expect(verdicts).toHaveLength(2);
+    expect(verdicts[0]).toMatchObject({
+      assumptionId: "a1",
+      title: "Users want speed",
+      linked: true,
+      rung: "Survey at scale",
+      result: "Validated",
+      strength: 40,
+      justification: "clear signal",
+    });
+    // An unresolved belief keeps its id as the title and reads as unlinked.
+    expect(verdicts[1]).toMatchObject({ assumptionId: "gone", title: "gone", linked: false });
+  });
+
+  it("returns nothing for a reading that grades no beliefs", () => {
+    const reading: AnyRecord = {
+      id: "r",
+      version: 1,
+      createdAt: "",
+      updatedAt: "",
+      beliefs: [],
+    };
+    expect(readingBeliefVerdicts(reading, [])).toEqual([]);
   });
 });
 

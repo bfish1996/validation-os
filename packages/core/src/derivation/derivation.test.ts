@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  COMMITMENT_FOUND,
   confidence,
   derivedImpacts,
   isMarketRung,
@@ -12,6 +13,9 @@ import {
 } from "./index.js";
 
 // A concluded testing reading with full source quality, unless overridden.
+// Defaults to experiment-linked (commitment 1.0) so the hand-worked numbers
+// below read the rung physics directly; the found-discount is exercised
+// explicitly in "confidence — commitment factor".
 function reading(
   over: Partial<ConfidenceReadingInput> = {},
 ): ConfidenceReadingInput {
@@ -24,6 +28,7 @@ function reading(
     credibility: over.credibility ?? 1.0,
     date: over.date ?? "2026-01-01",
     magnitudeBand: over.magnitudeBand,
+    experimentId: "experimentId" in over ? over.experimentId : "EXP-1",
   };
 }
 
@@ -176,6 +181,33 @@ describe("confidence", () => {
     const c = confidence(many);
     expect(c).toBeLessThanOrEqual(100);
     expect(c).toBeGreaterThan(0);
+  });
+});
+
+describe("confidence — commitment factor", () => {
+  it("discounts a found reading (no experiment) to 0.85 of its weight", () => {
+    // Prototype-usage Validated, sq=1. s=30.
+    // committed:  w = 30 × 1 × 1.00 = 30    → 30×30 / (100+30)  = 6.923… → 6.92
+    // found:      w = 30 × 1 × 0.85 = 25.5  → 25.5×30 / (125.5) = 6.095… → 6.10
+    const committed = confidence([reading({ experimentId: "EXP-1" })]);
+    const found = confidence([reading({ experimentId: null })]);
+    expect(committed).toBe(6.92);
+    expect(found).toBe(6.1);
+    expect(found).toBeLessThan(committed);
+    expect(COMMITMENT_FOUND).toBe(0.85);
+  });
+
+  it("keeps Rung dominant: a high-rung found reading outweighs a low-rung committed one", () => {
+    // The commitment factor is a small tiebreaker, never a rung-reorderer.
+    // found high rung:      Prototype (30) × 0.85 → 6.10
+    // committed low rung:   Opinion (3)  × 1.00 → 3×3 / (100+3) = 0.087… → 0.09
+    const foundHigh = confidence([
+      reading({ rung: "Prototype usage", experimentId: null }),
+    ]);
+    const committedLow = confidence([
+      reading({ rung: "Opinion", experimentId: "EXP-1" }),
+    ]);
+    expect(foundHigh).toBeGreaterThan(committedLow);
   });
 });
 
