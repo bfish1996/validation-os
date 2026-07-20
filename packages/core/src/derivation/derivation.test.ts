@@ -9,6 +9,8 @@ import {
   sign,
   sourceQuality,
   W0,
+  W0_BY_RUNG,
+  w0ForRung,
   type ConfidenceReadingInput,
 } from "./index.js";
 
@@ -112,15 +114,19 @@ describe("confidence", () => {
 
   it("computes a signed weighted average with the w0 prior", () => {
     // One Prototype-usage Validated reading, full source quality.
-    // s = 30, w = |30| × 1 = 30. num = 30×30 = 900. den = 100 + 30 = 130.
-    // 900 / 130 = 6.923… → 6.92
-    expect(confidence([reading()])).toBe(6.92);
+    // s = 30, w = |30| × 1 × 1.0 = 30. W0[Prototype] = 140.
+    // num = 30×30 = 900. den = 140 + 30 = 170. 900 / 170 = 5.294… → 5.29
+    expect(confidence([reading()])).toBe(5.29);
+    // W0 is per-rung now; the flat constant is retained (legacy) at 100.
     expect(W0).toBe(100);
+    expect(w0ForRung("Prototype usage")).toBe(140);
+    expect(w0ForRung("Desk research")).toBe(2);
+    expect(W0_BY_RUNG["Desk research"]).toBe(2);
   });
 
   it("goes negative when evidence is against", () => {
-    // s = -30, num = -900, den = 130 → -6.92
-    expect(confidence([reading({ result: "Invalidated" })])).toBe(-6.92);
+    // s = -30, num = -900, den = 170 → -5.29
+    expect(confidence([reading({ result: "Invalidated" })])).toBe(-5.29);
   });
 
   it("nets opposing readings from independent sources", () => {
@@ -173,9 +179,9 @@ describe("confidence", () => {
       reading({ id: "g1", source: "s", rung: "Paying users" }),
       reading({ id: "g2", source: "s", rung: "Paying users" }),
     ]);
-    // Two units of s=88, sq=1 → w=88 each.
-    // num = 2×(88×88)=15488, den = 100 + 2×88 = 276 → 56.12
-    expect(both).toBe(56.12);
+    // Two units of s=88, sq=1 → w=88 each. W0[Paying users] = 410.7.
+    // num = 2×(88×88)=15488, den = 410.7 + 2×88 = 586.7 → 26.40
+    expect(both).toBe(26.4);
   });
 
   it("stays within −100…100", () => {
@@ -191,20 +197,20 @@ describe("confidence", () => {
 describe("confidence — commitment factor", () => {
   it("discounts a found reading (no experiment) to 0.85 of its weight", () => {
     // Prototype-usage Validated, sq=1. s=30.
-    // committed:  w = 30 × 1 × 1.00 = 30    → 30×30 / (100+30)  = 6.923… → 6.92
-    // found:      w = 30 × 1 × 0.85 = 25.5  → 25.5×30 / (125.5) = 6.095… → 6.10
+    // committed:  w = 30 × 1 × 1.00 = 30    → 30×30 / (140+30)  = 5.294… → 5.29
+    // found:      w = 30 × 1 × 0.85 = 25.5  → 25.5×30 / (140+25.5) = 4.622… → 4.62
     const committed = confidence([reading({ experimentId: "EXP-1" })]);
     const found = confidence([reading({ experimentId: null })]);
-    expect(committed).toBe(6.92);
-    expect(found).toBe(6.1);
+    expect(committed).toBe(5.29);
+    expect(found).toBe(4.62);
     expect(found).toBeLessThan(committed);
     expect(COMMITMENT_FOUND).toBe(0.85);
   });
 
   it("keeps Rung dominant: a high-rung found reading outweighs a low-rung committed one", () => {
     // The commitment factor is a small tiebreaker, never a rung-reorderer.
-    // found high rung:      Prototype (30) × 0.85 → 6.10
-    // committed low rung:   Anecdotal (3) × 1.00 → 3×3 / (100+3) = 0.087… → 0.09
+    // found high rung:      Prototype (30) × 0.85 → 4.62
+    // committed low rung:  Anecdotal (3) × 1.00  → 3×3 / (6.5+3) = 0.947… → 0.95
     const foundHigh = confidence([
       reading({ rung: "Prototype usage", experimentId: null }),
     ]);

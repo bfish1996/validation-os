@@ -78,8 +78,8 @@ describe("recomputeDerived — row-level rung, per-belief result", () => {
   it("derives each belief's strength from the ROW rung and the belief's own Result", () => {
     // One artifact, ONE rung (Prototype usage = 30), committed, sq=1. Two
     // beliefs with opposite Results: strength = 30 × sign(Result).
-    //  ASM-1 Validated   → s=+30, w=30 → 30×30/(100+30)  =  6.92
-    //  ASM-2 Invalidated → s=-30, w=30 → -900/130        = -6.92
+    //  ASM-1 Validated   → s=+30, w=30 → 30×30/(140+30)  =  5.29
+    //  ASM-2 Invalidated → s=-30, w=30 → -900/170        = -5.29
     const derived = recomputeDerived({
       assumptions: [
         assumption({ id: "ASM-1" }),
@@ -97,14 +97,14 @@ describe("recomputeDerived — row-level rung, per-belief result", () => {
       ],
       decisions: NO_DECISIONS,
     });
-    expect(derived.get("ASM-1")!.confidence).toBe(6.92);
-    expect(derived.get("ASM-2")!.confidence).toBe(-6.92);
+    expect(derived.get("ASM-1")!.confidence).toBe(5.29);
+    expect(derived.get("ASM-2")!.confidence).toBe(-5.29);
   });
 
   it("still discounts a found reading via the commitment factor", () => {
-    // Prototype usage (30), Validated, sq=1.
-    //  found:     w=30×0.85=25.5 → 25.5×30/125.5 = 6.10
-    //  committed: w=30           → 900/130        = 6.92
+    // Prototype usage (30), Validated, sq=1. W0[Prototype] = 140.
+    //  found:     w=30×0.85=25.5 → 25.5×30/165.5 = 4.62
+    //  committed: w=30           → 900/170        = 5.29
     const found = recomputeDerived({
       assumptions: [assumption()],
       readings: [reading({ experimentId: null })],
@@ -115,8 +115,8 @@ describe("recomputeDerived — row-level rung, per-belief result", () => {
       readings: [reading({ experimentId: "EXP-9" })],
       decisions: NO_DECISIONS,
     }).get("ASM-1")!;
-    expect(found.confidence).toBe(6.1);
-    expect(committed.confidence).toBe(6.92);
+    expect(found.confidence).toBe(4.62);
+    expect(committed.confidence).toBe(5.29);
   });
 
   it("matches the pure confidence() for the same reading's belief", () => {
@@ -144,7 +144,7 @@ describe("recomputeDerived — row-level rung, per-belief result", () => {
   it("dedupes per (assumption, Source), keeping the strongest rung", () => {
     // Two rows, same Source "bob", same belief ASM-1, different ROW rungs:
     //   Prototype usage (30) vs Anecdotal (3, the merged floor).
-    // Dedupe keeps the 30 → 6.92, identical to a lone Prototype row.
+    // Dedupe keeps the 30 → 5.29, identical to a lone Prototype row.
     const derived = recomputeDerived({
       assumptions: [assumption()],
       readings: [
@@ -159,7 +159,7 @@ describe("recomputeDerived — row-level rung, per-belief result", () => {
       decisions: NO_DECISIONS,
     }).get("ASM-1")!;
     expect(derived.confidence).toBe(lone.confidence);
-    expect(derived.confidence).toBe(6.92);
+    expect(derived.confidence).toBe(5.29);
   });
 
   it("carries completeness in the recomputed tuple", () => {

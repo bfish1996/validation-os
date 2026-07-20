@@ -5,15 +5,16 @@
  * each pushes the number up or down.
  *
  * A winner's contribution is its signed share of the average:
- *   cᵢ = (weightᵢ · strengthᵢ) / den,  den = w0 + Σ weight
- * so Σ contributions = Σ(wᵢ·sᵢ)/den = Confidence (the w0·0 prior term is 0).
+ *   cᵢ = (weightᵢ · strengthᵢ) / den,
+ *   den = Σ_rung W0[rung] + Σ weight   (one prior per rung with evidence)
+ * so Σ contributions = Σ(wᵢ·sᵢ)/den = Confidence (the W0·0 prior term is 0).
  * The reveal therefore literally adds up to the hero number. Contributions are
  * grouped by the reading's experiment (experiment-less readings — bare/found —
  * fall into a "direct" bucket), then ranked by |contribution|. A reading's
  * origin is an experiment or nothing; the retired Goal container is gone
  * (OPS-1305).
  */
-import { W0, scoreAndDedupe, type ConfidenceReadingInput } from "./confidence.js";
+import { w0ForRung, scoreAndDedupe, type ConfidenceReadingInput } from "./confidence.js";
 import { round2 } from "./round.js";
 
 /**
@@ -68,7 +69,12 @@ export function confidenceAttribution(
   readings: AttributionReadingInput[],
 ): Attribution {
   const winners = scoreAndDedupe(readings);
-  const den = winners.reduce((acc, x) => acc + x.weight, W0);
+  // Per-rung prior: sum W0 once for each rung with ≥1 concluded reading,
+  // matching the `confidence()` formula.
+  const rungsPresent = new Set(winners.map((x) => x.input.rung));
+  let den = 0;
+  for (const rung of rungsPresent) den += w0ForRung(rung);
+  for (const x of winners) den += x.weight;
 
   const byKey = new Map<string, Mover>();
   let num = 0;

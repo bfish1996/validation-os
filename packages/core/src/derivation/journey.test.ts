@@ -93,32 +93,29 @@ describe("assembleJourney", () => {
   });
 
   it("emits a confidence-cross at the first point the evidence enters the kill zone", () => {
+    // Paying users High Invalidated: s=-99, w=99, W0[Paying users]=410.7.
+    // With per-rung W0, the kill zone (≤ −50) is reached at 5 readings:
+    //   5×(-99×99) / (410.7 + 5×99) = -49005 / 905.7 = -54.1  → crosses
+    //   4×(-99×99) / (410.7 + 4×99) = -39204 / 806.7 = -48.6  → just above
+    // So the 5th miss tips it over.
+    const missReadings = Array.from({ length: 5 }, (_, i) =>
+      reading({
+        id: `m${i + 1}`,
+        date: `2026-0${i + 2}-01`, // Feb, Mar, Apr, May, Jun
+        rung: "Paying users",
+        magnitudeBand: "High",
+        result: "Invalidated",
+      }),
+    );
     const events = assembleJourney({
       belief: { createdAt: "2026-01-01", impactScored: true },
-      readings: [
-        // Two independent market-rung misses (each its own unit, never deduped):
-        // one alone stays above −50, both cross it.
-        reading({
-          id: "m1",
-          date: "2026-02-01",
-          rung: "Paying users",
-          magnitudeBand: "High",
-          result: "Invalidated",
-        }),
-        reading({
-          id: "m2",
-          date: "2026-03-01",
-          rung: "Paying users",
-          magnitudeBand: "High",
-          result: "Invalidated",
-        }),
-      ],
+      readings: missReadings,
       experiments: [],
       now: NOW,
     });
     const cross = events.find((e) => e.kind === "confidence-cross");
     expect(cross).toBeDefined();
-    expect(cross!.date).toBe("2026-03-01"); // only the second miss tips it over
+    expect(cross!.date).toBe("2026-06-01"); // the 5th miss tips it over
     expect(cross!.confidence).toBeLessThanOrEqual(-50);
   });
 
