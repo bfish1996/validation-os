@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Collection } from "@validation-os/core";
+import { liveExperiments } from "./derived-views.js";
 import { needsHumanCounts, type NeedsHumanCounts } from "./list-surface.js";
 import { useList } from "./use-records.js";
 
@@ -59,6 +60,14 @@ export type NeedsHumanByRegister = Partial<Record<Collection, number>>;
 export interface UseNeedsHumanResult {
   counts: NeedsHumanCounts;
   byRegister: NeedsHumanByRegister;
+  /**
+   * Live-only experiment count — archived plans excluded (OPS-1305). The API's
+   * `/counts` tallies every stored row, but an archived plan never surfaces
+   * anywhere in the UI, so the nav badge would overcount (66 vs the live few).
+   * `null` until the experiments list loads, so the caller falls back to the
+   * API count rather than flashing a wrong number.
+   */
+  liveExperimentCount: number | null;
 }
 
 /**
@@ -85,6 +94,9 @@ export function useNeedsHuman(basePath = "/api"): UseNeedsHumanResult {
     if (counts.killLane > 0) byRegister.assumptions = counts.killLane;
     if (counts.overdue > 0) byRegister.experiments = counts.overdue;
     if (counts.inTension > 0) byRegister.decisions = counts.inTension;
-    return { counts, byRegister };
+    const liveExperimentCount = experiments.records
+      ? liveExperiments(experiments.records).length
+      : null;
+    return { counts, byRegister, liveExperimentCount };
   }, [asOf, assumptions.records, experiments.records, decisions.records]);
 }

@@ -2,9 +2,10 @@ import { describe, expect, it } from "vitest";
 import type { AnyRecord } from "@validation-os/core";
 import { buildUnderstanding } from "./understanding.js";
 
-// A reading scores per belief now (OPS-1305): the fixture takes the same
-// assumptionId / Rung / Result / magnitudeBand overrides but folds them into a
-// single `beliefs[]` entry (with the row-level Source / quality / Date shared).
+// Rung + magnitudeBand are row-level on the reading now (0.11): the fixture
+// takes the same Rung / magnitudeBand overrides but puts them on the ROW, while
+// the per-belief `beliefs[]` entry keeps only assumptionId / Result / grading.
+// Strength is recomputed from the row Rung (anchor × sign(Result)).
 function reading(over: Partial<AnyRecord> = {}): AnyRecord {
   const {
     assumptionId = "ASM-1",
@@ -23,12 +24,12 @@ function reading(over: Partial<AnyRecord> = {}): AnyRecord {
     Credibility: 1.0,
     Date: "2026-01-01",
     experimentId: null,
+    Rung,
+    magnitudeBand,
     beliefs: [
       {
         assumptionId,
-        Rung,
         Result,
-        magnitudeBand,
         "Grading justification": "",
         derived: { strength: 0 },
       },
@@ -185,7 +186,7 @@ describe("buildUnderstanding", () => {
     const u = buildUnderstanding(
       asm,
       [
-        reading({ id: "a", Source: "sa", experimentId: "weak", Rung: "Opinion" }),
+        reading({ id: "a", Source: "sa", experimentId: "weak", Rung: "Anecdotal" }),
         reading({ id: "b", Source: "sb", experimentId: "strong", Rung: "Prototype usage" }),
       ],
       [experiment({ id: "weak" }), experiment({ id: "strong" })],

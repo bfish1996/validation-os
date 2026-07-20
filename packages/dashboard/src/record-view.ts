@@ -12,9 +12,7 @@ import type {
   AnyRecord,
   BarLine,
   Collection,
-  MagnitudeBand,
   Result,
-  Rung,
 } from "@validation-os/core";
 import { experimentProgress } from "@validation-os/core/derivation";
 import {
@@ -33,6 +31,8 @@ import {
   liveExperiments,
   readingBeliefs,
   readingGrades,
+  readingMagnitudeBand,
+  readingRung,
   str,
   strList,
   testsAssumption,
@@ -105,6 +105,15 @@ export function headerPills(
       pills.push({ label: "Overdue", tone: "crit" });
   } else if (register === "decisions") {
     if (status === "Active") pills.push({ label: "Standing", tone: "good" });
+  } else if (register === "readings") {
+    // Rung + magnitude band are the reading's own evidence tier + intensity
+    // (0.10, row-level) — one per artifact, so they lead the header as a single
+    // paired badge ("Anecdotal · High"), not the per-belief cards. Both fall
+    // back to a belief's value on pre-migration data.
+    const rung = readingRung(record);
+    const band = readingMagnitudeBand(record);
+    const label = [rung, band].filter(Boolean).join(" · ");
+    if (label) pills.push({ label, tone: "accent" });
   }
   return pills;
 }
@@ -239,7 +248,10 @@ export interface HumanText {
 
 const HUMAN_FIELDS: Record<Collection, { key: string; label: string }[]> = {
   assumptions: [{ key: "Scoring justification", label: "Scoring justification" }],
-  readings: [{ key: "Grading justification", label: "Grading justification" }],
+  // A reading's grading justification is per belief now (OPS-1305) — it renders
+  // in the verdict cards (`BeliefVerdicts`), so surfacing a stale row-level copy
+  // here too would double up. The row carries no other genuine human free-text.
+  readings: [],
   decisions: [
     { key: "Statement", label: "Statement" },
     { key: "Unanimity justification", label: "Unanimity justification" },
@@ -265,19 +277,19 @@ export function humanInputFields(
 
 /** One belief a reading grades, prepared for the reading detail's verdict list
  * (OPS-1305). Modelled on the experiment bar-line view: the assumption resolved
- * to a title + navigable id, plus this belief's own Rung / Result / derived
- * Strength / magnitude band and the grading justification. */
+ * to a title + navigable id, plus this belief's own Result / derived Strength
+ * and the grading justification. Rung AND magnitude band are NOT here — they are
+ * row-level attributes of the artifact now (0.10), the same for every belief the
+ * reading grades, so they show once at the reading level, not per card. */
 export interface BeliefVerdict {
   assumptionId: string;
   /** The belief's title if it's in the loaded set, else its bare id. */
   title: string;
   /** True when the assumption resolved — drives whether the title links. */
   linked: boolean;
-  rung: Rung | null;
   result: Result | null;
   /** Derived per-belief strength (signed −100…100). */
   strength: number | null;
-  magnitudeBand: MagnitudeBand | null;
   justification: string;
 }
 
@@ -299,16 +311,46 @@ export function readingBeliefVerdicts(
       assumptionId: b.assumptionId,
       title: hit ? primaryLabel(hit) : b.assumptionId,
       linked: hit != null,
-      rung: (b.Rung as Rung | undefined) ?? null,
       result: (b.Result as Result | undefined) ?? null,
       strength,
-      magnitudeBand: (b.magnitudeBand as MagnitudeBand | undefined) ?? null,
       justification:
         typeof b["Grading justification"] === "string"
           ? b["Grading justification"]
           : "",
     };
   });
+}
+
+/** A reading's verdicts tallied by result — the one-line "what did this say?"
+ * summary above the per-belief list (OPS-1305 design pass). `inconclusive`
+ * folds every non-Validated/Invalidated verdict (Inconclusive or ungraded) so
+ * the three counts always sum to `total`. */
+export interface BeliefSummary {
+  total: number;
+  validated: number;
+  invalidated: number;
+  inconclusive: number;
+}
+
+/** Tally a reading's per-belief verdicts by result. Pure over the same input
+ * the verdict list reads, so the headline and the cards never disagree. */
+export function readingBeliefSummary(
+  reading: AnyRecord,
+  assumptions: AnyRecord[] = [],
+): BeliefSummary {
+  const verdicts = readingBeliefVerdicts(reading, assumptions);
+  let validated = 0;
+  let invalidated = 0;
+  for (const v of verdicts) {
+    if (v.result === "Validated") validated += 1;
+    else if (v.result === "Invalidated") invalidated += 1;
+  }
+  return {
+    total: verdicts.length,
+    validated,
+    invalidated,
+    inconclusive: verdicts.length - validated - invalidated,
+  };
 }
 
 // ── Backlink panels ───────────────────────────────────────────────────────────

@@ -83,7 +83,16 @@ export function ValidationOSDashboard({ config = {} }: ValidationOSDashboardProp
       : parseRoute(window.location.hash, registers),
   );
   const { counts } = useCounts(basePath);
-  const { byRegister: needsHuman } = useNeedsHuman(basePath);
+  const { byRegister: needsHuman, liveExperimentCount } = useNeedsHuman(basePath);
+
+  // The nav count must match what actually renders. `/counts` tallies every
+  // stored row, but archived evidence plans never surface (OPS-1305), so the
+  // experiments badge is corrected to the live-only count once it's known —
+  // otherwise it reads e.g. 66 while the register shows a handful.
+  const navCounts =
+    counts && liveExperimentCount !== null
+      ? { ...counts, experiments: liveExperimentCount }
+      : counts;
 
   // Keep the route and the URL hash in step, so a deep link opens the right
   // surface and the browser back/forward buttons move between them. The hash is
@@ -160,7 +169,7 @@ export function ValidationOSDashboard({ config = {} }: ValidationOSDashboardProp
       <SidebarNav
         route={route}
         onNavigate={navigate}
-        counts={counts}
+        counts={navCounts}
         needsHuman={needsHuman}
         registers={registers}
       />

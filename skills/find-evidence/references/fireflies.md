@@ -16,8 +16,9 @@ meeting date and participants.
 
 **Qualifies as evidence when:** a participant matching the assumption's
 Lens describes real past behaviour, an actual complaint, a commitment, or a
-concrete fact — not when the *team* speculates on a call (that's `Opinion`,
-and usually not worth a record).
+concrete fact — **not** when the *team* speculates on a call. Internal opinion
+is hypothesis, not evidence (`experiment-guardrails.md §0`): it belongs in the
+assumption's `Scoring justification`, never logged as a reading.
 
 **Caveats:**
 - ⚠️ Speaker diarization can collapse or misattribute speakers —

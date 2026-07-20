@@ -53,6 +53,43 @@ export function liveExperiments(experiments: AnyRecord[]): AnyRecord[] {
   return experiments.filter((e) => !isArchivedExperiment(e));
 }
 
+/**
+ * A reading's evidence-ladder Rung — transitional across the 0.10 row-level
+ * move. Rung describes the artifact/source (the same across all the beliefs one
+ * reading grades), so it is becoming a row-level `Rung` on the reading. This
+ * prefers that row value (the final shape) and falls back to the first belief
+ * that still carries one, so the badge/column render correct Rung whether the
+ * data is pre- or post-migration. The belief read is a defensive cast, never a
+ * hard dependency on `BeliefScore.Rung`, so it survives that field's removal
+ * from core.
+ */
+export function readingRung(r: AnyRecord): string | null {
+  const row = str(r.Rung);
+  if (row) return row;
+  for (const b of readingBeliefs(r)) {
+    const v = (b as { Rung?: unknown }).Rung;
+    if (typeof v === "string" && v !== "") return v;
+  }
+  return null;
+}
+
+/**
+ * A reading's magnitude band — the intensity paired with its Rung (0.10,
+ * row-level). Same transitional shape as {@link readingRung}: prefers the
+ * row-level `magnitudeBand`, falls back to the first belief that still carries
+ * one, and reads the belief field through a defensive cast so it survives
+ * `BeliefScore.magnitudeBand`'s removal from core.
+ */
+export function readingMagnitudeBand(r: AnyRecord): string | null {
+  const row = str(r.magnitudeBand);
+  if (row) return row;
+  for (const b of readingBeliefs(r)) {
+    const v = (b as { magnitudeBand?: unknown }).magnitudeBand;
+    if (typeof v === "string" && v !== "") return v;
+  }
+  return null;
+}
+
 /** A non-empty string, else null — the guard every field read shares. */
 export function str(v: unknown): string | null {
   return typeof v === "string" && v !== "" ? v : null;

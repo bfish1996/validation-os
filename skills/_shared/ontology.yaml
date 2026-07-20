@@ -94,22 +94,22 @@ vocabularies:
   glossary_status: [Active, Provisional, Superseded]
   reversibility: [Two-way door, One-way door]
 
-  # The 8-rung activity-and-strength ladder (experiment-guardrails.md §2,
-  # docs/evidence-ladder.md). Order = strength, weakest first. Two categories:
-  # Testing (recruited-sample instruments, plateau ±30) and Market (open-world
-  # targets, two pre-registered bars — the category formerly called "Goals",
-  # renamed with the unification so it no longer collides with the deleted
-  # record type, OPS-1305). Lives on the Reading (`Rung`) and on the bar line
-  # (`Planned rung`). `anchor` feeds the Strength derivation (signed by Result);
-  # Market rungs carry magnitude bands (Low/Typical/High). The magnitude bands
-  # and anchors are unchanged by the rename.
+  # The 7-rung activity-and-strength ladder (experiment-guardrails.md §2,
+  # docs/evidence-ladder.md). Order = strength, weakest first. `Opinion` was
+  # merged into `Anecdotal` (0.10): a bare opinion is just the weakest anecdote,
+  # so `Anecdotal` is now the floor and inherits Opinion's old anchor (3).
+  # Two categories: Testing (recruited-sample instruments, plateau ±30) and
+  # Market (open-world targets, two pre-registered bars — the category formerly
+  # called "Goals", OPS-1305). Lives ROW-LEVEL on the Reading (`Rung`, one per
+  # artifact — 0.10) and on the bar line (`Planned rung`). `anchor` feeds the
+  # Strength derivation (signed by Result); Market rungs carry magnitude bands
+  # (Low/Typical/High). `Prototype usage` = genuine prototype-usage sessions only.
   rung:
-    - { value: Opinion,             category: Testing, anchor: 3 }
+    - { value: Anecdotal,           category: Testing, anchor: 3 }   # the floor; absorbed Opinion (0.10) — a bare opinion is just the weakest anecdote, so Anecdotal inherits Opinion's old anchor
     - { value: Pitch-deck reaction, category: Testing, anchor: 6 }
-    - { value: Anecdotal,           category: Testing, anchor: 10 }
     - { value: Desk research,       category: Testing, anchor: 15 }
     - { value: Survey at scale,     category: Testing, anchor: 25 }
-    - { value: Prototype usage,     category: Testing, anchor: 30 }
+    - { value: Prototype usage,     category: Testing, anchor: 30 }   # genuine prototype-usage sessions only
     - { value: Signed intent,       category: Market,  anchor: { Low: 55, Typical: 68, High: 80 } }
     - { value: Paying users,        category: Market,  anchor: { Low: 75, Typical: 88, High: 99 } }
 
@@ -176,11 +176,13 @@ derivations:
   strength:
     field: reading_belief.Strength   # per beliefs[] entry, one s per belief scored
     formula: >-
-      rung anchor (Market rungs: × magnitude band, Low/Typical/High from the
-      absolute outcome) × sign(Result) — Validated positive, Invalidated
-      negative; 0 unless Result is Validated or Invalidated. Market-rung sign
-      reads the experiment bar's two pre-registered bars: hit/beat We're right
-      if → positive, at/below We're wrong if → negative, between → interpolated.
+      the READING ROW's Rung anchor (Market rungs: × the row's Magnitude band,
+      Low/Typical/High from the absolute outcome) × sign(this entry's Result) —
+      Validated positive, Invalidated negative; 0 unless Result is Validated or
+      Invalidated. Rung + Magnitude band are per-artifact (row-level, 0.10);
+      only Result — hence the sign — is per belief. Market-rung sign reads the
+      experiment bar's two pre-registered bars: hit/beat We're right if →
+      positive, at/below We're wrong if → negative, between → interpolated.
     rung_anchor: vocabularies.rung[].anchor
     range: [-99, 99]
 
@@ -271,7 +273,7 @@ entities:
       - { name: Bar verdict, type: select, options: vocabularies.bar_verdict, required: false }
 
   readings:
-    description: One artifact scored per belief — the atomic unit Confidence reads. One artifact row carrying source identity + quality once, a freeform `body` (the artifact's verbatim quote/excerpt — reintroduced as a deliberate reversal of the OPS-1305 no-body slice, backfilled from Notion, shown in the dashboard), plus an embedded beliefs[] array (entities.reading_belief) with one entry per assumption it bears on. Exists only once observed (no draft/running state). Origin (Experiment | none) lives on the row, never on the assumption; the Goal origin is gone (OPS-1305). EVIDENCE IS EXTERNAL — Source must be outside the team (customer/user/prospect/partner/third-party dataset/published source/observed market behaviour); internal meetings and team opinion are hypothesis/framing (→ assumption Scoring justification), never a reading, never a Confidence input (integrity internal-sourced-reading). An internal meeting that reports a verifiable external fact is second-hand evidence — attribute Source to the external event, grade on its rung, lower Credibility (experiment-guardrails.md §0).
+    description: One artifact scored per belief — the atomic unit Confidence reads. One artifact row carrying source identity + quality + RUNG once (rung is per-artifact, not per-belief — 0.10), a `body` on the canonical ## Quote / ## Source template (verbatim source text; analysis lives in beliefs[].Grading justification), plus an embedded beliefs[] array (entities.reading_belief) with one entry per assumption it bears on. One rung per artifact — a mixed-rung artifact is split into separate readings, one per rung (experiment-guardrails.md §0). Exists only once observed (no draft/running state). Origin (Experiment | none) lives on the row, never on the assumption; the Goal origin is gone (OPS-1305). EVIDENCE IS EXTERNAL — Source must be outside the team (customer/user/prospect/partner/third-party dataset/published source/observed market behaviour); internal meetings and team opinion are hypothesis/framing (→ assumption Scoring justification), never a reading, never a Confidence input (integrity internal-sourced-reading). An internal meeting that reports a verifiable external fact is second-hand evidence — attribute Source to the external event, set Rung to its rung, lower Credibility (experiment-guardrails.md §0).
     properties:
       - { name: Title, type: title, required: true }
       - { name: Source, type: link, required: true }   # the independence/dedupe key — the generator (person / dataset / cohort)
@@ -279,9 +281,11 @@ entities:
       - { name: Representativeness, type: select, options: vocabularies.source_quality.picks, required: true }   # source-level: one value per reading (grades the source, not the belief)
       - { name: Credibility, type: select, options: vocabularies.source_quality.picks, required: true }   # source-level: one value per reading
       - { name: Source quality, type: number, derived: true }   # = Representativeness × Credibility; scales each beliefs[] entry's weight
+      - { name: Rung, type: select, options: vocabularies.rung, required: true }   # ROW-LEVEL (0.10): one rung per artifact; Prototype usage = genuine prototype-usage sessions only
+      - { name: Magnitude band, type: select, options: vocabularies.magnitude_band, required: false }   # ROW-LEVEL; Market rungs only; null on Testing rungs
       - { name: Date, type: date }
       - { name: Owner, type: dashboard_user, required: false }
-    body_headings: []   # freeform `body` = the artifact's verbatim quote/excerpt (row-level, one per reading), reintroduced as a deliberate reversal of the OPS-1305 no-body slice — backfilled from Notion, shown in the dashboard; no fixed headings. Distinct from beliefs[].Grading justification (per-belief scoring rationale).
+    body_headings: [Quote, Source]   # canonical reading body template: ## Quote (verbatim what the source said/did) + ## Source (who/when/link). Reintroduced as a deliberate reversal of the OPS-1305 no-body slice. Analysis/reasoning does NOT go here — it lives in beliefs[].Grading justification.
 
   reading_belief:
     description: >-
@@ -289,20 +293,19 @@ entities:
       between one Reading and one Assumption, mirroring the Experiment's bar
       line. NOT a register: each entry belongs to exactly one Reading and is
       realized backend-natively (child table / embedded beliefs[] array /
-      nested block keyed by belief; see connector guides). Rung, Result,
-      Magnitude band, Strength, and Grading justification are PER belief; a rich
-      artifact bearing on N beliefs is one Reading with N of these entries,
+      nested block keyed by belief; see connector guides). Result, Strength, and
+      Grading justification are PER belief; the artifact's Rung + Magnitude band
+      are per-ARTIFACT (on the reading row), read by each entry's Strength. A
+      rich artifact bearing on N beliefs is one Reading with N of these entries,
       never N Readings (OPS-1305 evidence remodel). The row's assumptionIds is
       the projection of these entries' assumption references.
     composed_into: readings
     references: assumptions   # one assumption per beliefs[] entry
     properties:
-      - { name: Rung, type: select, options: vocabularies.rung, required: true }
       - { name: Result, type: select, options: vocabularies.reading_result,
           machine: status_machines.reading_result, required: true }
-      - { name: Magnitude band, type: select, options: vocabularies.magnitude_band, required: false }   # Market rungs only; null on Testing rungs
       - { name: Strength, type: number, derived: derivations.strength }
-      - { name: Grading justification, type: text }   # rationale for this entry's rung/result/(Market) magnitude + the shared rep/cred picks (presence-checked, warn)
+      - { name: Grading justification, type: text }   # rationale for this entry's Result against the belief + how the reading's (row-level) rung/rep/cred bear on it (presence-checked, warn)
 
   decisions:
     description: The decision log. A row here IS a decision (the register is the discriminator — no Type field). No Kind field.
@@ -602,7 +605,7 @@ integrity_rules:
   - id: body-template-missing-heading
     severity: warn
     surfaced_by: ["/assumptions audit", "/decisions audit"]
-    check: A record is missing one of its type's verbatim body_headings. Experiments (## Method protocol / ## Closure rollup) and Decisions (## Rationale / ## Alternatives considered) carry heading-structured bodies; Readings carry a freeform `body` (the artifact's verbatim quote/excerpt — reintroduced as a deliberate reversal of the OPS-1305 no-body slice) with no required headings, so nothing to check here; assumptions and glossary have no body (OPS-1305). A Decision missing "## Rationale" silently escapes its check — always flag it.
+    check: A record is missing one of its type's verbatim body_headings. Experiments (## Method protocol / ## Closure rollup), Decisions (## Rationale / ## Alternatives considered), and Readings (## Quote / ## Source — the canonical reading body template, verbatim source text; reintroduced as a deliberate reversal of the OPS-1305 no-body slice) carry heading-structured bodies; assumptions and glossary have no body (OPS-1305). A Decision missing "## Rationale", or a Reading missing "## Quote"/"## Source", silently escapes checks — always flag it. Reading analysis/reasoning belongs in beliefs[].Grading justification, never the body.
   - id: two-way-relation-one-ended
     severity: error
     surfaced_by: ["/assumptions audit", "/decisions audit"]

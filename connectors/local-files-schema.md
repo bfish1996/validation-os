@@ -68,10 +68,12 @@ registers:
       - {canonical: Representativeness, backend: Representativeness, type: number, derived: false, options_source: registry-schema}
       - {canonical: Credibility, backend: Credibility, type: number, derived: false, options_source: registry-schema}
       - {canonical: Source quality, backend: Source quality, type: number, derived: true, formula: "Representativeness × Credibility, anchors {0.25, 0.35, 0.5, 0.7, 1.0} (experiment-guardrails.md §2); skill-computed, bullet marked <!-- derived -->"}
+      - {canonical: Rung, backend: Rung, type: text, derived: false, options_source: registry-schema}
+      - {canonical: "Magnitude band", backend: Magnitude band, type: text, derived: false, options_source: registry-schema, required: false}
       - {canonical: "Context links", backend: "Context links", type: text, derived: false, required: false}
       - {canonical: Date, backend: Date, type: text, derived: false}
       - {canonical: Owner, backend: Owner, type: text, derived: false, required: false, options_source: vocabulary.dashboard_users}
-      - {canonical: Body, backend: "freeform body (the artifact's verbatim quote/excerpt)", type: text, derived: false, required: false}
+      - {canonical: Body, backend: "### Quote + ### Source body sections (verbatim source text)", type: text, derived: false, required: false}
     relations:
       - {canonical: Assumption, backend: "the `#### <Assumption ID>` sub-heading in the ### Beliefs block", target: assumptions, cardinality: many, inverse: Readings}
       - {canonical: Experiment, backend: Experiment, target: experiments, cardinality: one, nullable: true}
@@ -79,10 +81,8 @@ registers:
       composed_into: readings
       backend: "### Beliefs body block; one `#### <Assumption ID>` sub-block per scored belief"
       properties:
-        - {canonical: Rung, backend: Rung, type: text, derived: false, options_source: registry-schema}
         - {canonical: Result, backend: Result, type: text, derived: false, options_source: registry-schema}
-        - {canonical: "Magnitude band", backend: Magnitude band, type: text, derived: false, options_source: registry-schema, required: false}
-        - {canonical: Strength, backend: Strength, type: number, derived: true, formula: "signed rung anchor × sign(Result) — Validated positive, Invalidated negative, 0 on Inconclusive; Market rungs scale by Magnitude band Low/Typical/High from the absolute outcome (experiment-guardrails.md §2); skill-computed per entry, bullet marked <!-- derived -->"}
+        - {canonical: Strength, backend: Strength, type: number, derived: true, formula: "the reading's row-level Rung anchor × sign(this entry's Result) — Validated positive, Invalidated negative, 0 on Inconclusive; Market rungs scale by the row-level Magnitude band Low/Typical/High from the absolute outcome (experiment-guardrails.md §2); skill-computed per entry, bullet marked <!-- derived -->"}
         - {canonical: Grading justification, backend: Grading justification, type: text, derived: false}
       relations:
         - {canonical: "Reading / Assumption (belief entry)", backend: "the `#### <Assumption ID>` sub-heading itself", target: assumptions, cardinality: many, via: reading_belief}
@@ -282,10 +282,15 @@ once observed.
 | Representativeness | `- **Representativeness**: ...` | number {1.0/0.7/0.5} | no |
 | Credibility | `- **Credibility**: ...` | number {1.0/0.7/0.5} | no |
 | Source quality | `- **Source quality**: ...` | number | yes |
+| Rung | `- **Rung**: ...` | text (**row-level — one rung per artifact**) | no |
+| Magnitude band | `- **Magnitude band**: ...` | text (row-level, Market rungs only) | no |
 | Date | `- **Date**: ...` | text (date) | no |
 | Owner | `- **Owner**: ...` | text (optional, dashboard-user reference) | no |
 
-`Source` is the independence-dedupe key; belief entries sharing a source
+`Rung` (and `Magnitude band`) are **row-level bullets** — one rung per
+artifact. An artifact that spans two rungs is **split into separate reading
+files, one per rung** (`experiment-guardrails.md §0`), never two rungs in one
+file. `Source` is the independence-dedupe key; belief entries sharing a source
 against one belief dedupe to the strongest (largest `|Strength|`, most recent
 on ties) — dedupe is per (belief, source). A Reading has one origin type:
 `Experiment` (set **only** for a Reading that is the direct output of
@@ -296,17 +301,17 @@ one, `reading-orphaned-experiment`), or none (a bare found Reading) — the
 ### Per-belief scoring — `### Beliefs` block (composed into the Reading)
 
 Each belief a Reading scores gets a `#### <Assumption ID>` sub-block under a
-`### Beliefs` heading, mirroring the Experiment's `### Bar lines`:
+`### Beliefs` heading, mirroring the Experiment's `### Bar lines`. Rung and
+magnitude are on the row (above); each sub-block carries only `Result`,
+`Strength`, and `Grading justification`:
 
 ```markdown
 ### Beliefs
 
 #### ASM-014
-- **Rung**: Anecdotal
 - **Result**: Validated
-- **Magnitude band**: (Market rungs only; omit on Testing rungs)
-- **Strength**: 10 <!-- derived -->
-- **Grading justification**: Described reconciling by hand weekly, unprompted → Anecdotal, Validated. Rep 1.0, Cred 0.7.
+- **Strength**: 3 <!-- derived -->
+- **Grading justification**: Described reconciling by hand weekly, unprompted → Validated against ASM-014. (Reading rung Anecdotal; Rep 1.0, Cred 0.7.)
 ```
 
 One sub-block per scored assumption ID. A reading that bears on N beliefs has
@@ -316,22 +321,32 @@ N sub-blocks, never N reading files.
 
 - **Source quality** (reading-level) = `Representativeness × Credibility` —
 anchors {0.25, 0.35, 0.5, 0.7, 1.0}; scales every belief entry's weight.
-- **Strength** (per belief entry) = signed rung anchor × sign(Result) —
-Validated positive, Invalidated negative, 0 on Inconclusive; Market rungs
-(Signed intent, Paying users) scale by the entry's `Magnitude band`
-Low/Typical/High from the absolute outcome. Canonical table:
+- **Strength** (per belief entry) = the reading's **row-level `Rung`** anchor ×
+sign(this entry's Result) — Validated positive, Invalidated negative, 0 on
+Inconclusive; Market rungs (Signed intent, Paying users) scale by the row-level
+`Magnitude band` Low/Typical/High from the absolute outcome. Rung/magnitude are
+per-artifact; only Result (the sign) is per belief. Canonical table:
 `experiment-guardrails.md §2`.
 
 ### Body
 
-Readings **carry a freeform `body`** — the artifact's verbatim quote/excerpt —
-a **deliberate reversal** of the OPS-1305 no-body slice (brought back from
-Notion, shown in the dashboard). It is the record's freeform Markdown (no
-required subheadings). Per-belief scoring rationale stays in each belief
-entry's `Grading justification` (rung + magnitude anchor justification, the
-Representativeness and Credibility picks) — *what the source said* goes in
-`body`, *why it scored that way* in `Grading justification`. `### Notes` is
-cut.
+Readings **carry a `body`** on the canonical two-heading template — a
+**deliberate reversal** of the OPS-1305 no-body slice (brought back from
+Notion, shown in the dashboard):
+
+```markdown
+### Quote
+<verbatim what the source said or did>
+
+### Source
+<who / when / link>
+```
+
+(Reading body headings nest one level under the `## <ID>` record heading, like
+the Experiment's `### Method protocol` — so `### Quote` / `### Source`.)
+Per-belief scoring rationale stays in each belief entry's `Grading
+justification` — *what the source said* goes in the body, *why it scored that
+way* in `Grading justification`. `### Notes` is cut.
 
 ## Field mapping — Decisions
 
@@ -440,13 +455,12 @@ Experiment itself.
 Check that `registry_dir` exists and contains the `assumptions/`,
 `experiments/`, `readings/`, `decisions/`, and `glossary/` directories. For
 each, scan a few record files and verify the filename matches the record's
-heading ID, every required field bullet is present, body subheadings match
-the register's template verbatim (Experiments and Decisions carry
-heading-structured bodies; Readings carry a freeform `body` — the verbatim
-quote/excerpt — with no required subheadings), an Experiment's `### Bar lines`
-block has one `####` sub-block per bundled assumption, a Reading's `### Beliefs`
-block has one `####` sub-block per scored assumption, and derived values carry
-the `<!-- derived -->` marker. Report missing directories, malformed records,
+heading ID, every required field bullet is present (including the row-level
+`Rung`), body subheadings match the register's template verbatim (Experiments
+and Decisions carry their heading-structured bodies; Readings carry `### Quote`
++ `### Source`), an Experiment's `### Bar lines` block has one `####` sub-block
+per bundled assumption, a Reading's `### Beliefs` block has one `####` sub-block
+per scored assumption, and derived values carry the `<!-- derived -->` marker. Report missing directories, malformed records,
 or missing fields; flag any reading `Experiment:` that names a missing or
 `Archived` experiment (`reading-orphaned-experiment`). A register that is still
 a legacy single file (`assumptions.md`) validates against the same record
@@ -468,9 +482,10 @@ self-documenting:
 - an Assumption
 - an Experiment carrying a `### Bar lines` block with one `#### <Assumption
   ID>` sub-block against the seed Assumption
-- a Reading carrying a `### Beliefs` block with one `#### <Assumption ID>`
-  sub-block against that same Assumption, a freeform `body` (the verbatim
-  quote), and `Experiment:` set to the seed Experiment
+- a Reading carrying a row-level `Rung` bullet, a `### Beliefs` block with one
+  `#### <Assumption ID>` sub-block against that same Assumption, a `body` on the
+  `### Quote` + `### Source` template, and `Experiment:` set to the seed
+  Experiment
 - a Decision
 - a Glossary term
 
@@ -486,12 +501,13 @@ line + `Deadline`/`Outcome`) and treat `Archived` as a new legal
 `glossary/`), drop `5 Whys`/`Metric for truth`/`Gaps` and the
 `### Provenance & notes` section from every Assumption, split each Reading's
 `Source` into `Source` + `Context links`. **Fold each single-belief Reading
-into the `### Beliefs` shape:** move its old `Assumption`/`Rung`/`Result`/
-magnitude/`Strength` bullets and `### Grading` content (→ per-entry `Grading
-justification`) into one `#### <Assumption ID>` sub-block under a new
-`### Beliefs` block, keeping `Source`/`Representativeness`/`Credibility`/
-`Source quality`/`Experiment` at reading level; **backfill the freeform reading
-`body`** from the Notion verbatim quote/excerpt (the reintroduced reading body,
+into the `### Beliefs` shape:** move its old `Assumption`/`Result`/`Strength`
+bullets and `### Grading` content (→ per-entry `Grading justification`) into one
+`#### <Assumption ID>` sub-block under a new `### Beliefs` block; **keep `Rung`
+and `Magnitude band` as row-level bullets** (rung is per-artifact, 0.10)
+alongside `Source`/`Representativeness`/`Credibility`/`Source quality`/
+`Experiment`; **backfill the reading `body`** on the `### Quote` + `### Source`
+template from the Notion verbatim quote/excerpt (the reintroduced reading body,
 reversing the OPS-1305 cut for readings). Promote each Decision's `## Decision`
 to `Statement` and unanimity rationale to `Unanimity justification` while
 cutting `## Source`, and move each Glossary term's body headings into
@@ -509,9 +525,9 @@ confirmation, not silently.
 on assumptions; `Source quality` on the reading row and per-belief `Strength`
 inside each `### Beliefs` sub-block) must carry `<!-- derived -->` so
 hand-editing users know not to type into them.
-- An Experiment's bar line missing its `Planned rung`, or a Reading belief
-sub-block missing its `Rung`/`Result`, is a malformed record — flag it, never
-silently guess.
+- An Experiment's bar line missing its `Planned rung`, a Reading missing its
+row-level `Rung`, or a Reading belief sub-block missing its `Result`, is a
+malformed record — flag it, never silently guess.
 - A Reading fans into `### Beliefs` sub-blocks, never into multiple reading
 files; keep the one-artifact-one-file rule. Set a reading's `Experiment:` only
 for a Reading that is the executed output of a committed experiment, and only

@@ -137,10 +137,11 @@ before opening the next; the write is gated at the end.
 2. **Per-belief rung, one run Feasibility** (`§2`). Choose the **rung per
    bundled belief** — one run can honestly yield different-strength signal per
    belief (past-behaviour questions vs prototype-in-hand). Weigh two axes per
-   belief: (a) **strength** — the 8-rung ladder, 🧪 Testing (`Opinion` ±3 →
-   `Pitch-deck reaction` ±6 → `Anecdotal` ±10 → `Desk research` ±15 →
-   `Survey at scale` ±25 → `Prototype usage` ±30) → 🎯 Market (`Signed intent`
-   ±55/68/80 → `Paying users` ±75/88/99); and (b) **feasibility**. Set
+   belief: (a) **strength** — the 7-rung ladder, 🧪 Testing (`Anecdotal` ±3,
+   the floor (absorbed `Opinion`, 0.10) → `Pitch-deck reaction` ±6 →
+   `Desk research` ±15 → `Survey at scale` ±25 → `Prototype usage` ±30, genuine
+   prototype-usage only) → 🎯 Market (`Signed intent` ±55/68/80 →
+   `Paying users` ±75/88/99); and (b) **feasibility**. Set
    **`Feasibility` once for the whole run** — `High`/`Medium`/`Low` over
    access, cost, time — because the instrument runs once against one
    population; bundling never splits it. Drivers worth remembering land as a

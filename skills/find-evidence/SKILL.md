@@ -177,11 +177,28 @@ counter-case search — the rigor that makes a published fact trustworthy
 enough to write into the register.
 
 **Show your work as you go.** For each candidate surface: source + link,
-one line of what it shows, the rung you'd assign and why, and the honest
-`Result`. For desk evidence include the tier + publication date, and the
-counter-sources you checked. Include the hits you considered and
-**dropped** (wrong Lens, only bears on a dependency, too vague, Tier D) so
-the read is auditable. Search the disconfirming case too.
+the **one rung** you'd assign the artifact and why, one line of what it shows,
+and the honest `Result` **per belief** it addresses. For desk evidence include
+the tier + publication date, and the counter-sources you checked. Include the
+hits you considered and **dropped** (wrong Lens, only bears on a dependency,
+too vague, Tier D, internal opinion) so the read is auditable. Search the
+disconfirming case too.
+
+**Grade ONE rung per artifact.** `Rung` is a property of the artifact, set once
+on the reading row (0.10) — not per belief. If one raw artifact genuinely spans
+two rungs (a call with a real prototype-usage demo **and** a past-behaviour
+discussion), **split it into separate readings, one per rung**; otherwise it's
+one reading (one rung) with a `beliefs[]` entry per belief it bears on. Write
+the reading `body` on the canonical **`## Quote`** (verbatim what the source
+said/did) + **`## Source`** (who/when/link) template; keep analysis out of the
+body — it goes in each entry's `Grading justification`.
+
+**Buyer-discovery / user-interview calls are bare readings.** A discovery call
+is external evidence: log it as a reading linked (via its `beliefs[]` entries)
+to whatever assumptions it bears on, `experimentId` **null** — **never**
+experiment-linked, unless it is literally the concluding run of a committed
+plan (conclude mode). Bearing on a belief some experiment also tests is not an
+origin.
 
 ### 4. Close out
 

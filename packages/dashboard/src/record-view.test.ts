@@ -6,6 +6,7 @@ import {
   headerPills,
   humanInputFields,
   leadingMeters,
+  readingBeliefSummary,
   readingBeliefVerdicts,
   scoreChip,
   type RelatedSet,
@@ -102,6 +103,71 @@ describe("headerPills", () => {
     expect(headerPills("experiments", exp).map((p) => p.label)).not.toContain(
       "Overdue",
     );
+  });
+
+  it("leads a reading with its row-level Rung · Band as one accent badge (0.10)", () => {
+    const reading: AnyRecord = {
+      id: "r",
+      version: 1,
+      createdAt: "",
+      updatedAt: "",
+      Status: "Logged",
+      Rung: "Anecdotal",
+      magnitudeBand: "High",
+    };
+    const pills = headerPills("readings", reading);
+    expect(pills.map((p) => p.label)).toEqual(["Logged", "Anecdotal · High"]);
+    expect(pills[1]).toEqual({ label: "Anecdotal · High", tone: "accent" });
+  });
+
+  it("shows Rung alone when the row has no band", () => {
+    const reading: AnyRecord = {
+      id: "r",
+      version: 1,
+      createdAt: "",
+      updatedAt: "",
+      Status: "Logged",
+      Rung: "Paying users",
+    };
+    expect(headerPills("readings", reading).map((p) => p.label)).toEqual([
+      "Logged",
+      "Paying users",
+    ]);
+  });
+
+  it("falls back to a belief's Rung + band on pre-migration data (0.10)", () => {
+    const reading: AnyRecord = {
+      id: "r",
+      version: 1,
+      createdAt: "",
+      updatedAt: "",
+      Status: "Logged",
+      // No row-level Rung/band yet — the transitional fallback reads them off a belief.
+      beliefs: [
+        {
+          assumptionId: "a",
+          Rung: "Prototype usage",
+          magnitudeBand: "Typical",
+          Result: "Validated",
+        },
+      ],
+    };
+    const pills = headerPills("readings", reading);
+    expect(pills.map((p) => p.label)).toEqual(["Logged", "Prototype usage · Typical"]);
+    expect(pills[1]!.tone).toBe("accent");
+  });
+
+  it("omits the reading badge when neither the row nor a belief carries Rung/band", () => {
+    const reading: AnyRecord = {
+      id: "r",
+      version: 1,
+      createdAt: "",
+      updatedAt: "",
+      Status: "Logged",
+    };
+    expect(headerPills("readings", reading).map((p) => p.label)).toEqual([
+      "Logged",
+    ]);
   });
 });
 
@@ -380,11 +446,12 @@ describe("readingBeliefVerdicts", () => {
       assumptionId: "a1",
       title: "Users want speed",
       linked: true,
-      rung: "Survey at scale",
       result: "Validated",
       strength: 40,
       justification: "clear signal",
     });
+    // Rung is row-level now (0.10) — it is not part of a per-belief verdict.
+    expect(verdicts[0]).not.toHaveProperty("rung");
     // An unresolved belief keeps its id as the title and reads as unlinked.
     expect(verdicts[1]).toMatchObject({ assumptionId: "gone", title: "gone", linked: false });
   });
@@ -398,6 +465,45 @@ describe("readingBeliefVerdicts", () => {
       beliefs: [],
     };
     expect(readingBeliefVerdicts(reading, [])).toEqual([]);
+  });
+});
+
+describe("readingBeliefSummary", () => {
+  it("tallies verdicts by result, folding ungraded into inconclusive", () => {
+    const reading: AnyRecord = {
+      id: "r",
+      version: 1,
+      createdAt: "",
+      updatedAt: "",
+      beliefs: [
+        { assumptionId: "a1", Result: "Validated" },
+        { assumptionId: "a2", Result: "Invalidated" },
+        { assumptionId: "a3", Result: "Inconclusive" },
+        { assumptionId: "a4" }, // ungraded — counts as inconclusive
+      ],
+    };
+    expect(readingBeliefSummary(reading)).toEqual({
+      total: 4,
+      validated: 1,
+      invalidated: 1,
+      inconclusive: 2,
+    });
+  });
+
+  it("is all-zero for a reading that grades no beliefs", () => {
+    const reading: AnyRecord = {
+      id: "r",
+      version: 1,
+      createdAt: "",
+      updatedAt: "",
+      beliefs: [],
+    };
+    expect(readingBeliefSummary(reading)).toEqual({
+      total: 0,
+      validated: 0,
+      invalidated: 0,
+      inconclusive: 0,
+    });
   });
 });
 

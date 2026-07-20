@@ -210,9 +210,9 @@ market) are **not evidence** — they are hypothesis/framing and belong in the
 assumption's `Scoring justification`, never as a Reading, and never contribute
 to Confidence. **Exception:** when an internal meeting *reports* a verifiable
 external fact (a customer's decision, a user's observed behaviour, a partner's
-commitment), that fact **is** evidence but recorded **second-hand** — grade the
-`beliefs[]` entry on the external event's rung, set `Source` to the external
-event/source (not the meeting), and set `Credibility` lower to reflect the
+commitment), that fact **is** evidence but recorded **second-hand** — set the
+reading's row-level `Rung` to the external event's rung, `Source` to the
+external event/source (not the meeting), and `Credibility` lower to reflect the
 second-hand relay.
 
 **Reading-level fields (the artifact row — one value per Reading):**
@@ -225,10 +225,12 @@ second-hand relay.
 | Experiment | relation (nullable) | The originating plan, as provenance — **one origin per Reading, whatever its `beliefs[]` count**. Null for bare/found Readings — the Goal origin is gone (`OPS-1305`). Set only when the Reading is the direct output of concluding this committed Experiment; a live (non-archived) experiment is required (`ontology.yaml` `reading-orphaned-experiment`). Its presence drives the reading-level `commitmentFactor` in the Confidence weight (`experiment-guardrails.md §2`). |
 | Representativeness | select {1.0, 0.7, 0.5} | How well the source represents the ICP/Lens. A property of the source, so one value per Reading. |
 | Credibility | select {1.0, 0.7, 0.5} | How much *this* source's word is worth. A property of the source, so one value per Reading. |
-| Source quality | derived | **Never hand-write.** = `Representativeness × Credibility` — anchors {0.25, 0.35, 0.5, 0.7, 1.0}. Scales each `beliefs[]` entry's *weight* in that belief's Confidence average, within its rung, never across. |
+| Source quality | derived | **Never hand-write.** = `Representativeness × Credibility` — anchors {0.25, 0.35, 0.5, 0.7, 1.0}. Scales each `beliefs[]` entry's *weight* in that belief's Confidence average, within the reading's rung, never across. |
+| Rung | select | **Row-level — one rung per artifact, per reading** (0.10: rung is a property of the artifact, not the belief). The ladder rung this whole artifact sits on, judged from what it shows. The single activity-and-strength ladder (`experiment-guardrails.md §2`): 🧪 Testing — `Anecdotal` (**the floor** — absorbed the old `Opinion`, 0.10) · `Pitch-deck reaction` · `Desk research` · `Survey at scale` · `Prototype usage` (**genuine prototype-usage sessions only**); 🎯 Market — `Signed intent` · `Paying users`. An artifact that spans two rungs (a call with a real prototype-usage demo **and** a discussion) is **split into separate readings, one per rung** (`experiment-guardrails.md §0`). |
+| Magnitude band | select {Low, Typical, High} (Market rungs only) | **Row-level.** The magnitude this artifact landed at on a 🎯 Market rung, from the absolute outcome (never %-of-target); null on Testing rungs. Feeds each entry's `Strength`. |
 | Date | date | When it was observed. |
 | Owner | dashboard user (optional) | Who logged it. |
-| Body | text | The artifact's **verbatim / narrative text** — the quote(s) or source excerpt the reading rests on — one shared body per reading. **Reintroduced as a deliberate reversal of the OPS-1305 "readings carry no body" slice** (the verbatim text is backfilled from Notion and shown in the dashboard). Distinct from the per-belief `Grading justification`: `body` is *what the source said*, `Grading justification` is *why it scored the way it did*. |
+| Body | text | The reading's body, on the **canonical two-heading template**: `## Quote` (the verbatim text of what the source said or did) + `## Source` (who / when / link). Analysis and reasoning do **not** go here — they live in each `beliefs[]` entry's `Grading justification`. Reintroduced as a deliberate reversal of the OPS-1305 "readings carry no body" slice (backfilled from Notion, shown in the dashboard). |
 
 A Reading has **one origin type**: an `Experiment`, or none (a bare found
 Reading) — the Goal origin is gone (`OPS-1305`).
@@ -245,21 +247,21 @@ the Experiment's bar lines. Attributes:
 | Field | Type | Rule |
 |---|---|---|
 | Assumption | relation | The **one** belief this entry scores. Inverse of the assumption's `Readings`; a Reading with N entries links N assumptions (the row's `assumptionIds` is the projection of these). |
-| Rung | select | The ladder rung this entry sits on — inherited from the belief's bar line at logging, or set directly for bare Readings — judged from what the artifact shows *for this belief*, independent of the bar lines. The single 8-rung activity-and-strength ladder (`experiment-guardrails.md §2`): 🧪 Testing — `Opinion` · `Pitch-deck reaction` · `Anecdotal` · `Desk research` · `Survey at scale` · `Prototype usage`; 🎯 Market — `Signed intent` · `Paying users` (two pre-registered bars, magnitude bands). Renamed from "Goals" with the unification (`OPS-1305`). |
 | Result | select | `Validated` / `Invalidated` / `Inconclusive` — the sign of the evidence for this belief, set at logging. **No `Running`.** |
-| Magnitude band | select {Low, Typical, High} (Market rungs only) | The magnitude this entry landed at on a 🎯 Market rung, from the absolute outcome (never %-of-target); null on Testing rungs. Feeds the `Strength` derivation. |
-| Strength | derived | **Never hand-write.** The signed reading value `s` for this belief: rung anchor (Market rungs: × `Magnitude band`) × sign(`Result`); 0 on `Inconclusive`. The assumption's Confidence reads this. |
-| Grading justification | text | Rationale for this entry's rung / result / (Market) magnitude picks plus the shared representativeness / credibility picks — presence-checked (`reading-ungraded` warns when empty). Promoted from the `## Grading` body (`OPS-1305`). |
+| Strength | derived | **Never hand-write.** The signed reading value `s` for this belief: the **row-level** `Rung` anchor (Market rungs: × the **row-level** `Magnitude band`) × sign(this entry's `Result`); 0 on `Inconclusive`. The assumption's Confidence reads this. (Rung/magnitude are per-artifact; only `Result` — and therefore the sign — is per belief.) |
+| Grading justification | text | Rationale for this entry's `Result` against the belief, plus how the reading's rung / representativeness / credibility bear on it — presence-checked (`reading-ungraded` warns when empty). The scoring reasoning; the verbatim source text lives in the reading `body`. |
 
 One artifact bearing on N beliefs is **one Reading with N `beliefs[]`
 entries**, never N Readings — a rich interview scores each belief it addressed
-in its own entry, sharing the row's source, quality, and origin.
+in its own entry, sharing the row's source, quality, rung, and origin. (The one
+exception: an artifact that genuinely spans **two rungs** is split into separate
+readings, one per rung — `experiment-guardrails.md §0`.)
 
-Readings **carry a `body`** — the verbatim artifact text — a **deliberate
-reversal** of the OPS-1305 "readings carry no body" slice (the quote/excerpt is
-brought back from Notion and rendered in the dashboard). The per-entry
-`Grading justification` is a distinct concern (scoring rationale, not source
-text) and stays; the old `## Notes` section remains cut.
+Readings **carry a `body`** on the two-heading template — `## Quote` (verbatim
+what the source said/did) + `## Source` (who/when/link) — a **deliberate
+reversal** of the OPS-1305 "readings carry no body" slice (brought back from
+Notion, rendered in the dashboard). Analysis stays out of the body: it lives in
+each entry's `Grading justification`. The old `## Notes` section remains cut.
 
 ## Field map — Decisions
 

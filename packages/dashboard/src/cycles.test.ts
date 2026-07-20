@@ -20,12 +20,14 @@ function reading(over: Partial<AnyRecord> & { id: string }): AnyRecord {
     Representativeness: 1.0,
     Credibility: 1.0,
     Date: null,
+    // Rung + magnitudeBand are row-level now (0.11); strength recomputes from the
+    // row Rung. The belief keeps only assumptionId / Result / grading.
+    Rung,
+    magnitudeBand,
     beliefs: [
       {
         assumptionId,
-        Rung,
         Result,
-        magnitudeBand,
         "Grading justification": "",
         derived: { strength: 0 },
       },
@@ -168,7 +170,7 @@ describe("buildCycles", () => {
       "b1",
       [
         reading({ id: "r1", experimentId: "e1", Date: "2026-01-01", Rung: "Prototype usage" }),
-        reading({ id: "r2", Date: "2026-02-01", Rung: "Opinion" }), // direct
+        reading({ id: "r2", Date: "2026-02-01", Rung: "Anecdotal" }), // direct
       ],
       [experiment({ id: "e1" })],
     );

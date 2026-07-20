@@ -12,7 +12,7 @@ import { BeliefJourney } from "./journey-surface.js";
 import { REGISTER_LABEL, REGISTER_SINGULAR } from "./labels.js";
 import { readingBeliefs } from "./derived-views.js";
 import { nestReadingsByPlan } from "./list-surface.js";
-import { Markdown } from "./markdown.js";
+import { EvidenceBody } from "./markdown.js";
 import { BeliefVerdicts } from "./belief-verdicts.js";
 import {
   formatSigned,
@@ -418,11 +418,14 @@ function RecordBody({
                   <h3 className="vos-section-title">
                     {register === "readings" ? "Quote" : "Narrative"}
                   </h3>
-                  <Markdown text={bodyText} />
+                  <EvidenceBody
+                    text={bodyText}
+                    partLabel={register === "readings" ? "Finding" : "Part"}
+                  />
                 </section>
               ) : null}
               {register === "readings" ? (
-                <section className="vos-record-prose">
+                <section className="vos-record-prose vos-verdicts-section">
                   <h3 className="vos-section-title">Per-belief verdicts</h3>
                   <BeliefVerdicts
                     reading={record}

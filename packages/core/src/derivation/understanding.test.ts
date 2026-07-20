@@ -65,7 +65,7 @@ describe("confidenceAttribution", () => {
 
   it("ranks movers by |contribution|, strongest first", () => {
     const a = confidenceAttribution([
-      reading({ id: "a", source: "sa", experimentId: "weak", rung: "Opinion" }),
+      reading({ id: "a", source: "sa", experimentId: "weak", rung: "Anecdotal" }),
       reading({
         id: "b",
         source: "sb",
@@ -101,7 +101,7 @@ describe("confidenceAttribution", () => {
   it("honours Source dedupe, so a shadowed reading never doubles a mover", () => {
     const a = confidenceAttribution([
       reading({ id: "a", source: "same", experimentId: "EXP-1", rung: "Prototype usage" }),
-      reading({ id: "b", source: "same", experimentId: "EXP-1", rung: "Opinion" }),
+      reading({ id: "b", source: "same", experimentId: "EXP-1", rung: "Anecdotal" }),
     ]);
     expect(a.movers[0]!.readingCount).toBe(1);
     expect(a.movers[0]!.readingIds).toEqual(["a"]);

@@ -69,7 +69,7 @@ With **no internal sources configured**, the internal flavour degrades to
 asking the user to paste or point at material (notes, a transcript file, an
 export) — the triage and write below apply unchanged.
 
-Schema: the field map, the 8-rung `Rung` ladder, and the `Result` options for
+Schema: the field map, the 7-rung `Rung` ladder, and the `Result` options for
 Readings are owned by `experiment-guardrails.md` (§0, §2) and
 `registry-schema.md` (§Field map — Readings) — read them for the schema; do
 not redefine it here. On the Notion connector, verify the Readings→
@@ -170,44 +170,48 @@ describing the source and origin):**
   pre-registered plan? If unsure, it's found"** → leave `experimentId` null.
   Its presence sets the reading-level `commitmentFactor` to 1.0 vs 0.85 for
   bare, so a mis-set origin silently inflates weight.
+- **`Rung`** (**row-level — one rung per artifact**) = the rung matching **what
+  the artifact shows**, graded once for the whole reading (`experiment-guardrails.md
+  §2`) — **Testing rungs only**: a stated opinion or an unprompted report of a
+  real past behaviour → 🧪 `Anecdotal` (the floor); a verbal yes to a mock →
+  🧪 `Pitch-deck reaction`; regulation / published data / competitor fact →
+  🧪 `Desk research`; a structured questionnaire already run → 🧪 `Survey at
+  scale`; genuine hands-on unpaid use → 🧪 `Prototype usage`. **Found evidence
+  never mints a 🎯 Market-rung reading** — there are no bare Market-rung
+  readings (`experiment-guardrails.md §6`). A measured scoreboard number
+  (product metric, CRM level) is Market-side: don't log it — surface it and
+  route to `/experiment-design` (`docs/goals.md §Found numbers`). **One rung
+  per artifact:** if the artifact genuinely spans two rungs (a call with a real
+  prototype-usage demo **and** a past-behaviour discussion), **split it into
+  separate readings, one per rung** — never average two rungs into one reading.
+- **`Magnitude band`** (row-level) = only on a Market rung; omit on Testing
+  (so, in practice, omitted for found evidence).
 - **`Date`** = when the evidence occurred (historic internal) or the
   research date (desk), never a future date.
 - **`Owner`** if known.
-- **`body`** = the artifact's **verbatim quote(s) / excerpt** — the raw source
-  text the reading rests on, one shared body per Reading (readings carry a
-  `body` again — a deliberate reversal of the OPS-1305 no-body slice;
-  `registry-schema.md §Field map — Readings`). This is *what the source said*;
-  the per-belief scoring rationale goes in each entry's `Grading justification`
-  below, never here. For desk evidence, the key quotes/figures with their URLs.
+- **`body`** = the reading's **`## Quote` + `## Source`** body (canonical
+  template, `registry-schema.md §Field map — Readings`): `## Quote` = the
+  verbatim text of what the source said/did; `## Source` = who / when / link.
+  Analysis stays out — the per-belief scoring rationale goes in each entry's
+  `Grading justification`, never here. For desk evidence, the key quotes/figures
+  with their URLs under `## Quote`, the publication + retrieval under `## Source`.
 
 **Then, one `beliefs[]` entry per belief the artifact addressed:**
 
 - **`Assumption`** = the one belief this entry scores. The target belief
   always gets an entry; add further entries for any other live belief the
   **same artifact** clearly addresses (surfaced at the gate, §5).
-- **`Rung`** = the rung matching this belief's evidence strength, **graded
-  from what the artifact shows for this belief** (`experiment-guardrails.md
-  §2`) — **Testing rungs only**: a hypothetical "I'd use that" → 🧪 `Opinion`;
-  users describing something they **actually did**, unprompted → 🧪
-  `Anecdotal`; a structured questionnaire already run → 🧪 `Survey at scale`;
-  regulation / published data / competitor fact → 🧪 `Desk research`; unpaid
-  real use → 🧪 `Prototype usage`. **Found evidence never mints a 🎯
-  Market-rung entry** — there are no bare Market-rung readings
-  (`experiment-guardrails.md §6`). A measured scoreboard number (product
-  metric, CRM level) is Market-side: don't log it — surface it and route to
-  `/experiment-design` to mint a forward committed plan calibrated off it
-  (`docs/goals.md §Found numbers`). One artifact may sit at **different rungs
-  for different beliefs** — grade each entry on its own.
 - **`Result`** = Validated / Invalidated / Inconclusive for this belief,
-  judged honestly against that assumption's **current** `description`.
-- **`Strength`** = derived per entry from its rung × sign(`Result`).
+  judged honestly against that assumption's **current** `description`. (Rung is
+  the reading's, shared; only the sign is per belief.)
+- **`Strength`** = derived per entry from the **reading's row-level `Rung`**
+  anchor × sign(this entry's `Result`).
 - **`Grading justification`** — the per-entry scoring rationale (distinct from
-  the reading-level `body`, which holds the verbatim text): this entry's rung +
-  `Result` reasoning + the shared Rep×Cred picks with one-line justifications.
-  For desk evidence, also fold in the per-sub-question findings with tier +
-  dates, how conflicts were weighed, caveats (single-sourced or stale claims),
-  and the sources considered & dropped — the reasoning here, the raw quotes in
-  `body`.
+  the reading-level `body`, which holds the verbatim text): why this `Result`
+  against the belief, how the reading's rung + Rep×Cred bear on it. For desk
+  evidence, also fold in the per-sub-question findings with tier + dates, how
+  conflicts were weighed, caveats (single-sourced or stale claims), and the
+  sources considered & dropped — the reasoning here, the raw quotes in `body`.
 
 ### 4. Retrospective-honesty guardrail
 
@@ -224,8 +228,9 @@ Counter it deliberately — both flavours:
 > per belief it actually addressed**, each entry judged against its own bar;
 > signal on a belief the plan didn't bundle is an **off-plan entry** (no bar,
 > the same experiment origin as provenance — `experiment-guardrails.md §0`).
-> Even then, grade each entry's **rung** from what the artifact shows, not from
-> the bar. Fall back to the rail below only for a belief with no bar in the plan.
+> Even then, grade the reading's **(row-level) `Rung`** from what the artifact
+> shows, not from the bar. Fall back to the rail below only for a belief with no
+> bar in the plan.
 
 - Judge each entry against its assumption's `description` **as written** —
   don't reshape the bar to fit the hit you found.
@@ -242,11 +247,13 @@ Counter it deliberately — both flavours:
 
 - **`interactive`** → gated write (`gated-writes.md`). Render the record —
   reading-level fields (`Source`, `Context links`, `Representativeness`,
-  `Credibility`, `Experiment`, `Date`, `body` = the verbatim quote/excerpt)
-  plus each `beliefs[]` entry (`Assumption`, `Rung`, `Result`, `Grading
-  justification`) — confirm, then create it and link each entry's `Assumption`.
-  **One Reading per artifact**, with as many `beliefs[]` entries as beliefs it
-  addressed — never several Readings for one artifact.
+  `Credibility`, `Rung`, `Magnitude band`, `Experiment`, `Date`, and the
+  `## Quote` + `## Source` `body`) plus each `beliefs[]` entry (`Assumption`,
+  `Result`, `Grading justification`) — confirm, then create it and link each
+  entry's `Assumption`. **One Reading per artifact** at **one `Rung`**, with as
+  many `beliefs[]` entries as beliefs it addressed — never several Readings for
+  one artifact, and split a genuinely mixed-rung artifact into one reading per
+  rung.
 - **`autonomous`** → write directly (no gate) and append to the run-log
   (record id, source link, and per entry: `Assumption`, `Rung`, `Result`) so
   every mutation is auditable.
@@ -306,8 +313,13 @@ evidence mass in the average.
   assumption's `Scoring justification`). Evidence is external; from an internal
   meeting log only the external facts it reports, attributed to the external
   source at lower `Credibility` (`experiment-guardrails.md §0`).
-- Never fan one artifact into several Readings — one artifact is one Reading
-  with a `beliefs[]` entry per belief it addressed.
+- Never fan one artifact into several Readings **per belief** — one artifact at
+  one rung is one Reading with a `beliefs[]` entry per belief it addressed. The
+  **only** reason to make several Readings from one artifact is a genuine
+  **rung split** (a call with a real prototype-usage demo + a discussion → one
+  reading per rung), never one-per-belief.
+- Never grade two rungs into one Reading — `Rung` is row-level, one per
+  artifact; split a mixed-rung artifact instead.
 - Never set `experimentId` on found evidence unless the Reading is the direct
   output of executing a pre-registered plan (§3 gate) — a shared topic with a
   running experiment is not an origin; if unsure, leave it bare.

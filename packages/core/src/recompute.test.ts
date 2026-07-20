@@ -33,19 +33,22 @@ function assumption(over: Partial<AssumptionRecord> = {}): AssumptionRecord {
   };
 }
 
-/** One per-belief score, against ASM-1 unless overridden. */
+/** One per-belief score against ASM-1 unless overridden. Rung is row-level now. */
 function belief(over: Partial<BeliefScore> = {}): BeliefScore {
   return {
     assumptionId: "ASM-1",
-    Rung: "Paying users",
     Result: "Validated",
     "Grading justification": "why the picks",
-    derived: { strength: 88 },
+    derived: { strength: 30 },
     ...over,
   };
 }
 
-/** A concluded reading row carrying one belief against ASM-1, unless overridden. */
+/**
+ * A reading row carrying ONE rung and one or more per-belief Results. The rung
+ * (and market magnitude band) is an artifact-level property; each belief only
+ * carries its own Result.
+ */
 function reading(over: Partial<ReadingRecord> = {}): ReadingRecord {
   const beliefs = over.beliefs ?? [belief()];
   return {
@@ -57,6 +60,7 @@ function reading(over: Partial<ReadingRecord> = {}): ReadingRecord {
     Source: "src-1",
     contextLinks: [],
     experimentId: null,
+    Rung: "Prototype usage",
     Representativeness: 1.0,
     Credibility: 1.0,
     Date: "2026-01-01",
@@ -70,12 +74,37 @@ function reading(over: Partial<ReadingRecord> = {}): ReadingRecord {
 
 const NO_DECISIONS: DecisionRecord[] = [];
 
-describe("recomputeDerived — per-belief aggregation", () => {
-  it("an experiment-linked market reading outweighs the same reading found (commitment factor)", () => {
-    // The reading row's experimentId now feeds Confidence via the commitment
-    // factor: committed = full weight, found = 0.85.
-    // found:      Paying-users Validated, sq1, ×0.85 → w=74.8 → 74.8×88/174.8 = 37.66
-    // committed:  ×1.0 → w=88 → 88×88/188 = 41.19
+describe("recomputeDerived — row-level rung, per-belief result", () => {
+  it("derives each belief's strength from the ROW rung and the belief's own Result", () => {
+    // One artifact, ONE rung (Prototype usage = 30), committed, sq=1. Two
+    // beliefs with opposite Results: strength = 30 × sign(Result).
+    //  ASM-1 Validated   → s=+30, w=30 → 30×30/(100+30)  =  6.92
+    //  ASM-2 Invalidated → s=-30, w=30 → -900/130        = -6.92
+    const derived = recomputeDerived({
+      assumptions: [
+        assumption({ id: "ASM-1" }),
+        assumption({ id: "ASM-2", enablesIds: [] }),
+      ],
+      readings: [
+        reading({
+          Rung: "Prototype usage",
+          experimentId: "EXP-1",
+          beliefs: [
+            belief({ assumptionId: "ASM-1", Result: "Validated" }),
+            belief({ assumptionId: "ASM-2", Result: "Invalidated" }),
+          ],
+        }),
+      ],
+      decisions: NO_DECISIONS,
+    });
+    expect(derived.get("ASM-1")!.confidence).toBe(6.92);
+    expect(derived.get("ASM-2")!.confidence).toBe(-6.92);
+  });
+
+  it("still discounts a found reading via the commitment factor", () => {
+    // Prototype usage (30), Validated, sq=1.
+    //  found:     w=30×0.85=25.5 → 25.5×30/125.5 = 6.10
+    //  committed: w=30           → 900/130        = 6.92
     const found = recomputeDerived({
       assumptions: [assumption()],
       readings: [reading({ experimentId: null })],
@@ -86,10 +115,8 @@ describe("recomputeDerived — per-belief aggregation", () => {
       readings: [reading({ experimentId: "EXP-9" })],
       decisions: NO_DECISIONS,
     }).get("ASM-1")!;
-
-    expect(found.confidence).toBe(37.66);
-    expect(committed.confidence).toBe(41.19);
-    expect(committed.confidence).toBeGreaterThan(found.confidence);
+    expect(found.confidence).toBe(6.1);
+    expect(committed.confidence).toBe(6.92);
   });
 
   it("matches the pure confidence() for the same reading's belief", () => {
@@ -98,13 +125,12 @@ describe("recomputeDerived — per-belief aggregation", () => {
       readings: [reading()],
       decisions: NO_DECISIONS,
     }).get("ASM-1")!;
-    // Paying-users Validated, sq=1, found → s=88, w=74.8. num=74.8×88, den=100+74.8 → 37.66.
     expect(derived.confidence).toBe(
       confidence([
         {
           id: "RDG-1",
           source: "src-1",
-          rung: "Paying users",
+          rung: "Prototype usage",
           result: "Validated",
           representativeness: 1.0,
           credibility: 1.0,
@@ -115,54 +141,25 @@ describe("recomputeDerived — per-belief aggregation", () => {
     );
   });
 
-  it("splits a reading's beliefs across assumptions and dedupes per (assumption, Source)", () => {
-    // Three rows, two beliefs on the first — hand-worked below.
-    //  R1  Source alice, committed(EXP-1), sq1:
-    //        ASM-1 ← Prototype usage / Validated   s=+30
-    //        ASM-2 ← Anecdotal / Invalidated       s=-10
-    //  R2  Source alice, committed(EXP-1), sq1:
-    //        ASM-1 ← Opinion / Validated            s=+3
-    //  R3  Source bob,   found(null),      sq1:
-    //        ASM-1 ← Desk research / Validated      s=+15
-    //
-    // ASM-1: R1 & R2 share Source "alice" → dedupe to strongest (R1, s30 w30);
-    //        R3 found → w=15×0.85=12.75.
-    //        num = 30×30 + 12.75×15 = 1091.25, den = 100+30+12.75 = 142.75 → 7.64
-    // ASM-2: only R1's Anecdotal Invalidated, committed → s=-10 w=10.
-    //        num = 10×-10 = -100, den = 110 → -0.91
-    const r1 = reading({
-      id: "R1",
-      Source: "alice",
-      experimentId: "EXP-1",
-      beliefs: [
-        belief({ assumptionId: "ASM-1", Rung: "Prototype usage", Result: "Validated" }),
-        belief({ assumptionId: "ASM-2", Rung: "Anecdotal", Result: "Invalidated" }),
-      ],
-    });
-    const r2 = reading({
-      id: "R2",
-      Source: "alice",
-      experimentId: "EXP-1",
-      beliefs: [belief({ assumptionId: "ASM-1", Rung: "Opinion", Result: "Validated" })],
-    });
-    const r3 = reading({
-      id: "R3",
-      Source: "bob",
-      experimentId: null,
-      beliefs: [belief({ assumptionId: "ASM-1", Rung: "Desk research", Result: "Validated" })],
-    });
-
+  it("dedupes per (assumption, Source), keeping the strongest rung", () => {
+    // Two rows, same Source "bob", same belief ASM-1, different ROW rungs:
+    //   Prototype usage (30) vs Anecdotal (3, the merged floor).
+    // Dedupe keeps the 30 → 6.92, identical to a lone Prototype row.
     const derived = recomputeDerived({
-      assumptions: [
-        assumption({ id: "ASM-1" }),
-        assumption({ id: "ASM-2", enablesIds: [] }),
+      assumptions: [assumption()],
+      readings: [
+        reading({ id: "R1", Source: "bob", Rung: "Prototype usage", experimentId: "EXP-1" }),
+        reading({ id: "R2", Source: "bob", Rung: "Anecdotal", experimentId: "EXP-1" }),
       ],
-      readings: [r1, r2, r3],
       decisions: NO_DECISIONS,
-    });
-
-    expect(derived.get("ASM-1")!.confidence).toBe(7.64);
-    expect(derived.get("ASM-2")!.confidence).toBe(-0.91);
+    }).get("ASM-1")!;
+    const lone = recomputeDerived({
+      assumptions: [assumption()],
+      readings: [reading({ Rung: "Prototype usage", experimentId: "EXP-1" })],
+      decisions: NO_DECISIONS,
+    }).get("ASM-1")!;
+    expect(derived.confidence).toBe(lone.confidence);
+    expect(derived.confidence).toBe(6.92);
   });
 
   it("carries completeness in the recomputed tuple", () => {
@@ -173,7 +170,6 @@ describe("recomputeDerived — per-belief aggregation", () => {
     }).get("ASM-1")!;
     expect(full.completeness).toBe(100);
 
-    // Strip two slots → 3 of 5 present → 60.
     const partial = recomputeDerived({
       assumptions: [assumption({ Lens: null, "Scoring justification": "" })],
       readings: [],
@@ -183,18 +179,13 @@ describe("recomputeDerived — per-belief aggregation", () => {
   });
 
   it("never lets container origin feed Derived Impact", () => {
-    // Two beliefs, B depends on A. A reading's origin (experiment or none) must
-    // not change A's propagated Derived Impact (commitment touches Confidence only).
     const input = (experimentId: string | null) => ({
       assumptions: [
         assumption({ id: "ASM-1", Impact: 20, dependsOnIds: [] }),
         assumption({ id: "ASM-2", Impact: 60, dependsOnIds: ["ASM-1"] }),
       ],
       readings: [
-        reading({
-          experimentId,
-          beliefs: [belief({ assumptionId: "ASM-2" })],
-        }),
+        reading({ experimentId, beliefs: [belief({ assumptionId: "ASM-2" })] }),
       ],
       decisions: NO_DECISIONS,
     });

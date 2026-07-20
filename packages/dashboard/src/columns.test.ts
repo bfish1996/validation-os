@@ -35,15 +35,36 @@ describe("columnsFor", () => {
     expect(by("Impact")?.kind).toBeUndefined(); // plain text
   });
 
-  it("shows Reading, Source, Date and a Quote preview on readings (OPS-1305)", () => {
-    // The per-belief Result / Rung / Strength moved to the verdict list; the
-    // table previews the quote and carries Source + Date instead.
+  it("shows Reading, Source, Date, Rung, Band and a Quote preview on readings", () => {
+    // Rung + magnitude band are row-level artifact attributes (0.10); per-belief
+    // Result / Strength stay in the verdict list. The table carries Source +
+    // Date + Rung + Band and previews the quote.
     expect(columnsFor("readings").map((c) => c.header)).toEqual([
       "Reading",
       "Source",
       "Date",
+      "Rung",
+      "Band",
       "Quote",
     ]);
+  });
+
+  it("reads readings Rung + Band from the row, falling back to a belief (0.10)", () => {
+    const rungCol = columnsFor("readings").find((c) => c.key === "Rung")!;
+    const bandCol = columnsFor("readings").find((c) => c.key === "magnitudeBand")!;
+    // Post-migration: the row-level values win.
+    const row = rec({ Rung: "Paying users", magnitudeBand: "High" });
+    expect(cellValue(rungCol, row)).toBe("Paying users");
+    expect(cellValue(bandCol, row)).toBe("High");
+    // Pre-migration: no row values yet → fall back to the first belief's.
+    const pre = rec({
+      beliefs: [{ assumptionId: "a", Rung: "Anecdotal", magnitudeBand: "Low" }],
+    });
+    expect(cellValue(rungCol, pre)).toBe("Anecdotal");
+    expect(cellValue(bandCol, pre)).toBe("Low");
+    // Neither → null (formats to an em dash downstream).
+    expect(cellValue(rungCol, rec({}))).toBeNull();
+    expect(cellValue(bandCol, rec({}))).toBeNull();
   });
 
   it("leads every register with a headline column", () => {

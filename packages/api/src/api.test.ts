@@ -184,12 +184,12 @@ describe("createApi link", () => {
       id: "RDG-1",
       Source: "proto-1",
       experimentId: null,
+      Rung: "Prototype usage",
       Representativeness: 1.0,
       Credibility: 1.0,
       beliefs: [
         {
           assumptionId: "ASM-1",
-          Rung: "Prototype usage",
           Result: "Validated",
           "Grading justification": "why",
           derived: { strength: 30 },
@@ -283,12 +283,12 @@ describe("derive-on-write", () => {
         Title: "Prototype run",
         Source: "proto-1",
         experimentId: null,
+        Rung: "Prototype usage",
         Representativeness: 1.0,
         Credibility: 1.0,
         beliefs: [
           {
             assumptionId: "ASM-1",
-            Rung: "Prototype usage",
             Result: "Validated",
             "Grading justification": "why",
           },
@@ -313,12 +313,12 @@ describe("derive-on-write", () => {
         id: "RDG-1",
         Source: "proto-1",
         experimentId: null,
+        Rung: "Prototype usage",
         Representativeness: 1.0,
         Credibility: 1.0,
         beliefs: [
           {
             assumptionId: "ASM-1",
-            Rung: "Prototype usage",
             Result: "Validated",
             "Grading justification": "why",
           },
