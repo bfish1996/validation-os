@@ -1,5 +1,12 @@
 # @validation-os/api
 
+## 0.13.0
+
+### Patch Changes
+
+- Updated dependencies [a985a60]
+  - @validation-os/core@0.13.0
+
 ## 0.12.0
 
 ### Minor Changes
