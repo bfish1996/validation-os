@@ -30,6 +30,9 @@ export interface RegisterBrowserProps {
   /** Open a record's canonical full page (story 12). When set, the drawer
    * offers a "Full page" link; reads/edits still happen in the peek drawer. */
   onOpenRecord?: (id: string) => void;
+  /** Pre-filter applied before tab/free-text — Lens × Stage from the grid. */
+  lens?: string;
+  stage?: string;
 }
 
 /**
@@ -72,6 +75,8 @@ export function RegisterBrowser({
   basePath,
   subtitle,
   onOpenRecord,
+  lens,
+  stage,
 }: RegisterBrowserProps) {
   const { records, loading, error, refresh: refreshList } = useList(
     register,
@@ -99,19 +104,26 @@ export function RegisterBrowser({
   const [asOf] = useState(() => new Date().toISOString().slice(0, 10));
 
   const rows = records ?? [];
+  const prefiltered = useMemo(() => {
+    return rows.filter((r) => {
+      if (lens !== undefined && (r.Lens ?? "") !== lens) return false;
+      if (stage !== undefined && (r.Stage ?? "") !== stage) return false;
+      return true;
+    });
+  }, [rows, lens, stage]);
   const ctx: RegisterContext = {
     asOf,
-    assumptions: register === "assumptions" ? rows : assumptions.records ?? [],
-    experiments: register === "experiments" ? rows : experiments.records ?? [],
-    readings: register === "readings" ? rows : readings.records ?? [],
-    decisions: register === "decisions" ? rows : [],
+    assumptions: register === "assumptions" ? prefiltered : assumptions.records ?? [],
+    experiments: register === "experiments" ? prefiltered : experiments.records ?? [],
+    readings: register === "readings" ? prefiltered : readings.records ?? [],
+    decisions: register === "decisions" ? prefiltered : [],
   };
 
   const shaped = useMemo(
-    () => shapeRegister(register, rows, descriptor, ctx),
+    () => shapeRegister(register, prefiltered, descriptor, ctx),
     // ctx is derived from the same inputs; listing them keeps the memo honest.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [register, rows, descriptor, ctx.assumptions, ctx.experiments, ctx.readings, asOf],
+    [register, prefiltered, descriptor, ctx.assumptions, ctx.experiments, ctx.readings, asOf],
   );
 
   // The needs-a-human badge counts, keyed by the tab they belong to — the tab

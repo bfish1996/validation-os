@@ -50,6 +50,30 @@ describe("parseRoute", () => {
     // a register the instance does not expose is not a valid Records route
     expect(parseRoute("#people", REGISTERS)).toEqual({ name: "next" });
   });
+
+  it("reads Lens × Stage filter query params on a records route", () => {
+    expect(parseRoute("#assumptions?lens=Consumer&stage=Discovery", REGISTERS)).toEqual({
+      name: "records",
+      register: "assumptions",
+      lens: "Consumer",
+      stage: "Discovery",
+    });
+    expect(parseRoute("#assumptions?view=all", REGISTERS)).toEqual({
+      name: "records",
+      register: "assumptions",
+      view: "all",
+    });
+    expect(parseRoute("#assumptions?lens=Commercial", REGISTERS)).toEqual({
+      name: "records",
+      register: "assumptions",
+      lens: "Commercial",
+    });
+    // unknown query keys are dropped; bare register still parses clean
+    expect(parseRoute("#assumptions?foo=bar", REGISTERS)).toEqual({
+      name: "records",
+      register: "assumptions",
+    });
+  });
 });
 
 describe("formatRoute", () => {
@@ -57,6 +81,18 @@ describe("formatRoute", () => {
     expect(formatRoute({ name: "records", register: "readings" })).toBe(
       "readings",
     );
+  });
+
+  it("serialises Lens × Stage filter params on a records route", () => {
+    expect(
+      formatRoute({ name: "records", register: "assumptions", lens: "Consumer", stage: "Discovery" }),
+    ).toBe("assumptions?lens=Consumer&stage=Discovery");
+    expect(
+      formatRoute({ name: "records", register: "assumptions", view: "all" }),
+    ).toBe("assumptions?view=all");
+    expect(
+      formatRoute({ name: "records", register: "assumptions", lens: "Commercial" }),
+    ).toBe("assumptions?lens=Commercial");
   });
 
   it("serialises the record drill-in and the workflow surfaces", () => {
@@ -72,6 +108,8 @@ describe("formatRoute", () => {
       { name: "pipeline" },
       { name: "stage-grid" },
       { name: "records", register: "decisions" },
+      { name: "records", register: "assumptions", lens: "Consumer", stage: "Discovery" },
+      { name: "records", register: "assumptions", view: "all" },
       { name: "record", id: "A-007" },
     ];
     for (const route of routes) {

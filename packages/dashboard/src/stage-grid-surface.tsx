@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import type { AnyRecord } from "@validation-os/core";
 import { coldStartFor, FIRST_RUN_LINE } from "./cold-start.js";
 import { DrawerShell } from "./drawer-shell.js";
@@ -101,7 +101,7 @@ export function StageGridSurface({ basePath, onNavigate }: StageGridSurfaceProps
           <button
             type="button"
             className="vos-btn"
-            onClick={() => onNavigate({ name: "records", register: "assumptions" })}
+            onClick={() => onNavigate({ name: "records", register: "assumptions", view: "all" })}
           >
             Write your first bet
           </button>
@@ -111,7 +111,7 @@ export function StageGridSurface({ basePath, onNavigate }: StageGridSurfaceProps
   }
 
   return (
-    <StageGridFrame total={view.total} onRefresh={refresh}>
+    <StageGridFrame total={view.total} onRefresh={refresh} onNavigate={onNavigate}>
       <div className="vos-card vos-stage-grid-card">
         <div className="vos-stage-grid-scroll">
           <table className="vos-stage-grid" role="grid" aria-label="Lens × Stage heatmap">
@@ -160,6 +160,7 @@ export function StageGridSurface({ basePath, onNavigate }: StageGridSurfaceProps
         cell={open}
         onClose={() => setOpen(null)}
         onOpenRecord={openRecord}
+        onNavigate={onNavigate}
       />
     </StageGridFrame>
   );
@@ -169,11 +170,13 @@ export function StageGridSurface({ basePath, onNavigate }: StageGridSurfaceProps
 function StageGridFrame({
   total,
   onRefresh,
+  onNavigate,
   children,
 }: {
   total?: number;
   onRefresh?: () => void;
-  children: React.ReactNode;
+  onNavigate?: (route: Route) => void;
+  children: ReactNode;
 }) {
   return (
     <div>
@@ -199,6 +202,17 @@ function StageGridFrame({
             onClick={onRefresh}
           >
             ↻ Refresh
+          </button>
+        ) : null}
+        {onNavigate ? (
+          <button
+            type="button"
+            className="vos-btn vos-btn-ghost"
+            onClick={() =>
+              onNavigate({ name: "records", register: "assumptions", view: "all" })
+            }
+          >
+            View all →
           </button>
         ) : null}
       </div>
@@ -250,10 +264,12 @@ function CellDrawer({
   cell,
   onClose,
   onOpenRecord,
+  onNavigate,
 }: {
   cell: StageGridCell | null;
   onClose: () => void;
   onOpenRecord: (id: string) => void;
+  onNavigate?: (route: Route) => void;
 }) {
   return (
     <DrawerShell
@@ -277,6 +293,22 @@ function CellDrawer({
               : "No beliefs in this cell."}
           </p>
         </div>
+        {cell && cell.stage !== "—" && onNavigate && (
+          <button
+            type="button"
+            className="vos-btn vos-btn-secondary"
+            onClick={() =>
+              onNavigate({
+                name: "records",
+                register: "assumptions",
+                lens: cell.lens === "—" ? undefined : cell.lens,
+                stage: cell.stage,
+              })
+            }
+          >
+            Open in table →
+          </button>
+        )}
       </header>
       {cell && cell.count > 0 ? (
         <div className="vos-stage-grid-drawer-body">
