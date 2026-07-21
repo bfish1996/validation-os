@@ -136,19 +136,33 @@ before opening the next; the write is gated at the end.
 
 2. **Per-belief rung, one run Feasibility** (`§2`). Choose the **rung per
    bundled belief** — one run can honestly yield different-strength signal per
-   belief (past-behaviour questions vs prototype-in-hand). Weigh two axes per
-   belief: (a) **strength** — the 7-rung ladder, 🧪 Testing (`Anecdotal` ±3,
-   the floor (absorbed `Opinion`, 0.10) → `Pitch-deck reaction` ±6 →
-   `Desk research` ±15 → `Survey at scale` ±25 → `Prototype usage` ±30, genuine
-   prototype-usage only) → 🎯 Market (`Signed intent` ±55/68/80 →
-   `Paying users` ±75/88/99); and (b) **feasibility**. Set
-   **`Feasibility` once for the whole run** — `High`/`Medium`/`Low` over
-   access, cost, time — because the instrument runs once against one
-   population; bundling never splits it. Drivers worth remembering land as a
-   line in the protocol body ("Low: no buyer access until Q3"). Recommend the
-   highest-strength rung each belief can still honestly reach, one-line why
-   ("`Signed intent` ideal but no buyer access yet → `Desk research`, `High`
-   feasibility, this week").
+   belief (past-behaviour questions vs prototype-in-hand). The 6-rung
+   vocabulary is fixed (`Talk`, `Desk research`, `Signed up`, `Observed
+   usage`, `Signed intent`, `Paying users`); the anchor (ceiling `s`) is per
+   **(question type × rung × band)** — see `docs/evidence-ladder.md`. Weigh
+   two axes per belief: (a) **strength** — the 6-rung ladder, 🧪 Testing
+   (`Talk` 3/6/10 → `Desk research` 15 → `Signed up` 30/50/70 → `Observed
+   usage` 30/50/70) → 🎯 Market (`Signed intent` 30/50/70 → `Paying users`
+   30/50/70, the legacy single-ladder anchors; the live anchors are per
+   question type); and (b) **feasibility**. Set **`Feasibility` once for the
+   whole run** — `High`/`Medium`/`Low` over access, cost, time — because the
+   instrument runs once against one population; bundling never splits it.
+   Drivers worth remembering land as a line in the protocol body ("Low: no
+   buyer access until Q3"). Recommend the highest-strength rung each belief
+   can still honestly reach, one-line why ("`Signed intent` ideal but no
+   buyer access yet → `Desk research`, `High` feasibility, this week").
+
+   **Draft bar lines from the assumption's question-type sub-ladder**
+   (DEV-5890). The planned rung must be **probative** for the bundled
+   assumption's question type — a bar line whose planned rung is
+   **non-evidence** for the assumption's question type must be **refused**
+   (a structural guard, not an advisory). Concretely: don't compose a
+   `Talk` bar line for a WillingnessToPay assumption (talk is non-evidence
+   for WTP); don't compose a `Talk` bar line for a CausalEffect assumption
+   (stated intention is non-evidence for causation); don't compose anything
+   but `Desk research` for a Regulatory assumption. See
+   `docs/evidence-ladder.md` for the full probative / non-evidence table.
+   The guard is structural: refuse the bar line, don't just warn.
 
    **Market-rung designs fire the commitment discipline.** If a belief's
    honest rung is `Signed intent` or `Paying users`, run

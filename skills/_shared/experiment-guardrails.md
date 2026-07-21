@@ -232,7 +232,14 @@ of it piles up.
 
 ## 2. The evidence ladder + feasibility (two axes of rung choice)
 
-Choosing each belief's **rung** is a trade-off of **two axes**, not one:
+Choosing each belief's **rung** is a trade-off of **two axes**, not one. The
+rung vocabulary is fixed (`Talk`, `Desk research`, `Signed up`, `Observed
+usage`, `Signed intent`, `Paying users`); the anchor (ceiling `s`) is per
+**(question type × rung × band)** — see `docs/evidence-ladder.md` for the 3D
+`RUNG_ANCHOR[questionType][rung][band]` table and `docs/question-types.md` for
+the seven question types. A rung that is **non-evidence** for the linked
+assumption's question type contributes `s=0` (flagged at the UI/skill layer,
+not a write blocker).
 
 **Axis A — evidence strength (climb as high as the belief needs).** The 7
 rungs, weakest → strongest, in **two categories**

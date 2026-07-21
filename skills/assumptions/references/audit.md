@@ -33,3 +33,29 @@ time, gated, through single mode.
 
 Both diagnose with the **same** `register-audit.md` detection — audit stops
 at the report; loop carries the findings into autonomous fixes.
+
+## Stage-keyed Risk threshold (DEV-5890)
+
+Flag each assumption against its **stage's Risk threshold**
+(`RISK_THRESHOLD_BY_STAGE`, `docs/validated.md`):
+
+- **Above threshold** (Risk > stage threshold) → **"needs evidence"** —
+  testing-priority. The belief hasn't cleared its stage's stopping bar.
+- **At or below threshold** (Risk ≤ stage threshold) → **"cleared for this
+  stage"** — de-prioritized. The belief has enough evidence for its stage's
+  reversibility.
+
+| Stage | Threshold |
+|---|---|
+| Discovery | 30 |
+| Validation | 15 |
+| Scale | 10 |
+| Maturity | 5 |
+
+The threshold does NOT flip a status — Live assumptions stay Live and ranked
+forever. It is a prioritisation rule for **attention**, not a record property.
+A prevalence assumption at Discovery stops testing on a small survey (Risk
+drops below 30 → cleared); the same prevalence assumption at Maturity needs a
+bigger, replicated survey to clear the tighter threshold (Risk below 5). The
+question type fixes what counts as evidence; the stage fixes how much is
+enough to act on.

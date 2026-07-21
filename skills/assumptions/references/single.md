@@ -37,9 +37,11 @@ gets a fast confirm rather than a fresh ask, but every check (hyperbole,
 atomicity, falsifiability, dedup/contradiction, scoring, why-trace,
 language) is re-verified live, because none of it is durable state. Only
 the field values and the relation graph persist between sessions —
-`Completeness %` tells you which of the five structural slots (Description,
-Lens, Impact, Scoring justification, dependencies traced) are still empty,
-but it says nothing about which semantic checks were already run.
+`Completeness %` tells you which of the six structural slots (Description,
+Lens, Impact, Scoring justification, dependencies traced, **Question Type**)
+are still empty, but it says nothing about which semantic checks were already
+run. The `Question Type` slot (DEV-5890) is the Live gate added by the
+question-type-aware evidence ladder — see `docs/question-types.md`.
 
 ## How to grill (discipline)
 
@@ -71,6 +73,26 @@ but it says nothing about which semantic checks were already run.
    `We're right if` when `/experiment-design` later pre-registers a test;
    nothing is written to the assumption itself
    (`assumption-guardrails.md §1`).
+   **The falsification test drives the Question Type** (DEV-5890). Once you
+   have a concrete "we're wrong if…", infer the question type from it:
+   - "no one reports this pain / no one describes this mechanism" → **Existence**
+   - "the rate is below X% / fewer than N of N" → **Prevalence**
+   - "the treatment group doesn't differ from control" → **CausalEffect**
+   - "they don't pay / don't sign up / don't commit" → **WillingnessToPay**
+   - "they stop using it / drop-off exceeds X" → **ValueUtility**
+   - "the regulation prohibits / the regulator rules against" → **Regulatory**
+   - "they can't complete the flow / the system can't do X" → **Feasibility**
+   Confirm the inferred type with the user and set it on the record. This
+   fills the **6th structural slot** (`Question Type`) — an assumption
+   without a Question Type has `Completeness %` < 100 and **cannot go Live**.
+   **The gaming guard:** the inferred type (from the falsification bar) must
+   match the user's stated type. A team can't reframe "will users pay?" as
+   "do users express willingness to pay?" (existence question, qual ceiling)
+   to avoid running a market test — the falsification bar is what would
+   prove the assumption WRONG, not what evidence is cheap. "Users will pay
+   $50/mo" is falsified by offering it and watching them not pay →
+   WillingnessToPay, full stop. Reject the Draft → Live promotion if the
+   inferred and stated types disagree.
 4. **Lens check** → "whose decision does this drive?" Set the single Lens
    (from the config's `vocabulary.lens`); if it genuinely drives two, that's
    a split (back to 2). Fills a structural slot.
