@@ -34,21 +34,22 @@ function isMarketRung(rung: Rung): boolean {
 
 /**
  * Per-rung prior weight — controls how many distinct sources approach the
- * rung's anchor. Tuned so: Desk 2 readings → ~90% of cap; talk rungs 10
- * readings → ~90% of cap; do-rungs 20 readings → ~75% of cap. See
+ * rung's anchor. Tuned so: Desk 2 readings → ~90% of cap; talk 10 readings →
+ * ~90% of cap; do-rungs 20 readings → ~75% of cap. See
  * `docs/evidence-ladder.md` for the derivation.
  */
 export const W0_BY_RUNG: Record<Rung, number> = {
-  // Talk — 10 readings → ~90% of cap (inherits the old Anecdotal W0).
+  // Talk — 10 readings → ~90% of cap.
   Talk: 6.5,
   // Desk research — 2 readings → ~90% of cap (authoritative, rare).
   "Desk research": 2,
-  // Observed usage — 20 readings → ~75% of cap (was Prototype usage's W0;
-  // the rung now spans 30-70, but the prior strength for the rung is unchanged).
-  "Observed usage": 140,
-  // Market do-rungs — 20 readings → ~75% of cap.
-  "Signed intent": 317.3,
-  "Paying users": 410.7,
+  // All do-rungs — 20 readings → ~75% of cap. Equal ceilings (70) and equal
+  // W0s across consumer (Signed up / Observed usage) and commercial
+  // (Signed intent / Paying users) lenses.
+  "Signed up": 327,
+  "Observed usage": 327,
+  "Signed intent": 327,
+  "Paying users": 327,
 };
 
 /**

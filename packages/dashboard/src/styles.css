@@ -2867,3 +2867,185 @@ button.vos-verdict-title {
   gap: 10px;
   padding: 20px 22px;
 }
+
+/* ── DEV-5879 redesign: unified nav, pipeline board, evidence-first details ── */
+
+/* Segmented toggle (Grid / View all) */
+.vos-seg { display: inline-flex; gap: 0; border: 1px solid var(--vos-border); border-radius: var(--vos-radius); overflow: hidden; }
+.vos-seg-btn { padding: 6px 14px; background: transparent; border: none; color: var(--vos-muted); font: inherit; cursor: pointer; border-right: 1px solid var(--vos-border); }
+.vos-seg-btn:last-child { border-right: none; }
+.vos-seg-btn.is-active { background: var(--vos-accent-weak); color: var(--vos-accent-text); }
+
+/* Stage grid cell button (clean count, 1 for single) */
+.vos-stage-grid-cell { padding: 2px; }
+.vos-stage-grid-btn { width: 100%; min-height: 56px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: 600; color: var(--vos-text); transition: background 0.15s; }
+.vos-stage-grid-btn:hover:not(:disabled) { filter: brightness(1.1); }
+.vos-stage-grid-btn:disabled { cursor: default; }
+.vos-heat-0 { background: var(--vos-surface); opacity: 0.4; color: var(--vos-muted); }
+.vos-heat-1 { background: color-mix(in srgb, var(--vos-accent) 18%, var(--vos-surface)); }
+.vos-heat-2 { background: color-mix(in srgb, var(--vos-accent) 32%, var(--vos-surface)); }
+.vos-heat-3 { background: color-mix(in srgb, var(--vos-accent) 48%, var(--vos-surface)); }
+.vos-heat-4 { background: color-mix(in srgb, var(--vos-accent) 65%, var(--vos-surface)); }
+
+/* Pipeline board hero (board variant — compact) */
+.vos-pipe-hero-board { padding: 20px 24px; margin-bottom: 16px; }
+
+/* 2-segment meter track (Framed + Known — drops Planned/Tested) */
+.vos-pipe-row-2seg { grid-template-columns: 4px 1fr 180px 90px !important; }
+.vos-pipe-prog-2seg { padding: 12px 0; }
+.vos-meter2 { display: flex; flex-direction: column; gap: 2px; }
+.vos-meter2-track { height: 16px; border-radius: 4px; background: var(--vos-surface-2); overflow: hidden; display: flex; }
+.vos-meter2-seg { flex: 1; position: relative; border-right: 1px solid var(--vos-border); overflow: hidden; }
+.vos-meter2-seg:last-child { border-right: none; }
+.vos-meter2-fill-accent { position: absolute; inset: 0; background: var(--vos-accent); opacity: 0.5; }
+.vos-meter2-fill-good { position: absolute; inset: 0; background: var(--vos-good); opacity: 0.6; }
+.vos-meter2-fill-warn { position: absolute; inset: 0; background: var(--vos-warn); opacity: 0.6; }
+.vos-meter2-fill-crit { position: absolute; inset: 0; background: var(--vos-crit); opacity: 0.6; }
+.vos-meter2-caps { display: flex; }
+.vos-meter2-cap { flex: 1; font-size: 8px; text-align: center; color: var(--vos-muted); }
+
+/* Pipeline id + statement (compact row) */
+.vos-pipe-id { font-size: 9px; color: var(--vos-muted); display: block; }
+.vos-pipe-bmeta { display: flex; gap: 10px; font-size: 10px; color: var(--vos-muted); margin-top: 3px; }
+
+/* Accent next-move button */
+.vos-btn-accent { background: var(--vos-accent); color: var(--vos-bg); border: none; font-weight: 600; }
+.vos-btn-accent:hover { filter: brightness(1.1); }
+
+/* Recommended experiments section */
+.vos-pipe-recs { margin-top: 20px; padding: 16px; }
+.vos-pipe-recs-head { font-size: 11px; color: var(--vos-muted); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 12px; }
+.vos-pipe-recs-list { display: flex; flex-direction: column; gap: 8px; }
+.vos-pipe-rec { padding: 14px; border: 1px solid var(--vos-border); border-radius: 10px; background: var(--vos-surface); }
+.vos-pipe-rec-head { display: flex; gap: 8px; align-items: baseline; margin-bottom: 8px; }
+.vos-pipe-rec-type { font-size: 9px; padding: 1px 6px; border-radius: 4px; background: var(--vos-accent-weak); color: var(--vos-accent-text); }
+.vos-pipe-rec-title { flex: 1; font-size: 13px; color: var(--vos-text); font-weight: 500; }
+.vos-pipe-rec-chips { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+.vos-pipe-rec-chip { font-size: 9px; padding: 2px 8px; border-radius: 4px; background: var(--vos-surface-2); border: 1px solid var(--vos-border); color: var(--vos-text); cursor: pointer; }
+.vos-pipe-rec-chip:hover { border-color: var(--vos-accent); }
+.vos-pipe-rec-rationale { font-size: 11px; color: var(--vos-muted); line-height: 1.5; margin-bottom: 6px; }
+.vos-pipe-rec-bar { font-size: 10px; color: var(--vos-muted); padding: 4px 8px; background: var(--vos-surface-2); border-radius: 4px; border-left: 3px solid var(--vos-good); }
+.vos-pipe-rec-bar strong { color: var(--vos-good); }
+
+/* Breadcrumb */
+.vos-crumb { display: flex; gap: 6px; font-size: 11px; margin-bottom: 12px; color: var(--vos-muted); }
+.vos-crumb-item { display: flex; gap: 6px; align-items: center; }
+.vos-crumb-sep { color: var(--vos-border); }
+.vos-crumb-link { background: none; border: none; cursor: pointer; color: var(--vos-muted); padding: 0; font: inherit; }
+.vos-crumb-link:hover { color: var(--vos-accent); }
+.vos-crumb-current { color: var(--vos-text); font-weight: 600; }
+
+/* List surfaces (experiments / readings) */
+.vos-list-card { display: flex; flex-direction: column; gap: 4px; padding: 8px; }
+.vos-list-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--vos-surface-2); border: 1px solid var(--vos-border); border-radius: 6px; cursor: pointer; text-align: left; width: 100%; color: var(--vos-text); font: inherit; }
+.vos-list-row:hover { border-color: var(--vos-accent); }
+.vos-list-row-date { font-size: 9px; color: var(--vos-muted); min-width: 80px; }
+.vos-list-row-title { flex: 1; font-size: 12px; font-weight: 500; }
+.vos-list-row-meta { font-size: 10px; color: var(--vos-muted); }
+
+/* Detail head (id + tags) */
+.vos-detail-head { display: flex; gap: 8px; align-items: baseline; margin-bottom: 8px; }
+.vos-detail-id { font-size: 11px; color: var(--vos-muted); }
+.vos-detail-tag { font-size: 9px; color: var(--vos-muted); padding: 1px 6px; border: 1px solid var(--vos-border); border-radius: 4px; }
+.vos-detail-title { font-size: 16px; color: var(--vos-text); font-weight: 600; margin-bottom: 16px; }
+
+/* Next-move panel (accent-bordered, prominent) */
+.vos-next-move { padding: 14px; margin-bottom: 16px; border-left: 3px solid var(--vos-accent); }
+.vos-next-move-label { font-size: 10px; color: var(--vos-muted); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px; }
+.vos-next-move-text { font-size: 14px; color: var(--vos-accent-text); font-weight: 500; }
+
+/* Score cards (4 in a row) */
+.vos-score-cards { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+.vos-score-card { flex: 1; min-width: 100px; padding: 12px; text-align: center; background: var(--vos-surface); border: 1px solid var(--vos-border); border-radius: 10px; }
+.vos-score-value { font-size: 22px; font-weight: 700; color: var(--vos-text); }
+.vos-score-label { font-size: 10px; color: var(--vos-muted); }
+
+/* Detail sections */
+.vos-detail-section { padding: 14px; margin-bottom: 16px; }
+.vos-detail-section-label { font-size: 11px; color: var(--vos-muted); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 8px; }
+
+/* Evidence composition (per-rung bars) */
+.vos-comp-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.vos-comp-rung { width: 90px; font-size: 10px; color: var(--vos-text); }
+.vos-comp-rung.is-empty { color: var(--vos-muted); }
+.vos-comp-bar { flex: 1; height: 10px; background: var(--vos-surface-2); border-radius: 5px; overflow: hidden; }
+.vos-comp-fill { display: block; height: 100%; background: var(--vos-accent); border-radius: 5px; }
+.vos-comp-val { width: 60px; text-align: right; font-size: 10px; color: var(--vos-muted); }
+.vos-comp-count { width: 40px; font-size: 9px; color: var(--vos-muted); }
+
+/* Relations */
+.vos-rel-group { margin-bottom: 10px; }
+.vos-rel-kind { font-size: 10px; font-weight: 600; margin-bottom: 4px; }
+.vos-rel-kind-depends { color: var(--vos-accent-text); }
+.vos-rel-kind-enables { color: var(--vos-good); }
+.vos-rel-kind-contradicts { color: var(--vos-crit); }
+.vos-rel-type { margin-bottom: 4px; }
+.vos-rel-type-label { font-size: 9px; color: var(--vos-muted); margin-bottom: 2px; }
+.vos-rel-row { display: flex; gap: 6px; align-items: center; text-align: left; background: var(--vos-surface-2); border: 1px solid var(--vos-border); border-radius: 4px; padding: 4px 8px; cursor: pointer; width: 100%; margin-bottom: 2px; font-size: 11px; color: var(--vos-text); }
+.vos-rel-row:disabled { cursor: default; }
+.vos-rel-row:not(:disabled):hover { border-color: var(--vos-accent); }
+.vos-rel-id { font-size: 9px; color: var(--vos-muted); }
+.vos-rel-title { flex: 1; }
+.vos-rel-tag { font-size: 8px; color: var(--vos-muted); padding: 1px 4px; border: 1px solid var(--vos-border); border-radius: 3px; }
+
+/* Linked rows (experiments + readings on assumption detail) */
+.vos-linked-row { display: flex; gap: 8px; align-items: center; text-align: left; background: var(--vos-surface-2); border: 1px solid var(--vos-border); border-radius: 6px; padding: 10px; cursor: pointer; width: 100%; margin-bottom: 6px; font: inherit; color: var(--vos-text); }
+.vos-linked-row:hover { border-color: var(--vos-accent); }
+.vos-linked-gauge { font-size: 16px; font-weight: 700; min-width: 32px; text-align: center; }
+.vos-linked-title { flex: 1; font-size: 12px; }
+.vos-linked-bar { font-size: 9px; color: var(--vos-muted); }
+.vos-linked-bar strong { color: var(--vos-good); }
+
+/* Reading head + excerpt */
+.vos-reading-head { display: flex; gap: 8px; align-items: baseline; margin-bottom: 4px; }
+.vos-reading-date { font-size: 9px; color: var(--vos-muted); }
+.vos-reading-title { flex: 1; font-size: 12px; font-weight: 500; }
+.vos-reading-source { font-size: 9px; color: var(--vos-muted); }
+.vos-reading-excerpt { padding: 4px 8px; border-left: 3px solid var(--vos-border); background: var(--vos-surface); border-radius: 0 4px 4px 0; font-style: italic; font-size: 11px; color: var(--vos-text); margin: 4px 0; }
+.vos-verdict-border-good { border-left-color: var(--vos-good); }
+.vos-verdict-border-crit { border-left-color: var(--vos-crit); }
+.vos-verdict-border-neutral { border-left-color: var(--vos-border); }
+.vos-rung-tag { font-size: 8px; color: var(--vos-muted); padding: 1px 5px; background: var(--vos-surface-2); border-radius: 3px; }
+.vos-link { color: var(--vos-accent-text); cursor: pointer; background: none; border: none; font: inherit; padding: 0; }
+
+/* Experiment detail: confidence gauge + coverage */
+.vos-exp-head { display: flex; gap: 16px; margin-bottom: 16px; padding: 12px; }
+.vos-exp-gauge { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 100px; }
+.vos-gauge-num { font-size: 32px; font-weight: 700; color: var(--vos-text); }
+.vos-gauge-label { font-size: 9px; color: var(--vos-muted); text-align: center; }
+.vos-exp-coverage { flex: 1; }
+.vos-coverage-label { font-size: 11px; color: var(--vos-muted); margin-bottom: 6px; }
+.vos-coverage-bar { height: 10px; background: var(--vos-surface-2); border-radius: 5px; overflow: hidden; display: flex; }
+.vos-coverage-good { background: var(--vos-good); height: 100%; }
+.vos-coverage-crit { background: var(--vos-crit); height: 100%; }
+.vos-coverage-warn { background: var(--vos-warn); height: 100%; opacity: 0.5; }
+.vos-coverage-empty { background: var(--vos-surface); height: 100%; }
+.vos-coverage-legend { display: flex; gap: 10px; font-size: 9px; color: var(--vos-muted); margin-top: 4px; }
+.vos-dot-good, .vos-dot-crit, .vos-dot-warn, .vos-dot-empty { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; }
+.vos-dot-good { background: var(--vos-good); }
+.vos-dot-crit { background: var(--vos-crit); }
+.vos-dot-warn { background: var(--vos-warn); }
+.vos-dot-empty { background: var(--vos-surface-2); border: 1px solid var(--vos-border); }
+
+/* Reading card (in experiment detail) */
+.vos-reading-card { padding: 12px; margin-bottom: 8px; background: var(--vos-surface-2); border-radius: 8px; border: 1px solid var(--vos-border); }
+.vos-reading-quotes { margin: 4px 0; display: flex; flex-direction: column; gap: 4px; }
+.vos-reading-quote { padding: 4px 8px; border-left: 3px solid var(--vos-border); background: var(--vos-surface); border-radius: 0 4px 4px 0; font-style: italic; font-size: 11px; color: var(--vos-text); }
+.vos-reading-quote-id { font-style: normal; font-size: 9px; color: var(--vos-muted); }
+.vos-reading-beliefs-label { font-size: 10px; color: var(--vos-muted); margin-bottom: 4px; }
+
+/* Belief card (per-belief verdict) */
+.vos-belief-card { padding: 8px; margin-bottom: 4px; background: var(--vos-surface); border-radius: 6px; border: 1px solid var(--vos-border); }
+.vos-belief-head { display: flex; gap: 6px; align-items: baseline; margin-bottom: 4px; }
+.vos-belief-id { background: none; border: none; cursor: pointer; font-size: 10px; color: var(--vos-accent-text); padding: 0; font-family: var(--vos-mono); }
+.vos-belief-id:hover { text-decoration: underline; }
+.vos-belief-title { flex: 1; font-size: 11px; color: var(--vos-text); }
+.vos-belief-bar { font-size: 9px; color: var(--vos-muted); margin-top: 4px; padding-left: 8px; border-left: 2px solid var(--vos-border); }
+.vos-belief-bar-label { font-size: 8px; color: var(--vos-muted); text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 2px; }
+.vos-belief-bar strong { color: var(--vos-good); }
+.vos-belief-why { font-size: 10px; color: var(--vos-muted); margin-top: 4px; }
+.vos-belief-excerpt { padding: 6px 10px; border-left: 3px solid var(--vos-border); background: var(--vos-surface); border-radius: 0 4px 4px 0; margin: 4px 0 6px; font-style: italic; font-size: 12px; color: var(--vos-text); }
+
+/* Unstarted bars section */
+.vos-unstarted { border-style: dashed; }
+.vos-unstarted-bar { padding: 8px; margin-bottom: 4px; background: var(--vos-surface-2); border-radius: 6px; border: 1px dashed var(--vos-border); }

@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
 import type { Collection } from "@validation-os/core";
 import { REGISTER_ORDER, REGISTER_SUBTITLE } from "./labels.js";
-import { PipelineSurface } from "./pipeline-surface.js";
+import { AssumptionDetail } from "./assumption-detail.js";
+import { AssumptionsSurface } from "./assumptions-surface.js";
+import { ExperimentDetail } from "./experiment-detail.js";
+import { ExperimentsSurface } from "./experiments-surface.js";
+import { ReadingDetail } from "./reading-detail.js";
+import { ReadingsSurface } from "./readings-surface.js";
 import { RecordPage } from "./record-page.js";
 import { RegisterBrowser } from "./register-browser.js";
-import { NextMoveSurface } from "./next-move-surface.js";
-import { StageGridSurface } from "./stage-grid-surface.js";
 import { formatRoute, parseRoute, type Route } from "./route.js";
 import { SidebarNav } from "./sidebar-nav.js";
 import { useCounts, useNeedsHuman } from "./use-counts.js";
@@ -52,20 +55,19 @@ function initialsOf(name: string): string {
 }
 
 /**
- * The entire styled dashboard as one mountable app (spec OPS-1280): the frame —
- * sidebar composing the workflow + register nav with live counts, topbar with
- * the backend indicator and user — and the surfaces it routes between across
- * the three altitudes (front door → pipeline → per-belief drill-in) plus the
- * kept register tables. Navigation is owned here, not the host router: the
- * active route lives in client state, synced to the URL hash (OPS-1298), so the
- * instance mounts this at one route and wires no routing. Styled by the
- * package's own token sheet — the instance imports `styles.css` once and builds
- * no UI.
+ * The entire styled dashboard as one mountable app (spec OPS-1280 / DEV-5879
+ * redesign): the frame — a 3-item sidebar (Assumptions / Experiments /
+ * Readings) plus a small Registers group for decisions + glossary, topbar with
+ * the backend indicator and user — and the surfaces it routes between. The
+ * Assumptions nav lands on the Lens × Stage grid; a "Grid / View all" toggle
+ * switches to the pipeline board. Both drill into the same AssumptionDetail.
+ * Experiments shows the live evidence plans; Readings shows the evidence log.
+ * Each detail view is evidence-first: readings lead, bar lines are context.
  *
- * The front-door (`#next`) and pipeline (`#pipeline`) surfaces are now live;
- * OPS-1282's record page (`#record/<id>`) still fills its pane as it ships.
- * Records is the browse-everything / manual-override surface — the register
- * browser, kept from the original scheme.
+ * Navigation is owned here, not the host router: the active route lives in
+ * client state, synced to the URL hash (OPS-1298), so the instance mounts this
+ * at one route and wires no routing. Styled by the package's own token sheet —
+ * the instance imports `styles.css` once and builds no UI.
  */
 export function ValidationOSDashboard({ config = {} }: ValidationOSDashboardProps) {
   const {
@@ -79,7 +81,7 @@ export function ValidationOSDashboard({ config = {} }: ValidationOSDashboardProp
 
   const [route, setRoute] = useState<Route>(() =>
     typeof window === "undefined"
-      ? { name: "next" }
+      ? { name: "assumptions" }
       : parseRoute(window.location.hash, registers),
   );
   const { counts } = useCounts(basePath);
@@ -175,23 +177,58 @@ export function ValidationOSDashboard({ config = {} }: ValidationOSDashboardProp
       />
 
       <main className="vos-main">
-        {route.name === "records" ? (
-          // The assumptions register renders the grid as its landing surface
-          // (#assumptions with no query); cell-click and "view all" drill into
-          // the filtered/unfiltered table by setting lens/stage/view on the route.
-          route.register === "assumptions" && !route.lens && !route.stage && route.view !== "all" ? (
-            <StageGridSurface key="stage-grid" basePath={basePath} onNavigate={navigate} />
-          ) : (
-            <RegisterBrowser
-              key={route.register + (route.lens ?? "") + (route.stage ?? "") + (route.view ?? "")}
-              register={route.register}
-              basePath={basePath}
-              subtitle={REGISTER_SUBTITLE[route.register]}
-              onOpenRecord={(id) => navigate({ name: "record", id })}
-              lens={route.lens}
-              stage={route.stage}
-            />
-          )
+        {route.name === "assumptions" ? (
+          <AssumptionsSurface
+            key={`assumptions-${route.view ?? ""}-${route.lens ?? ""}-${route.stage ?? ""}`}
+            basePath={basePath}
+            onNavigate={navigate}
+            view={route.view}
+            lens={route.lens}
+            stage={route.stage}
+          />
+        ) : route.name === "experiments" ? (
+          <ExperimentsSurface
+            key="experiments"
+            basePath={basePath}
+            onNavigate={navigate}
+          />
+        ) : route.name === "readings" ? (
+          <ReadingsSurface
+            key="readings"
+            basePath={basePath}
+            onNavigate={navigate}
+          />
+        ) : route.name === "assumption" ? (
+          <AssumptionDetail
+            key={`assumption-${route.id}`}
+            assumptionId={route.id}
+            basePath={basePath}
+            onNavigate={navigate}
+          />
+        ) : route.name === "experiment" ? (
+          <ExperimentDetail
+            key={`experiment-${route.id}`}
+            experimentId={route.id}
+            basePath={basePath}
+            onNavigate={navigate}
+          />
+        ) : route.name === "reading" ? (
+          <ReadingDetail
+            key={`reading-${route.id}`}
+            readingId={route.id}
+            basePath={basePath}
+            onNavigate={navigate}
+          />
+        ) : route.name === "records" ? (
+          <RegisterBrowser
+            key={route.register + (route.lens ?? "") + (route.stage ?? "") + (route.view ?? "")}
+            register={route.register}
+            basePath={basePath}
+            subtitle={REGISTER_SUBTITLE[route.register]}
+            onOpenRecord={(id) => navigate({ name: "record", id })}
+            lens={route.lens}
+            stage={route.stage}
+          />
         ) : route.name === "record" ? (
           <RecordPage
             key={route.id}
@@ -200,12 +237,12 @@ export function ValidationOSDashboard({ config = {} }: ValidationOSDashboardProp
             backRegister={registers[0] ?? "assumptions"}
             basePath={basePath}
           />
-        ) : route.name === "pipeline" ? (
-          <PipelineSurface key="pipeline" basePath={basePath} onNavigate={navigate} />
-        ) : route.name === "stage-grid" ? (
-          <StageGridSurface key="stage-grid" basePath={basePath} onNavigate={navigate} />
         ) : (
-          <NextMoveSurface key="next" basePath={basePath} onNavigate={navigate} />
+          <AssumptionsSurface
+            key="assumptions-fallback"
+            basePath={basePath}
+            onNavigate={navigate}
+          />
         )}
       </main>
     </div>

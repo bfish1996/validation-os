@@ -53,26 +53,27 @@ export type MagnitudeBand = "Low" | "Typical" | "High";
 export type Feasibility = "High" | "Medium" | "Low";
 
 /**
- * The lens-aware ladder (0.14). A rung is an evidence TYPE; magnitude band
- * (Low/Typical/High) is the intensity *within* a type. The band now applies to
- * EVERY rung, not just Market rungs, so every rung looks up its anchor through
+ * The lens-aware ladder (DEV-5879). A rung is an evidence TYPE; magnitude band
+ * (Low/Typical/High) is the intensity *within* a type. The band applies to
+ * EVERY rung, so every rung looks up its anchor through
  * `RUNG_ANCHOR[rung][band]`.
  *
- *   Talk:           3 / 6 / 10   (was Opinion / Pitch-deck / Anecdotal —
- *                                collapsed into one rung with bands)
- *   Desk research:  15 / 15 / 15 (flat — desk research has no meaningful bands,
- *                                but the field exists for uniformity)
- *   Observed usage: 30 / 50 / 70 (was Prototype usage + Survey at scale —
- *                                collapsed; old anchors 25 and 30 both lift to
- *                                the new Low(30) floor, with new Typical/High
- *                                anchors for stronger observed evidence)
+ *   Talk:           3 / 6 / 10   (Opinion / Pitch-deck / Anecdotal merged)
+ *   Desk research:  15 / 15 / 15 (flat)
+ *   Signed up:      30 / 50 / 70 (consumer lens's first do-rung)
+ *   Observed usage: 30 / 50 / 70 (consumer lens; was Prototype usage + Survey
+ *                                at scale)
+ *   Signed intent:  30 / 50 / 70 (commercial/investor lens)
+ *   Paying users:   30 / 50 / 70 (commercial/investor lens)
  *
- * Market rungs (Signed intent, Paying users) keep their old anchors, now also
- * expressed as Low/Typical/High bands.
+ * The lens determines which "do" rungs are available; Talk + Desk work for any
+ * lens. The rung-to-lens mapping is a grading guideline, not a schema
+ * constraint — any Rung can appear on any assumption.
  */
 export const TESTING_RUNGS = [
   "Talk",
   "Desk research",
+  "Signed up",
   "Observed usage",
 ] as const;
 export const MARKET_RUNG_VALUES = ["Signed intent", "Paying users"] as const;

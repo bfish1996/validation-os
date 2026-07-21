@@ -94,29 +94,34 @@ describe("assembleJourney", () => {
   });
 
   it("emits a confidence-cross at the first point the evidence enters the kill zone", () => {
-    // Paying users High Invalidated: s=-99, w=99, W0[Paying users]=410.7.
-    // With per-rung W0, the kill zone (≤ −50) is reached at 5 readings:
-    //   5×(-99×99) / (410.7 + 5×99) = -49005 / 905.7 = -54.1  → crosses
-    //   4×(-99×99) / (410.7 + 4×99) = -39204 / 806.7 = -48.6  → just above
-    // So the 5th miss tips it over.
-    const missReadings = Array.from({ length: 5 }, (_, i) =>
-      reading({
+    // Paying users High Invalidated: s=-70, w=70, found commitment 0.85
+    // (journey's reading() helper defaults experimentId: null), so
+    // w_effective = 70 × 0.85 = 59.5. W0[Paying users]=327.
+    // Kill zone (≤ −50) is reached at 14 readings:
+    //   14×(-70×59.5) / (327 + 14×59.5) = -58310 / 1156 = -50.44 → crosses
+    //   13×(-70×59.5) / (327 + 13×59.5) = -54235 / 1098.5 = -49.43 → above
+    // So the 14th miss tips it over.
+    const missReadings = Array.from({ length: 14 }, (_, i) => {
+      const month = i + 2; // 2..15 → Feb 2026 .. Mar 2027
+      const year = 2026 + Math.floor((month - 1) / 12);
+      const m = String(((month - 1) % 12) + 1).padStart(2, "0");
+      return reading({
         id: `m${i + 1}`,
-        date: `2026-0${i + 2}-01`, // Feb, Mar, Apr, May, Jun
+        date: `${year}-${m}-01`,
         rung: "Paying users",
         magnitudeBand: "High",
         result: "Invalidated",
-      }),
-    );
+      });
+    });
     const events = assembleJourney({
       belief: { createdAt: "2026-01-01", impactScored: true },
       readings: missReadings,
       experiments: [],
-      now: NOW,
+      now: "2027-06-01",
     });
     const cross = events.find((e) => e.kind === "confidence-cross");
     expect(cross).toBeDefined();
-    expect(cross!.date).toBe("2026-06-01"); // the 5th miss tips it over
+    expect(cross!.date).toBe(missReadings[13]!.date); // the 14th miss tips it over
     expect(cross!.confidence).toBeLessThanOrEqual(-50);
   });
 
