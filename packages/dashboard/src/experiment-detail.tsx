@@ -153,10 +153,10 @@ export function ExperimentDetail({
       {/* Readings — evidence-first: readings lead, bar lines as context per reading */}
       <div className="vos-card vos-detail-section">
         <div className="vos-detail-section-label">
-          Evidence · {expReadings.length} reading{expReadings.length === 1 ? "" : "s"} from this experiment
+          Evidence · {expReadings.length} piece{expReadings.length === 1 ? "" : "s"} from this experiment
         </div>
         {expReadings.length === 0 ? (
-          <div className="vos-muted vos-empty">No readings yet — experiment is running.</div>
+          <div className="vos-muted vos-empty">No evidence yet — experiment is running.</div>
         ) : (
           expReadings.map((r) => {
             const beliefs = readingBeliefs(r);
@@ -206,8 +206,13 @@ export function ExperimentDetail({
                         <span className={`vos-pill vos-pill-${verdictTone(b.Result)}`}>{b.Result}</span>
                         <span className="vos-rung-tag">{String(r.Rung ?? "")}</span>
                       </div>
-                      {justification ? (
-                        <div className={`vos-belief-rationale vos-verdict-border-${verdictTone(b.Result)}`}>
+                      {typeof b.excerpt === "string" && b.excerpt !== "" ? (
+                        <div className={`vos-belief-excerpt vos-verdict-border-${verdictTone(b.Result)}`}>
+                          “{b.excerpt}”
+                        </div>
+                      ) : justification ? (
+                        <div className={`vos-belief-rationale vos-verdict-border-${verdictTone(b.Result)}`}
+                        >
                           <span className="vos-belief-rationale-label">grading rationale:</span>
                           {justification}
                         </div>
@@ -238,7 +243,7 @@ export function ExperimentDetail({
       {unstartedBars.length > 0 ? (
         <div className="vos-card vos-detail-section vos-unstarted">
           <div className="vos-detail-section-label">
-            Not yet tested · {unstartedBars.length} bar{unstartedBars.length === 1 ? "" : "s"} with no readings
+            Not yet tested · {unstartedBars.length} bar{unstartedBars.length === 1 ? "" : "s"} with no evidence
           </div>
           {unstartedBars.map((bl) => {
             const a = (assumptions.records ?? []).find((x) => String(x.id) === bl.assumptionId);
@@ -254,7 +259,7 @@ export function ExperimentDetail({
                   </button>
                   <span className="vos-belief-title">{String(a?.Title ?? bl.assumptionId)}</span>
                   <span className="vos-rung-tag">{String(bl.plannedRung ?? "")}</span>
-                  <span className="vos-muted">◌ no reading</span>
+                  <span className="vos-muted">◌ no evidence</span>
                 </div>
                 <div className="vos-belief-bar">
                   <div><strong>Right if:</strong> {String(bl.rightIf ?? "")}</div>

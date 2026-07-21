@@ -135,6 +135,8 @@ export interface BeliefScore {
   Result: Result;
   /** The rationale for this belief's Result at the row's rung. */
   "Grading justification": string;
+  /** The verbatim quote or observed fact this belief was graded from. */
+  excerpt?: string;
   /** Derived per belief: row rung anchor × sign(Result) [× row magnitude band]. */
   derived: { strength: number };
   /** Provenance: the original reading id this belief was migrated from. */

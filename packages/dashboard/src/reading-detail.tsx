@@ -40,16 +40,16 @@ export function ReadingDetail({
   if (loading) {
     return (
       <div>
-        <Breadcrumb trail={[{ label: "Readings", route: { name: "readings" } }]} onNavigate={onNavigate} />
-        <p className="vos-muted">Loading reading…</p>
+        <Breadcrumb trail={[{ label: "Evidence", route: { name: "readings" } }]} onNavigate={onNavigate} />
+        <p className="vos-muted">Loading evidence…</p>
       </div>
     );
   }
   if (!reading) {
     return (
       <div>
-        <Breadcrumb trail={[{ label: "Readings", route: { name: "readings" } }]} onNavigate={onNavigate} />
-        <p className="vos-error">Reading not found: {readingId}</p>
+        <Breadcrumb trail={[{ label: "Evidence", route: { name: "readings" } }]} onNavigate={onNavigate} />
+        <p className="vos-error">Evidence not found: {readingId}</p>
       </div>
     );
   }
@@ -68,7 +68,7 @@ export function ReadingDetail({
     <div>
       <Breadcrumb
         trail={[
-          { label: "Readings", route: { name: "readings" } },
+          { label: "Evidence", route: { name: "readings" } },
           { label: readingId, route: { name: "reading", id: readingId } },
         ]}
         onNavigate={onNavigate}
@@ -97,7 +97,7 @@ export function ReadingDetail({
           What this evidence says · {beliefs.length} belief{beliefs.length === 1 ? "" : "s"} · each with its own quote
         </div>
         {beliefs.length === 0 ? (
-          <div className="vos-muted">No beliefs scored in this reading.</div>
+          <div className="vos-muted">No beliefs scored in this evidence.</div>
         ) : (
           beliefs.map((b) => {
             const a = (assumptions.records ?? []).find((x) => String(x.id) === b.assumptionId);
@@ -123,15 +123,19 @@ export function ReadingDetail({
                 {/* Grading rationale — why this evidence scores this belief
                      this way. NOT a quote; the actual quotes live in the
                      Context section above (the reading's body). */}
+                {typeof b.excerpt === "string" && b.excerpt !== "" ? (
+                  <div className={`vos-belief-excerpt vos-verdict-border-${verdictTone(result)}`}>
+                    “{b.excerpt}”
+                  </div>
+                ) : body ? (
+                  <div className={`vos-belief-excerpt vos-verdict-border-${verdictTone(result)}`}>
+                    “{snippetFromReadingBody(body, b.assumptionId)}”
+                  </div>
+                ) : null}
                 {justification ? (
                   <div className={`vos-belief-rationale vos-verdict-border-${verdictTone(result)}`}>
                     <span className="vos-belief-rationale-label">grading rationale:</span>
                     {justification}
-                  </div>
-                ) : null}
-                {body ? (
-                  <div className="vos-belief-context-link vos-muted">
-                    see context above for the full quote
                   </div>
                 ) : null}
                 {/* Bar-line context (if from an experiment) */}
@@ -186,4 +190,20 @@ function verdictTone(verdict: string | null | undefined): "good" | "crit" | "neu
   if (verdict === "Validated") return "good";
   if (verdict === "Invalidated") return "crit";
   return "neutral";
+}
+
+function snippetFromReadingBody(body: string, cue: string): string {
+  if (!body) return "";
+  const quoteMatch = body.match(/## Quote\n+([\s\S]*?)(?=\n## |\n##$|$)/i);
+  if (quoteMatch) {
+    const q = quoteMatch[1]!.trim();
+    return q.length > 220 ? q.slice(0, 217).trim() + "…" : q;
+  }
+  const sentences = body.split(/(?<=[.!?])\s+/);
+  const cueLower = cue.toLowerCase();
+  for (const s of sentences) {
+    if (s.toLowerCase().includes(cueLower)) return s.trim();
+  }
+  const first = sentences[0]?.trim() ?? "";
+  return first.length > 220 ? first.slice(0, 217).trim() + "…" : first;
 }

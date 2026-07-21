@@ -7,7 +7,7 @@ export const REGISTER_LABEL: Record<Collection, string> = {
   // One container-agnostic lens now Goal is unified into Experiment (OPS-1299 /
   // OPS-1287 story 22): all plans browse in one place under this label.
   experiments: "Evidence plans",
-  readings: "Readings",
+  readings: "Evidence",
   decisions: "Decisions",
   glossary: "Glossary",
 };
@@ -17,7 +17,7 @@ export const REGISTER_LABEL: Record<Collection, string> = {
 export const REGISTER_SINGULAR: Record<Collection, string> = {
   assumptions: "Assumption",
   experiments: "Evidence plan",
-  readings: "Reading",
+  readings: "Evidence",
   decisions: "Decision",
   glossary: "Glossary term",
 };
@@ -46,7 +46,7 @@ export const REGISTER_SUBTITLE: Record<Collection, string> = {
 export const REGISTER_ICON: Record<Collection, string> = {
   assumptions: "◎",
   experiments: "⚗",
-  readings: "▤",
+  readings: "✦",
   decisions: "§",
   glossary: "A",
 };
@@ -63,7 +63,7 @@ export const REGISTER_GROUPS: { label: string; registers: Collection[] }[] = [
 /** The workflow surfaces the sidebar lists above the register tables
  * (OPS-1298 / DEV-5879 redesign): three top-level nav items — Assumptions
  * (the default landing, the Lens × Stage grid with a "View all" toggle to
- * the pipeline board), Experiments (the live evidence plans), and Readings
+ * the pipeline board), Experiments (the live evidence plans), and Evidence
  * (the evidence log). Kept beside the register presentation data so all
  * sidebar labels/icons live in one place. */
 export interface WorkflowNavItem {
@@ -78,5 +78,5 @@ export interface WorkflowNavItem {
 export const WORKFLOW_NAV: WorkflowNavItem[] = [
   { route: "assumptions", label: "Assumptions", icon: "◎", isDefault: true },
   { route: "experiments", label: "Experiments", icon: "⚗" },
-  { route: "readings", label: "Readings", icon: "▤" },
+  { route: "readings", label: "Evidence", icon: "✦" },
 ];

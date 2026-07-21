@@ -291,6 +291,8 @@ export interface BeliefVerdict {
   /** Derived per-belief strength (signed −100…100). */
   strength: number | null;
   justification: string;
+  /** Verbatim quote/excerpt for this belief, if recorded. */
+  excerpt: string;
 }
 
 /** The per-belief verdicts a reading carries, in stored order — the reading
@@ -317,8 +319,31 @@ export function readingBeliefVerdicts(
         typeof b["Grading justification"] === "string"
           ? b["Grading justification"]
           : "",
+      excerpt:
+        typeof b.excerpt === "string" && b.excerpt !== ""
+          ? b.excerpt
+          : snippetFromBody(String(reading.body ?? ""), b.assumptionId),
     };
   });
+}
+
+/** Pull a short quote-like snippet from a reading body as a fallback excerpt.
+ *  Prefers text inside a `## Quote` block, then a sentence mentioning the
+ *  assumption title or id, then the first sentence. */
+function snippetFromBody(body: string, cue: string): string {
+  if (!body) return "";
+  const quoteMatch = body.match(/## Quote\n+([\s\S]*?)(?=\n## |\n##$|$)/i);
+  if (quoteMatch) {
+    const q = quoteMatch[1]!.trim();
+    return q.length > 220 ? q.slice(0, 217).trim() + "…" : q;
+  }
+  const sentences = body.split(/(?<=[.!?])\s+/);
+  const cueLower = cue.toLowerCase();
+  for (const s of sentences) {
+    if (s.toLowerCase().includes(cueLower)) return s.trim();
+  }
+  const first = sentences[0]?.trim() ?? "";
+  return first.length > 220 ? first.slice(0, 217).trim() + "…" : first;
 }
 
 /** A reading's verdicts tallied by result — the one-line "what did this say?"

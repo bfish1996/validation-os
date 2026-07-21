@@ -415,9 +415,9 @@ function NextMovesSection({
     <div className="vos-next-moves">
       <div className="vos-next-moves-head">Next moves</div>
       <div className="vos-next-moves-cols">
-        {/* Left column — top 2 assumptions needing framing */}
+        {/* Left column — top 1 assumption needing framing per lens */}
         <div className="vos-card vos-next-moves-col">
-          <div className="vos-next-moves-col-label">Needs framing · top {needsFraming.length}</div>
+          <div className="vos-next-moves-col-label">Needs framing · one per lens</div>
           {needsFraming.length === 0 ? (
             <div className="vos-muted vos-next-moves-empty">Every belief is fully framed.</div>
           ) : (
@@ -429,56 +429,61 @@ function NextMovesSection({
                 onClick={() => onOpenAssumption(a.id)}
               >
                 <div className="vos-next-moves-item-head">
-                  <span className="vos-next-moves-item-id vos-num">{a.id}</span>
+                  <span
+                    className="vos-next-moves-lens"
+                    style={{ background: `${a.lensColour}20`, color: a.lensColour, borderColor: `${a.lensColour}40` }}
+                  >
+                    {a.lens}
+                  </span>
                   <span className={`vos-next-moves-item-risk vos-num vos-text-${riskToneClass(a.risk)}`}>
                     {Math.round(a.risk)} risk
                   </span>
                 </div>
-                <div className="vos-next-moves-item-title">{a.title}</div>
+                <div className="vos-next-moves-item-title">
+                  <span className="vos-next-moves-item-id vos-num">{a.id}</span> · {a.title}
+                </div>
                 <div className="vos-next-moves-item-hint">{a.hint}</div>
               </button>
             ))
           )}
         </div>
 
-        {/* Right column — top 2 proposed experiments */}
+        {/* Right column — top 1 proposed experiment per lens, flat cards */}
         <div className="vos-card vos-next-moves-col">
-          <div className="vos-next-moves-col-label">Proposed experiments · top {recs.length}</div>
+          <div className="vos-next-moves-col-label">Proposed experiments · one per lens</div>
           {recs.length === 0 ? (
             <div className="vos-muted vos-next-moves-empty">Every risk has a live test.</div>
           ) : (
             recs.map((rec) => (
-              <details key={rec.id} className="vos-pipe-rec vos-next-moves-rec">
-                <summary className="vos-pipe-rec-head">
-                  <span className="vos-pipe-rec-type">{rec.type}</span>
-                  <span className="vos-pipe-rec-title">{rec.title}</span>
-                  <span className="vos-pipe-rec-risk vos-num">{Math.round(rec.maxRisk)} risk</span>
-                </summary>
-                <div className="vos-pipe-rec-body-inner">
-                  <div className="vos-pipe-rec-chips">
-                    {rec.assumptionIds.map((id) => (
-                      <button
-                        key={id}
-                        type="button"
-                        className="vos-pipe-rec-chip"
-                        onClick={() => onOpenAssumption(id)}
-                      >
-                        {id}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="vos-pipe-rec-rationale">{rec.rationale}</div>
-                  <div className="vos-pipe-rec-bar">
-                    <strong>Right if:</strong> {rec.barPreview}
-                  </div>
-                  <div className="vos-pipe-rec-body">
-                    <EvidenceBody text={rec.body} />
-                  </div>
-                  <div className="vos-pipe-rec-actions">
-                    <button type="button" className="vos-btn vos-btn-sm vos-btn-accent">Accept & create experiment</button>
-                  </div>
+              <div key={rec.id} className="vos-next-moves-rec">
+                <div className="vos-next-moves-rec-head">
+                  <span
+                    className="vos-next-moves-lens"
+                    style={{ background: `${rec.lensColour}20`, color: rec.lensColour, borderColor: `${rec.lensColour}40` }}
+                  >
+                    {rec.lens}
+                  </span>
+                  <span className="vos-next-moves-rec-type">{rec.type}</span>
+                  <span className="vos-next-moves-rec-risk vos-num">{Math.round(rec.maxRisk)} risk</span>
                 </div>
-              </details>
+                <div className="vos-next-moves-rec-title">{rec.title}</div>
+                <div className="vos-next-moves-rec-rationale">{rec.rationale}</div>
+                <div className="vos-next-moves-rec-chips">
+                  {rec.assumptionIds.map((id) => (
+                    <button
+                      key={id}
+                      type="button"
+                      className="vos-next-moves-rec-chip"
+                      onClick={() => onOpenAssumption(id)}
+                    >
+                      {id}
+                    </button>
+                  ))}
+                </div>
+                <div className="vos-next-moves-rec-actions">
+                  <button type="button" className="vos-btn vos-btn-sm">Accept & create experiment</button>
+                </div>
+              </div>
             ))
           )}
         </div>
@@ -505,17 +510,24 @@ function RecommendedExperimentsSection({
   return (
     <div className="vos-card vos-pipe-recs">
       <div className="vos-pipe-recs-head">
-        Next moves · recommended experiments (top {recs.length})
+        Next moves · recommended experiments · one per lens (top {recs.length})
       </div>
       <div className="vos-pipe-recs-list">
         {recs.map((rec) => (
-          <details key={rec.id} className="vos-pipe-rec">
-            <summary className="vos-pipe-rec-head">
+          <div key={rec.id} className="vos-pipe-rec vos-pipe-rec-flat">
+            <div className="vos-pipe-rec-head">
+              <span
+                className="vos-next-moves-lens"
+                style={{ background: `${rec.lensColour}20`, color: rec.lensColour, borderColor: `${rec.lensColour}40` }}
+              >
+                {rec.lens}
+              </span>
               <span className="vos-pipe-rec-type">{rec.type}</span>
               <span className="vos-pipe-rec-title">{rec.title}</span>
               <span className="vos-pipe-rec-risk vos-num">{Math.round(rec.maxRisk)} risk</span>
-            </summary>
+            </div>
             <div className="vos-pipe-rec-body-inner">
+              <div className="vos-pipe-rec-rationale">{rec.rationale}</div>
               <div className="vos-pipe-rec-chips">
                 {rec.assumptionIds.map((id) => (
                   <button
@@ -528,7 +540,6 @@ function RecommendedExperimentsSection({
                   </button>
                 ))}
               </div>
-              <div className="vos-pipe-rec-rationale">{rec.rationale}</div>
               <div className="vos-pipe-rec-bar">
                 <strong>Right if:</strong> {rec.barPreview}
               </div>
@@ -536,12 +547,12 @@ function RecommendedExperimentsSection({
               <div className="vos-pipe-rec-body">
                 <EvidenceBody text={rec.body} />
               </div>
-              {/* Accept inside the expanded card */}
+              {/* Accept action visible without expanding */}
               <div className="vos-pipe-rec-actions">
-                <button type="button" className="vos-btn vos-btn-sm vos-btn-accent">Accept & create experiment</button>
+                <button type="button" className="vos-btn vos-btn-sm">Accept & create experiment</button>
               </div>
             </div>
-          </details>
+          </div>
         ))}
       </div>
     </div>

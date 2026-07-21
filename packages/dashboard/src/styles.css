@@ -433,7 +433,6 @@
   border: 1px solid var(--vos-border);
   border-radius: var(--vos-radius);
   box-shadow: var(--vos-shadow);
-  overflow: hidden;
 }
 .vos-table-scroll {
   overflow-x: auto;
@@ -2963,7 +2962,7 @@ button.vos-verdict-title {
 .vos-score-label { font-size: 10px; color: var(--vos-muted); }
 
 /* Detail sections. Standardized 14px padding, 16px section gap. */
-.vos-detail-section { padding: 14px; margin-bottom: 16px; }
+.vos-detail-section { padding: 14px; margin-bottom: 16px; overflow: visible; }
 .vos-detail-section-label { font-size: 11px; color: var(--vos-muted); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 8px; }
 
 /* Evidence composition (per-rung bars). Rung label shrinks on narrow screens;
@@ -2973,6 +2972,9 @@ button.vos-verdict-title {
 .vos-comp-rung.is-empty { color: var(--vos-muted); }
 .vos-comp-bar { flex: 1 1 80px; min-width: 60px; height: 10px; background: var(--vos-surface-2); border-radius: 5px; overflow: hidden; }
 .vos-comp-fill { display: block; height: 100%; background: var(--vos-accent); border-radius: 5px; }
+.vos-comp-fill.vos-fill-good { background: var(--vos-good); }
+.vos-comp-fill.vos-fill-crit { background: var(--vos-crit); }
+.vos-comp-fill.vos-fill-accent { background: var(--vos-accent); }
 .vos-comp-val { width: 70px; flex-shrink: 0; text-align: right; font-size: 10px; color: var(--vos-muted); }
 .vos-comp-count { width: 52px; flex-shrink: 0; font-size: 9px; color: var(--vos-muted); }
 
@@ -3053,13 +3055,69 @@ button.vos-verdict-title {
 .vos-unstarted { border-style: dashed; }
 .vos-unstarted-bar { padding: 14px; margin-bottom: 8px; background: var(--vos-surface-2); border-radius: 6px; border: 1px dashed var(--vos-border); }
 
-/* ── DEV-5879 fixes: donut gauge, experiment rows, collapsible readings ── */
+/* ── DEV-5879 polish pass: donut, evidence list, next-moves, grid, glossary ── */
 
-/* Confidence donut gauge (SVG ring). Number centered via grid overlay. */
+/* Confidence donut gauge — minimal thin ring, large centered number. */
 .vos-donut { position: relative; display: inline-grid; place-items: center; flex-shrink: 0; }
 .vos-donut-num { grid-area: 1 / 1; font-weight: 700; color: var(--vos-text); text-align: center; line-height: 1; }
 
-/* Experiment list — bigger rows with donut gauge. 14px padding, more breathing room. */
+/* Evidence row (assumption detail) — stacked, scannable, source truncated. */
+.vos-evidence-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+  background: var(--vos-surface-2);
+  border: 1px solid var(--vos-border);
+  border-left-width: 3px;
+  border-radius: 8px;
+  padding: 12px 14px;
+  cursor: pointer;
+  width: 100%;
+  margin-bottom: 8px;
+  font: inherit;
+  color: var(--vos-text);
+  transition: border-color 0.15s;
+}
+.vos-evidence-row:hover { border-color: var(--vos-accent); }
+.vos-evidence-row.vos-verdict-good { border-left-color: var(--vos-good); }
+.vos-evidence-row.vos-verdict-crit { border-left-color: var(--vos-crit); }
+.vos-evidence-row.vos-verdict-neutral { border-left-color: var(--vos-border); }
+.vos-evidence-row-head {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  flex-wrap: wrap;
+}
+.vos-evidence-date { font-size: 9px; color: var(--vos-muted); min-width: 74px; }
+.vos-evidence-title { flex: 1; font-size: 13px; font-weight: 500; min-width: 0; }
+.vos-evidence-score { font-size: 10px; font-weight: 600; margin-left: auto; }
+.vos-evidence-excerpt {
+  padding: 8px 12px;
+  border-left: 3px solid var(--vos-border);
+  background: var(--vos-surface);
+  border-radius: 0 6px 6px 0;
+  font-style: italic;
+  font-size: 12px;
+  color: var(--vos-text);
+  line-height: 1.5;
+}
+.vos-evidence-source {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  font-size: 10px;
+  color: var(--vos-muted);
+  flex-wrap: wrap;
+}
+.vos-evidence-source-link {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Experiment list — bigger rows with donut gauge. */
 .vos-exp-list { display: flex; flex-direction: column; gap: 10px; padding: 14px; }
 .vos-exp-row { display: flex; align-items: center; gap: 16px; padding: 14px 16px; background: var(--vos-surface-2); border: 1px solid var(--vos-border); border-radius: 10px; cursor: pointer; text-align: left; width: 100%; color: var(--vos-text); font: inherit; transition: border-color 0.15s; }
 .vos-exp-row:hover { border-color: var(--vos-accent); }
@@ -3067,9 +3125,8 @@ button.vos-verdict-title {
 .vos-exp-row-title { font-size: 14px; font-weight: 500; color: var(--vos-text); margin-bottom: 6px; }
 .vos-exp-row-meta { font-size: 11px; color: var(--vos-muted); }
 
-/* Collapsible reading card (progressive disclosure).
-   Summary bar: 14px padding, hover state, balanced spacing. */
-.vos-reading-collapse { border: 1px solid var(--vos-border); border-radius: 8px; margin-bottom: 8px; background: var(--vos-surface-2); overflow: hidden; transition: border-color 0.15s; }
+/* Collapsible reading card (experiment detail). */
+.vos-reading-collapse { border: 1px solid var(--vos-border); border-radius: 8px; margin-bottom: 8px; background: var(--vos-surface-2); transition: border-color 0.15s; }
 .vos-reading-collapse:hover { border-color: var(--vos-border-strong); }
 .vos-reading-collapse[open] { border-color: var(--vos-border-strong); }
 .vos-reading-collapse > summary { display: flex; gap: 12px; align-items: center; padding: 14px; cursor: pointer; list-style: none; user-select: none; transition: background 0.15s; }
@@ -3081,12 +3138,7 @@ button.vos-verdict-title {
 .vos-reading-beliefs-count { font-size: 10px; color: var(--vos-muted); margin-left: auto; flex-shrink: 0; }
 .vos-reading-card-body { padding: 0 14px 14px; }
 
-/* Evidence composition — fix the value display (signed contributions).
-   Width is set on the primary .vos-comp-val rule above; no override needed. */
-
-/* ── DEV-5879: confidence explainer + grading rationale labels ── */
-
-/* Grading rationale (NOT a quote — the grader's reason for the score) */
+/* Grading rationale + per-belief quote excerpts. */
 .vos-reading-rationale, .vos-belief-rationale {
   padding: 6px 10px;
   border-left: 3px solid var(--vos-border);
@@ -3096,14 +3148,31 @@ button.vos-verdict-title {
   font-size: 11px;
   color: var(--vos-text);
 }
-.vos-reading-rationale { margin: 4px 0; }
-.vos-belief-rationale { margin: 4px 0 6px; }
+.vos-belief-excerpt {
+  padding: 8px 12px;
+  border-left: 3px solid var(--vos-border);
+  background: var(--vos-surface);
+  border-radius: 0 6px 6px 0;
+  margin: 6px 0;
+  font-style: italic;
+  font-size: 12px;
+  color: var(--vos-text);
+  line-height: 1.5;
+}
 .vos-belief-rationale-label, .vos-reading-rationale-label {
   font-size: 9px;
   color: var(--vos-muted);
   text-transform: uppercase;
   letter-spacing: 0.3px;
   margin-right: 6px;
+}
+.vos-verdict-quote {
+  font-style: italic;
+  font-size: 12px;
+  color: var(--vos-text);
+  margin: 4px 0 6px;
+  padding-left: 10px;
+  border-left: 3px solid var(--vos-border);
 }
 
 /* Confidence explainer (collapsible) */
@@ -3160,12 +3229,14 @@ button.vos-verdict-title {
 .vos-explainer-foot p { margin-bottom: 8px; }
 .vos-explainer-foot strong { color: var(--vos-text); }
 
-/* Recommended experiment cards — expandable with body + accept inside */
+/* Recommended experiment cards — flat, no dropdown. */
 .vos-pipe-rec { overflow: hidden; }
+.vos-pipe-rec-flat { padding: 14px; border: 1px solid var(--vos-border); border-radius: 10px; background: var(--vos-surface); margin-bottom: 8px; }
+.vos-pipe-rec-head { display: flex; gap: 8px; align-items: baseline; margin-bottom: 8px; flex-wrap: wrap; }
+.vos-pipe-rec-type { font-size: 9px; padding: 1px 6px; border-radius: 4px; background: var(--vos-accent-weak); color: var(--vos-accent-text); }
+.vos-pipe-rec-title { flex: 1; font-size: 13px; color: var(--vos-text); font-weight: 500; }
 .vos-pipe-rec-body {
-  padding: 12px 14px 14px;
-  border-top: 1px solid var(--vos-border);
-  background: var(--vos-surface);
+  padding: 12px 0 0;
   font-size: 12px;
   color: var(--vos-text);
   line-height: 1.6;
@@ -3175,18 +3246,15 @@ button.vos-verdict-title {
 .vos-pipe-rec-body p { margin-bottom: 8px; }
 .vos-pipe-rec-body ul { padding-left: 18px; margin-bottom: 8px; }
 .vos-pipe-rec-body li { margin-bottom: 4px; }
-.vos-pipe-rec-expand {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--vos-accent-text);
-  font-size: 11px;
-  padding: 4px 0;
-  margin-top: 6px;
-}
+.vos-pipe-rec-chips { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+.vos-pipe-rec-chip { font-size: 9px; padding: 2px 8px; border-radius: 4px; background: var(--vos-surface-2); border: 1px solid var(--vos-border); color: var(--vos-text); cursor: pointer; }
+.vos-pipe-rec-chip:hover { border-color: var(--vos-accent); }
+.vos-pipe-rec-rationale { font-size: 11px; color: var(--vos-muted); line-height: 1.5; margin-bottom: 8px; }
+.vos-pipe-rec-bar { font-size: 10px; color: var(--vos-muted); padding: 4px 8px; background: var(--vos-surface-2); border-radius: 4px; border-left: 3px solid var(--vos-good); margin-bottom: 8px; }
+.vos-pipe-rec-bar strong { color: var(--vos-good); }
+.vos-pipe-rec-actions { margin-top: 8px; }
 
-/* ── DEV-5879: Next moves two-column section ── */
-
+/* Next moves — two-column, one-per-lens, lens-tagged cards. */
 .vos-next-moves { margin-top: 16px; }
 .vos-next-moves-head {
   font-size: 11px;
@@ -3198,20 +3266,20 @@ button.vos-verdict-title {
 }
 .vos-next-moves-cols {
   display: grid;
-  grid-template-columns: 1fr 1.2fr;
+  grid-template-columns: 1fr 1fr;
   gap: 16px;
-  align-items: start;
+  align-items: stretch;
 }
 @media (max-width: 900px) {
   .vos-next-moves-cols { grid-template-columns: 1fr; }
 }
-.vos-next-moves-col { padding: 14px; }
+.vos-next-moves-col { padding: 16px; display: flex; flex-direction: column; }
 .vos-next-moves-col-label {
   font-size: 11px;
   color: var(--vos-muted);
   text-transform: uppercase;
   letter-spacing: 0.3px;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
   font-weight: 600;
 }
 .vos-next-moves-empty { padding: 12px 14px; font-size: 12px; }
@@ -3228,52 +3296,62 @@ button.vos-verdict-title {
   color: var(--vos-text);
   font: inherit;
   transition: border-color 0.15s;
+  flex: 1 1 auto;
 }
 .vos-next-moves-item:hover { border-color: var(--vos-accent); }
 .vos-next-moves-item-head {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
+  gap: 8px;
 }
-.vos-next-moves-item-id { font-size: 10px; color: var(--vos-muted); }
+.vos-next-moves-lens {
+  font-size: 9px;
+  font-weight: 600;
+  padding: 1px 7px;
+  border: 1px solid;
+  border-radius: 999px;
+}
 .vos-next-moves-item-risk { font-size: 10px; font-weight: 600; }
-.vos-next-moves-item-title { font-size: 12px; font-weight: 500; margin-bottom: 4px; line-height: 1.4; }
+.vos-next-moves-item-title { font-size: 12px; font-weight: 500; margin-bottom: 6px; line-height: 1.4; }
+.vos-next-moves-item-id { color: var(--vos-muted); margin-right: 2px; }
 .vos-next-moves-item-hint { font-size: 11px; color: var(--vos-muted); line-height: 1.4; }
-.vos-next-moves-rec { margin-bottom: 8px; }
-
-/* ── DEV-5879: grid text breathing room + next-move box consistency + header cleanup ── */
-
-/* Grid: more spacing between cells, taller cells, bigger text */
-.vos-stage-grid { border-spacing: 8px !important; }
-.vos-stage-grid-btn { min-height: 64px !important; font-size: 18px !important; }
-.vos-stage-grid-col { min-width: 140px !important; padding: 12px 14px !important; }
-.vos-stage-grid-rowhead { padding: 10px 14px !important; }
-.vos-stage-grid-stagename { font-size: 14px !important; }
-.vos-stage-grid-stagegloss { font-size: 11px !important; line-height: 1.4 !important; }
-
-/* Next-moves: equal-width columns, equal-height boxes, adaptable */
-.vos-next-moves-cols {
-  grid-template-columns: 1fr 1fr !important;
-  align-items: stretch !important;
-}
-.vos-next-moves-col {
-  display: flex !important;
-  flex-direction: column !important;
-  padding: 16px !important;
-}
-.vos-next-moves-col-label { margin-bottom: 14px !important; }
-/* Equal-height items within each column */
-.vos-next-moves-item, .vos-next-moves-rec {
+.vos-next-moves-rec {
+  background: var(--vos-surface-2);
+  border: 1px solid var(--vos-border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
   flex: 1 1 auto;
-  min-height: 80px;
 }
-/* The proposed experiment summary should match the needs-framing item height */
-.vos-next-moves-rec > summary {
-  min-height: 80px;
-  display: flex;
-  align-items: center;
-}
+.vos-next-moves-rec-head { display: flex; gap: 8px; align-items: baseline; margin-bottom: 6px; flex-wrap: wrap; }
+.vos-next-moves-rec-type { font-size: 9px; padding: 1px 6px; border-radius: 4px; background: var(--vos-accent-weak); color: var(--vos-accent-text); }
+.vos-next-moves-rec-risk { font-size: 10px; font-weight: 600; margin-left: auto; }
+.vos-next-moves-rec-title { font-size: 13px; font-weight: 500; margin-bottom: 6px; }
+.vos-next-moves-rec-rationale { font-size: 11px; color: var(--vos-muted); line-height: 1.5; margin-bottom: 8px; }
+.vos-next-moves-rec-chips { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+.vos-next-moves-rec-chip { font-size: 9px; padding: 2px 8px; border-radius: 4px; background: var(--vos-surface); border: 1px solid var(--vos-border); color: var(--vos-text); cursor: pointer; }
+.vos-next-moves-rec-chip:hover { border-color: var(--vos-accent); }
+.vos-next-moves-rec-actions { margin-top: 8px; }
+
+/* Grid: more spacing, taller cells, bigger text, subtle heat. */
+.vos-stage-grid { border-spacing: 10px !important; }
+.vos-stage-grid-btn { min-height: 68px !important; font-size: 20px !important; border-radius: 10px !important; }
+.vos-stage-grid-col { min-width: 150px !important; padding: 14px 16px !important; }
+.vos-stage-grid-rowhead { padding: 12px 16px !important; font-size: 14px !important; }
+.vos-stage-grid-stagename { font-size: 15px !important; }
+.vos-stage-grid-stagegloss { font-size: 11px !important; line-height: 1.4 !important; }
+.vos-stage-grid-corner { font-weight: 600; }
+.vos-heat-0 { background: var(--vos-surface); opacity: 0.45; color: var(--vos-muted); border-style: dashed; }
+.vos-heat-1 { background: color-mix(in srgb, var(--vos-accent) 16%, var(--vos-surface)); }
+.vos-heat-2 { background: color-mix(in srgb, var(--vos-accent) 30%, var(--vos-surface)); }
+.vos-heat-3 { background: color-mix(in srgb, var(--vos-accent) 44%, var(--vos-surface)); }
+.vos-heat-4 { background: color-mix(in srgb, var(--vos-accent) 58%, var(--vos-surface)); }
+
+/* Glossary popover: parent cards no longer clip overflow, so the absolute
+ * popover can show. High z-index in case it overlaps other stacked cards. */
+.vos-gloss-pop { z-index: 100; }
 
 /* Topbar: hide the backend + agent indicators (clean header) */
 .vos-backend, .vos-hint:has(.vos-live-dot) { display: none !important; }
