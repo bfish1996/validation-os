@@ -22,12 +22,13 @@ registers:
       - {canonical: Description, backend: Description, type: string, derived: false}
       - {canonical: Lens, backend: Lens, type: string, derived: false, options_source: vocabulary.lens}
       - {canonical: Stage, backend: Stage, type: string, derived: false, options_source: registry-schema}
+      - {canonical: Question Type, backend: Question Type, type: string, derived: false, options_source: registry-schema}
       - {canonical: Theme, backend: Theme, type: "string[]", derived: false, options_source: registry-schema}
       - {canonical: Impact, backend: Impact, type: number, derived: false}
       - {canonical: Derived Impact, backend: derived.derivedImpact, type: number, derived: true, formula: "seed + (100 - seed) × S/(S + 100), S = Σ dependents' Derived Impact + 100 per standing decision Based on assumption; experiments never contribute (assumption-guardrails.md §3); recomputed on every touching write (OPS-1251)"}
       - {canonical: Risk, backend: derived.risk, type: number, derived: true, formula: "derived.derivedImpact * (1 - max(0, derived.confidence) / 100); skill-computed"}
       - {canonical: Confidence, backend: derived.confidence, type: number, derived: true, formula: "(w0·0 + Σ wi·si) / (w0 + Σ wi), w0=100, wi=|si|×Source quality×commitmentFactor, si=a beliefs[] entry's signed Strength scored against this assumption; commitmentFactor=1.0 if the entry's reading has experimentId else 0.85 (never reorders rungs); concluded entries only, deduped per (belief, source) (experiment-guardrails.md §2); skill-computed"}
-      - {canonical: Completeness %, backend: derived.completeness, type: number, derived: true, formula: "filled slots / all slots × 100 over five structural slots: description, lens, impact, scoringJustification, dependencies traced (≥1 dependsOn/enables entry); replaces the retired gaps/presence-field machinery (OPS-1305); skill-computed"}
+      - {canonical: Completeness %, backend: derived.completeness, type: number, derived: true, formula: "filled slots / all slots × 100 over six structural slots: description, lens, impact, scoringJustification, dependencies traced (≥1 dependsOn/enables entry), questionType; replaces the retired gaps/presence-field machinery (OPS-1305); skill-computed"}
       - {canonical: Status, backend: Status, type: string, derived: false, options_source: registry-schema}
       - {canonical: Owner, backend: Owner, type: "object[]", derived: false, options_source: vocabulary.dashboard_users}
       - {canonical: Scoring justification, backend: "Scoring justification", type: string, derived: false}
@@ -246,6 +247,7 @@ is no shared `type` field splitting one collection into two record kinds.
 | Description | `Description` | string | no |
 | Lens | `Lens` | string | no |
 | Stage | `Stage` | string (`Discovery` \| `Validation` \| `Scale` \| `Maturity`) | no |
+| Question Type | `Question Type` | string (`Existence` \| `Prevalence` \| `CausalEffect` \| `WillingnessToPay` \| `ValueUtility` \| `Regulatory` \| `Feasibility`) | no |
 | Theme | `Theme` | string[] | no |
 | Impact | `Impact` | number (0–100) | no |
 | Derived Impact | `derived.derivedImpact` | number | yes |

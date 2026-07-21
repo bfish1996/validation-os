@@ -22,12 +22,13 @@ registers:
       - {canonical: Description, backend: description, type: TEXT, derived: false}
       - {canonical: Lens, backend: lens, type: TEXT, derived: false, options_source: vocabulary.lens}
       - {canonical: Stage, backend: stage, type: TEXT, derived: false, options_source: registry-schema}
+      - {canonical: Question Type, backend: question_type, type: TEXT, derived: false, options_source: registry-schema}
       - {canonical: Theme, backend: themes, type: JSON, derived: false, options_source: registry-schema}
       - {canonical: Impact, backend: impact, type: INTEGER, derived: false}
       - {canonical: Derived Impact, backend: derived_impact, type: NUMERIC, derived: true, formula: "seed + (100 - seed) × S/(S + 100) over the dependency DAG, S = dependents' Derived Impact + 100 per standing decision Based on; experiments never contribute (assumption-guardrails.md §3); recomputed on every touching write (OPS-1251)"}
       - {canonical: Risk, backend: risk, type: NUMERIC, derived: true, formula: "derived_impact * (1 - max(0, confidence) / 100); skill-computed"}
       - {canonical: Confidence, backend: confidence, type: NUMERIC, derived: true, formula: "signed weighted average of concluded reading_beliefs entries scored against this row, wi=|si|×source_quality×commitmentFactor (1.0 if the entry's reading has experiment_id else 0.85; never reorders rungs), neutral prior w0=100, deduped per (belief, source) (experiment-guardrails.md §2); skill-computed"}
-      - {canonical: Completeness %, backend: completeness, type: NUMERIC, derived: true, formula: "filled slots / all slots × 100 over five structural slots: description, lens, impact, scoring_justification, dependencies traced (≥1 assumption_dependencies row); replaces the retired gaps/presence-field machinery (OPS-1305); skill-computed"}
+      - {canonical: Completeness %, backend: completeness, type: NUMERIC, derived: true, formula: "filled slots / all slots × 100 over six structural slots: description, lens, impact, scoring_justification, dependencies traced (≥1 assumption_dependencies row), question_type; replaces the retired gaps/presence-field machinery (OPS-1305); skill-computed"}
       - {canonical: Status, backend: status, type: TEXT, derived: false, options_source: registry-schema}
       - {canonical: Owner, backend: owner, type: TEXT, derived: false, options_source: vocabulary.dashboard_users}
       - {canonical: Scoring justification, backend: scoring_justification, type: TEXT, derived: false}
@@ -212,6 +213,7 @@ sql:
 | Description | `description` | TEXT | no |
 | Lens | `lens` | TEXT | no |
 | Stage | `stage` | TEXT (`Discovery` \| `Validation` \| `Scale` \| `Maturity`) | no |
+| Question Type | `question_type` | TEXT (`Existence` \| `Prevalence` \| `CausalEffect` \| `WillingnessToPay` \| `ValueUtility` \| `Regulatory` \| `Feasibility`) | no |
 | Theme | `themes` | JSON (array of strings) | no |
 | Impact | `impact` | INTEGER (0–100) | no |
 | Derived Impact | `derived_impact` | NUMERIC | yes |
