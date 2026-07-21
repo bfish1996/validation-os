@@ -94,24 +94,26 @@ vocabularies:
   glossary_status: [Active, Provisional, Superseded]
   reversibility: [Two-way door, One-way door]
 
-  # The 7-rung activity-and-strength ladder (experiment-guardrails.md §2,
-  # docs/evidence-ladder.md). Order = strength, weakest first. `Opinion` was
-  # merged into `Anecdotal` (0.10): a bare opinion is just the weakest anecdote,
-  # so `Anecdotal` is now the floor and inherits Opinion's old anchor (3).
-  # Two categories: Testing (recruited-sample instruments, plateau ±30) and
-  # Market (open-world targets, two pre-registered bars — the category formerly
-  # called "Goals", OPS-1305). Lives ROW-LEVEL on the Reading (`Rung`, one per
-  # artifact — 0.10) and on the bar line (`Planned rung`). `anchor` feeds the
-  # Strength derivation (signed by Result); Market rungs carry magnitude bands
-  # (Low/Typical/High). `Prototype usage` = genuine prototype-usage sessions only.
+  # The 6-rung evidence ladder (experiment-guardrails.md §2,
+  # docs/evidence-ladder.md). One rung vocabulary across all question types;
+  # the *anchor* (ceiling `s`) is per (question type × rung × band) — see
+  # `derivations.rung_anchor` for the 3D `RUNG_ANCHOR[questionType][rung][band]`
+  # table. A rung that is **non-evidence** for a question type carries anchor 0
+  # across all bands (it contributes `s=0`, flagged at the UI/skill layer —
+  # not a write blocker). `Talk` is the collapsed floor rung (Opinion +
+  # Pitch-deck + Anecdotal merged); `Desk research` is flat across bands;
+  # the four "do" rungs carry Low / Typical / High magnitude bands. Lives
+  # ROW-LEVEL on the Reading (`Rung`, one per artifact — 0.10) and on the bar
+  # line (`Planned rung`). `anchor` feeds the Strength derivation (signed by
+  # Result). The rung vocabulary is fixed; only the anchors vary by question
+  # type.
   rung:
-    - { value: Anecdotal,           category: Testing, anchor: 3 }   # the floor; absorbed Opinion (0.10) — a bare opinion is just the weakest anecdote, so Anecdotal inherits Opinion's old anchor
-    - { value: Pitch-deck reaction, category: Testing, anchor: 6 }
-    - { value: Desk research,       category: Testing, anchor: 15 }
-    - { value: Survey at scale,     category: Testing, anchor: 25 }
-    - { value: Prototype usage,     category: Testing, anchor: 30 }   # genuine prototype-usage sessions only
-    - { value: Signed intent,       category: Market,  anchor: { Low: 55, Typical: 68, High: 80 } }
-    - { value: Paying users,        category: Market,  anchor: { Low: 75, Typical: 88, High: 99 } }
+    - { value: Talk,           category: Testing }
+    - { value: Desk research,  category: Testing }
+    - { value: Signed up,      category: Testing }
+    - { value: Observed usage,  category: Testing }
+    - { value: Signed intent,  category: Market }
+    - { value: Paying users,   category: Market }
 
   # Theme is an example set, not fixed — workspaces may extend it.
   theme:
@@ -128,6 +130,38 @@ vocabularies:
   # volume, not "we can build X". The Lens × Stage pair is orthogonal — see
   # `registry-schema.md §Field map — Assumptions`.
   stage: [Discovery, Validation, Scale, Maturity]
+
+  # Question type — the kind of CLAIM an assumption raises
+  # (docs/question-types.md). Set by the falsification-test rule: the
+  # question type is determined by what would prove the assumption WRONG, not
+  # by what evidence is cheap to gather. "Users will pay $50/mo" is falsified
+  # by offering it and watching them not pay → WillingnessToPay, regardless of
+  # how many interview quotes exist. Orthogonal to Stage (kind of response)
+  # and Lens (who the actor is). The question type determines which rungs are
+  # probative, what the ceiling is, and which rungs are non-evidence
+  # (anchor 0 across all bands) — see `derivations.rung_anchor` for the
+  # 3D lookup `RUNG_ANCHOR[questionType][rung][band]`.
+  question_type:
+    [Existence, Prevalence, CausalEffect, WillingnessToPay,
+     ValueUtility, Regulatory, Feasibility]
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Stage-keyed Risk threshold — the stopping rule for attention.
+# ─────────────────────────────────────────────────────────────────────────────
+# The Risk value below which an assumption is "validated enough" for its
+# stage (pragmatic encroachment + Bezos two-way vs one-way doors; Stage is
+# the reversibility proxy). The threshold does NOT flip a status — Live
+# assumptions stay Live and ranked forever (docs/validated.md). It is
+# consumed by: the dashboard's test-next surface (above threshold →
+# testing-priority; below → de-prioritized), the `/assumptions audit` skill
+# (flags above threshold as "needs evidence", below as "cleared for this
+# stage"), and the `/experiment-design` skill (uses the threshold to size
+# the next test). It does NOT enter the Confidence formula.
+risk_threshold_by_stage:
+  Discovery: 30    # two-way door — act on weak evidence
+  Validation: 15   # becoming one-way — need more before committing
+  Scale: 10        # one-way door — strong evidence before scaling
+  Maturity: 5      # defensive, often regulatory — strongest evidence
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Derivations — computed fields. Never hand-written, in any backend
@@ -176,26 +210,34 @@ derivations:
   strength:
     field: reading_belief.Strength   # per beliefs[] entry, one s per belief scored
     formula: >-
-      the READING ROW's Rung anchor (Market rungs: × the row's Magnitude band,
-      Low/Typical/High from the absolute outcome) × sign(this entry's Result) —
-      Validated positive, Invalidated negative; 0 unless Result is Validated or
-      Invalidated. Rung + Magnitude band are per-artifact (row-level, 0.10);
-      only Result — hence the sign — is per belief. Market-rung sign reads the
-      experiment bar's two pre-registered bars: hit/beat We're right if →
-      positive, at/below We're wrong if → negative, between → interpolated.
-    rung_anchor: vocabularies.rung[].anchor
+      the READING ROW's Rung anchor from the 3D lookup
+      `RUNG_ANCHOR[questionType][rung][band]` — keyed by the linked ASSUMPTION's
+      Question Type, the row's Rung, and the row's Magnitude band
+      (Low/Typical/High; Testing rungs read their flat per-band value) — × sign
+      (this entry's Result) — Validated positive, Invalidated negative; 0
+      unless Result is Validated or Invalidated. A rung that is non-evidence
+      for the assumption's question type carries anchor 0 across all bands,
+      so the reading contributes `s=0` and is flagged at the UI/skill layer
+      (not a write blocker — `isNonEvidence(questionType, rung)` is derived,
+      never stored). Rung + Magnitude band are per-artifact (row-level, 0.10);
+      Question Type is per-assumption (looked up from the linked belief's
+      assumption); only Result — hence the sign — is per belief. Market-rung
+      sign reads the experiment bar's two pre-registered bars: hit/beat
+      We're right if → positive, at/below We're wrong if → negative, between
+      → interpolated.
+    rung_anchor: "RUNG_ANCHOR[questionType][rung][band] — 3D per (question type × rung × band); see docs/evidence-ladder.md"
     range: [-99, 99]
 
   completeness:
     field: assumptions.Completeness %
     formula: >-
-      filled slots / all slots × 100, over five structural slots: Description,
+      filled slots / all slots × 100, over six structural slots: Description,
       Lens, Impact, Scoring justification, dependencies traced (at least one
-      Depends on / Enables link). A derived readiness meter, never stored,
-      recomputed on every touching write. 100 = Live-ready; below 100 = open
-      work (the Draft ⇔ open-work invariant, replacing the retired Gaps
-      machinery, assumption-guardrails.md §3). Impact = 0 still counts as a
-      present slot (a real hand-scored value).
+      Depends on / Enables link), Question Type. A derived readiness meter,
+      never stored, recomputed on every touching write. 100 = Live-ready;
+      below 100 = open work (the Draft ⇔ open-work invariant, replacing the
+      retired Gaps machinery, assumption-guardrails.md §3). Impact = 0 still
+      counts as a present slot (a real hand-scored value).
     range: [0, 100]
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -224,6 +266,7 @@ entities:
       # (Discovery | Validation | Scale | Maturity); the ordinal 1–4 is for
       # sorting only, never written.
       - { name: Stage, type: select, options: vocabularies.stage, required: true }
+      - { name: Question Type, type: select, options: vocabularies.question_type, required: true }
       - { name: Theme, type: multi_select, options: vocabularies.theme }
       - { name: Impact, type: number, range: [0, 100], hand_scored: true }
       - { name: Derived Impact, type: number, derived: derivations.derived_impact }
@@ -451,7 +494,7 @@ status_machines:
     transitions:
       - { from: Draft, to: Live,
           by: "/assumptions (single|seed)", gate: gated,
-          trigger: "grill close-out in a gated session: Completeness % reaches 100 (every structural slot present — Description, Lens, Impact, Scoring justification, dependencies traced) and the grill's transient semantic findings are all resolved" }
+          trigger: "grill close-out in a gated session: Completeness % reaches 100 (every structural slot present — Description, Lens, Impact, Scoring justification, dependencies traced, Question Type) and the grill's transient semantic findings are all resolved; the inferred Question Type (from the falsification test) must match the stated Question Type (the gaming guard)" }
       - { from: Live, to: Draft,
           by: "/assumptions (gated session)", gate: gated,
           trigger: "the row falls below complete — a slot is emptied — or a grill finding (audit, contradiction, staleness) reopens it" }
@@ -724,10 +767,10 @@ integrity_rules:
     surfaced_by: ["/assumptions audit", validate_backend]
     check: >-
       A Live assumption at Completeness % < 100 — a missing structural slot
-      (Description, Lens, Impact, Scoring justification, dependencies traced).
-      The write model blocks a Draft→Live promotion below 100 (write-time
-      enforcement lands with the CRUD write slice, OPS-1256); the audit confirms
-      it meanwhile. A Draft may legally sit below 100.
+      (Description, Lens, Impact, Scoring justification, dependencies traced,
+      Question Type). The write model blocks a Draft→Live promotion below 100
+      (write-time enforcement lands with the CRUD write slice, OPS-1256); the
+      audit confirms it meanwhile. A Draft may legally sit below 100.
   - id: unrolled-verdict
     severity: warn
     surfaced_by: ["/assumptions audit"]
