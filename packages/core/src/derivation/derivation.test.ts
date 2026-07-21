@@ -86,21 +86,21 @@ describe("readingStrength", () => {
   it("reads the magnitude band for market rungs", () => {
     expect(
       readingStrength({ rung: "Signed intent", result: "Validated" }),
-    ).toBe(68); // Typical default
+    ).toBe(50); // Typical default
     expect(
       readingStrength({
         rung: "Signed intent",
         result: "Validated",
         magnitudeBand: "Low",
       }),
-    ).toBe(55);
+    ).toBe(30);
     expect(
       readingStrength({
         rung: "Paying users",
         result: "Invalidated",
         magnitudeBand: "High",
       }),
-    ).toBe(-99);
+    ).toBe(-70);
   });
 });
 
@@ -125,23 +125,23 @@ describe("confidence", () => {
 
   it("computes a signed weighted average with the w0 prior", () => {
     // One Observed-usage (Low) Validated reading, full source quality.
-    // s = 30, w = |30| × 1 × 1.0 = 30. W0[Observed usage] = 140.
-    // num = 30×30 = 900. den = 140 + 30 = 170. 900 / 170 = 5.294… → 5.29
+    // s = 30, w = |30| × 1 × 1.0 = 30. W0[Observed usage] = 327.
+    // num = 30×30 = 900. den = 327 + 30 = 357. 900 / 357 = 2.521… → 2.52
     expect(
       confidence([reading({ magnitudeBand: "Low" })]),
-    ).toBe(5.29);
+    ).toBe(2.52);
     // W0 is per-rung now; the flat constant is retained (legacy) at 100.
     expect(W0).toBe(100);
-    expect(w0ForRung("Observed usage")).toBe(140);
+    expect(w0ForRung("Observed usage")).toBe(327);
     expect(w0ForRung("Desk research")).toBe(2);
     expect(W0_BY_RUNG["Desk research"]).toBe(2);
   });
 
   it("goes negative when evidence is against", () => {
-    // s = -30, num = -900, den = 170 → -5.29
+    // s = -30, num = -900, den = 357 → -2.52
     expect(
       confidence([reading({ result: "Invalidated", magnitudeBand: "Low" })]),
-    ).toBe(-5.29);
+    ).toBe(-2.52);
   });
 
   it("nets opposing readings from independent sources", () => {
@@ -198,9 +198,9 @@ describe("confidence", () => {
       reading({ id: "g1", source: "s", rung: "Paying users" }),
       reading({ id: "g2", source: "s", rung: "Paying users" }),
     ]);
-    // Two units of s=88, sq=1 → w=88 each. W0[Paying users] = 410.7.
-    // num = 2×(88×88)=15488, den = 410.7 + 2×88 = 586.7 → 26.40
-    expect(both).toBe(26.4);
+    // Two units of s=50 (Typical), sq=1 → w=50 each. W0[Paying users] = 327.
+    // num = 2×(50×50)=5000, den = 327 + 2×50 = 427 → 11.71
+    expect(both).toBe(11.71);
   });
 
   it("stays within −100…100", () => {
@@ -216,23 +216,23 @@ describe("confidence", () => {
 describe("confidence — commitment factor", () => {
   it("discounts a found reading (no experiment) to 0.85 of its weight", () => {
     // Observed-usage (Low) Validated, sq=1. s=30.
-    // committed:  w = 30 × 1 × 1.00 = 30    → 30×30 / (140+30)  = 5.294… → 5.29
-    // found:      w = 30 × 1 × 0.85 = 25.5  → 25.5×30 / (140+25.5) = 4.622… → 4.62
+    // committed:  w = 30 × 1 × 1.00 = 30    → 30×30 / (327+30)  = 2.521… → 2.52
+    // found:      w = 30 × 1 × 0.85 = 25.5  → 25.5×30 / (327+25.5) = 2.166… → 2.17
     const committed = confidence([
       reading({ experimentId: "EXP-1", magnitudeBand: "Low" }),
     ]);
     const found = confidence([
       reading({ experimentId: null, magnitudeBand: "Low" }),
     ]);
-    expect(committed).toBe(5.29);
-    expect(found).toBe(4.62);
+    expect(committed).toBe(2.52);
+    expect(found).toBe(2.17);
     expect(found).toBeLessThan(committed);
     expect(COMMITMENT_FOUND).toBe(0.85);
   });
 
   it("keeps Rung dominant: a high-rung found reading outweighs a low-rung committed one", () => {
     // The commitment factor is a small tiebreaker, never a rung-reorderer.
-    // found high rung:      Observed usage Low (30) × 0.85 → 4.62
+    // found high rung:      Observed usage Low (30) × 0.85 → 2.17
     // committed low rung:  Talk Low (3) × 1.00  → 3×3 / (6.5+3) = 0.947… → 0.95
     const foundHigh = confidence([
       reading({ rung: "Observed usage", magnitudeBand: "Low", experimentId: null }),

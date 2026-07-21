@@ -53,7 +53,7 @@ function experiment(over: Partial<AnyRecord> & { id: string }): AnyRecord {
 function reading(over: Partial<AnyRecord> & { id: string }): AnyRecord {
   const {
     assumptionId = "",
-    Rung = "Prototype usage",
+    Rung = "Observed usage",
     Result = "Validated",
     magnitudeBand,
     ...rest

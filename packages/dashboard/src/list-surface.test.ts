@@ -38,7 +38,7 @@ function assumption(id: string, o: Partial<AnyRecord> = {}): AnyRecord {
 function reading(id: string, o: Partial<AnyRecord> = {}): AnyRecord {
   const {
     assumptionId = null,
-    Rung = "Prototype usage",
+    Rung = "Observed usage",
     Result = "Inconclusive",
     derived,
     ...rest

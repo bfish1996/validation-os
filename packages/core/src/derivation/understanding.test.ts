@@ -34,15 +34,15 @@ describe("confidenceAttribution", () => {
   it("attributes a single reading to its experiment, contribution = confidence", () => {
     const a = confidenceAttribution([reading({ experimentId: "EXP-1" })]);
     // Observed usage Low (30), Validated, sq=1, committed. W0[Observed usage] = 140.
-    // s=30, w=30 → 30×30/(140+30) = 5.29
-    expect(a.confidence).toBe(5.29);
+    // s=30, w=30 → 30×30/(327+30) = 2.52
+    expect(a.confidence).toBe(2.52);
     expect(a.movers).toHaveLength(1);
     expect(a.movers[0]!).toMatchObject({
       key: "EXP-1",
       kind: "experiment",
       experimentId: "EXP-1",
-      contribution: 5.29,
-      magnitude: 5.29,
+      contribution: 2.52,
+      magnitude: 2.52,
       readingCount: 1,
     });
   });

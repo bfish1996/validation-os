@@ -165,10 +165,10 @@ describe("experimentConfidence", () => {
         magnitudeBand: "Typical",
       }),
     ]);
-    // f per = 88/99 = 0.8889. F = 2 × 0.8889 = 1.7778.
-    // S = 1.7778 / 2.7778 = 0.64. 50 + 50 × 1 × 0.64 = 82.0.
-    expect(c).toBeGreaterThan(80);
-    expect(c).toBeLessThan(85);
+    // f per = 50/99 = 0.5051. F = 2 × 0.5051 = 1.0101.
+    // S = 1.0101 / 2.0101 = 0.5025. 50 + 50 × 1 × 0.5025 = 75.13.
+    expect(c).toBeGreaterThan(74);
+    expect(c).toBeLessThan(76);
   });
 
   it("adds the verdict-alignment nudge when a bar's verdict agrees with its evidence", () => {
