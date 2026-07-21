@@ -122,10 +122,10 @@ export function buildEvidenceComposition(
     return {
       rung,
       contribution: e ? Math.round((e.contribution + Number.EPSILON) * 100) / 100 : 0,
-      // DEV-5890: cap is the rung's Typical anchor in the assumption's
-      // question-type sub-ladder (0 for non-evidence rungs).
+      // DEV-5890: cap is the rung's High anchor in the assumption's
+      // question-type sub-ladder — the ceiling (0 for non-evidence rungs).
       cap:
-        RUNG_ANCHOR[questionType]?.[rung as AttributionReadingInput["rung"]]?.Typical ??
+        RUNG_ANCHOR[questionType]?.[rung as AttributionReadingInput["rung"]]?.High ??
         0,
       count: e?.count ?? 0,
     };

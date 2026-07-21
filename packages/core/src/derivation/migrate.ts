@@ -98,8 +98,6 @@ export interface MigratedReading {
   oldStrength: number;
   /** True if the rung is non-evidence for the linked assumption's question type. */
   nonEvidence: boolean;
-  /** The would-have-been Strength under the old single-ladder (for diffing). */
-  wouldHaveBeenStrength: number;
 }
 
 /** The full migration result. */
@@ -112,6 +110,10 @@ export interface MigrationResult {
   reviewQueueCount: number;
   /** Per-assumption Confidence deltas, sorted by |delta| descending. */
   confidenceDeltas: { id: string; delta: number; oldConfidence: number; newConfidence: number }[];
+  /** Per-assumption ranking shifts in the Risk-ranked register (oldRank →
+   * newRank, 1-indexed; positive = moved down the ranking, negative = moved
+   * up). Sorted by |shift| descending. */
+  rankingShifts: { id: string; oldRank: number; newRank: number; shift: number }[];
 }
 
 /**
@@ -179,7 +181,6 @@ export function migrateRegister(
       newStrength,
       oldStrength,
       nonEvidence,
-      wouldHaveBeenStrength: oldStrength,
     });
   }
 
@@ -229,11 +230,33 @@ export function migrateRegister(
     }))
     .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
 
+  // Ranking shift: rank assumptions by (oldConfidence desc, id) and
+  // (newConfidence desc, id), then compute the rank delta per assumption.
+  // 1-indexed; positive shift = moved DOWN the ranking (less confident),
+  // negative = moved UP (more confident).
+  const oldRanked = [...assumptions]
+    .map((a) => ({ id: a.id, c: a.derived?.confidence ?? 0 }))
+    .sort((a, b) => b.c - a.c || a.id.localeCompare(b.id));
+  const newRanked = [...migratedAssumptions]
+    .map((a) => ({ id: a.id, c: a.newConfidence }))
+    .sort((a, b) => b.c - a.c || a.id.localeCompare(b.id));
+  const oldRank = new Map(oldRanked.map((r, i) => [r.id, i + 1]));
+  const newRank = new Map(newRanked.map((r, i) => [r.id, i + 1]));
+  const rankingShifts = migratedAssumptions
+    .map((a) => {
+      const o = oldRank.get(a.id) ?? 0;
+      const n = newRank.get(a.id) ?? 0;
+      return { id: a.id, oldRank: o, newRank: n, shift: n - o };
+    })
+    .filter((r) => r.oldRank > 0 && r.newRank > 0)
+    .sort((a, b) => Math.abs(b.shift) - Math.abs(a.shift));
+
   return {
     assumptions: migratedAssumptions,
     readings: migratedReadings,
     nonEvidenceFlagCount,
     reviewQueueCount: reviewNeededById.size,
     confidenceDeltas,
+    rankingShifts,
   };
 }

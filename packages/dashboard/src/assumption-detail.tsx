@@ -1,6 +1,12 @@
 import { useMemo } from "react";
-import type { AnyRecord, QuestionType, Rung } from "@validation-os/core";
-import { isNonEvidence } from "@validation-os/core/derivation";
+import {
+  QUESTION_TYPES,
+  STAGES,
+  type AnyRecord,
+  type QuestionType,
+  type Rung,
+} from "@validation-os/core";
+import { isNonEvidence, riskThresholdForStage } from "@validation-os/core/derivation";
 import { Breadcrumb } from "./breadcrumb.js";
 import { buildEvidenceComposition, readingContributions, type ReadingContribution } from "./evidence-composition.js";
 import { buildConfidenceExplainer } from "./confidence-explainer.js";
@@ -92,12 +98,8 @@ export function AssumptionDetail({
   const framed = derived.completeness ?? 0;
 
   // DEV-5890: stage-keyed Risk threshold — the stopping bar for this stage.
-  const stageKey = (["Discovery", "Validation", "Scale", "Maturity"] as const).find(
-    (s) => s === stage,
-  );
-  const riskThreshold = stageKey
-    ? ({ Discovery: 30, Validation: 15, Scale: 10, Maturity: 5 } as const)[stageKey]
-    : null;
+  const stageKey = STAGES.find((s) => s === stage);
+  const riskThreshold = stageKey ? riskThresholdForStage(stageKey) : null;
   const clearedThreshold = riskThreshold != null ? risk <= riskThreshold : null;
 
   // Next move — derive a one-line next move from the page's meters, or fall
@@ -302,9 +304,7 @@ function EvidenceList({
 
   // DEV-5890: group linked readings into probative vs flagged-as-non-evidence
   // for this assumption's question type.
-  const qt = (
-    ["Existence", "Prevalence", "CausalEffect", "WillingnessToPay", "ValueUtility", "Regulatory", "Feasibility"] as const
-  ).find((q) => q === questionType) as QuestionType | undefined;
+  const qt = QUESTION_TYPES.find((q) => q === questionType);
   const { probative, flagged } = useMemo(() => {
     const prob: AnyRecord[] = [];
     const flag: AnyRecord[] = [];

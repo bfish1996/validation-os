@@ -87,16 +87,16 @@ describe("buildEvidenceComposition", () => {
     expect(rungNames).toEqual(["Talk", "Desk research", "Signed intent", "Paying users"]);
   });
 
-  it("caps are the question-type sub-ladder Typical anchors (Existence)", () => {
-    // Existence sub-ladder: Talk 20, Desk 15, Signed up 0 (non-evidence),
-    // Observed usage 35.
+  it("caps are the question-type sub-ladder High anchors (Existence)", () => {
+    // Existence sub-ladder ceilings (High band): Talk 30, Desk 15,
+    // Signed up 0 (non-evidence), Observed usage 50.
     const a = asm({ id: "ASM-1", Lens: "Consumer" });
     const comp = buildEvidenceComposition(a, []);
     const caps = Object.fromEntries(comp.rungs.map((r) => [r.rung, r.cap]));
-    expect(caps["Talk"]).toBe(20);
+    expect(caps["Talk"]).toBe(30);
     expect(caps["Desk research"]).toBe(15);
     expect(caps["Signed up"]).toBe(0);
-    expect(caps["Observed usage"]).toBe(35);
+    expect(caps["Observed usage"]).toBe(50);
   });
 
   it("filters out Inconclusive readings (they contribute 0 to confidence)", () => {
