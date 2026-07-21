@@ -1,5 +1,11 @@
 # @validation-os/core
 
+## 0.15.1
+
+### Patch Changes
+
+- a489fd2: Fixes from the live preview audit: evidence composition uses the real confidenceAttribution math (contributions add up to Confidence), archived-experiment filtering on assumption detail, coverage bar counts actual reading beliefs, empty-quote fallback to reading body, experiment list rows with donut gauge, collapsible reading cards (progressive disclosure), recommended experiments moved to the grid home.
+
 ## 0.15.0
 
 ### Minor Changes
