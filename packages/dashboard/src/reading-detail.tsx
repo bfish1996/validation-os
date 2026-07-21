@@ -106,7 +106,6 @@ export function ReadingDetail({
               : null;
             const result = String(b.Result ?? "Inconclusive");
             const justification = String(b["Grading justification"] ?? "");
-            const excerpt = justification || truncate(body, 120);
             return (
               <div key={b.assumptionId} className={`vos-belief-card vos-verdict-border-${verdictTone(result)}`}>
                 <div className="vos-belief-head">
@@ -121,11 +120,13 @@ export function ReadingDetail({
                   <span className={`vos-pill vos-pill-${verdictTone(result)}`}>{result}</span>
                   <span className="vos-rung-tag">{rung}</span>
                 </div>
-                {/* Excerpt — the per-belief quote (Grading justification, or
-                    a truncated reading-body fallback). Shown once. */}
-                {excerpt ? (
-                  <div className={`vos-belief-excerpt vos-verdict-border-${verdictTone(result)}`}>
-                    "{excerpt}"
+                {/* Grading rationale — why this evidence scores this belief
+                    this way. NOT a quote; quotes live in the Context section
+                    above (the reading's body). */}
+                {justification ? (
+                  <div className={`vos-belief-rationale vos-verdict-border-${verdictTone(result)}`}>
+                    <span className="vos-belief-rationale-label">grading rationale:</span>
+                    {justification}
                   </div>
                 ) : null}
                 {/* Bar-line context (if from an experiment) */}
@@ -180,8 +181,4 @@ function verdictTone(verdict: string | null | undefined): "good" | "crit" | "neu
   if (verdict === "Validated") return "good";
   if (verdict === "Invalidated") return "crit";
   return "neutral";
-}
-function truncate(s: string, max: number): string {
-  if (s.length <= max) return s;
-  return s.slice(0, max - 1) + "…";
 }

@@ -173,4 +173,42 @@ describe("buildRecommendedExperiments", () => {
     ];
     expect(buildRecommendedExperiments(assumptions, [])).toEqual([]);
   });
+
+  it("caps at MAX_RECOMMENDED (2) — returns only the 2 riskiest clusters", () => {
+    const assumptions = [
+      asm({ id: "Low", Lens: "Consumer", Theme: ["Discovery"], derived: { derivedImpact: 30, risk: 20, confidence: 0, completeness: 50 } }),
+      asm({ id: "Mid", Lens: "Commercial", Theme: ["Scale"], derived: { derivedImpact: 50, risk: 50, confidence: 0, completeness: 50 } }),
+      asm({ id: "High", Lens: "Founder", Theme: ["Validation"], derived: { derivedImpact: 80, risk: 70, confidence: 0, completeness: 50 } }),
+    ];
+    const recs = buildRecommendedExperiments(assumptions, []);
+    expect(recs.length).toBeLessThanOrEqual(2);
+    expect(recs[0]!.maxRisk).toBeGreaterThanOrEqual(recs[1]!.maxRisk ?? 0);
+  });
+
+  it("caps each cluster at 3 assumptions (the riskiest ones)", () => {
+    const assumptions = [
+      asm({ id: "A1", Lens: "Consumer", Theme: ["Discovery"], derived: { derivedImpact: 60, risk: 50, confidence: 0, completeness: 40 } }),
+      asm({ id: "A2", Lens: "Consumer", Theme: ["Discovery"], derived: { derivedImpact: 50, risk: 40, confidence: 0, completeness: 40 } }),
+      asm({ id: "A3", Lens: "Consumer", Theme: ["Discovery"], derived: { derivedImpact: 40, risk: 30, confidence: 0, completeness: 40 } }),
+      asm({ id: "A4", Lens: "Consumer", Theme: ["Discovery"], derived: { derivedImpact: 30, risk: 20, confidence: 0, completeness: 40 } }),
+    ];
+    const recs = buildRecommendedExperiments(assumptions, []);
+    expect(recs).toHaveLength(1);
+    expect(recs[0]!.assumptionIds.length).toBeLessThanOrEqual(3);
+    // The 3 riskiest (A1, A2, A3) — A4 is dropped
+    expect(recs[0]!.assumptionIds).not.toContain("A4");
+  });
+
+  it("generates an experiment body with what it tests, how to run it, and questions", () => {
+    const assumptions = [
+      asm({ id: "A1", Lens: "Consumer", Theme: ["Discovery"], Title: "Curated digest opens > 35%", derived: { derivedImpact: 60, risk: 50, confidence: 0, completeness: 40 } }),
+    ];
+    const recs = buildRecommendedExperiments(assumptions, []);
+    expect(recs).toHaveLength(1);
+    expect(recs[0]!.body).toContain("What this tests");
+    expect(recs[0]!.body).toContain("How to run it");
+    expect(recs[0]!.body).toContain("Questions to answer");
+    expect(recs[0]!.body).toContain("A1");
+    expect(recs[0]!.body).toContain("Pre-registered bars");
+  });
 });

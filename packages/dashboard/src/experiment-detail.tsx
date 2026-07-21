@@ -184,22 +184,23 @@ export function ExperimentDetail({
                     open reading →
                   </button>
                 </div>
-                {/* Per-belief quotes — each belief has its own excerpt.
-                    The excerpt is the belief's Grading justification; if that's
-                    empty, fall back to the reading's body (truncated). */}
+                {/* Per-belief grading rationale — NOT a quote. The
+                    Grading justification is the grader's rationale for why
+                    this evidence scores this belief this way. Actual quotes
+                    live in the reading's body (the Context section). */}
                 {beliefs.length > 0 ? (
                   <div className="vos-reading-quotes">
                     {beliefs.map((b) => {
                       const justification = String(b["Grading justification"] ?? "");
-                      const excerpt = justification || truncate(String(r.body ?? ""), 120);
-                      if (!excerpt) return null;
+                      if (!justification) return null;
                       return (
                         <div
                           key={b.assumptionId}
-                          className={`vos-reading-quote vos-verdict-border-${verdictTone(b.Result)}`}
+                          className={`vos-reading-rationale vos-verdict-border-${verdictTone(b.Result)}`}
                         >
                           <span className="vos-reading-quote-id vos-num">{b.assumptionId} ·</span>
-                          "{excerpt}"
+                          <span className="vos-reading-rationale-label">grading rationale:</span>
+                          {justification}
                         </div>
                       );
                     })}
@@ -285,11 +286,6 @@ export function ExperimentDetail({
 
 function pct(n: number, total: number): number {
   return total === 0 ? 0 : (n / total) * 100;
-}
-
-function truncate(s: string, max: number): string {
-  if (s.length <= max) return s;
-  return s.slice(0, max - 1) + "…";
 }
 
 function verdictTone(verdict: Result | string | null | undefined): "good" | "crit" | "neutral" {
