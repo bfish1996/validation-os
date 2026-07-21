@@ -335,11 +335,11 @@ describe("derive-on-write", () => {
       risk: number;
       derivedImpact: number;
     };
-    // Prototype-usage Validated, sq=1, found → w=30×0.85=25.5.
-    // W0[Observed usage] = 140. 25.5×30 / (140+25.5) = 765/165.5 = 4.622… → 4.62
-    expect(derived.confidence).toBe(4.62);
+    // Observed-usage Validated, sq=1, found → w=30×0.85=25.5.
+    // W0[Observed usage] = 327. 25.5×30 / (327+25.5) = 765/352.5 = 2.169… → 2.17
+    expect(derived.confidence).toBe(2.17);
     expect(derived.derivedImpact).toBe(50);
-    expect(derived.risk).toBe(47.69); // 50 × (1 − 4.62/100) = 50 × 0.9538 = 47.69
+    expect(derived.risk).toBe(48.91); // 50 × (1 − 2.17/100) = 50 × 0.9783 = 48.91
   });
 });
 
