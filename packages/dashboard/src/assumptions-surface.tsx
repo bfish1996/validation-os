@@ -344,7 +344,11 @@ function PipelineBoard({
  * dropped per the collapsed pipeline model (DEV-5879). */
 function PipelineRowView({ row, onOpen }: { row: PipelineRow; onOpen: () => void }) {
   const stripeTone: Tone = row.riskTone;
-  const knownPct = Math.max(0, Math.min(100, Math.abs(row.confidence)));
+  // The Known meter fills relative to the question type's max ceiling, not the
+  // absolute 100 — so near-ceiling evidence for Existence (ceiling 50) fills
+  // the bar near 100%, not near 50%. DEV-5890.
+  const ceiling = row.questionTypeCeiling ?? 99;
+  const knownPct = Math.max(0, Math.min(100, (Math.abs(row.confidence) / ceiling) * 100));
   const knownSign = row.confSign;
   return (
     <div className="vos-pipe-row vos-pipe-row-2seg">

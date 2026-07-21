@@ -3404,13 +3404,15 @@ button.vos-verdict-title {
 .vos-pipe-tag-needs { color: var(--vos-warn); border-color: var(--vos-warn); }
 .vos-detail-tag-qt { border-color: var(--vos-accent); color: var(--vos-accent); }
 
-/* Stage-keyed threshold bar (assumption detail, DEV-5890) — two bars:
-   Risk (fills toward threshold) + Confidence (fills toward floor). */
+/* Stage-keyed evidence bar (assumption detail, DEV-5890) — a single
+   Confidence bar that fills UP toward the stage's floor marker. The target
+   zone above the marker is tinted to show "this is where you need to be."
+   Maturity's marker is at 60% (hard to reach); Discovery's is at 10% (easy). */
 .vos-threshold-bar-card {
   padding: 14px 16px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .vos-threshold-bar-header {
@@ -3445,22 +3447,11 @@ button.vos-verdict-title {
   border-radius: 4px;
 }
 
-.vos-threshold-bar-good {
-  color: var(--vos-good);
-  background: var(--vos-good-weak);
-}
+.vos-threshold-bar-good { color: var(--vos-good); background: var(--vos-good-weak); }
+.vos-threshold-bar-warn { color: var(--vos-warn); background: var(--vos-warn-weak); }
+.vos-threshold-bar-crit { color: var(--vos-crit); background: var(--vos-crit-weak); }
 
-.vos-threshold-bar-warn {
-  color: var(--vos-warn);
-  background: var(--vos-warn-weak);
-}
-
-.vos-threshold-bar-crit {
-  color: var(--vos-crit);
-  background: var(--vos-crit-weak);
-}
-
-/* Each bar section (Risk + Confidence) */
+/* Bar section */
 .vos-threshold-bar-section {
   display: flex;
   flex-direction: column;
@@ -3487,39 +3478,54 @@ button.vos-verdict-title {
   margin-left: auto;
 }
 
-/* The bar track */
+/* The bar track — taller for prominence */
 .vos-threshold-bar-track {
   position: relative;
-  height: 18px;
-  border-radius: 5px;
+  height: 24px;
+  border-radius: 6px;
   background: var(--vos-surface-2);
   overflow: visible;
   border: 1px solid var(--vos-border);
 }
 
+.vos-threshold-bar-track-tall {
+  height: 28px;
+}
+
+/* The target zone — tinted area above the floor marker (where you need to be) */
+.vos-threshold-bar-target-zone {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 4px,
+    rgba(0, 0, 0, 0.03) 4px,
+    rgba(0, 0, 0, 0.03) 8px
+  );
+  border-radius: 0 5px 5px 0;
+  pointer-events: none;
+}
+
+/* The fill */
 .vos-threshold-bar-fill {
   position: absolute;
   top: 0;
   left: 0;
   height: 100%;
-  border-radius: 4px 0 0 4px;
-  transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  opacity: 0.75;
+  border-radius: 5px 0 0 5px;
+  transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  opacity: 0.8;
+  z-index: 1;
 }
 
-.vos-threshold-bar-fill.vos-fill-good {
-  background: var(--vos-good);
-}
+.vos-threshold-bar-fill.vos-fill-good { background: var(--vos-good); }
+.vos-threshold-bar-fill.vos-fill-warn { background: var(--vos-warn); }
+.vos-threshold-bar-fill.vos-fill-crit { background: var(--vos-crit); }
 
-.vos-threshold-bar-fill.vos-fill-warn {
-  background: var(--vos-warn);
-}
-
-.vos-threshold-bar-fill.vos-fill-crit {
-  background: var(--vos-crit);
-}
-
-/* The threshold/floor marker — a vertical dashed line */
+/* The floor marker — a vertical dashed line with a label above */
 .vos-threshold-bar-marker {
   position: absolute;
   top: -2px;
@@ -3528,6 +3534,46 @@ button.vos-verdict-title {
   border-left: 2px dashed var(--vos-border-strong);
   pointer-events: none;
   z-index: 2;
+}
+
+.vos-threshold-bar-marker-label {
+  position: absolute;
+  top: -14px;
+  left: 4px;
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--vos-muted);
+  white-space: nowrap;
+}
+
+/* Scale under the bar */
+.vos-threshold-bar-scale {
+  display: flex;
+  justify-content: space-between;
+  font-size: 8px;
+  color: var(--vos-faint);
+  padding: 0 1px;
+}
+
+.vos-threshold-bar-scale-mid {
+  color: var(--vos-faint);
+}
+
+/* Compact risk summary */
+.vos-threshold-bar-risk-summary {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 11px;
+}
+
+.vos-threshold-bar-risk-val {
+  font-weight: 700;
+}
+
+.vos-threshold-bar-risk-cap {
+  color: var(--vos-muted);
+  font-size: 10px;
 }
 
 .vos-threshold-bar-hint {

@@ -465,12 +465,16 @@ function ScoreCard({
 }
 
 /**
- * The stage-keyed threshold bar (DEV-5890). Shows TWO bars:
- *   1. Risk bar — fills toward the stage's Risk threshold (the stopping bar)
- *   2. Confidence bar — fills toward the stage's Confidence floor (the
- *      zero-evidence guard)
- * "Cleared" requires BOTH bars to be past their markers. The fill color
- * shifts: green when cleared, amber when close, red when far.
+ * The stage-keyed evidence bar (DEV-5890). Shows a SINGLE Confidence bar that
+ * fills UP toward the stage's required floor — the intuitive direction:
+ *   - Discovery: short target (floor = 10) → easy to fill → "cleared" quickly
+ *   - Maturity: tall target (floor = 60) → hard to fill → "cleared" slowly
+ *
+ * The floor marker is the dashed line; the fill turns green when it reaches
+ * the marker. Below the bar, a compact Risk summary shows whether Risk is
+ * under the stage's acceptable-Risk cap (the lower the cap, the stricter).
+ *
+ * "Cleared" requires BOTH: Confidence ≥ floor AND Risk ≤ cap.
  */
 function ThresholdBar({
   risk,
@@ -487,12 +491,8 @@ function ThresholdBar({
   stage: string;
   cleared: boolean;
 }) {
-  const riskTrackMax = Math.max(risk, threshold) * 1.25;
-  const riskPct = Math.min(100, (risk / riskTrackMax) * 100);
-  const thresholdPct = Math.min(100, (threshold / riskTrackMax) * 100);
-  const confPct = Math.min(100, Math.abs(confidence));
+  const confPct = Math.min(100, Math.max(0, Math.abs(confidence)));
   const confFloorPct = Math.min(100, confFloor);
-
   const riskBelow = risk <= threshold;
   const confAbove = confidence >= confFloor;
   const tone = cleared ? "good" : !riskBelow && !confAbove ? "crit" : "warn";
@@ -501,7 +501,7 @@ function ThresholdBar({
     <div className="vos-card vos-threshold-bar-card">
       <div className="vos-threshold-bar-header">
         <span className="vos-threshold-bar-title">
-          {stage} evidence bar
+          Evidence needed
           <span className="vos-threshold-bar-stage-tag">{stage}</span>
         </span>
         <span className={`vos-threshold-bar-status vos-threshold-bar-${tone}`}>
@@ -509,50 +509,56 @@ function ThresholdBar({
         </span>
       </div>
 
-      {/* Risk bar — fills toward the threshold marker */}
-      <div className="vos-threshold-bar-section">
-        <div className="vos-threshold-bar-section-label">
-          <span>Risk</span>
-          <span className="vos-num vos-threshold-bar-section-val">{Math.round(risk)}</span>
-          <span className="vos-threshold-bar-section-target">bar ≤ {threshold}</span>
-        </div>
-        <div className="vos-threshold-bar-track">
-          <div
-            className={`vos-threshold-bar-fill vos-fill-${riskBelow ? "good" : tone}`}
-            style={{ width: `${riskPct}%` }}
-          />
-          <div
-            className="vos-threshold-bar-marker"
-            style={{ left: `${thresholdPct}%` }}
-            title={`Risk threshold: ${threshold}`}
-          />
-        </div>
-      </div>
-
-      {/* Confidence bar — fills toward the floor marker */}
+      {/* Confidence bar — fills UP toward the floor marker */}
       <div className="vos-threshold-bar-section">
         <div className="vos-threshold-bar-section-label">
           <span>Confidence</span>
           <span className="vos-num vos-threshold-bar-section-val">{formatSigned(confidence)}</span>
-          <span className="vos-threshold-bar-section-target">floor ≥ {confFloor}</span>
+          <span className="vos-threshold-bar-section-target">
+            need ≥ {confFloor} {cleared ? "✓" : ""}
+          </span>
         </div>
-        <div className="vos-threshold-bar-track vos-threshold-bar-track-conf">
+        <div className="vos-threshold-bar-track vos-threshold-bar-track-tall">
+          {/* The target zone (above the floor marker) is tinted */}
+          <div
+            className="vos-threshold-bar-target-zone"
+            style={{ left: `${confFloorPct}%` }}
+          />
+          {/* The fill */}
           <div
             className={`vos-threshold-bar-fill vos-fill-${confAbove ? "good" : tone}`}
             style={{ width: `${confPct}%` }}
           />
+          {/* The floor marker */}
           <div
-            className="vos-threshold-bar-marker vos-threshold-bar-marker-conf"
+            className="vos-threshold-bar-marker"
             style={{ left: `${confFloorPct}%` }}
-            title={`Confidence floor: ${confFloor}`}
-          />
+            title={`Need Confidence ≥ ${confFloor} for ${stage}`}
+          >
+            <span className="vos-threshold-bar-marker-label vos-num">{confFloor}</span>
+          </div>
         </div>
+        <div className="vos-threshold-bar-scale">
+          <span className="vos-num">0</span>
+          <span className="vos-num vos-threshold-bar-scale-mid">50</span>
+          <span className="vos-num">100</span>
+        </div>
+      </div>
+
+      {/* Compact Risk summary — "Risk X of Y max" */}
+      <div className="vos-threshold-bar-risk-summary">
+        <span className={`vos-threshold-bar-risk-val vos-text-${riskBelow ? "good" : "crit"}`}>
+          Risk {Math.round(risk)}
+        </span>
+        <span className="vos-threshold-bar-risk-cap">
+          max {threshold} for {stage}
+        </span>
       </div>
 
       <div className="vos-threshold-bar-hint">
         {cleared
-          ? `Risk ${Math.round(risk)} ≤ ${threshold} and Confidence ${formatSigned(confidence)} ≥ ${confFloor} — cleared for ${stage}.`
-          : `Risk ${Math.round(risk)} ${riskBelow ? "≤" : ">"} ${threshold}, Confidence ${formatSigned(confidence)} ${confAbove ? "≥" : "<"} ${confFloor} — needs ${!riskBelow ? "lower Risk" : ""}${!riskBelow && !confAbove ? " + " : ""}${!confAbove ? "higher Confidence" : ""}.`}
+          ? `Confidence ${formatSigned(confidence)} ≥ ${confFloor} and Risk ${Math.round(risk)} ≤ ${threshold} — cleared for ${stage}.`
+          : `Need Confidence ≥ ${confFloor}${!confAbove ? ` (now ${formatSigned(confidence)})` : " ✓"} and Risk ≤ ${threshold}${!riskBelow ? ` (now ${Math.round(risk)})` : " ✓"}.`}
       </div>
     </div>
   );
