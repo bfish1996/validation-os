@@ -18,7 +18,11 @@ import {
   type BarLine,
   type BeliefReadingInput,
 } from "@validation-os/core";
-import { confidenceFloorForStage, riskThresholdForStage } from "@validation-os/core/derivation";
+import {
+  confidenceFloorForStage,
+  riskThresholdForStage,
+  RUNG_ANCHOR,
+} from "@validation-os/core/derivation";
 import { STAGE_ORDER } from "./stage-grid-model.js";
 import {
   beliefRisk,
@@ -63,6 +67,9 @@ export interface PipelineRow {
   nextMove: string;
   /** The assumption's Question Type (DEV-5890) — kind of claim. */
   questionType: string | null;
+  /** The max ceiling for this question type (highest anchor across all
+   * rungs) — the Known meter fills relative to this, not the absolute 100. */
+  questionTypeCeiling: number | null;
   /** The assumption's Stage (DEV-5890) — kind of response / threshold. */
   stage: string | null;
   /** The stage's Risk threshold (DEV-5890) — the stopping bar. */
@@ -212,6 +219,16 @@ export function buildPipeline(
     const stage = deriveBeliefStage({ framed, confidence: d.confidence, test });
     // DEV-5890: surface Question Type + Stage + threshold on the row.
     const questionType = str(a["Question Type"]);
+    // The max ceiling for this question type = the highest High-band anchor
+    // across all rungs in the sub-ladder. The Known meter fills relative to
+    // this so near-ceiling evidence looks near-full.
+    let questionTypeCeiling: number | null = null;
+    if (questionType && questionType in RUNG_ANCHOR) {
+      const subLadder = RUNG_ANCHOR[questionType as keyof typeof RUNG_ANCHOR];
+      questionTypeCeiling = Math.max(
+        ...Object.values(subLadder).map((r) => r.High),
+      );
+    }
     const stageName = str(a.Stage);
     const stageKey =
       stageName && (STAGE_ORDER as readonly string[]).includes(stageName)
@@ -233,6 +250,7 @@ export function buildPipeline(
       tested: stage.tested,
       nextMove: nextMove(stage.stage, stage.killZone),
       questionType: questionType,
+      questionTypeCeiling,
       stage: stageName,
       riskThreshold,
       clearedThreshold:

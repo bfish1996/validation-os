@@ -1,5 +1,17 @@
 # @validation-os/dashboard
 
+## 0.16.2
+
+### Patch Changes
+
+- Threshold bar visual redesign + Known meter ceiling-relative fill
+
+  - Threshold bar: single Confidence bar filling UP toward the stage's floor marker (intuitive direction). Maturity floor = 60 (hard to fill); Discovery = 10 (easy). Target zone hatched. Compact Risk summary below.
+  - Known meter: fills relative to the question type's max ceiling, not absolute 100. Near-ceiling evidence for Existence (ceiling 50) now fills the bar near 100%.
+
+- Updated dependencies
+  - @validation-os/core@0.16.2
+
 ## 0.16.1
 
 ### Patch Changes
