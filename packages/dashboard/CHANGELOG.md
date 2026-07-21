@@ -1,5 +1,17 @@
 # @validation-os/dashboard
 
+## 0.16.3
+
+### Patch Changes
+
+- Lens × Stage × Question Type heatmap with Risk-weighted heat
+
+  - Question Type filter tabs above the grid (All / Existence / Prevalence / CausalEffect / WillingnessToPay / ValueUtility / Regulatory / Feasibility)
+  - Heat color = average Risk per cell (red scale, not count density)
+  - Heat legend below the grid
+  - heat-grid-model.ts: new pure view-model with Risk-weighted heat
+  - @validation-os/core@0.16.3
+
 ## 0.16.2
 
 ### Patch Changes
