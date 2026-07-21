@@ -411,6 +411,7 @@ function NextMovesSection({
   recs: RecommendedExperiment[];
   onOpenAssumption: (id: string) => void;
 }) {
+  const [openRec, setOpenRec] = useState<RecommendedExperiment | null>(null);
   return (
     <div className="vos-next-moves">
       <div className="vos-next-moves-head">Next moves</div>
@@ -448,14 +449,19 @@ function NextMovesSection({
           )}
         </div>
 
-        {/* Right column — top 1 proposed experiment per lens, flat cards */}
+        {/* Right column — compact proposed-experiment cards; click opens a drawer */}
         <div className="vos-card vos-next-moves-col">
           <div className="vos-next-moves-col-label">Proposed experiments · one per lens</div>
           {recs.length === 0 ? (
             <div className="vos-muted vos-next-moves-empty">Every risk has a live test.</div>
           ) : (
             recs.map((rec) => (
-              <div key={rec.id} className="vos-next-moves-rec">
+              <button
+                key={rec.id}
+                type="button"
+                className="vos-next-moves-rec vos-next-moves-rec-compact"
+                onClick={() => setOpenRec(rec)}
+              >
                 <div className="vos-next-moves-rec-head">
                   <span
                     className="vos-next-moves-lens"
@@ -467,28 +473,108 @@ function NextMovesSection({
                   <span className="vos-next-moves-rec-risk vos-num">{Math.round(rec.maxRisk)} risk</span>
                 </div>
                 <div className="vos-next-moves-rec-title">{rec.title}</div>
-                <div className="vos-next-moves-rec-rationale">{rec.rationale}</div>
-                <div className="vos-next-moves-rec-chips">
-                  {rec.assumptionIds.map((id) => (
-                    <button
-                      key={id}
-                      type="button"
-                      className="vos-next-moves-rec-chip"
-                      onClick={() => onOpenAssumption(id)}
-                    >
-                      {id}
-                    </button>
-                  ))}
-                </div>
-                <div className="vos-next-moves-rec-actions">
-                  <button type="button" className="vos-btn vos-btn-sm">Accept & create experiment</button>
-                </div>
-              </div>
+                <span className="vos-next-moves-rec-open" aria-hidden="true">→</span>
+              </button>
             ))
           )}
         </div>
       </div>
+
+      {openRec ? (
+        <RecommendedExperimentDrawer
+          rec={openRec}
+          onOpenAssumption={onOpenAssumption}
+          onClose={() => setOpenRec(null)}
+        />
+      ) : null}
     </div>
+  );
+}
+
+/* Side drawer for a recommended experiment — slides in from the right using the
+ * existing .vos-drawer / .vos-scrim classes. Shows the full experiment detail
+ * (rationale, bar preview, assumption chips, generated body) and the accept
+ * action, instead of expanding the card inline. */
+function RecommendedExperimentDrawer({
+  rec,
+  onOpenAssumption,
+  onClose,
+}: {
+  rec: RecommendedExperiment;
+  onOpenAssumption: (id: string) => void;
+  onClose: () => void;
+}) {
+  return (
+    <>
+      <div className="vos-scrim" onClick={onClose} aria-hidden="true" />
+      <aside
+        className="vos-drawer vos-rec-drawer"
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Proposed experiment: ${rec.title}`}
+      >
+        <div className="vos-drawer-header">
+          <div>
+            <div className="vos-drawer-eyebrow">Proposed experiment</div>
+            <h2 className="vos-drawer-title">{rec.title}</h2>
+          </div>
+          <div style={{ marginLeft: "auto", display: "flex", gap: 8, alignItems: "center" }}>
+            <span
+              className="vos-next-moves-lens"
+              style={{ background: `${rec.lensColour}20`, color: rec.lensColour, borderColor: `${rec.lensColour}40` }}
+            >
+              {rec.lens}
+            </span>
+            <span className="vos-next-moves-rec-type">{rec.type}</span>
+            <span className="vos-next-moves-rec-risk vos-num">{Math.round(rec.maxRisk)} risk</span>
+            <button type="button" className="vos-btn vos-btn-sm" onClick={onClose} aria-label="Close">✕</button>
+          </div>
+        </div>
+
+        <div className="vos-drawer-body">
+          <div className="vos-rec-drawer-section">
+            <div className="vos-drawer-eyebrow">Why this test</div>
+            <p className="vos-rec-drawer-rationale">{rec.rationale}</p>
+          </div>
+
+          <div className="vos-rec-drawer-section">
+            <div className="vos-drawer-eyebrow">Bar</div>
+            <div className="vos-rec-drawer-bar">
+              <strong>Right if:</strong> {rec.barPreview}
+            </div>
+          </div>
+
+          <div className="vos-rec-drawer-section">
+            <div className="vos-drawer-eyebrow">Assumptions</div>
+            <div className="vos-next-moves-rec-chips">
+              {rec.assumptionIds.map((id) => (
+                <button
+                  key={id}
+                  type="button"
+                  className="vos-next-moves-rec-chip"
+                  onClick={() => onOpenAssumption(id)}
+                >
+                  {id}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="vos-rec-drawer-section">
+            <div className="vos-drawer-eyebrow">Protocol</div>
+            <div className="vos-rec-drawer-body">
+              <EvidenceBody text={rec.body} />
+            </div>
+          </div>
+        </div>
+
+        <div className="vos-drawer-footer">
+          <button type="button" className="vos-btn vos-btn-sm vos-btn-accent">
+            Accept & create experiment
+          </button>
+        </div>
+      </aside>
+    </>
   );
 }
 

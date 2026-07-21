@@ -2867,9 +2867,9 @@ button.vos-verdict-title {
 
 /* ── DEV-5879 redesign: unified nav, pipeline board, evidence-first details ── */
 
-/* Segmented toggle (Grid / View all) */
-.vos-seg { display: inline-flex; gap: 0; border: 1px solid var(--vos-border); border-radius: var(--vos-radius); overflow: hidden; align-self: center; }
-.vos-seg-btn { padding: 6px 14px; background: transparent; border: none; color: var(--vos-muted); font: inherit; cursor: pointer; border-right: 1px solid var(--vos-border); transition: background 0.15s, color 0.15s; }
+/* Segmented toggle (Grid / View all) — compact, right-aligned in header */
+.vos-seg { display: inline-flex; gap: 0; border: 1px solid var(--vos-border); border-radius: 6px; overflow: hidden; align-self: center; }
+.vos-seg-btn { padding: 5px 12px; background: transparent; border: none; color: var(--vos-muted); font-size: 12px; font-family: inherit; cursor: pointer; border-right: 1px solid var(--vos-border); transition: background 0.15s, color 0.15s; }
 .vos-seg-btn:last-child { border-right: none; }
 .vos-seg-btn:hover { background: var(--vos-surface-2); }
 .vos-seg-btn.is-active { background: var(--vos-accent-weak); color: var(--vos-accent-text); }
@@ -3334,6 +3334,38 @@ button.vos-verdict-title {
 .vos-next-moves-rec-chip { font-size: 9px; padding: 2px 8px; border-radius: 4px; background: var(--vos-surface); border: 1px solid var(--vos-border); color: var(--vos-text); cursor: pointer; }
 .vos-next-moves-rec-chip:hover { border-color: var(--vos-accent); }
 .vos-next-moves-rec-actions { margin-top: 8px; }
+
+/* Compact proposed-experiment card — just lens + type + title + risk + → */
+.vos-next-moves-rec-compact {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: var(--vos-surface-2);
+  border: 1px solid var(--vos-border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  position: relative;
+  transition: border-color 0.15s, background 0.15s;
+}
+.vos-next-moves-rec-compact:hover { border-color: var(--vos-accent); background: var(--vos-surface); }
+.vos-next-moves-rec-compact .vos-next-moves-rec-title { margin: 0; padding-right: 18px; }
+.vos-next-moves-rec-open {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--vos-muted);
+  font-size: 14px;
+  pointer-events: none;
+}
+
+/* Recommended-experiment drawer */
+.vos-rec-drawer .vos-rec-drawer-section { display: flex; flex-direction: column; gap: 6px; }
+.vos-rec-drawer .vos-rec-drawer-rationale { font-size: 13px; color: var(--vos-muted); line-height: 1.5; margin: 0; }
+.vos-rec-drawer .vos-rec-drawer-bar { font-size: 13px; color: var(--vos-text); line-height: 1.5; }
+.vos-rec-drawer .vos-rec-drawer-body { font-size: 13px; color: var(--vos-text); line-height: 1.6; }
 
 /* Grid: more spacing, taller cells, bigger text, subtle heat. */
 .vos-stage-grid { border-spacing: 10px !important; }
