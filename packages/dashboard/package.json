@@ -1,6 +1,6 @@
 {
   "name": "@validation-os/dashboard",
-  "version": "0.15.0",
+  "version": "0.15.1",
   "description": "React dashboard components + hooks for validation-os, consuming the DataProvider seam.",
   "license": "MIT",
   "type": "module",
