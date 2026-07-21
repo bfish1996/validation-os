@@ -60,13 +60,15 @@ export const REGISTER_GROUPS: { label: string; registers: Collection[] }[] = [
   },
 ];
 
-/** The workflow surfaces the sidebar lists above the register tables (OPS-1298):
- *  the front door (default landing), the Lens × Stage heatmap
- *  (docs/stage-policy.md), and the portfolio pipeline. Kept beside the
- *  register presentation data so all sidebar labels/icons live in one place. */
+/** The workflow surfaces the sidebar lists above the register tables
+ * (OPS-1298 / DEV-5879 redesign): three top-level nav items — Assumptions
+ * (the default landing, the Lens × Stage grid with a "View all" toggle to
+ * the pipeline board), Experiments (the live evidence plans), and Readings
+ * (the evidence log). Kept beside the register presentation data so all
+ * sidebar labels/icons live in one place. */
 export interface WorkflowNavItem {
   /** The route this item selects. */
-  route: "next" | "pipeline" | "stage-grid";
+  route: "assumptions" | "experiments" | "readings";
   label: string;
   icon: string;
   /** The default landing — carries a "home" badge in the nav. */
@@ -74,6 +76,7 @@ export interface WorkflowNavItem {
 }
 
 export const WORKFLOW_NAV: WorkflowNavItem[] = [
-  { route: "next", label: "Next move", icon: "◈", isDefault: true },
-  { route: "pipeline", label: "Pipeline", icon: "▤" },
+  { route: "assumptions", label: "Assumptions", icon: "◎", isDefault: true },
+  { route: "experiments", label: "Experiments", icon: "⚗" },
+  { route: "readings", label: "Readings", icon: "▤" },
 ];
