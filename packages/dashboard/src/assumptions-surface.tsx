@@ -129,6 +129,10 @@ function GridPane({
   onNavigate: (route: Route) => void;
 }) {
   const view = useMemo(() => buildStageGrid(assumptions), [assumptions]);
+  const recs = useMemo(
+    () => buildRecommendedExperiments(assumptions, experiments),
+    [assumptions, experiments],
+  );
 
   const cold = coldStartFor({
     assumptions,
@@ -174,51 +178,63 @@ function GridPane({
   }
 
   return (
-    <div className="vos-card vos-stage-grid-card">
-      <div className="vos-stage-grid-scroll">
-        <table className="vos-stage-grid" role="grid" aria-label="Lens × Stage heatmap">
-          <thead>
-            <tr>
-              <th scope="col" className="vos-stage-grid-corner">Lens ↓ / Stage →</th>
-              {view.stages.map((s) => (
-                <th key={s} scope="col" className="vos-stage-grid-col">
-                  <span className="vos-stage-grid-stagename">{s}</span>
-                  <span className="vos-stage-grid-stagegloss">{STAGE_GLOSS[s]}</span>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {view.lenses.map((lens) => (
-              <tr key={lens}>
-                <th scope="row" className="vos-stage-grid-rowhead">{lens}</th>
-                {view.stages.map((s) => {
-                  const cell = cellAt(view, lens, s)!;
-                  return (
-                    <td key={s} className="vos-stage-grid-cell">
-                      <button
-                        type="button"
-                        className={`vos-stage-grid-btn vos-heat-${heatLevel(cell.density)}`}
-                        disabled={cell.count === 0}
-                        onClick={() => cellClick(cell)}
-                        aria-label={`${cell.count} assumptions in ${lens} × ${s}`}
-                      >
-                        {cell.count === 0 ? "·" : cell.count === 1 ? "1" : String(cell.count)}
-                      </button>
-                    </td>
-                  );
-                })}
+    <>
+      <div className="vos-card vos-stage-grid-card">
+        <div className="vos-stage-grid-scroll">
+          <table className="vos-stage-grid" role="grid" aria-label="Lens × Stage heatmap">
+            <thead>
+              <tr>
+                <th scope="col" className="vos-stage-grid-corner">Lens ↓ / Stage →</th>
+                {view.stages.map((s) => (
+                  <th key={s} scope="col" className="vos-stage-grid-col">
+                    <span className="vos-stage-grid-stagename">{s}</span>
+                    <span className="vos-stage-grid-stagegloss">{STAGE_GLOSS[s]}</span>
+                  </th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {view.lenses.map((lens) => (
+                <tr key={lens}>
+                  <th scope="row" className="vos-stage-grid-rowhead">{lens}</th>
+                  {view.stages.map((s) => {
+                    const cell = cellAt(view, lens, s)!;
+                    return (
+                      <td key={s} className="vos-stage-grid-cell">
+                        <button
+                          type="button"
+                          className={`vos-stage-grid-btn vos-heat-${heatLevel(cell.density)}`}
+                          disabled={cell.count === 0}
+                          onClick={() => cellClick(cell)}
+                          aria-label={`${cell.count} assumptions in ${lens} × ${s}`}
+                        >
+                          {cell.count === 0 ? "·" : cell.count === 1 ? "1" : String(cell.count)}
+                        </button>
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="vos-hint vos-stage-grid-foot">
+          The densest cell per row is where that part of the business is. Click a
+          cell to drill into its assumptions, ranked by Risk; a single-assumption
+          cell opens the detail directly.
+        </p>
       </div>
-      <p className="vos-hint vos-stage-grid-foot">
-        The densest cell per row is where that part of the business is. Click a
-        cell to drill into its assumptions, ranked by Risk; a single-assumption
-        cell opens the detail directly.
-      </p>
-    </div>
+
+      {/* Next moves — recommended experiments below the grid. This is where
+          the action is: top assumptions needing framing + experiment
+          recommendations, grouped by the riskiest related assumptions. */}
+      {recs.length > 0 ? (
+        <RecommendedExperimentsSection
+          recs={recs}
+          onOpenAssumption={(id) => onNavigate({ name: "assumption", id })}
+        />
+      ) : null}
+    </>
   );
 }
 
@@ -261,10 +277,6 @@ function PipelineBoard({
 
   const view = useMemo(
     () => buildPipeline(filtered, experiments),
-    [filtered, experiments],
-  );
-  const recs = useMemo(
-    () => buildRecommendedExperiments(filtered, experiments),
     [filtered, experiments],
   );
   const { progress, rows } = view;
@@ -318,13 +330,6 @@ function PipelineBoard({
           ))
         )}
       </div>
-
-      {recs.length > 0 ? (
-        <RecommendedExperimentsSection
-          recs={recs}
-          onOpenAssumption={(id) => onNavigate({ name: "assumption", id })}
-        />
-      ) : null}
     </>
   );
 }

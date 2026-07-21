@@ -3,11 +3,12 @@ import { liveExperiments } from "./derived-views.js";
 import type { Route } from "./route.js";
 import { useList } from "./use-records.js";
 import { Breadcrumb } from "./breadcrumb.js";
+import { ConfidenceDonut } from "./confidence-donut.js";
 
 /**
- * The Experiments nav surface (DEV-5881): the live evidence plans list. Each
- * row is a button with the experiment's title + bar-line stats; clicking opens
- * the evidence-first ExperimentDetail.
+ * The Experiments nav surface (DEV-5881): the live evidence plans list, with
+ * bigger rows carrying a donut gauge + bar-line stats. Each row is a button;
+ * clicking opens the evidence-first ExperimentDetail.
  */
 export function ExperimentsSurface({
   basePath,
@@ -51,7 +52,7 @@ export function ExperimentsSurface({
           No running experiments. Design one from a belief's next move.
         </div>
       ) : (
-        <div className="vos-card vos-list-card">
+        <div className="vos-card vos-exp-list">
           {live.map((e) => {
             const id = String(e.id ?? "");
             const title = String(e.Title ?? id);
@@ -60,17 +61,24 @@ export function ExperimentsSurface({
               ? e.barLines.filter((b: any) => b?.barVerdict).length
               : 0;
             const status = String(e.Status ?? "");
+            const expConf = (e.derived as any)?.experimentConfidence ?? 50;
+            const instrument = String(e.Instrument ?? "");
             return (
               <button
                 key={id}
                 type="button"
-                className="vos-list-row"
+                className="vos-exp-row"
                 onClick={() => onNavigate({ name: "experiment", id })}
               >
-                <span className="vos-list-row-title">{title}</span>
-                <span className="vos-list-row-meta vos-num">
-                  {bars} bars · {settled} settled
-                </span>
+                <ConfidenceDonut value={expConf} size={56} />
+                <div className="vos-exp-row-body">
+                  <div className="vos-exp-row-title">{title}</div>
+                  <div className="vos-exp-row-meta vos-num">
+                    {instrument && <span>{instrument} · </span>}
+                    {bars} bars · {settled} settled
+                    {e.Deadline ? <span> · deadline {String(e.Deadline)}</span> : null}
+                  </div>
+                </div>
                 <span className={`vos-pill ${status === "Running" ? "vos-pill-good" : "vos-pill-neutral"}`}>
                   {status}
                 </span>
