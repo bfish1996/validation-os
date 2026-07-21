@@ -1,8 +1,15 @@
 /**
  * A confidence donut gauge (DEV-5882 redesign) — an SVG ring that fills from
- * -90° proportional to the value (0–100, 50 = neutral). Color-toned by value
- * (good ≥67, warn ≥33, crit <33). The center shows the number. Used on the
- * experiment list rows (56px) + the experiment detail header (80px).
+ * 12 o'clock clockwise, proportional to the value (0–100, 50 = neutral).
+ * Color-toned by value (good ≥67, warn ≥33, crit <33). The center shows the
+ * number. Used on the experiment list rows (56px) + the experiment detail
+ * header (80px).
+ *
+ * Drawn as a ring via two overlaid circles with stroke-dasharray: a muted
+ * track circle and a colored arc circle whose dash length encodes the
+ * fraction. The arc starts at 12 o'clock by rotating the circle -90° around
+ * its center. This avoids pie-wedge path math and keeps the number visually
+ * centered in the ring.
  */
 export function ConfidenceDonut({
   value,
@@ -11,15 +18,19 @@ export function ConfidenceDonut({
   value: number;
   size?: number;
 }) {
-  const r = size / 2 - 5;
+  const stroke = size > 60 ? 6 : 4;
+  const r = (size - stroke) / 2;
   const cx = size / 2;
   const cy = size / 2;
+  const circumference = 2 * Math.PI * r;
   const pct = Math.max(0, Math.min(100, value)) / 100;
-  const color = value >= 67 ? "var(--vos-good)" : value >= 33 ? "var(--vos-warn)" : "var(--vos-crit)";
-  const endAngle = -Math.PI / 2 + pct * 2 * Math.PI;
-  const x2 = cx + r * Math.cos(endAngle);
-  const y2 = cy + r * Math.sin(endAngle);
-  const largeArc = pct > 0.5 ? 1 : 0;
+  const dash = pct * circumference;
+  const color =
+    value >= 67
+      ? "var(--vos-good)"
+      : value >= 33
+        ? "var(--vos-warn)"
+        : "var(--vos-crit)";
   return (
     <div className="vos-donut" style={{ width: size, height: size }}>
       <svg width={size} height={size} aria-hidden="true">
@@ -29,19 +40,27 @@ export function ConfidenceDonut({
           r={r}
           fill="none"
           stroke="var(--vos-surface-2)"
-          strokeWidth={4}
+          strokeWidth={stroke}
         />
         {value > 0 ? (
-          <path
-            d={`M ${cx} ${cy} L ${cx} ${cy - r} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2} Z`}
-            fill={color}
-            opacity={0.25}
+          <circle
+            cx={cx}
+            cy={cy}
+            r={r}
+            fill="none"
             stroke={color}
-            strokeWidth={1.5}
+            strokeWidth={stroke}
+            strokeDasharray={`${dash} ${circumference - dash}`}
+            strokeDashoffset={0}
+            strokeLinecap="round"
+            transform={`rotate(-90 ${cx} ${cy})`}
           />
         ) : null}
       </svg>
-      <span className="vos-donut-num vos-num" style={{ fontSize: size > 60 ? 18 : 14 }}>
+      <span
+        className="vos-donut-num vos-num"
+        style={{ fontSize: size > 60 ? 20 : 14 }}
+      >
         {Math.round(value)}
       </span>
     </div>

@@ -43,15 +43,16 @@ export const MAX_RECOMMENDED = 2;
 /** The max assumptions per cluster (tight groups, not whole cells). */
 const MAX_CLUSTER_SIZE = 3;
 
-/** The max number of "needs framing" assumptions to show (the riskiest 2). */
-export const MAX_NEEDS_FRAMING = 2;
+/** The max number of "needs framing" assumptions to show (one per lens, up to 3). */
+export const MAX_NEEDS_FRAMING = 3;
 
 /**
- * The "needs framing" list — the riskiest live, non-moot assumptions whose
- * completeness is below 100% (the belief is written but not fully framed:
+ * The "needs framing" list — the riskiest live, non-moot assumption *per lens*
+ * whose completeness is below 100% (the belief is written but not fully framed:
  * missing the 5 Whys, the metric for truth, or the scoring justification).
  * These are the beliefs where the next move is "frame the belief", not "design
- * an experiment". Capped at MAX_NEEDS_FRAMING (2), riskiest first.
+ * an experiment". At most one assumption per lens, capped at MAX_NEEDS_FRAMING
+ * (3 lenses), riskiest-first across lenses.
  */
 export interface NeedsFramingItem {
   id: string;
@@ -84,11 +85,21 @@ export function buildNeedsFraming(
       const hint = framingHint(a, completeness);
       return { id, title, risk, completeness, lens, stage, hint };
     })
-    .filter((a) => a.completeness < 100)
+    .filter((a) => a.completeness < 100);
+
+  // Group by lens; from each lens pick the riskiest unframed assumption.
+  // Then take up to MAX_NEEDS_FRAMING lenses, riskiest-first across lenses.
+  const byLens = new Map<string, NeedsFramingItem>();
+  for (const item of items) {
+    const existing = byLens.get(item.lens);
+    if (!existing || item.risk > existing.risk) {
+      byLens.set(item.lens, item);
+    }
+  }
+
+  return [...byLens.values()]
     .sort((a, b) => b.risk - a.risk)
     .slice(0, MAX_NEEDS_FRAMING);
-
-  return items;
 }
 
 function framingHint(a: AnyRecord, completeness: number): string {

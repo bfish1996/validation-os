@@ -121,12 +121,17 @@ export function ReadingDetail({
                   <span className="vos-rung-tag">{rung}</span>
                 </div>
                 {/* Grading rationale — why this evidence scores this belief
-                    this way. NOT a quote; quotes live in the Context section
-                    above (the reading's body). */}
+                     this way. NOT a quote; the actual quotes live in the
+                     Context section above (the reading's body). */}
                 {justification ? (
                   <div className={`vos-belief-rationale vos-verdict-border-${verdictTone(result)}`}>
                     <span className="vos-belief-rationale-label">grading rationale:</span>
                     {justification}
+                  </div>
+                ) : null}
+                {body ? (
+                  <div className="vos-belief-context-link vos-muted">
+                    see context above for the full quote
                   </div>
                 ) : null}
                 {/* Bar-line context (if from an experiment) */}
