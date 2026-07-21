@@ -163,6 +163,16 @@ risk_threshold_by_stage:
   Scale: 10        # one-way door — strong evidence before scaling
   Maturity: 5      # defensive, often regulatory — strongest evidence
 
+# The minimum Confidence floor for "cleared" (DEV-5890 fix). A belief with
+# Impact below the Risk threshold could read Risk ≤ threshold with ZERO
+# evidence (Risk = Impact × (1 − 0/100) = Impact). The floor requires at
+# least some real evidence before "cleared" is honest. Tightens with stage.
+confidence_floor_by_stage:
+  Discovery: 10    # any signal counts for a two-way door
+  Validation: 25   # need a real reading, not just vibes
+  Scale: 40        # need solid evidence before scaling
+  Maturity: 60     # need strong evidence for a one-way door
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Derivations — computed fields. Never hand-written, in any backend
 # (connectors/SPEC.md). Backends without native formulas have the skill

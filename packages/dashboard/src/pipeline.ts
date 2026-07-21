@@ -18,7 +18,7 @@ import {
   type BarLine,
   type BeliefReadingInput,
 } from "@validation-os/core";
-import { riskThresholdForStage } from "@validation-os/core/derivation";
+import { confidenceFloorForStage, riskThresholdForStage } from "@validation-os/core/derivation";
 import { STAGE_ORDER } from "./stage-grid-model.js";
 import {
   beliefRisk,
@@ -218,6 +218,7 @@ export function buildPipeline(
         ? (stageName as (typeof STAGE_ORDER)[number])
         : null;
     const riskThreshold = stageKey ? riskThresholdForStage(stageKey) : null;
+    const confFloor = stageKey ? confidenceFloorForStage(stageKey) : null;
     rows.push({
       id: a.id,
       statement: str(a.Title),
@@ -235,7 +236,9 @@ export function buildPipeline(
       stage: stageName,
       riskThreshold,
       clearedThreshold:
-        riskThreshold != null ? d.risk <= riskThreshold : null,
+        riskThreshold != null
+          ? d.risk <= riskThreshold && (confFloor == null || stage.confidence >= confFloor)
+          : null,
     });
   }
 

@@ -159,12 +159,35 @@ export function ceilingAnchor(
  * consumed by the dashboard's test-next surface, the `/assumptions audit`
  * skill, and the `/experiment-design` skill. It does NOT enter the
  * Confidence formula.
+ *
+ * The threshold is the max Risk you can have and still "stop testing" for
+ * this stage. Later stages have LOWER thresholds because you need to drive
+ * Risk down further (more evidence) before acting on a one-way door.
+ * Discovery = 30: stop testing when Risk ≤ 30 (two-way door, little evidence
+ * needed). Maturity = 5: stop testing when Risk ≤ 5 (one-way door, lots of
+ * evidence needed). The bar being LOWER means the STANDARD is HIGHER — like
+ * a high-jump bar: a lower number means you have to clear more.
  */
 export const RISK_THRESHOLD_BY_STAGE: Record<Stage, number> = {
   Discovery: 30, // two-way door — act on weak evidence
   Validation: 15, // becoming one-way — need more before committing
   Scale: 10, // one-way door — strong evidence before scaling
   Maturity: 5, // defensive, often regulatory — strongest evidence
+};
+
+/**
+ * The minimum Confidence floor for "cleared" (DEV-5890 fix). A belief with
+ * Impact below the stage's Risk threshold could read Risk ≤ threshold with
+ * ZERO evidence (Risk = Impact × (1 − 0/100) = Impact). Without a Confidence
+ * floor, a low-Impact belief gets a free pass. The floor requires at least
+ * some evidence before "cleared" is honest. Tightens with stage, mirroring
+ * the Risk threshold.
+ */
+export const CONFIDENCE_FLOOR_BY_STAGE: Record<Stage, number> = {
+  Discovery: 10, // any signal counts for a two-way door
+  Validation: 25, // need a real reading, not just vibes
+  Scale: 40, // need solid evidence before scaling
+  Maturity: 60, // need strong evidence for a one-way door
 };
 
 /**
@@ -180,13 +203,34 @@ export function riskThresholdForStage(stage: Stage | null | undefined): number {
 }
 
 /**
- * Has the assumption cleared its stage's Risk threshold? "Cleared" = Risk is
- * at or below the threshold — the belief has enough evidence for its stage's
- * stopping bar. "Needs evidence" = above the threshold — testing-priority.
+ * The minimum Confidence floor for a given stage. Falls back to the tightest
+ * (Maturity) when absent.
+ */
+export function confidenceFloorForStage(stage: Stage | null | undefined): number {
+  if (stage && stage in CONFIDENCE_FLOOR_BY_STAGE) {
+    return CONFIDENCE_FLOOR_BY_STAGE[stage];
+  }
+  return CONFIDENCE_FLOOR_BY_STAGE.Maturity;
+}
+
+/**
+ * Has the assumption cleared its stage's threshold? "Cleared" requires BOTH:
+ *   1. Risk ≤ the stage's Risk threshold (enough evidence to drive Risk down)
+ *   2. Confidence ≥ the stage's Confidence floor (at least some real evidence)
+ *
+ * The Confidence floor prevents a low-Impact belief from being "cleared" with
+ * zero evidence — Risk = Impact × (1 − 0/100) = Impact, so a belief with
+ * Impact below the threshold would read "cleared" without any readings. The
+ * floor requires at least a minimum Confidence signal before "cleared" is
+ * honest. "Needs evidence" = either condition fails — testing-priority.
  */
 export function hasClearedThreshold(
   risk: number,
   stage: Stage | null | undefined,
+  confidence?: number,
 ): boolean {
-  return risk <= riskThresholdForStage(stage);
+  const riskCleared = risk <= riskThresholdForStage(stage);
+  if (confidence === undefined) return riskCleared;
+  const confCleared = confidence >= confidenceFloorForStage(stage);
+  return riskCleared && confCleared;
 }

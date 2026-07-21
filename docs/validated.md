@@ -74,20 +74,32 @@ threshold, not to march every row to a finish line. The threshold is a
 prioritisation rule, not a property of the record.
 
 The threshold **tightens with stage** (the reversibility proxy — Bezos two-way
-vs one-way doors, already in the repo on decisions):
+vs one-way doors, already in the repo on decisions). The threshold is the
+**max Risk** you can have and still stop testing. A **lower** threshold means
+a **higher** standard — you have to drive Risk down further (more evidence)
+before acting. Like a high-jump bar: a lower number means you have to clear
+more.
 
-| Stage | Threshold | Why |
-|---|---|---|
-| Discovery | 30 | Two-way door — act on weak evidence |
-| Validation | 15 | Becoming one-way — need more before committing |
-| Scale | 10 | One-way door — strong evidence before scaling |
-| Maturity | 5 | Defensive, often regulatory — strongest evidence |
+| Stage | Risk threshold | Confidence floor | Why |
+|---|---|---|---|
+| Discovery | 30 | 10 | Two-way door — act on weak evidence, but need at least a signal |
+| Validation | 15 | 25 | Becoming one-way — need a real reading, not just vibes |
+| Scale | 10 | 40 | One-way door — solid evidence before scaling |
+| Maturity | 5 | 60 | Defensive, often regulatory — strongest evidence |
 
-A prevalence assumption at Discovery stops testing on a small survey; the same
-prevalence assumption at Maturity needs a bigger, replicated survey to clear the
-tighter threshold. The question type fixes what counts as evidence; the stage
-fixes how much is enough to act on (see `docs/question-types.md`,
-`docs/stage-policy.md`).
+**The Confidence floor** (the zero-evidence guard): Risk = Impact × (1 −
+Confidence/100), so a belief with Impact below the Risk threshold could read
+Risk ≤ threshold with **zero evidence** (Risk = Impact × (1 − 0/100) =
+Impact). The floor requires Confidence ≥ the stage's minimum before "cleared"
+is honest. "Cleared" requires **both** Risk ≤ threshold **and** Confidence ≥
+floor.
+
+A prevalence assumption at Discovery stops testing on a small survey (Risk
+drops below 30 AND Confidence rises above 10); the same prevalence assumption
+at Maturity needs a bigger, replicated survey to clear the tighter threshold
+(Risk below 5 AND Confidence above 60). The question type fixes what counts
+as evidence; the stage fixes how much is enough to act on (see
+`docs/question-types.md`, `docs/stage-policy.md`).
 
 ## What puts a supported belief back in the queue
 

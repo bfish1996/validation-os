@@ -12,7 +12,9 @@ export {
   isNonEvidence,
   ceilingAnchor,
   RISK_THRESHOLD_BY_STAGE,
+  CONFIDENCE_FLOOR_BY_STAGE,
   riskThresholdForStage,
+  confidenceFloorForStage,
   hasClearedThreshold,
 } from "./rung.js";
 export {
