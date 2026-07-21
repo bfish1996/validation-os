@@ -25,11 +25,12 @@ function assumption(over: Partial<AnyRecord> & { id: string }): AnyRecord {
     Status: "Live",
     Impact: 50,
     moot: false,
-    // All five completeness slots filled → fully framed (OPS-1305).
+    // All six completeness slots filled → fully framed (OPS-1305 + DEV-5890).
     Description: "The market wants this.",
     Lens: "Desirability",
     "Scoring justification": "z",
     dependsOnIds: ["b0"],
+    "Question Type": "Existence",
     derived: { derivedImpact: 50, risk: 50, confidence: 0, completeness: 100 },
     ...over,
   } as AnyRecord;

@@ -8,7 +8,7 @@
  * ladder order so the composition shows the gaps honestly.
  */
 import type { AnyRecord } from "@validation-os/core";
-import { scoreAndDedupe, w0ForRung, type AttributionReadingInput } from "@validation-os/core/derivation";
+import { RUNG_ANCHOR, scoreAndDedupe, w0ForRung, type AttributionReadingInput } from "@validation-os/core/derivation";
 import { readingBeliefFor } from "./derived-views.js";
 import { str } from "./derived-views.js";
 
@@ -58,15 +58,6 @@ const ALL_RUNGS = [
   "Signed intent",
   "Paying users",
 ];
-const RUNG_CAPS: Record<string, number> = {
-  Talk: 6,
-  "Desk research": 15,
-  "Signed up": 50,
-  "Observed usage": 50,
-  "Signed intent": 50,
-  "Paying users": 50,
-};
-
 function rungsForLens(lens: string): string[] {
   return LENS_RUNGS[lens] ?? ALL_RUNGS;
 }
@@ -77,6 +68,11 @@ export function buildEvidenceComposition(
 ): EvidenceCompositionView {
   const id = str(assumption.id) ?? "";
   const lens = str(assumption.Lens) ?? "";
+  // DEV-5890: read the assumption's Question Type so the cap and the
+  // attribution math use the right sub-ladder. Default to Existence.
+  const questionType =
+    (str(assumption["Question Type"]) as AttributionReadingInput["questionType"]) ??
+    "Existence";
   const ladder = rungsForLens(lens);
 
   // Build the attribution inputs for THIS assumption only — fan each linked
@@ -95,6 +91,7 @@ export function buildEvidenceComposition(
       source: str(r.Source) ?? null,
       rung: rung as AttributionReadingInput["rung"],
       result: result as AttributionReadingInput["result"],
+      questionType,
       representativeness: Number(r.Representativeness) || 1.0,
       credibility: Number(r.Credibility) || 1.0,
       date: str(r.Date),
@@ -125,7 +122,11 @@ export function buildEvidenceComposition(
     return {
       rung,
       contribution: e ? Math.round((e.contribution + Number.EPSILON) * 100) / 100 : 0,
-      cap: RUNG_CAPS[rung] ?? 50,
+      // DEV-5890: cap is the rung's Typical anchor in the assumption's
+      // question-type sub-ladder (0 for non-evidence rungs).
+      cap:
+        RUNG_ANCHOR[questionType]?.[rung as AttributionReadingInput["rung"]]?.Typical ??
+        0,
       count: e?.count ?? 0,
     };
   });
@@ -146,6 +147,10 @@ export function readingContributions(
   readings: AnyRecord[],
 ): ReadingContribution[] {
   const id = str(assumption.id) ?? "";
+  // DEV-5890: read the assumption's Question Type for the sub-ladder lookup.
+  const questionType =
+    (str(assumption["Question Type"]) as AttributionReadingInput["questionType"]) ??
+    "Existence";
   const inputs: AttributionReadingInput[] = [];
   for (const r of readings) {
     const belief = readingBeliefFor(r, id);
@@ -158,6 +163,7 @@ export function readingContributions(
       source: str(r.Source) ?? null,
       rung: rung as AttributionReadingInput["rung"],
       result: result as AttributionReadingInput["result"],
+      questionType,
       representativeness: Number(r.Representativeness) || 1.0,
       credibility: Number(r.Credibility) || 1.0,
       date: str(r.Date),
@@ -178,7 +184,8 @@ export function readingContributions(
     const used = winnerIds.has(input.id);
     const strength = w
       ? w.strength
-      : (input.result === "Validated" ? 1 : input.result === "Invalidated" ? -1 : 0) * (RUNG_CAPS[input.rung] ?? 0);
+      : (input.result === "Validated" ? 1 : input.result === "Invalidated" ? -1 : 0) *
+        (RUNG_ANCHOR[questionType]?.[input.rung]?.Typical ?? 0);
     const weight = w ? w.weight : 0;
     return {
       id: input.id,

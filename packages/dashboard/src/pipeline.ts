@@ -260,8 +260,15 @@ export function weekOverWeekDelta(
   const cutoff = now.getTime() - 7 * 24 * 60 * 60 * 1000;
   // Fan every reading row out into one input per belief, then group by the
   // belief it scores — a single row can now score several beliefs (OPS-1305).
+  // DEV-5890: thread the linked assumption's Question Type into each input so
+  // Strength reads the right sub-ladder.
+  const assumptionsById = new Map<string, AnyRecord>(
+    assumptions.map((a) => [String(a.id), a]),
+  );
   const byAssumption = new Map<string, BeliefReadingInput[]>();
-  for (const input of readings.flatMap(readingBeliefInputs)) {
+  for (const input of readings.flatMap((r) =>
+    readingBeliefInputs(r, assumptionsById),
+  )) {
     if (!input.assumptionId) continue;
     const arr = byAssumption.get(input.assumptionId);
     if (arr) arr.push(input);
