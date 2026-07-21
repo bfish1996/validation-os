@@ -7,7 +7,14 @@
  * kept in lock-step with `skills/_shared/ontology.yaml`.
  */
 export { round2 } from "./round.js";
-export { RUNG_ANCHOR } from "./rung.js";
+export {
+  RUNG_ANCHOR,
+  isNonEvidence,
+  ceilingAnchor,
+  RISK_THRESHOLD_BY_STAGE,
+  riskThresholdForStage,
+  hasClearedThreshold,
+} from "./rung.js";
 export {
   COMPLETENESS_SLOTS,
   completenessSlotPresence,
@@ -18,6 +25,20 @@ export {
 export type { CompletenessSlot, CompletenessInput } from "./completeness.js";
 export { sign, isConcluded, readingStrength } from "./strength.js";
 export type { StrengthInput } from "./strength.js";
+export {
+  inferQuestionType,
+  needsReview,
+  INFERABLE_QUESTION_TYPES,
+  DEFAULT_QUESTION_TYPE,
+} from "./question-type.js";
+export { migrateRegister } from "./migrate.js";
+export type {
+  MigrationAssumption,
+  MigrationReading,
+  MigratedAssumption,
+  MigratedReading,
+  MigrationResult,
+} from "./migrate.js";
 export { sourceQuality } from "./source-quality.js";
 export {
   confidence,

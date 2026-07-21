@@ -26,8 +26,10 @@ import type {
   DecisionRecord,
   ExperimentDerived,
   ExperimentRecord,
+  QuestionType,
   ReadingRecord,
 } from "./types.js";
+import { QUESTION_TYPES } from "./types.js";
 
 /** Standing decisions (Provisional/Active) contribute to Derived Impact. */
 const STANDING_DECISION = new Set(["Active", "Provisional"]);
@@ -48,10 +50,19 @@ export function recomputeDerived(
   // those by the assumption each belief scores. A row that scores several
   // beliefs contributes one input to each of their assumptions; every input
   // carries the row-level Source, source quality, and experiment (commitment).
+  // DEV-5890: each belief input also carries the linked assumption's Question
+  // Type, looked up from the assumptions register — the question type sets the
+  // anchor sub-ladder (`RUNG_ANCHOR[questionType][rung][band]`).
+  const assumptionsById = new Map<string, AssumptionRecord>(
+    assumptions.map((a) => [a.id, a]),
+  );
   const inputsByAssumption = new Map<string, ConfidenceReadingInput[]>();
   for (const a of assumptions) inputsByAssumption.set(a.id, []);
   for (const r of readings) {
-    for (const input of readingBeliefInputs(r as unknown as AnyRecord)) {
+    for (const input of readingBeliefInputs(
+      r as unknown as AnyRecord,
+      assumptionsById,
+    )) {
       inputsByAssumption.get(input.assumptionId)?.push(input);
     }
   }
@@ -106,13 +117,19 @@ export {
  * Recompute the derived numbers for every experiment in the register.
  *
  * Groups readings by `experimentId`, filters each experiment's readings to its
- * `barLineAssumptionIds`, and calls {@link experimentConfidence}.
+ * `barLineAssumptionIds`, and calls {@link experimentConfidence}. DEV-5890:
+ * the assumption's Question Type is looked up from the assumptions register so
+ * Strength reads the right sub-ladder.
  */
 export function recomputeExperimentDerived(input: {
   experiments: ExperimentRecord[];
   readings: ReadingRecord[];
+  assumptions?: AssumptionRecord[];
 }): Map<string, ExperimentDerived> {
   const out = new Map<string, ExperimentDerived>();
+  const assumptionsById = new Map<string, AssumptionRecord>(
+    (input.assumptions ?? []).map((a) => [a.id, a]),
+  );
   const byExperiment = new Map<string, ReadingRecord[]>();
   for (const r of input.readings) {
     if (!r.experimentId) continue;
@@ -132,16 +149,26 @@ export function recomputeExperimentDerived(input: {
     const readings = expReadings.flatMap((r) =>
       r.beliefs
         .filter((b) => barIds.has(b.assumptionId))
-        .map((b) => ({
-          id: r.id,
-          source: r.Source,
-          rung: r.Rung,
-          result: b.Result,
-          magnitudeBand: r.magnitudeBand,
-          representativeness: r.Representativeness,
-          credibility: r.Credibility,
-          assumptionId: b.assumptionId,
-        })),
+        .map((b) => {
+          const assumption = assumptionsById.get(b.assumptionId);
+          const q = assumption ? assumption["Question Type"] : null;
+          const questionType =
+            (q &&
+              (QUESTION_TYPES as readonly string[]).includes(String(q)) &&
+              (q as QuestionType)) ||
+            "Existence";
+          return {
+            id: r.id,
+            source: r.Source,
+            rung: r.Rung,
+            result: b.Result,
+            questionType,
+            magnitudeBand: r.magnitudeBand,
+            representativeness: r.Representativeness,
+            credibility: r.Credibility,
+            assumptionId: b.assumptionId,
+          };
+        }),
     );
     out.set(exp.id, {
       experimentConfidence: experimentConfidence(bars, readings),

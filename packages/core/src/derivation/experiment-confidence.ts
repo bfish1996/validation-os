@@ -25,7 +25,7 @@
  * verdict-alignment nudge so a plan whose bars are settled the way the evidence
  * already points inches further in that direction.
  */
-import type { MagnitudeBand, Result, Rung } from "../types.js";
+import type { MagnitudeBand, QuestionType, Result, Rung } from "../types.js";
 import { round2 } from "./round.js";
 import { sourceQuality } from "./source-quality.js";
 import { isConcluded, readingStrength, sign } from "./strength.js";
@@ -45,6 +45,8 @@ export interface ExperimentConfidenceReadingInput {
   source: string | null;
   rung: Rung;
   result: Result;
+  /** The linked assumption's question type — sets the anchor sub-ladder. */
+  questionType: QuestionType;
   magnitudeBand?: MagnitudeBand;
   representativeness: number;
   credibility: number;
