@@ -154,6 +154,17 @@ export type {
   StageGridView,
   StageValue,
 } from "./stage-grid-model.js";
+export {
+  buildHeatGrid,
+  heatCellAt,
+  heatLevel,
+  QUESTION_TYPE_FILTERS,
+} from "./heat-grid-model.js";
+export type {
+  HeatCell,
+  HeatGridView,
+  QuestionTypeFilter,
+} from "./heat-grid-model.js";
 export { movePresentation, toNextMoveInput } from "./next-move.js";
 export type {
   MovePresentation,

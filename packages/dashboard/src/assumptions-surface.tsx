@@ -6,15 +6,17 @@ import { buildPipeline, type PipelineRow } from "./pipeline.js";
 import { buildRecommendedExperiments, buildNeedsFraming, type RecommendedExperiment, type NeedsFramingItem } from "./recommended-experiments.js";
 import { stageMeters } from "./stage-meters.js";
 import {
-  buildStageGrid,
-  cellAt,
+  buildHeatGrid,
+  heatCellAt,
+  heatLevel,
   NO_LENS,
   NO_STAGE,
-  rankByRisk,
+  QUESTION_TYPE_FILTERS,
   STAGE_GLOSS,
   STAGE_ORDER,
-  type StageGridCell,
-} from "./stage-grid-model.js";
+  type HeatCell,
+  type QuestionTypeFilter,
+} from "./heat-grid-model.js";
 import type { Route } from "./route.js";
 import { useList } from "./use-records.js";
 import { formatSigned, type Tone } from "./primitives.js";
@@ -129,7 +131,11 @@ function GridPane({
   readings: AnyRecord[];
   onNavigate: (route: Route) => void;
 }) {
-  const view = useMemo(() => buildStageGrid(assumptions), [assumptions]);
+  const [qtFilter, setQtFilter] = useState<QuestionTypeFilter>("All");
+  const view = useMemo(
+    () => buildHeatGrid(assumptions, qtFilter),
+    [assumptions, qtFilter],
+  );
   const recs = useMemo(
     () => buildRecommendedExperiments(assumptions, experiments),
     [assumptions, experiments],
@@ -168,7 +174,7 @@ function GridPane({
     );
   }
 
-  function cellClick(cell: StageGridCell) {
+  function cellClick(cell: HeatCell) {
     if (cell.count === 0) return;
     if (cell.count === 1) {
       const id = String(cell.assumptions[0]?.id ?? "");
@@ -182,11 +188,30 @@ function GridPane({
     }
   }
 
+  // The question type tabs: "All" + the types present in the data.
+  const qtTabs: QuestionTypeFilter[] = QUESTION_TYPE_FILTERS.filter(
+    (qt) => qt === "All" || view.questionTypes.includes(qt),
+  );
+
   return (
     <>
       <div className="vos-card vos-stage-grid-card">
+        {/* Question Type filter tabs (DEV-5890) */}
+        <div className="vos-qt-filter-bar">
+          {qtTabs.map((qt) => (
+            <button
+              key={qt}
+              type="button"
+              className={`vos-qt-tab ${qtFilter === qt ? "vos-qt-tab-active" : ""}`}
+              onClick={() => setQtFilter(qt)}
+            >
+              {qt}
+            </button>
+          ))}
+        </div>
+
         <div className="vos-stage-grid-scroll">
-          <table className="vos-stage-grid" role="grid" aria-label="Lens × Stage heatmap">
+          <table className="vos-stage-grid" role="grid" aria-label="Lens × Stage heatmap (heat = Risk)">
             <thead>
               <tr>
                 <th scope="col" className="vos-stage-grid-corner">Lens ↓ / Stage →</th>
@@ -203,15 +228,16 @@ function GridPane({
                 <tr key={lens}>
                   <th scope="row" className="vos-stage-grid-rowhead">{lens}</th>
                   {view.stages.map((s) => {
-                    const cell = cellAt(view, lens, s)!;
+                    const cell = heatCellAt(view, lens, s)!;
                     return (
                       <td key={s} className="vos-stage-grid-cell">
                         <button
                           type="button"
-                          className={`vos-stage-grid-btn vos-heat-${heatLevel(cell.density)}`}
+                          className={`vos-stage-grid-btn vos-heat-${heatLevel(cell.heat)}`}
                           disabled={cell.count === 0}
                           onClick={() => cellClick(cell)}
-                          aria-label={`${cell.count} assumptions in ${lens} × ${s}`}
+                          title={`${cell.count} assumptions · avg Risk ${Math.round(cell.avgRisk)} · total Risk ${Math.round(cell.totalRisk)}`}
+                          aria-label={`${cell.count} assumptions in ${lens} × ${s}, average risk ${Math.round(cell.avgRisk)}`}
                         >
                           {cell.count === 0 ? "·" : cell.count === 1 ? "1" : String(cell.count)}
                         </button>
@@ -223,10 +249,18 @@ function GridPane({
             </tbody>
           </table>
         </div>
+        <div className="vos-heat-legend">
+          <span className="vos-heat-legend-label">Risk heat:</span>
+          <span className="vos-heat-swatch vos-heat-0" /> low
+          <span className="vos-heat-swatch vos-heat-1" />
+          <span className="vos-heat-swatch vos-heat-2" />
+          <span className="vos-heat-swatch vos-heat-3" />
+          <span className="vos-heat-swatch vos-heat-4" /> high
+        </div>
         <p className="vos-hint vos-stage-grid-foot">
-          The densest cell per row is where that part of the business is. Click a
-          cell to drill into its assumptions, ranked by Risk; a single-assumption
-          cell opens the detail directly.
+          Heat = average Risk per cell. Click a cell to drill into its
+          assumptions, ranked by Risk. Filter by Question Type above.
+          {qtFilter !== "All" ? ` Showing ${qtFilter} claims only.` : ""}
         </p>
       </div>
 
@@ -241,14 +275,6 @@ function GridPane({
       ) : null}
     </>
   );
-}
-
-function heatLevel(density: number): 0 | 1 | 2 | 3 | 4 {
-  if (density <= 0) return 0;
-  if (density < 0.25) return 1;
-  if (density < 0.5) return 2;
-  if (density < 0.75) return 3;
-  return 4;
 }
 
 /* ── Pipeline board ────────────────────────────────────────────────────── */
