@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   ceilingAnchor,
+  confidenceFloorForStage,
+  CONFIDENCE_FLOOR_BY_STAGE,
   hasClearedThreshold,
   isNonEvidence,
   RISK_THRESHOLD_BY_STAGE,
@@ -249,13 +251,43 @@ describe("DEV-5890 — stage-keyed Risk threshold (the stopping rule)", () => {
     expect(riskThresholdForStage(undefined)).toBe(5);
   });
 
-  it("hasClearedThreshold — cleared = Risk at or below the stage's bar", () => {
-    // Discovery threshold = 30: a belief at Risk 25 has cleared; at Risk 40 hasn't.
-    expect(hasClearedThreshold(25, "Discovery")).toBe(true);
-    expect(hasClearedThreshold(30, "Discovery")).toBe(true);
-    expect(hasClearedThreshold(31, "Discovery")).toBe(false);
-    // Maturity threshold = 5: tighter bar — the same Risk 25 has not cleared.
-    expect(hasClearedThreshold(25, "Maturity")).toBe(false);
-    expect(hasClearedThreshold(5, "Maturity")).toBe(true);
+  it("hasClearedThreshold — cleared = Risk at or below the stage's bar AND Confidence at or above the floor", () => {
+    // Discovery threshold = 30, floor = 10: a belief at Risk 25 + Confidence 15 has cleared.
+    expect(hasClearedThreshold(25, "Discovery", 15)).toBe(true);
+    expect(hasClearedThreshold(30, "Discovery", 10)).toBe(true);
+    expect(hasClearedThreshold(31, "Discovery", 20)).toBe(false); // Risk above
+    // Maturity threshold = 5, floor = 60: tighter bar — Risk 25 has not cleared.
+    expect(hasClearedThreshold(25, "Maturity", 65)).toBe(false);
+    expect(hasClearedThreshold(5, "Maturity", 60)).toBe(true);
+    // Confidence floor prevents zero-evidence "cleared": Risk = Impact × (1 − 0/100)
+    // = Impact. Impact 20 + Discovery threshold 30 → Risk 20 (below 30), but
+    // Confidence 0 < floor 10 → NOT cleared.
+    expect(hasClearedThreshold(20, "Discovery", 0)).toBe(false);
+    // Same belief with Confidence 12 → cleared (Risk 20 ≤ 30 AND Confidence 12 ≥ 10).
+    expect(hasClearedThreshold(20, "Discovery", 12)).toBe(true);
+  });
+
+  it("CONFIDENCE_FLOOR_BY_STAGE tightens with stage (the zero-evidence guard)", () => {
+    expect(CONFIDENCE_FLOOR_BY_STAGE.Discovery).toBe(10);
+    expect(CONFIDENCE_FLOOR_BY_STAGE.Validation).toBe(25);
+    expect(CONFIDENCE_FLOOR_BY_STAGE.Scale).toBe(40);
+    expect(CONFIDENCE_FLOOR_BY_STAGE.Maturity).toBe(60);
+    // Tightening: Discovery < Validation < Scale < Maturity.
+    expect(CONFIDENCE_FLOOR_BY_STAGE.Discovery).toBeLessThan(
+      CONFIDENCE_FLOOR_BY_STAGE.Validation,
+    );
+    expect(CONFIDENCE_FLOOR_BY_STAGE.Validation).toBeLessThan(
+      CONFIDENCE_FLOOR_BY_STAGE.Scale,
+    );
+    expect(CONFIDENCE_FLOOR_BY_STAGE.Scale).toBeLessThan(
+      CONFIDENCE_FLOOR_BY_STAGE.Maturity,
+    );
+  });
+
+  it("confidenceFloorForStage falls back to the tightest when stage is absent", () => {
+    expect(confidenceFloorForStage("Discovery")).toBe(10);
+    expect(confidenceFloorForStage("Maturity")).toBe(60);
+    expect(confidenceFloorForStage(null)).toBe(60);
+    expect(confidenceFloorForStage(undefined)).toBe(60);
   });
 });

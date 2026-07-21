@@ -36,26 +36,22 @@ at the report; loop carries the findings into autonomous fixes.
 
 ## Stage-keyed Risk threshold (DEV-5890)
 
-Flag each assumption against its **stage's Risk threshold**
-(`RISK_THRESHOLD_BY_STAGE`, `docs/validated.md`):
+Flag each assumption against its **stage's threshold** — "cleared" requires
+BOTH Risk ≤ the stage's Risk threshold AND Confidence ≥ the stage's
+Confidence floor (the zero-evidence guard):
 
-- **Above threshold** (Risk > stage threshold) → **"needs evidence"** —
-  testing-priority. The belief hasn't cleared its stage's stopping bar.
-- **At or below threshold** (Risk ≤ stage threshold) → **"cleared for this
-  stage"** — de-prioritized. The belief has enough evidence for its stage's
-  reversibility.
+- **Cleared** (Risk ≤ threshold AND Confidence ≥ floor) → de-prioritized.
+  The belief has enough evidence for its stage's stopping bar.
+- **Needs evidence** (either condition fails) → testing-priority.
 
-| Stage | Threshold |
-|---|---|
-| Discovery | 30 |
-| Validation | 15 |
-| Scale | 10 |
-| Maturity | 5 |
+| Stage | Risk threshold | Confidence floor |
+|---|---|---|
+| Discovery | 30 | 10 |
+| Validation | 15 | 25 |
+| Scale | 10 | 40 |
+| Maturity | 5 | 60 |
 
-The threshold does NOT flip a status — Live assumptions stay Live and ranked
-forever. It is a prioritisation rule for **attention**, not a record property.
-A prevalence assumption at Discovery stops testing on a small survey (Risk
-drops below 30 → cleared); the same prevalence assumption at Maturity needs a
-bigger, replicated survey to clear the tighter threshold (Risk below 5). The
-question type fixes what counts as evidence; the stage fixes how much is
-enough to act on.
+The Confidence floor prevents a low-Impact belief from being "cleared" with
+zero evidence — Risk = Impact × (1 − 0/100) = Impact, so a belief with Impact
+below the threshold would read "cleared" without any readings. The floor
+requires at least a minimum Confidence signal before "cleared" is honest.
