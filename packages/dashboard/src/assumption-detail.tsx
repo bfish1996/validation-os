@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import type { AnyRecord } from "@validation-os/core";
+import type { AnyRecord, QuestionType, Rung } from "@validation-os/core";
+import { isNonEvidence } from "@validation-os/core/derivation";
 import { Breadcrumb } from "./breadcrumb.js";
 import { buildEvidenceComposition, readingContributions, type ReadingContribution } from "./evidence-composition.js";
 import { buildConfidenceExplainer } from "./confidence-explainer.js";
@@ -78,6 +79,7 @@ export function AssumptionDetail({
   const page = buildRecordPage("assumptions", record, related);
   const lens = String(record.Lens ?? "—");
   const stage = String(record.Stage ?? "—");
+  const questionType = String(record["Question Type"] ?? "—");
   const derived = (record.derived ?? {}) as {
     derivedImpact?: number;
     risk?: number;
@@ -88,6 +90,15 @@ export function AssumptionDetail({
   const risk = derived.risk ?? 0;
   const impact = derived.derivedImpact ?? 0;
   const framed = derived.completeness ?? 0;
+
+  // DEV-5890: stage-keyed Risk threshold — the stopping bar for this stage.
+  const stageKey = (["Discovery", "Validation", "Scale", "Maturity"] as const).find(
+    (s) => s === stage,
+  );
+  const riskThreshold = stageKey
+    ? ({ Discovery: 30, Validation: 15, Scale: 10, Maturity: 5 } as const)[stageKey]
+    : null;
+  const clearedThreshold = riskThreshold != null ? risk <= riskThreshold : null;
 
   // Next move — derive a one-line next move from the page's meters, or fall
   // back to a stage-aware verb. (The existing nextMove lives in pipeline.ts;
@@ -134,6 +145,7 @@ export function AssumptionDetail({
         <span className="vos-detail-id vos-num">{assumptionId}</span>
         <span className="vos-detail-tag">{lens}</span>
         <span className="vos-detail-tag">{stage}</span>
+        <span className="vos-detail-tag vos-detail-tag-qt">{questionType}</span>
       </div>
       <div className="vos-detail-title">{statement}</div>
 
@@ -150,6 +162,29 @@ export function AssumptionDetail({
         <ScoreCard label="Confidence" value={formatSigned(confidence)} />
         <ScoreCard label="Framed" value={`${Math.round(framed)}%`} />
       </div>
+
+      {/* DEV-5890: stage-keyed Risk threshold indicator. */}
+      {riskThreshold != null ? (
+        <div className="vos-card vos-threshold-indicator">
+          <div className="vos-threshold-label">Stage threshold</div>
+          <div className="vos-threshold-row">
+            <span className="vos-num">Risk {Math.round(risk)}</span>
+            <span className="vos-threshold-bar vos-num">{riskThreshold}</span>
+            <span
+              className={`vos-threshold-status ${
+                clearedThreshold ? "vos-threshold-cleared" : "vos-threshold-needs"
+              }`}
+            >
+              {clearedThreshold ? "Cleared for this stage" : "Needs evidence"}
+            </span>
+          </div>
+          <div className="vos-threshold-hint">
+            {clearedThreshold
+              ? `Risk at or below the ${stage} threshold — de-prioritized.`
+              : `Risk above the ${stage} threshold — testing-priority.`}
+          </div>
+        </div>
+      ) : null}
 
       {/* Evidence composition — per-rung bars, lens-aware (uses the real
           confidence attribution math, so contributions add up to Confidence) */}
@@ -230,9 +265,12 @@ export function AssumptionDetail({
       ) : null}
 
       {/* Evidence list — one row per piece of evidence, with per-belief
-          excerpt, verdict, rung, anchor score and its contribution to Confidence. */}
+          excerpt, verdict, rung, anchor score and its contribution to Confidence.
+          DEV-5890: readings are grouped into probative evidence vs flagged as
+          non-evidence for this assumption's question type. */}
       <EvidenceList
         assumptionId={assumptionId}
+        questionType={questionType}
         readings={readings.records ?? []}
         onNavigate={onNavigate}
       />
@@ -242,10 +280,12 @@ export function AssumptionDetail({
 
 function EvidenceList({
   assumptionId,
+  questionType,
   readings,
   onNavigate,
 }: {
   assumptionId: string;
+  questionType: string;
   readings: AnyRecord[];
   onNavigate: (route: Route) => void;
 }) {
@@ -260,74 +300,117 @@ function EvidenceList({
     return new Map(rows.map((r) => [r.id, r]));
   }, [readings, assumptionId]);
 
+  // DEV-5890: group linked readings into probative vs flagged-as-non-evidence
+  // for this assumption's question type.
+  const qt = (
+    ["Existence", "Prevalence", "CausalEffect", "WillingnessToPay", "ValueUtility", "Regulatory", "Feasibility"] as const
+  ).find((q) => q === questionType) as QuestionType | undefined;
+  const { probative, flagged } = useMemo(() => {
+    const prob: AnyRecord[] = [];
+    const flag: AnyRecord[] = [];
+    for (const r of linkedReadings) {
+      const rung = String(r.Rung ?? "") as Rung;
+      if (qt && (RUNGS as readonly string[]).includes(rung) && isNonEvidence(qt, rung)) {
+        flag.push(r);
+      } else {
+        prob.push(r);
+      }
+    }
+    return { probative: prob, flagged: flag };
+  }, [linkedReadings, qt]);
+
   if (linkedReadings.length === 0) return null;
+
+  const renderRow = (r: AnyRecord, flagged: boolean) => {
+    const id = String(r.id ?? "");
+    const belief = readingBeliefFor(r, assumptionId);
+    if (!belief) return null;
+    const result = String(belief.Result ?? "Inconclusive");
+    const justification = String(belief["Grading justification"] ?? "");
+    const excerpt =
+      typeof belief.excerpt === "string" && belief.excerpt !== ""
+        ? belief.excerpt
+        : snippetFromBody(String(r.body ?? ""), assumptionId);
+    const rung = String(r.Rung ?? "");
+    const source = String(r.Source ?? "");
+    const expId = r.experimentId ? String(r.experimentId) : null;
+    const c = contribById.get(id);
+    return (
+      <button
+        key={id}
+        type="button"
+        className={`vos-evidence-row vos-verdict-${verdictTone(result)}${
+          flagged ? " vos-evidence-row-flagged" : ""
+        }`}
+        onClick={() => onNavigate({ name: "reading", id })}
+      >
+        <div className="vos-evidence-row-head">
+          <span className="vos-evidence-date vos-num">{String(r.Date ?? "")}</span>
+          <span className="vos-evidence-title">{String(r.Title ?? id)}</span>
+          <span className={`vos-pill vos-pill-${verdictTone(result)}`}>{result}</span>
+          <span className="vos-rung-tag">{rung}</span>
+          {flagged ? (
+            <span className="vos-evidence-flag" title="This rung is non-evidence for this assumption's question type — reclassify the assumption or drop the reading.">
+              non-evidence
+            </span>
+          ) : null}
+          {c && c.used ? (
+            <span className={`vos-evidence-score vos-num vos-text-${contributionTone(c.contribution)}`}>
+              {formatSigned(c.contribution)} confidence
+            </span>
+          ) : null}
+        </div>
+        {excerpt ? (
+          <div className="vos-evidence-excerpt">&ldquo;{excerpt}&rdquo;</div>
+        ) : null}
+        {justification ? (
+          <div className={`vos-belief-rationale vos-verdict-border-${verdictTone(result)}`}>
+            <span className="vos-belief-rationale-label">grading rationale:</span>
+            {justification}
+          </div>
+        ) : null}
+        <div className="vos-evidence-source">
+          <span className="vos-evidence-source-link" title={source}>{source}</span>
+          {expId ? (
+            <>
+              {" · from experiment "}
+              <span
+                className="vos-link"
+                onClick={(ev) => {
+                  ev.stopPropagation();
+                  onNavigate({ name: "experiment", id: expId });
+                }}
+              >
+                {expId}
+              </span>
+            </>
+          ) : null}
+        </div>
+      </button>
+    );
+  };
 
   return (
     <div className="vos-card vos-detail-section">
       <div className="vos-detail-section-label">
         Evidence · {linkedReadings.length} piece{linkedReadings.length === 1 ? "" : "s"} of evidence
       </div>
-      {linkedReadings.map((r) => {
-        const id = String(r.id ?? "");
-        const belief = readingBeliefFor(r, assumptionId);
-        if (!belief) return null;
-        const result = String(belief.Result ?? "Inconclusive");
-        const justification = String(belief["Grading justification"] ?? "");
-        const excerpt =
-          typeof belief.excerpt === "string" && belief.excerpt !== ""
-            ? belief.excerpt
-            : snippetFromBody(String(r.body ?? ""), assumptionId);
-        const rung = String(r.Rung ?? "");
-        const source = String(r.Source ?? "");
-        const expId = r.experimentId ? String(r.experimentId) : null;
-        const c = contribById.get(id);
-        return (
-          <button
-            key={id}
-            type="button"
-            className={`vos-evidence-row vos-verdict-${verdictTone(result)}`}
-            onClick={() => onNavigate({ name: "reading", id })}
-          >
-            <div className="vos-evidence-row-head">
-              <span className="vos-evidence-date vos-num">{String(r.Date ?? "")}</span>
-              <span className="vos-evidence-title">{String(r.Title ?? id)}</span>
-              <span className={`vos-pill vos-pill-${verdictTone(result)}`}>{result}</span>
-              <span className="vos-rung-tag">{rung}</span>
-              {c && c.used ? (
-                <span className={`vos-evidence-score vos-num vos-text-${contributionTone(c.contribution)}`}>
-                  {formatSigned(c.contribution)} confidence
-                </span>
-              ) : null}
-            </div>
-            {excerpt ? (
-              <div className="vos-evidence-excerpt">“{excerpt}”</div>
-            ) : null}
-            {justification ? (
-              <div className={`vos-belief-rationale vos-verdict-border-${verdictTone(result)}`}>
-                <span className="vos-belief-rationale-label">grading rationale:</span>
-                {justification}
-              </div>
-            ) : null}
-            <div className="vos-evidence-source">
-              <span className="vos-evidence-source-link" title={source}>{source}</span>
-              {expId ? (
-                <>
-                  {" · from experiment "}
-                  <span
-                    className="vos-link"
-                    onClick={(ev) => {
-                      ev.stopPropagation();
-                      onNavigate({ name: "experiment", id: expId });
-                    }}
-                  >
-                    {expId}
-                  </span>
-                </>
-              ) : null}
-            </div>
-          </button>
-        );
-      })}
+      {probative.length > 0 ? (
+        <div className="vos-evidence-group vos-evidence-group-probative">
+          <div className="vos-evidence-group-label">
+            Probative evidence · {probative.length}
+          </div>
+          {probative.map((r) => renderRow(r, false))}
+        </div>
+      ) : null}
+      {flagged.length > 0 ? (
+        <div className="vos-evidence-group vos-evidence-group-flagged">
+          <div className="vos-evidence-group-label">
+            Flagged as non-evidence for this question type · {flagged.length}
+          </div>
+          {flagged.map((r) => renderRow(r, true))}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -337,6 +420,16 @@ function contributionTone(v: number): Tone {
   if (v < 0) return "crit";
   return "neutral";
 }
+
+/** The 6 fixed rung values, for the non-evidence grouping check. */
+const RUNGS = [
+  "Talk",
+  "Desk research",
+  "Signed up",
+  "Observed usage",
+  "Signed intent",
+  "Paying users",
+] as const;
 
 function snippetFromBody(body: string, cue: string): string {
   if (!body) return "";
