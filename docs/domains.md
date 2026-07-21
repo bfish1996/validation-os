@@ -46,8 +46,8 @@ the rung reflects what the signal **cost the prospect**:
 
 | Funnel event | Rung | Why |
 |---|---|---|
-| A reply, a "sounds interesting" | Anecdotal / Pitch-deck reaction (10–15%) | Words to a concrete stimulus — stated, not revealed. |
-| Campaign at N with a pre-registered rate bar | Survey at scale (40%) | Volume changes the rung: 200 systematic sends judged against a reply/meeting-rate bar is one Survey row, not 200 anecdotes. |
+| A reply, a "sounds interesting" | Talk (10–15%) | Words to a concrete stimulus — stated, not revealed. |
+| Campaign at N with a pre-registered rate bar | Observed usage (40%) | Volume changes the rung: 200 systematic sends judged against a reply/meeting-rate bar is one Observed-usage row, not 200 Talk records. |
 | LOI, deposit, fake-door signup from outreach | Signed intent (60%) | A costly commitment before the thing exists. |
 | Paid pilot, signed contract | Paying users (99%) | Real money. |
 
@@ -118,7 +118,7 @@ canonical case for **revealed > stated**: everyone says yes to a
 hypothetical price. Stated rungs (pricing question in an interview) cap
 low; the honest tests are Signed intent (deposit, pre-order, priced
 fake-door) and Paying users (a real price on real traffic). Van
-Westendorp-style surveys land at Survey at scale — useful for *shape*,
+Westendorp-style surveys land at Observed usage — useful for *shape*,
 never for "they will pay".
 
 ## Fundraising

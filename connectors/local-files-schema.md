@@ -246,7 +246,7 @@ ID>` sub-block per belief:
 #### ASM-014
 - **We're right if**: ≥30% of interviewed operators say they'd switch within a quarter.
 - **We're wrong if**: <10% say they'd switch, or nobody can name a trigger.
-- **Planned rung**: Survey at scale
+- **Planned rung**: Observed usage
 - **Bar verdict**: (set at closure)
 ```
 
@@ -314,7 +314,7 @@ magnitude are on the row (above); each sub-block carries only `Result`,
 #### ASM-014
 - **Result**: Validated
 - **Strength**: 3 <!-- derived -->
-- **Grading justification**: Described reconciling by hand weekly, unprompted → Validated against ASM-014. (Reading rung Anecdotal; Rep 1.0, Cred 0.7.)
+- **Grading justification**: Described reconciling by hand weekly, unprompted → Validated against ASM-014. (Reading rung Talk; Rep 1.0, Cred 0.7.)
 ```
 
 One sub-block per scored assumption ID. A reading that bears on N beliefs has

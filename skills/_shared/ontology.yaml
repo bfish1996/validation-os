@@ -324,7 +324,7 @@ entities:
       - { name: Representativeness, type: select, options: vocabularies.source_quality.picks, required: true }   # source-level: one value per reading (grades the source, not the belief)
       - { name: Credibility, type: select, options: vocabularies.source_quality.picks, required: true }   # source-level: one value per reading
       - { name: Source quality, type: number, derived: true }   # = Representativeness × Credibility; scales each beliefs[] entry's weight
-      - { name: Rung, type: select, options: vocabularies.rung, required: true }   # ROW-LEVEL (0.10): one rung per artifact; Prototype usage = genuine prototype-usage sessions only
+      - { name: Rung, type: select, options: vocabularies.rung, required: true }   # ROW-LEVEL (0.10): one rung per artifact; the anchor is per (question type × rung × band), see derivations.strength
       - { name: Magnitude band, type: select, options: vocabularies.magnitude_band, required: false }   # ROW-LEVEL; Market rungs only; null on Testing rungs
       - { name: Date, type: date }
       - { name: Owner, type: dashboard_user, required: false }

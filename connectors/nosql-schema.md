@@ -337,7 +337,7 @@ Example shape:
       "assumptionId": "ASM-042",
       "rightIf": "6+ of 10 owners commit to a paid pilot",
       "wrongIf": "fewer than 2 of 10 express interest",
-      "plannedRung": "Anecdotal",
+      "plannedRung": "Talk",
       "barVerdict": null
     }
   ],
@@ -404,7 +404,7 @@ Example shape:
   "Representativeness": 1.0,
   "Credibility": 0.7,
   "derived": { "sourceQuality": 0.7 },
-  "Rung": "Anecdotal",
+  "Rung": "Talk",
   "magnitudeBand": null,
   "Date": "2026-07-02",
   "Owner": [],
@@ -414,7 +414,7 @@ Example shape:
       "assumptionId": "ASM-042",
       "Result": "Validated",
       "derived": { "strength": 10 },
-      "Grading justification": "Described reconciling by hand weekly, unprompted → Validated against ASM-042. (Reading rung Anecdotal; Rep 1.0 dead-centre ICP, Cred 0.7 owner mild bias.)"
+      "Grading justification": "Described reconciling by hand weekly, unprompted → Validated against ASM-042. (Reading rung Talk; Rep 1.0 dead-centre ICP, Cred 0.7 owner mild bias.)"
     },
     {
       "assumptionId": "ASM-050",
@@ -427,9 +427,9 @@ Example shape:
 }
 ```
 
-Both belief entries share the reading's single row-level `Rung` (`Anecdotal`);
-if the call had also included a genuine prototype-usage demo, that portion would
-be a **separate** reading document at `Prototype usage`
+Both belief entries share the reading's single row-level `Rung` (`Talk`);
+if the call had also included a genuine usage demo, that portion would
+be a **separate** reading document at `Observed usage`
 (`experiment-guardrails.md §0`).
 
 A Reading has one origin type: `experimentId` set, or unset (a bare found

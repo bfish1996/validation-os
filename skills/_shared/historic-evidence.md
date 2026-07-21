@@ -69,10 +69,11 @@ With **no internal sources configured**, the internal flavour degrades to
 asking the user to paste or point at material (notes, a transcript file, an
 export) — the triage and write below apply unchanged.
 
-Schema: the field map, the 7-rung `Rung` ladder, and the `Result` options for
+Schema: the field map, the 6-rung `Rung` ladder, and the `Result` options for
 Readings are owned by `experiment-guardrails.md` (§0, §2) and
 `registry-schema.md` (§Field map — Readings) — read them for the schema; do
-not redefine it here. On the Notion connector, verify the Readings→
+not redefine it here. The anchor (ceiling `s`) is per (question type × rung ×
+band) — see `docs/evidence-ladder.md`. On the Notion connector, verify the Readings→
 Assumption relation target before the first write
 (`connectors/notion.md §Cautions`) — a record linked to the wrong register
 rolls up Confidence nowhere.
@@ -173,10 +174,10 @@ describing the source and origin):**
 - **`Rung`** (**row-level — one rung per artifact**) = the rung matching **what
   the artifact shows**, graded once for the whole reading (`experiment-guardrails.md
   §2`) — **Testing rungs only**: a stated opinion or an unprompted report of a
-  real past behaviour → 🧪 `Anecdotal` (the floor); a verbal yes to a mock →
-  🧪 `Pitch-deck reaction`; regulation / published data / competitor fact →
-  🧪 `Desk research`; a structured questionnaire already run → 🧪 `Survey at
-  scale`; genuine hands-on unpaid use → 🧪 `Prototype usage`. **Found evidence
+  real past behaviour → 🧪 `Talk` (the collapsed floor — Opinion + Pitch-deck +
+  Anecdotal merged); regulation / published data / competitor fact →
+  🧪 `Desk research`; a structured questionnaire already run, or genuine
+  hands-on unpaid use → 🧪 `Observed usage`. **Found evidence
   never mints a 🎯 Market-rung reading** — there are no bare Market-rung
   readings (`experiment-guardrails.md §6`). A measured scoreboard number
   (product metric, CRM level) is Market-side: don't log it — surface it and

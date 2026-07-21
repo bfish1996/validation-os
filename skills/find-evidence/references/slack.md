@@ -13,7 +13,7 @@ matched message.
 
 **Qualifies as evidence when:** the thread relays something a real
 user/customer/prospect said or did (quote, screenshot, forwarded message).
-The rung follows what was relayed: a described past behaviour → `Anecdotal`.
+The rung follows what was relayed: a described past behaviour → `Talk`.
 A **teammate's own take is not evidence** — internal opinion is hypothesis, not
 a reading (`experiment-guardrails.md §0`); it belongs in the assumption's
 `Scoring justification`, never logged.

@@ -264,9 +264,9 @@ Confidence — a re-test signal (Risk stays clamped), and at **≤ −50** audit
 prompts a human-affirmed kill (never automatic).
 
 **Volume lives in rung choice, not record count.** 100 people validating a
-belief = one `Survey at scale` record, not 100 `Anecdotal` records — the
-average is bounded by the strongest reading and same-source readings dedupe,
-so weak records don't stack. Three filters before a signal counts at all: (a)
+belief = one `Observed usage` record at the right magnitude band, not 100
+`Talk` records — the average is bounded by the strongest reading and
+same-source readings dedupe, so weak records don't stack. Three filters before a signal counts at all: (a)
 it must test *this* claim — evidence for a sibling or dependency doesn't
 bear on this record; a reading that addresses several beliefs scores each in
 its own `beliefs[]` entry, and only the entry naming *this* assumption counts
