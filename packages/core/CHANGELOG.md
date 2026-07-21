@@ -1,5 +1,11 @@
 # @validation-os/core
 
+## 0.15.6
+
+### Patch Changes
+
+- 9f18f2b: Fix donut alignment, tighten grid toggle padding, proposed experiments open in side drawer (not inline rows), compact next-moves cards.
+
 ## 0.15.5
 
 ### Patch Changes
