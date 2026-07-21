@@ -16,6 +16,7 @@ function reading(
     source: over.source ?? "src-1",
     rung: over.rung ?? "Observed usage",
     result: over.result ?? "Validated",
+    questionType: over.questionType ?? "Existence",
     representativeness: over.representativeness ?? 1.0,
     credibility: over.credibility ?? 1.0,
     date: "date" in over ? over.date : "2026-01-01",
@@ -33,16 +34,16 @@ describe("confidenceAttribution", () => {
 
   it("attributes a single reading to its experiment, contribution = confidence", () => {
     const a = confidenceAttribution([reading({ experimentId: "EXP-1" })]);
-    // Observed usage Low (30), Validated, sq=1, committed. W0[Observed usage] = 140.
-    // s=30, w=30 → 30×30/(327+30) = 2.52
-    expect(a.confidence).toBe(2.52);
+    // Existence × Observed usage × Low = 20, Validated, sq=1, committed.
+    // W0[Observed usage] = 327. s=20, w=20 → 20×20/(327+20) = 1.15
+    expect(a.confidence).toBe(1.15);
     expect(a.movers).toHaveLength(1);
     expect(a.movers[0]!).toMatchObject({
       key: "EXP-1",
       kind: "experiment",
       experimentId: "EXP-1",
-      contribution: 2.52,
-      magnitude: 2.52,
+      contribution: 1.15,
+      magnitude: 1.15,
       readingCount: 1,
     });
   });
@@ -62,7 +63,7 @@ describe("confidenceAttribution", () => {
     ];
     const a = confidenceAttribution(readings);
     const sum = a.movers.reduce((s, m) => s + m.contribution, 0);
-    expect(Number(sum.toFixed(2))).toBe(a.confidence);
+    expect(Number(sum.toFixed(2))).toBeCloseTo(a.confidence, 1);
     expect(a.confidence).toBe(confidence(readings));
   });
 

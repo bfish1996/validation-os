@@ -14,16 +14,18 @@ const filled = () => ({
   "Scoring justification": "High because distribution rests on it.",
   dependsOnIds: ["ASM-002"],
   enablesIds: [],
+  "Question Type": "Existence",
 });
 
 describe("assumption completeness slots", () => {
-  it("names the five structural slots", () => {
+  it("names the six structural slots", () => {
     expect([...COMPLETENESS_SLOTS]).toEqual([
       "Description",
       "Lens",
       "Impact",
       "Scoring justification",
       "Dependencies traced",
+      "Question Type",
     ]);
   });
 
@@ -39,11 +41,11 @@ describe("assumption completeness slots", () => {
     expect(missingCompletenessSlots({})).toEqual([...COMPLETENESS_SLOTS]);
   });
 
-  it("scores each present slot as a fifth (20%)", () => {
-    // Only Description + Impact present → 2 of 5.
+  it("scores each present slot as a sixth (~16.67%)", () => {
+    // Only Description + Impact present → 2 of 6.
     expect(
       assumptionCompleteness({ Description: "x", Impact: 40 }),
-    ).toBe(40);
+    ).toBe(33);
   });
 
   it("counts Impact = 0 as present (a real hand-scored value)", () => {
@@ -59,6 +61,7 @@ describe("assumption completeness slots", () => {
       "Scoring justification": "",
       dependsOnIds: [],
       enablesIds: [],
+      "Question Type": "",
     };
     expect(assumptionCompleteness(rec)).toBe(0);
     expect(missingCompletenessSlots(rec)).toEqual([...COMPLETENESS_SLOTS]);
@@ -67,5 +70,12 @@ describe("assumption completeness slots", () => {
   it("counts an Enables link alone as dependencies traced", () => {
     const rec = { enablesIds: ["ASM-009"] };
     expect(missingCompletenessSlots(rec)).not.toContain("Dependencies traced");
+  });
+
+  it("flags a missing Question Type as incomplete (Live gate)", () => {
+    const rec = { ...filled(), "Question Type": null };
+    expect(assumptionCompleteness(rec)).toBeLessThan(100);
+    expect(assumptionComplete(rec)).toBe(false);
+    expect(missingCompletenessSlots(rec)).toContain("Question Type");
   });
 });

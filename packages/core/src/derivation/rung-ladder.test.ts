@@ -1,40 +1,46 @@
 import { describe, expect, it } from "vitest";
 import {
-  COMMITMENT_FOUND,
+  ceilingAnchor,
+  hasClearedThreshold,
+  isNonEvidence,
+  RISK_THRESHOLD_BY_STAGE,
+  riskThresholdForStage,
   RUNG_ANCHOR,
   W0_BY_RUNG,
-  confidence,
   w0ForRung,
-  type ConfidenceReadingInput,
 } from "./index.js";
-import { MARKET_RUNG_VALUES, TESTING_RUNGS, type Rung } from "../types.js";
+import {
+  MARKET_RUNG_VALUES,
+  QUESTION_TYPES,
+  TESTING_RUNGS,
+  type QuestionType,
+  type Rung,
+  type Stage,
+} from "../types.js";
 
-// The 6 lens-aware rungs locked by DEV-5879 (spec values):
-//   Talk (3/6/10) | Desk research (15) | Signed up (30/50/70, consumer)
-//   Observed usage (30/50/70, consumer) | Signed intent (30/50/70, commercial)
-//   Paying users (30/50/70, commercial)
-// W0s: Talk 6.5, Desk 2, every "do" rung 327.
-
+// The 6-rung vocabulary locked by DEV-5879 (carried into DEV-5890). The rung
+// vocabulary is fixed across all sub-ladders; only the anchors vary by
+// question type.
 const ALL_RUNGS: Rung[] = [...TESTING_RUNGS, ...MARKET_RUNG_VALUES] as Rung[];
 
-// A concluded testing reading with full source quality, experiment-linked.
-function reading(
-  over: Partial<ConfidenceReadingInput> = {},
-): ConfidenceReadingInput {
-  return {
-    id: over.id ?? "RDG-001",
-    source: over.source ?? "src-1",
-    rung: over.rung ?? "Observed usage",
-    result: over.result ?? "Validated",
-    representativeness: over.representativeness ?? 1.0,
-    credibility: over.credibility ?? 1.0,
-    date: over.date ?? "2026-01-01",
-    magnitudeBand: over.magnitudeBand,
-    experimentId: "experimentId" in over ? over.experimentId : "EXP-1",
-  };
-}
+// Every band the anchor table addresses.
+const BANDS = ["Low", "Typical", "High"] as const;
 
-describe("DEV-5880 lens-aware ladder — vocabulary", () => {
+describe("DEV-5890 question-type-aware ladder — vocabulary", () => {
+  it("exposes exactly the 7 question types", () => {
+    expect([...QUESTION_TYPES].sort()).toEqual(
+      [
+        "CausalEffect",
+        "Existence",
+        "Feasibility",
+        "Prevalence",
+        "Regulatory",
+        "ValueUtility",
+        "WillingnessToPay",
+      ].sort(),
+    );
+  });
+
   it("exposes exactly the 6 locked rungs", () => {
     expect(ALL_RUNGS.sort()).toEqual(
       [
@@ -47,49 +53,151 @@ describe("DEV-5880 lens-aware ladder — vocabulary", () => {
       ].sort(),
     );
   });
-
-  it("Talk is a single rung (Opinion + Pitch-deck + Anecdotal merged)", () => {
-    expect(ALL_RUNGS).toContain("Talk");
-    // The old names are gone.
-    expect(
-      (ALL_RUNGS as string[]).filter((r) =>
-        ["Opinion", "Pitch-deck reaction", "Anecdotal", "Survey at scale", "Prototype usage"].includes(r),
-      ),
-    ).toEqual([]);
-  });
-
-  it("includes Signed up as the consumer lens's first do-rung", () => {
-    expect(ALL_RUNGS).toContain("Signed up");
-  });
-
-  it("rung-to-lens mapping is a guideline not a schema constraint", () => {
-    // The Rung union carries no lens tag; any Rung can appear on any assumption.
-    // We assert the type compiles for every rung on a consumer-lens assumption.
-    const consumerRungs: Rung[] = ["Talk", "Desk research", "Signed up", "Observed usage"];
-    const commercialRungs: Rung[] = ["Talk", "Desk research", "Signed intent", "Paying users"];
-    expect(consumerRungs.every((r) => ALL_RUNGS.includes(r))).toBe(true);
-    expect(commercialRungs.every((r) => ALL_RUNGS.includes(r))).toBe(true);
-  });
 });
 
-describe("DEV-5880 lens-aware ladder — anchors", () => {
-  it("Talk anchors are 3 / 6 / 10 (Low / Typical / High)", () => {
-    expect(RUNG_ANCHOR.Talk).toEqual({ Low: 3, Typical: 6, High: 10 });
-  });
-
-  it("Desk research is flat at 15 across bands", () => {
-    expect(RUNG_ANCHOR["Desk research"]).toEqual({ Low: 15, Typical: 15, High: 15 });
-  });
-
-  it("Every do-rung (Signed up / Observed usage / Signed intent / Paying users) is 30 / 50 / 70", () => {
-    const doRungs = ["Signed up", "Observed usage", "Signed intent", "Paying users"] as const;
-    for (const r of doRungs) {
-      expect(RUNG_ANCHOR[r]).toEqual({ Low: 30, Typical: 50, High: 70 });
+describe("DEV-5890 — 3D anchor table shape", () => {
+  it("RUNG_ANCHOR carries one sub-ladder per question type", () => {
+    for (const q of QUESTION_TYPES) {
+      expect(RUNG_ANCHOR[q]).toBeDefined();
+      for (const r of ALL_RUNGS) {
+        for (const b of BANDS) {
+          expect(typeof RUNG_ANCHOR[q][r][b]).toBe("number");
+        }
+      }
     }
   });
+
+  it("non-evidence entries are 0 across all bands", () => {
+    // Existence: Signed up / Signed intent / Paying users are non-evidence.
+    for (const r of ["Signed up", "Signed intent", "Paying users"] as Rung[]) {
+      expect(RUNG_ANCHOR.Existence[r]).toEqual({ Low: 0, Typical: 0, High: 0 });
+      expect(isNonEvidence("Existence", r)).toBe(true);
+    }
+  });
+
+  it("probative entries are non-zero in at least one band", () => {
+    // Existence: Talk (10/20/30) and Observed usage (20/35/50) are probative.
+    expect(RUNG_ANCHOR.Existence.Talk).toEqual({ Low: 10, Typical: 20, High: 30 });
+    expect(RUNG_ANCHOR.Existence["Observed usage"]).toEqual({
+      Low: 20,
+      Typical: 35,
+      High: 50,
+    });
+    expect(isNonEvidence("Existence", "Talk")).toBe(false);
+    expect(isNonEvidence("Existence", "Observed usage")).toBe(false);
+  });
+
+  it("Talk is non-evidence for Prevalence / CausalEffect / WillingnessToPay / Regulatory / Feasibility", () => {
+    const nonTalk: QuestionType[] = [
+      "Prevalence",
+      "CausalEffect",
+      "WillingnessToPay",
+      "Regulatory",
+      "Feasibility",
+    ];
+    for (const q of nonTalk) {
+      expect(RUNG_ANCHOR[q].Talk).toEqual({ Low: 0, Typical: 0, High: 0 });
+      expect(isNonEvidence(q, "Talk")).toBe(true);
+    }
+  });
+
+  it("WillingnessToPay sub-ladder — talk and desk are non-evidence", () => {
+    expect(RUNG_ANCHOR.WillingnessToPay.Talk).toEqual({ Low: 0, Typical: 0, High: 0 });
+    expect(RUNG_ANCHOR.WillingnessToPay["Desk research"]).toEqual({
+      Low: 0,
+      Typical: 0,
+      High: 0,
+    });
+    expect(RUNG_ANCHOR.WillingnessToPay["Signed up"]).toEqual({
+      Low: 30,
+      Typical: 50,
+      High: 70,
+    });
+    expect(RUNG_ANCHOR.WillingnessToPay["Signed intent"]).toEqual({
+      Low: 50,
+      Typical: 70,
+      High: 85,
+    });
+    expect(RUNG_ANCHOR.WillingnessToPay["Paying users"]).toEqual({
+      Low: 75,
+      Typical: 88,
+      High: 99,
+    });
+  });
+
+  it("CausalEffect sub-ladder — only observed/signed/paying are probative", () => {
+    for (const r of ["Talk", "Desk research", "Signed up"] as Rung[]) {
+      expect(isNonEvidence("CausalEffect", r)).toBe(true);
+    }
+    expect(RUNG_ANCHOR.CausalEffect["Observed usage"]).toEqual({
+      Low: 30,
+      Typical: 50,
+      High: 70,
+    });
+    expect(RUNG_ANCHOR.CausalEffect["Signed intent"]).toEqual({
+      Low: 30,
+      Typical: 50,
+      High: 70,
+    });
+    expect(RUNG_ANCHOR.CausalEffect["Paying users"]).toEqual({
+      Low: 50,
+      Typical: 70,
+      High: 90,
+    });
+  });
+
+  it("ValueUtility sub-ladder — WTP rungs are non-evidence", () => {
+    for (const r of ["Signed intent", "Paying users"] as Rung[]) {
+      expect(isNonEvidence("ValueUtility", r)).toBe(true);
+    }
+    expect(RUNG_ANCHOR.ValueUtility.Talk).toEqual({ Low: 10, Typical: 20, High: 30 });
+    expect(RUNG_ANCHOR.ValueUtility["Observed usage"]).toEqual({
+      Low: 30,
+      Typical: 50,
+      High: 70,
+    });
+  });
+
+  it("Regulatory sub-ladder — Desk research is the only probative rung", () => {
+    for (const r of ALL_RUNGS) {
+      if (r === "Desk research") {
+        expect(isNonEvidence("Regulatory", r)).toBe(false);
+      } else {
+        expect(isNonEvidence("Regulatory", r)).toBe(true);
+      }
+    }
+    expect(RUNG_ANCHOR.Regulatory["Desk research"]).toEqual({
+      Low: 30,
+      Typical: 50,
+      High: 70,
+    });
+  });
+
+  it("Feasibility sub-ladder — Desk research + Observed usage are probative", () => {
+    expect(RUNG_ANCHOR.Feasibility["Desk research"]).toEqual({
+      Low: 15,
+      Typical: 15,
+      High: 15,
+    });
+    expect(RUNG_ANCHOR.Feasibility["Observed usage"]).toEqual({
+      Low: 30,
+      Typical: 50,
+      High: 70,
+    });
+  });
+
+  it("ceilingAnchor returns the High band for a (question type × rung)", () => {
+    expect(ceilingAnchor("Existence", "Observed usage")).toBe(50);
+    expect(ceilingAnchor("WillingnessToPay", "Paying users")).toBe(99);
+    expect(ceilingAnchor("Regulatory", "Desk research")).toBe(70);
+    expect(ceilingAnchor("CausalEffect", "Paying users")).toBe(90);
+    expect(ceilingAnchor("ValueUtility", "Observed usage")).toBe(70);
+    // Non-evidence rung → ceiling 0.
+    expect(ceilingAnchor("Existence", "Paying users")).toBe(0);
+  });
 });
 
-describe("DEV-5880 per-rung W0 — locked values", () => {
+describe("DEV-5890 — per-rung W0 is retained (within-sub-ladder learning rate)", () => {
   it("Talk W0 = 6.5 (10 readings → ~90% of cap)", () => {
     expect(w0ForRung("Talk")).toBe(6.5);
     expect(W0_BY_RUNG["Talk"]).toBe(6.5);
@@ -109,100 +217,45 @@ describe("DEV-5880 per-rung W0 — locked values", () => {
   });
 });
 
-describe("DEV-5880 per-rung W0 — hand-worked examples", () => {
-  // For a single Validated reading at strength s with sq=1, commitment=1:
-  //   confidence = (w × s) / (W0 + w), where w = |s| × 1 × 1 = s
-  // So confidence = s² / (W0 + s). With n independent readings at the same
-  // rung (same anchor s, all full quality, all committed), winners dedupe by
-  // source so all n count:
-  //   num = n × (s × s) = n × s², den = W0 + n × s
-  //   confidence = (n × s²) / (W0 + n × s)
-
-  it("2 desk sources → ~90% of the desk cap (anchor 15, W0 2)", () => {
-    // s = 15, n = 2 → num = 2 × 225 = 450, den = 2 + 2 × 15 = 32 → 14.06
-    // The desk cap is 15 (Typical anchor). 14.06 / 15 = 93.7% — near the cap.
-    const twoDesk = Array.from({ length: 2 }, (_, i) =>
-      reading({ id: `d${i}`, source: `ds${i}`, rung: "Desk research" }),
+describe("DEV-5890 — stage-keyed Risk threshold (the stopping rule)", () => {
+  it("carries exactly the four stages, tightening across the lifecycle", () => {
+    const stages: Stage[] = ["Discovery", "Validation", "Scale", "Maturity"];
+    for (const s of stages) {
+      expect(RISK_THRESHOLD_BY_STAGE[s]).toBeDefined();
+    }
+    // Tightening: Discovery > Validation > Scale > Maturity.
+    expect(RISK_THRESHOLD_BY_STAGE.Discovery).toBeGreaterThan(
+      RISK_THRESHOLD_BY_STAGE.Validation,
     );
-    const c = confidence(twoDesk);
-    expect(c).toBeCloseTo(14.06, 1);
-    expect(c / RUNG_ANCHOR["Desk research"].Typical).toBeGreaterThan(0.9);
-  });
-
-  it("20 paying users → ~75% of the paying cap (anchor 50 Typical, W0 327)", () => {
-    // s = 50 (Typical), n = 20 (market rungs never dedupe so all 20 count)
-    // num = 20 × 2500 = 50000, den = 327 + 20 × 50 = 1327 → 37.68
-    // The paying cap (Typical) is 50. 37.68 / 50 = 75.4%.
-    const twentyPaying = Array.from({ length: 20 }, (_, i) =>
-      reading({ id: `p${i}`, source: `ps${i}`, rung: "Paying users" }),
+    expect(RISK_THRESHOLD_BY_STAGE.Validation).toBeGreaterThan(
+      RISK_THRESHOLD_BY_STAGE.Scale,
     );
-    const c = confidence(twentyPaying);
-    expect(c).toBeCloseTo(37.68, 0);
-    expect(c / RUNG_ANCHOR["Paying users"].Typical).toBeGreaterThan(0.74);
-    expect(c / RUNG_ANCHOR["Paying users"].Typical).toBeLessThan(0.76);
-  });
-
-  it("10 talk readings → ~90% of the talk cap (anchor 6 Typical, W0 6.5)", () => {
-    // s = 6 (Typical), n = 10 → num = 10 × 36 = 360, den = 6.5 + 10 × 6 = 66.5 → 5.41
-    // The talk cap (Typical) is 6. 5.41 / 6 = 90.2%.
-    const tenTalk = Array.from({ length: 10 }, (_, i) =>
-      reading({ id: `t${i}`, source: `ts${i}`, rung: "Talk" }),
+    expect(RISK_THRESHOLD_BY_STAGE.Scale).toBeGreaterThan(
+      RISK_THRESHOLD_BY_STAGE.Maturity,
     );
-    const c = confidence(tenTalk);
-    expect(c).toBeCloseTo(5.41, 1);
-    expect(c / RUNG_ANCHOR.Talk.Typical).toBeGreaterThan(0.89);
-    expect(c / RUNG_ANCHOR.Talk.Typical).toBeLessThan(0.91);
-  });
-});
-
-describe("DEV-5880 — Rung dominates invariant", () => {
-  it("a high-rung found reading outweighs a low-rung committed reading", () => {
-    // A found reading at a high rung (Observed usage, found 0.85) must still
-    // outweigh a committed reading at a low rung (Talk, 1.0), so rung — not
-    // commitment — is the dominant signal.
-    const foundHigh = confidence([
-      reading({
-        rung: "Observed usage",
-        magnitudeBand: "Typical",
-        experimentId: null,
-      }),
-    ]);
-    const committedLow = confidence([
-      reading({
-        rung: "Talk",
-        magnitudeBand: "Typical",
-        experimentId: "EXP-1",
-      }),
-    ]);
-    expect(foundHigh).toBeGreaterThan(committedLow);
   });
 
-  it("two desk readings (commitment 0.85 found) beat one talk reading (committed)", () => {
-    // The found discount is small; two desk found readings still beat one
-    // committed talk reading — the rung ladder dominates the commitment
-    // tiebreaker.
-    const foundDesk = confidence([
-      reading({
-        id: "d1",
-        source: "ds1",
-        rung: "Desk research",
-        experimentId: null,
-      }),
-      reading({
-        id: "d2",
-        source: "ds2",
-        rung: "Desk research",
-        experimentId: null,
-      }),
-    ]);
-    const committedTalk = confidence([
-      reading({
-        rung: "Talk",
-        magnitudeBand: "High",
-        experimentId: "EXP-1",
-      }),
-    ]);
-    expect(foundDesk).toBeGreaterThan(committedTalk);
-    expect(COMMITMENT_FOUND).toBe(0.85);
+  it("matches the spec values (Discovery 30, Validation 15, Scale 10, Maturity 5)", () => {
+    expect(RISK_THRESHOLD_BY_STAGE.Discovery).toBe(30);
+    expect(RISK_THRESHOLD_BY_STAGE.Validation).toBe(15);
+    expect(RISK_THRESHOLD_BY_STAGE.Scale).toBe(10);
+    expect(RISK_THRESHOLD_BY_STAGE.Maturity).toBe(5);
+  });
+
+  it("riskThresholdForStage falls back to the tightest threshold when stage is absent", () => {
+    expect(riskThresholdForStage("Discovery")).toBe(30);
+    expect(riskThresholdForStage("Maturity")).toBe(5);
+    expect(riskThresholdForStage(null)).toBe(5);
+    expect(riskThresholdForStage(undefined)).toBe(5);
+  });
+
+  it("hasClearedThreshold — cleared = Risk at or below the stage's bar", () => {
+    // Discovery threshold = 30: a belief at Risk 25 has cleared; at Risk 40 hasn't.
+    expect(hasClearedThreshold(25, "Discovery")).toBe(true);
+    expect(hasClearedThreshold(30, "Discovery")).toBe(true);
+    expect(hasClearedThreshold(31, "Discovery")).toBe(false);
+    // Maturity threshold = 5: tighter bar — the same Risk 25 has not cleared.
+    expect(hasClearedThreshold(25, "Maturity")).toBe(false);
+    expect(hasClearedThreshold(5, "Maturity")).toBe(true);
   });
 });

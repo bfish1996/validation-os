@@ -13,16 +13,18 @@ const filled = () => ({
   "Scoring justification": "why Impact = 60",
   dependsOnIds: ["ASM-002"],
   enablesIds: [],
+  "Question Type": "Existence",
 });
 
 describe("assumption presence (completeness slots)", () => {
-  it("names the five completeness slots (OPS-1305), not the retired fields", () => {
+  it("names the six completeness slots (OPS-1305 + DEV-5890), not the retired fields", () => {
     expect([...ASSUMPTION_PRESENCE_SLOTS]).toEqual([
       "Description",
       "Lens",
       "Impact",
       "Scoring justification",
       "Dependencies traced",
+      "Question Type",
     ]);
     expect([...ASSUMPTION_PRESENCE_SLOTS]).not.toContain("5 Whys");
     expect([...ASSUMPTION_PRESENCE_SLOTS]).not.toContain("Metric for truth");
@@ -37,6 +39,13 @@ describe("assumption presence (completeness slots)", () => {
     const rec = { ...filled() } as Record<string, unknown>;
     delete rec["Scoring justification"];
     expect(missingPresenceSlots(rec)).toEqual(["Scoring justification"]);
+    expect(assumptionPresenceComplete(rec)).toBe(false);
+  });
+
+  it("treats a missing Question Type as missing (the Live gate, DEV-5890)", () => {
+    const rec = { ...filled() } as Record<string, unknown>;
+    delete rec["Question Type"];
+    expect(missingPresenceSlots(rec)).toEqual(["Question Type"]);
     expect(assumptionPresenceComplete(rec)).toBe(false);
   });
 
