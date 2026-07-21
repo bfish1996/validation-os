@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { AnyRecord } from "@validation-os/core";
-import { buildNeedsFraming, buildRecommendedExperiments, MAX_NEEDS_FRAMING } from "./recommended-experiments.js";
+import { buildNeedsFraming, buildRecommendedExperiments, MAX_NEEDS_FRAMING, MAX_RECOMMENDED } from "./recommended-experiments.js";
 
 // Minimal shape — buildRecommendedExperiments reads only these fields.
 function asm(
@@ -174,15 +174,18 @@ describe("buildRecommendedExperiments", () => {
     expect(buildRecommendedExperiments(assumptions, [])).toEqual([]);
   });
 
-  it("caps at MAX_RECOMMENDED (2) — returns only the 2 riskiest clusters", () => {
+  it("returns one cluster per lens, up to MAX_RECOMMENDED, riskiest-first", () => {
     const assumptions = [
       asm({ id: "Low", Lens: "Consumer", Theme: ["Discovery"], derived: { derivedImpact: 30, risk: 20, confidence: 0, completeness: 50 } }),
       asm({ id: "Mid", Lens: "Commercial", Theme: ["Scale"], derived: { derivedImpact: 50, risk: 50, confidence: 0, completeness: 50 } }),
       asm({ id: "High", Lens: "Founder", Theme: ["Validation"], derived: { derivedImpact: 80, risk: 70, confidence: 0, completeness: 50 } }),
     ];
     const recs = buildRecommendedExperiments(assumptions, []);
-    expect(recs.length).toBeLessThanOrEqual(2);
-    expect(recs[0]!.maxRisk).toBeGreaterThanOrEqual(recs[1]!.maxRisk ?? 0);
+    expect(recs.length).toBeLessThanOrEqual(MAX_RECOMMENDED);
+    expect(recs[0]!.maxRisk).toBeGreaterThanOrEqual(recs[1]?.maxRisk ?? 0);
+    // Each result comes from a different lens.
+    const lenses = new Set(recs.map((r) => r.lens));
+    expect(lenses.size).toBe(recs.length);
   });
 
   it("caps each cluster at 3 assumptions (the riskiest ones)", () => {

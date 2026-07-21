@@ -1,13 +1,13 @@
 import { useMemo } from "react";
 import type { AnyRecord } from "@validation-os/core";
 import { Breadcrumb } from "./breadcrumb.js";
-import { buildEvidenceComposition } from "./evidence-composition.js";
+import { buildEvidenceComposition, readingContributions, type ReadingContribution } from "./evidence-composition.js";
 import { buildConfidenceExplainer } from "./confidence-explainer.js";
 import { readingBeliefs, readingBeliefFor, liveExperiments } from "./derived-views.js";
 import { EvidenceBody } from "./markdown.js";
 import { GlossaryText } from "./glossary-text.js";
 import { toGlossaryTerms } from "./glossary.js";
-import { formatSigned } from "./primitives.js";
+import { formatSigned, type Tone } from "./primitives.js";
 import type { Route } from "./route.js";
 import {
   buildRecordPage,
@@ -229,64 +229,129 @@ export function AssumptionDetail({
         </div>
       ) : null}
 
-      {/* Linked readings — evidence-first: excerpt per belief, verdict, source, experiment link */}
-      {linkedReadings.length > 0 ? (
-        <div className="vos-card vos-detail-section">
-          <div className="vos-detail-section-label">
-            Evidence · {linkedReadings.length} reading{linkedReadings.length === 1 ? "" : "s"}
-          </div>
-          {linkedReadings.map((r) => {
-            const id = String(r.id ?? "");
-            const belief = readingBeliefFor(r, assumptionId);
-            if (!belief) return null;
-            const result = String(belief.Result ?? "Inconclusive");
-            const justification = String(belief["Grading justification"] ?? "");
-            const rung = String(r.Rung ?? "");
-            const source = String(r.Source ?? "");
-            const expId = r.experimentId ? String(r.experimentId) : null;
-            return (
-              <button
-                key={id}
-                type="button"
-                className={`vos-linked-row vos-linked-reading vos-verdict-${verdictTone(result)}`}
-                onClick={() => onNavigate({ name: "reading", id })}
-              >
-                <div className="vos-reading-head">
-                  <span className="vos-reading-date vos-num">{String(r.Date ?? "")}</span>
-                  <span className="vos-reading-title">{String(r.Title ?? id)}</span>
-                  <span className={`vos-pill vos-pill-${verdictTone(result)}`}>{result}</span>
-                  <span className="vos-rung-tag">{rung}</span>
-                </div>
-                {justification ? (
-                  <div className={`vos-belief-rationale vos-verdict-border-${verdictTone(result)}`}>
-                    <span className="vos-belief-rationale-label">grading rationale:</span>
-                    {justification}
-                  </div>
-                ) : null}
-                <div className="vos-reading-source">
-                  {source}
-                  {expId ? (
-                    <>
-                      {" · from "}
-                      <span
-                        className="vos-link"
-                        onClick={(ev) => {
-                          ev.stopPropagation();
-                          onNavigate({ name: "experiment", id: expId });
-                        }}
-                      >
-                        {expId}
-                      </span>
-                    </>
-                  ) : null}
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      ) : null}
+      {/* Evidence list — one row per piece of evidence, with per-belief
+          excerpt, verdict, rung, anchor score and its contribution to Confidence. */}
+      <EvidenceList
+        assumptionId={assumptionId}
+        readings={readings.records ?? []}
+        onNavigate={onNavigate}
+      />
     </div>
   );
+}
+
+function EvidenceList({
+  assumptionId,
+  readings,
+  onNavigate,
+}: {
+  assumptionId: string;
+  readings: AnyRecord[];
+  onNavigate: (route: Route) => void;
+}) {
+  const linkedReadings = readings
+    .filter((r) => readingBeliefs(r).some((b) => b.assumptionId === assumptionId))
+    .sort((a, b) => String(b.Date ?? "").localeCompare(String(a.Date ?? "")));
+
+  const contribById = useMemo(() => {
+    const rec = readings.find((a) => String(a.id) === assumptionId);
+    if (!rec) return new Map<string, ReadingContribution>();
+    const rows = readingContributions(rec, readings);
+    return new Map(rows.map((r) => [r.id, r]));
+  }, [readings, assumptionId]);
+
+  if (linkedReadings.length === 0) return null;
+
+  return (
+    <div className="vos-card vos-detail-section">
+      <div className="vos-detail-section-label">
+        Evidence · {linkedReadings.length} piece{linkedReadings.length === 1 ? "" : "s"} of evidence
+      </div>
+      {linkedReadings.map((r) => {
+        const id = String(r.id ?? "");
+        const belief = readingBeliefFor(r, assumptionId);
+        if (!belief) return null;
+        const result = String(belief.Result ?? "Inconclusive");
+        const justification = String(belief["Grading justification"] ?? "");
+        const excerpt =
+          typeof belief.excerpt === "string" && belief.excerpt !== ""
+            ? belief.excerpt
+            : snippetFromBody(String(r.body ?? ""), assumptionId);
+        const rung = String(r.Rung ?? "");
+        const source = String(r.Source ?? "");
+        const expId = r.experimentId ? String(r.experimentId) : null;
+        const c = contribById.get(id);
+        return (
+          <button
+            key={id}
+            type="button"
+            className={`vos-evidence-row vos-verdict-${verdictTone(result)}`}
+            onClick={() => onNavigate({ name: "reading", id })}
+          >
+            <div className="vos-evidence-row-head">
+              <span className="vos-evidence-date vos-num">{String(r.Date ?? "")}</span>
+              <span className="vos-evidence-title">{String(r.Title ?? id)}</span>
+              <span className={`vos-pill vos-pill-${verdictTone(result)}`}>{result}</span>
+              <span className="vos-rung-tag">{rung}</span>
+              {c && c.used ? (
+                <span className={`vos-evidence-score vos-num vos-text-${contributionTone(c.contribution)}`}>
+                  {formatSigned(c.contribution)} confidence
+                </span>
+              ) : null}
+            </div>
+            {excerpt ? (
+              <div className="vos-evidence-excerpt">“{excerpt}”</div>
+            ) : null}
+            {justification ? (
+              <div className={`vos-belief-rationale vos-verdict-border-${verdictTone(result)}`}>
+                <span className="vos-belief-rationale-label">grading rationale:</span>
+                {justification}
+              </div>
+            ) : null}
+            <div className="vos-evidence-source">
+              <span className="vos-evidence-source-link" title={source}>{source}</span>
+              {expId ? (
+                <>
+                  {" · from experiment "}
+                  <span
+                    className="vos-link"
+                    onClick={(ev) => {
+                      ev.stopPropagation();
+                      onNavigate({ name: "experiment", id: expId });
+                    }}
+                  >
+                    {expId}
+                  </span>
+                </>
+              ) : null}
+            </div>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function contributionTone(v: number): Tone {
+  if (v > 0) return "good";
+  if (v < 0) return "crit";
+  return "neutral";
+}
+
+function snippetFromBody(body: string, cue: string): string {
+  if (!body) return "";
+  const quoteMatch = body.match(/## Quote\n+([\s\S]*?)(?=\n## |\n##$|$)/i);
+  if (quoteMatch) {
+    const q = quoteMatch[1]!.trim();
+    return q.length > 220 ? q.slice(0, 217).trim() + "…" : q;
+  }
+  const sentences = body.split(/(?<=[.!?])\s+/);
+  const cueLower = cue.toLowerCase();
+  for (const s of sentences) {
+    if (s.toLowerCase().includes(cueLower)) return s.trim();
+  }
+  const first = sentences[0]?.trim() ?? "";
+  return first.length > 220 ? first.slice(0, 217).trim() + "…" : first;
 }
 
 /* ── helpers ───────────────────────────────────────────────────────────── */
@@ -511,19 +576,26 @@ function EvidenceCompositionView({
         <div className="vos-muted">No lens set — evidence composition needs a lens.</div>
       ) : (
         comp.rungs.map((r) => {
-          const pct = r.cap > 0 ? Math.min(100, (Math.abs(r.contribution) / r.cap) * 100) : 0;
+          const abs = Math.abs(r.contribution);
+          const pct = r.cap > 0 ? Math.min(100, (abs / r.cap) * 100) : 0;
           const isEmpty = r.count === 0;
+          const tone = r.contribution > 0 ? "good" : r.contribution < 0 ? "crit" : "accent";
           return (
             <div key={r.rung} className="vos-comp-row">
               <span className={`vos-comp-rung ${isEmpty ? "is-empty" : ""}`}>{r.rung}</span>
               <div className="vos-comp-bar">
-                <i className="vos-comp-fill" style={{ width: `${pct}%`, opacity: isEmpty ? 0.15 : 1 }} />
+                <i className={`vos-comp-fill vos-fill-${tone}`} style={{ width: `${isEmpty ? 0 : Math.max(4, pct)}%` }} />
               </div>
               <span className="vos-comp-val vos-num">
-                {isEmpty ? "—" : `${formatSigned(r.contribution)}/${r.cap}`}
+                {isEmpty ? "—" : (
+                  <>
+                    <span className={`vos-text-${tone}`}>{formatSigned(r.contribution)}</span>
+                    <span style={{ color: "var(--vos-faint)" }}> · cap {r.cap}</span>
+                  </>
+                )}
               </span>
               <span className="vos-comp-count vos-num">
-                {r.count} src{r.count === 1 ? "" : "s"}
+                {r.count} {r.count === 1 ? "source" : "sources"}
               </span>
             </div>
           );

@@ -35,16 +35,27 @@ export interface RecommendedExperiment {
   barPreview: string;
   /** The generated experiment body — a protocol with questions, what it tests, how to run it. */
   body: string;
+  /** The lens this cluster belongs to — for tagging. */
+  lens: string;
+  /** Display colour for the lens tag. */
+  lensColour: string;
 }
 
-/** The max number of recommended experiments to show (the riskiest 2). */
-export const MAX_RECOMMENDED = 2;
+/** The max number of recommended experiments to show (one per lens, up to 3). */
+export const MAX_RECOMMENDED = 3;
 
 /** The max assumptions per cluster (tight groups, not whole cells). */
 const MAX_CLUSTER_SIZE = 3;
 
 /** The max number of "needs framing" assumptions to show (one per lens, up to 3). */
 export const MAX_NEEDS_FRAMING = 3;
+
+/** Lens display colours — one per lens for clear tagging. */
+const LENS_COLOUR: Record<string, string> = {
+  Consumer: "#8b83f5",
+  Commercial: "#38c793",
+  Investor: "#e6a23c",
+};
 
 /**
  * The "needs framing" list — the riskiest live, non-moot assumption *per lens*
@@ -63,6 +74,8 @@ export interface NeedsFramingItem {
   stage: string;
   /** What's missing — a plain-language hint. */
   hint: string;
+  /** Display colour for the lens tag. */
+  lensColour: string;
 }
 
 export function buildNeedsFraming(
@@ -83,7 +96,8 @@ export function buildNeedsFraming(
       const stage = str(a.Stage) ?? "—";
       const title = str(a.Title) ?? id;
       const hint = framingHint(a, completeness);
-      return { id, title, risk, completeness, lens, stage, hint };
+      const lensColour = LENS_COLOUR[lens] ?? LENS_COLOUR["Investor"] ?? "#6b7484";
+      return { id, title, risk, completeness, lens, stage, hint, lensColour };
     })
     .filter((a) => a.completeness < 100);
 
@@ -178,8 +192,8 @@ export function buildRecommendedExperiments(
   }
 
   // Rank assumptions within each cluster by risk, keep the top 3.
-  // Then rank clusters by max risk, keep the top 2.
-  const clusterEntries = [...clusters.entries()]
+  // Then pick one cluster per lens (the riskiest), ranked by max risk.
+  const rankedClusters = [...clusters.entries()]
     .map(([key, cluster]) => {
       const ranked = cluster
         .sort((a, b) => (derivedNum(b, "risk") ?? 0) - (derivedNum(a, "risk") ?? 0))
@@ -187,6 +201,14 @@ export function buildRecommendedExperiments(
       const maxRisk = Math.max(...ranked.map((a) => derivedNum(a, "risk") ?? 0), 0);
       return { key, cluster: ranked, maxRisk };
     })
+    .sort((a, b) => b.maxRisk - a.maxRisk);
+
+  const byLens = new Map<string, typeof rankedClusters[0]>();
+  for (const entry of rankedClusters) {
+    const lens = entry.key.split("×")[0] ?? "—";
+    if (!byLens.has(lens)) byLens.set(lens, entry);
+  }
+  const clusterEntries = [...byLens.values()]
     .sort((a, b) => b.maxRisk - a.maxRisk)
     .slice(0, MAX_RECOMMENDED);
 
@@ -199,7 +221,6 @@ export function buildRecommendedExperiments(
       .filter(Boolean)
       .sort();
     const type = LENS_TO_TYPE[lens ?? ""] ?? "Desk research";
-    const titles = cluster.map((a) => str(a.Title) ?? str(a.id) ?? "");
     const title =
       cluster.length === 1
         ? `Test ${assumptionIds[0]}`
@@ -210,6 +231,7 @@ export function buildRecommendedExperiments(
         : `${cluster.length} beliefs share ${lens} · ${stage}, the riskiest at ${Math.round(maxRisk)} risk. One experiment can address them all.`;
     const barPreview = `The riskiest belief moves out of the kill zone, or stays in it.`;
     const body = generateExperimentBody(type, lens, stage, cluster, maxRisk);
+    const lensColour = LENS_COLOUR[lens] ?? LENS_COLOUR["Investor"] ?? "#6b7484";
     recs.push({
       id: assumptionIds.join("+"),
       type,
@@ -219,6 +241,8 @@ export function buildRecommendedExperiments(
       rationale,
       barPreview,
       body,
+      lens,
+      lensColour,
     });
   }
 

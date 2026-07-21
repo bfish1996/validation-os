@@ -100,6 +100,9 @@ export function BeliefVerdicts({
                 </span>
               </div>
             ) : null}
+            {v.excerpt ? (
+              <p className="vos-verdict-quote">“{v.excerpt}”</p>
+            ) : null}
             {v.justification ? (
               <p className="vos-verdict-why">{v.justification}</p>
             ) : null}

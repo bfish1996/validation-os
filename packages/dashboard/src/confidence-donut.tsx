@@ -1,15 +1,9 @@
 /**
- * A confidence donut gauge (DEV-5882 redesign) — an SVG ring that fills from
- * 12 o'clock clockwise, proportional to the value (0–100, 50 = neutral).
- * Color-toned by value (good ≥67, warn ≥33, crit <33). The center shows the
- * number. Used on the experiment list rows (56px) + the experiment detail
- * header (80px).
- *
- * Drawn as a ring via two overlaid circles with stroke-dasharray: a muted
- * track circle and a colored arc circle whose dash length encodes the
- * fraction. The arc starts at 12 o'clock by rotating the circle -90° around
- * its center. This avoids pie-wedge path math and keeps the number visually
- * centered in the ring.
+ * A confidence donut gauge (DEV-5882 redesign) — a minimal ring gauge that
+ * fills from 12 o'clock clockwise, proportional to the value (0–100, 50 = neutral).
+ * The stroke is deliberately thin so the gauge reads as a subtle status
+ * accent, not a pie chart. A larger centered number dominates the interior.
+ * Used on the experiment list rows (56px) + the experiment detail header (80px).
  */
 export function ConfidenceDonut({
   value,
@@ -18,8 +12,9 @@ export function ConfidenceDonut({
   value: number;
   size?: number;
 }) {
-  const stroke = size > 60 ? 6 : 4;
-  const r = (size - stroke) / 2;
+  // Thin stroke keeps it elegant; radius stays well inside the square.
+  const stroke = size > 60 ? 4 : 3;
+  const r = (size - stroke * 3) / 2;
   const cx = size / 2;
   const cy = size / 2;
   const circumference = 2 * Math.PI * r;
@@ -39,7 +34,7 @@ export function ConfidenceDonut({
           cy={cy}
           r={r}
           fill="none"
-          stroke="var(--vos-surface-2)"
+          stroke="var(--vos-border)"
           strokeWidth={stroke}
         />
         {value > 0 ? (
@@ -59,7 +54,7 @@ export function ConfidenceDonut({
       </svg>
       <span
         className="vos-donut-num vos-num"
-        style={{ fontSize: size > 60 ? 20 : 14 }}
+        style={{ fontSize: size > 60 ? 22 : 15 }}
       >
         {Math.round(value)}
       </span>
