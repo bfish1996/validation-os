@@ -25,6 +25,7 @@ function seededProvider() {
           Impact: 50,
           moot: false,
           dependsOnIds: [],
+          "Question Type": "Existence",
           derived: { confidence: 0, risk: 50, derivedImpact: 50 },
         } as never,
       ],
@@ -85,13 +86,13 @@ describe("createApi CRUD", () => {
     expect(res.status).toBe(200);
     // The client's derived values are never trusted — the API recomputes.
     const asm = await provider.get("assumptions", "ASM-1");
-    // completeness = 20: only Impact of the five structural slots is present on
-    // this minimal seed record (OPS-1305).
+    // completeness = 33: Impact + Question Type of the six structural slots are
+    // present on this minimal seed record (OPS-1305 + DEV-5890). 2 of 6 → 33.
     expect(asm.derived).toEqual({
       confidence: 0,
       derivedImpact: 80,
       risk: 80,
-      completeness: 20,
+      completeness: 33,
     });
   });
 
@@ -301,8 +302,9 @@ describe("derive-on-write", () => {
     expect(res.status).toBe(201);
     const body = await res.json();
     // Source quality is a row property; Strength is per belief.
+    // Existence × Observed usage × Low = 20 (DEV-5890 sub-ladder).
     expect(body.data.derived).toEqual({ sourceQuality: 1 });
-    expect(body.data.beliefs[0].derived).toEqual({ strength: 30 });
+    expect(body.data.beliefs[0].derived).toEqual({ strength: 20 });
     // assumptionIds is kept in sync as the beliefs[] projection.
     expect(body.data.assumptionIds).toEqual(["ASM-1"]);
   });
@@ -335,11 +337,11 @@ describe("derive-on-write", () => {
       risk: number;
       derivedImpact: number;
     };
-    // Observed-usage Validated, sq=1, found → w=30×0.85=25.5.
-    // W0[Observed usage] = 327. 25.5×30 / (327+25.5) = 765/352.5 = 2.169… → 2.17
-    expect(derived.confidence).toBe(2.17);
+    // Existence × Observed-usage × Low = 20, Validated, sq=1, found → w=20×0.85=17.
+    // W0[Observed usage] = 327. 17×20 / (327+17) = 340/344 = 0.99
+    expect(derived.confidence).toBe(0.99);
     expect(derived.derivedImpact).toBe(50);
-    expect(derived.risk).toBe(48.91); // 50 × (1 − 2.17/100) = 50 × 0.9783 = 48.91
+    expect(derived.risk).toBe(49.5); // 50 × (1 − 0.99/100) = 50 × 0.9901 = 49.505 → 49.5
   });
 });
 

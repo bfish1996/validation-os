@@ -25,14 +25,20 @@ import {
  * Stamp the derived values a reading owns:
  *  - the row's `derived.sourceQuality` (Representativeness × Credibility), a
  *    property of the artifact, shared by every belief it scores;
- *  - each belief's `derived.strength` = the ROW's rung anchor × sign(the
- *    belief's Result) [× the row's market magnitude band] (OPS 0.10 — one rung
- *    per artifact, per-belief Result);
+ *  - each belief's `derived.strength` = `RUNG_ANCHOR[questionType][rung][band] ×
+ *    sign(the belief's Result)` (DEV-5890) — the question type is looked up
+ *    from the linked assumption via the optional `assumptionsById` map
+ *    (defaults to `Existence` when the map or the assumption is absent — the
+ *    recompute pass always supplies the map, so the stored Strength is
+ *    authoritative after the next touching write);
  *  - `assumptionIds`, the projection of `beliefs[].assumptionId`, kept in sync
  *    whenever beliefs[] is written (mirrors barLineAssumptionIds).
  * A partial patch that omits a field leaves that derivation untouched.
  */
-export function deriveReadingFields(data: Partial<AnyRecord>): Partial<AnyRecord> {
+export function deriveReadingFields(
+  data: Partial<AnyRecord>,
+  assumptionsById?: ReadonlyMap<string, AssumptionRecord>,
+): Partial<AnyRecord> {
   const r = data as Partial<ReadingRecord>;
   const out: Partial<AnyRecord> = { ...data };
 
@@ -46,17 +52,27 @@ export function deriveReadingFields(data: Partial<AnyRecord>): Partial<AnyRecord
   }
 
   if (Array.isArray(r.beliefs)) {
-    const beliefs = r.beliefs.map((b) => ({
-      ...b,
-      derived: {
-        // Rung + magnitude band are row-level; only the Result varies per belief.
-        strength: recomputeStrength({
-          rung: r.Rung!,
-          result: b.Result,
-          magnitudeBand: r.magnitudeBand,
-        }),
-      },
-    })) as BeliefScore[];
+    const beliefs = r.beliefs.map((b) => {
+      const questionType = assumptionsById
+        ? (assumptionsById.get(b.assumptionId)?.["Question Type"] ??
+          "Existence")
+        : "Existence";
+      return {
+        ...b,
+        derived: {
+          // Rung + magnitude band are row-level; only the Result varies per
+          // belief. Question Type is per-assumption (looked up here); the
+          // recompute pass always supplies the map, so a stale inline Strength
+          // from a partial write is corrected on the next touching recompute.
+          strength: recomputeStrength({
+            questionType,
+            rung: r.Rung!,
+            result: b.Result,
+            magnitudeBand: r.magnitudeBand,
+          }),
+        },
+      };
+    }) as BeliefScore[];
     out.beliefs = beliefs;
     out.assumptionIds = beliefs.map((b) => b.assumptionId);
   }
