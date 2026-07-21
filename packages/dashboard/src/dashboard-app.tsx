@@ -143,16 +143,6 @@ export function ValidationOSDashboard({ config = {} }: ValidationOSDashboardProp
       </div>
 
       <div className="vos-topbar">
-        {backendLabel ? (
-          <div className="vos-backend">
-            <span className="vos-live-dot" /> Backend: <b>{backendLabel}</b>
-          </div>
-        ) : null}
-        {agentLabel ? (
-          <span className="vos-hint">
-            Agent: <b style={{ color: "var(--vos-text)" }}>{agentLabel}</b>
-          </span>
-        ) : null}
         <div className="vos-spacer" />
         <button type="button" className="vos-iconbtn" onClick={toggleTheme}>
           ◐ Theme

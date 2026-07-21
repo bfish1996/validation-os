@@ -10,10 +10,9 @@ import { useList } from "./use-records.js";
 
 /**
  * The evidence-first experiment detail (DEV-5884): readings lead, each showing
- * date, title, per-belief quotes (each belief's excerpt as a separate
- * color-coded block), and per-belief verdicts with bar-line context. Unstarted
- * bars (bars with no readings yet) are in a separate section below with dashed
- * outlines.
+ * date, title, and a single set of per-belief verdict cards (assumption link,
+ * verdict, rung, grading rationale, bar-line context). Unstarted bars (bars
+ * with no readings yet) are in a separate section below with dashed outlines.
  */
 export interface ExperimentDetailProps {
   experimentId: string;
@@ -184,35 +183,15 @@ export function ExperimentDetail({
                     open reading →
                   </button>
                 </div>
-                {/* Per-belief grading rationale — NOT a quote. The
-                    Grading justification is the grader's rationale for why
-                    this evidence scores this belief this way. Actual quotes
-                    live in the reading's body (the Context section). */}
-                {beliefs.length > 0 ? (
-                  <div className="vos-reading-quotes">
-                    {beliefs.map((b) => {
-                      const justification = String(b["Grading justification"] ?? "");
-                      if (!justification) return null;
-                      return (
-                        <div
-                          key={b.assumptionId}
-                          className={`vos-reading-rationale vos-verdict-border-${verdictTone(b.Result)}`}
-                        >
-                          <span className="vos-reading-quote-id vos-num">{b.assumptionId} ·</span>
-                          <span className="vos-reading-rationale-label">grading rationale:</span>
-                          {justification}
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : null}
-                {/* Per-belief verdicts with bar-line context */}
-                <div className="vos-reading-beliefs-label">
-                  ADDRESSES {beliefs.length} BELIEF{beliefs.length === 1 ? "" : "S"}:
-                </div>
+                {/* Per-belief verdict cards — merged: assumption link, verdict,
+                    rung, bar-line context, and grading rationale. The
+                    Grading justification is the grader's rationale, NOT a
+                    quote; actual quotes live in the reading's body shown in
+                    the reading detail's Context section. */}
                 {beliefs.map((b) => {
                   const bl = barLines.find((x) => x.assumptionId === b.assumptionId);
                   const a = (assumptions.records ?? []).find((x) => String(x.id) === b.assumptionId);
+                  const justification = String(b["Grading justification"] ?? "");
                   return (
                     <div key={b.assumptionId} className={`vos-belief-card vos-verdict-border-${verdictTone(b.Result)}`}>
                       <div className="vos-belief-head">
@@ -227,8 +206,15 @@ export function ExperimentDetail({
                         <span className={`vos-pill vos-pill-${verdictTone(b.Result)}`}>{b.Result}</span>
                         <span className="vos-rung-tag">{String(r.Rung ?? "")}</span>
                       </div>
+                      {justification ? (
+                        <div className={`vos-belief-rationale vos-verdict-border-${verdictTone(b.Result)}`}>
+                          <span className="vos-belief-rationale-label">grading rationale:</span>
+                          {justification}
+                        </div>
+                      ) : null}
                       {bl ? (
                         <div className="vos-belief-bar">
+                          <div className="vos-belief-bar-label">Pre-registered bar</div>
                           <div><strong>Right if:</strong> {String(bl.rightIf ?? "")}</div>
                           {bl.wrongIf ? <div><strong>Wrong if:</strong> {String(bl.wrongIf)}</div> : null}
                           {bl.barVerdict ? (
@@ -238,7 +224,6 @@ export function ExperimentDetail({
                           ) : null}
                         </div>
                       ) : null}
-                      <div className="vos-belief-why">{String(b["Grading justification"] ?? "")}</div>
                     </div>
                   );
                 })}

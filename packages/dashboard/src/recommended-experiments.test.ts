@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { AnyRecord } from "@validation-os/core";
-import { buildRecommendedExperiments } from "./recommended-experiments.js";
+import { buildNeedsFraming, buildRecommendedExperiments, MAX_NEEDS_FRAMING } from "./recommended-experiments.js";
 
 // Minimal shape — buildRecommendedExperiments reads only these fields.
 function asm(
@@ -210,5 +210,47 @@ describe("buildRecommendedExperiments", () => {
     expect(recs[0]!.body).toContain("Questions to answer");
     expect(recs[0]!.body).toContain("A1");
     expect(recs[0]!.body).toContain("Pre-registered bars");
+  });
+});
+
+describe("buildNeedsFraming", () => {
+  it("returns one per lens, up to 3, riskiest-first across lenses", () => {
+    // 3 lenses, each with one unframed assumption → returns 3 (one per lens).
+    const assumptions = [
+      asm({ id: "C1", Lens: "Consumer", derived: { derivedImpact: 50, risk: 30, confidence: 0, completeness: 60 } }),
+      asm({ id: "Co1", Lens: "Commercial", derived: { derivedImpact: 70, risk: 60, confidence: 0, completeness: 40 } }),
+      asm({ id: "F1", Lens: "Founder", derived: { derivedImpact: 90, risk: 80, confidence: 0, completeness: 20 } }),
+    ];
+    const items = buildNeedsFraming(assumptions);
+    expect(items).toHaveLength(3);
+    // riskiest-first: Founder (80) → Commercial (60) → Consumer (30)
+    expect(items.map((i) => i.id)).toEqual(["F1", "Co1", "C1"]);
+  });
+
+  it("returns fewer when fewer lenses have unframed assumptions", () => {
+    // Only 2 lenses with unframed assumptions.
+    const assumptions = [
+      asm({ id: "C1", Lens: "Consumer", derived: { derivedImpact: 50, risk: 30, confidence: 0, completeness: 60 } }),
+      asm({ id: "Co1", Lens: "Commercial", derived: { derivedImpact: 70, risk: 60, confidence: 0, completeness: 40 } }),
+      asm({ id: "F1", Lens: "Founder", derived: { derivedImpact: 90, risk: 80, confidence: 0, completeness: 100 } }),
+    ];
+    const items = buildNeedsFraming(assumptions);
+    expect(items).toHaveLength(2);
+    expect(items.map((i) => i.lens).sort()).toEqual(["Commercial", "Consumer"]);
+  });
+
+  it("returns only the riskiest from a lens with multiple unframed assumptions", () => {
+    // Founder lens has 2 unframed; only the riskiest should be returned.
+    const assumptions = [
+      asm({ id: "F1", Lens: "Founder", derived: { derivedImpact: 50, risk: 30, confidence: 0, completeness: 60 } }),
+      asm({ id: "F2", Lens: "Founder", derived: { derivedImpact: 90, risk: 80, confidence: 0, completeness: 20 } }),
+    ];
+    const items = buildNeedsFraming(assumptions);
+    expect(items).toHaveLength(1);
+    expect(items[0]!.id).toBe("F2");
+  });
+
+  it("respects MAX_NEEDS_FRAMING = 3", () => {
+    expect(MAX_NEEDS_FRAMING).toBe(3);
   });
 });
