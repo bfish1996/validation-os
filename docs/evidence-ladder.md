@@ -105,24 +105,28 @@ research tradition:
 Question type sets the ceiling. Evidence type sets the learning rate. Stage
 sets the stopping rule. None redundant; each backed by a different literature.
 
-## Stage → Risk threshold
+## Stage → threshold
 
-The Risk value below which an assumption is "validated enough" for its stage.
+The stopping rule for attention. "Cleared" requires **both**:
+1. Risk ≤ the stage's Risk threshold (enough evidence to drive Risk down)
+2. Confidence ≥ the stage's Confidence floor (at least some real evidence —
+   the zero-evidence guard: a low-Impact belief can't be "cleared" with no
+   readings, because Risk = Impact × (1 − 0/100) = Impact)
+
 It does NOT flip a status — Live assumptions stay Live and ranked forever
-(`docs/validated.md`). It is consumed by the dashboard's test-next surface,
-the `/assumptions audit` skill, and the `/experiment-design` skill.
+(`docs/validated.md`). The threshold is consumed by the dashboard's test-next
+surface, the `/assumptions audit` skill, and the `/experiment-design` skill.
 
-| Stage | Threshold | Why |
-|---|---|---|
-| Discovery | 30 | Two-way door — act on weak evidence |
-| Validation | 15 | Becoming one-way — need more before committing |
-| Scale | 10 | One-way door — strong evidence before scaling |
-| Maturity | 5 | Defensive, often regulatory — strongest evidence |
+| Stage | Risk threshold | Confidence floor | Why |
+|---|---|---|---|
+| Discovery | 30 | 10 | Two-way door — act on weak evidence, but need a signal |
+| Validation | 15 | 25 | Becoming one-way — need a real reading |
+| Scale | 10 | 40 | One-way door — solid evidence before scaling |
+| Maturity | 5 | 60 | Defensive — strongest evidence |
 
-A prevalence assumption at Discovery stops testing on a small survey; the same
-prevalence assumption at Maturity needs a bigger, replicated survey to clear
-the tighter threshold. The question type fixes what counts as evidence; the
-stage fixes how much is enough to act on.
+A lower Risk threshold means a higher standard — you have to drive Risk down
+further (more evidence) before acting. The Confidence floor prevents a
+low-Impact belief from being "cleared" with zero evidence.
 
 ## The rules that keep the ladder honest
 

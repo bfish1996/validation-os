@@ -6,7 +6,7 @@ import {
   type QuestionType,
   type Rung,
 } from "@validation-os/core";
-import { isNonEvidence, riskThresholdForStage } from "@validation-os/core/derivation";
+import { confidenceFloorForStage, isNonEvidence, riskThresholdForStage } from "@validation-os/core/derivation";
 import { Breadcrumb } from "./breadcrumb.js";
 import { buildEvidenceComposition, readingContributions, type ReadingContribution } from "./evidence-composition.js";
 import { buildConfidenceExplainer } from "./confidence-explainer.js";
@@ -98,9 +98,16 @@ export function AssumptionDetail({
   const framed = derived.completeness ?? 0;
 
   // DEV-5890: stage-keyed Risk threshold — the stopping bar for this stage.
+  // "Cleared" requires BOTH Risk ≤ threshold AND Confidence ≥ floor (the
+  // zero-evidence guard: a low-Impact belief can't be "cleared" with no
+  // readings).
   const stageKey = STAGES.find((s) => s === stage);
   const riskThreshold = stageKey ? riskThresholdForStage(stageKey) : null;
-  const clearedThreshold = riskThreshold != null ? risk <= riskThreshold : null;
+  const confFloor = stageKey ? confidenceFloorForStage(stageKey) : null;
+  const clearedThreshold =
+    riskThreshold != null && confFloor != null
+      ? risk <= riskThreshold && confidence >= confFloor
+      : null;
 
   // Next move — derive a one-line next move from the page's meters, or fall
   // back to a stage-aware verb. (The existing nextMove lives in pipeline.ts;
@@ -165,27 +172,17 @@ export function AssumptionDetail({
         <ScoreCard label="Framed" value={`${Math.round(framed)}%`} />
       </div>
 
-      {/* DEV-5890: stage-keyed Risk threshold indicator. */}
+      {/* DEV-5890: stage-keyed Risk threshold indicator — a visual bar that
+          fills Risk toward the stage's stopping bar, with a threshold marker. */}
       {riskThreshold != null ? (
-        <div className="vos-card vos-threshold-indicator">
-          <div className="vos-threshold-label">Stage threshold</div>
-          <div className="vos-threshold-row">
-            <span className="vos-num">Risk {Math.round(risk)}</span>
-            <span className="vos-threshold-bar vos-num">{riskThreshold}</span>
-            <span
-              className={`vos-threshold-status ${
-                clearedThreshold ? "vos-threshold-cleared" : "vos-threshold-needs"
-              }`}
-            >
-              {clearedThreshold ? "Cleared for this stage" : "Needs evidence"}
-            </span>
-          </div>
-          <div className="vos-threshold-hint">
-            {clearedThreshold
-              ? `Risk at or below the ${stage} threshold — de-prioritized.`
-              : `Risk above the ${stage} threshold — testing-priority.`}
-          </div>
-        </div>
+        <ThresholdBar
+          risk={risk}
+          threshold={riskThreshold}
+          confidence={confidence}
+          confFloor={confFloor ?? 0}
+          stage={stage}
+          cleared={clearedThreshold ?? false}
+        />
       ) : null}
 
       {/* Evidence composition — per-rung bars, lens-aware (uses the real
@@ -463,6 +460,100 @@ function ScoreCard({
     <div className="vos-score-card">
       <div className={cls}>{value}</div>
       <div className="vos-score-label">{label}</div>
+    </div>
+  );
+}
+
+/**
+ * The stage-keyed threshold bar (DEV-5890). Shows TWO bars:
+ *   1. Risk bar — fills toward the stage's Risk threshold (the stopping bar)
+ *   2. Confidence bar — fills toward the stage's Confidence floor (the
+ *      zero-evidence guard)
+ * "Cleared" requires BOTH bars to be past their markers. The fill color
+ * shifts: green when cleared, amber when close, red when far.
+ */
+function ThresholdBar({
+  risk,
+  threshold,
+  confidence,
+  confFloor,
+  stage,
+  cleared,
+}: {
+  risk: number;
+  threshold: number;
+  confidence: number;
+  confFloor: number;
+  stage: string;
+  cleared: boolean;
+}) {
+  const riskTrackMax = Math.max(risk, threshold) * 1.25;
+  const riskPct = Math.min(100, (risk / riskTrackMax) * 100);
+  const thresholdPct = Math.min(100, (threshold / riskTrackMax) * 100);
+  const confPct = Math.min(100, Math.abs(confidence));
+  const confFloorPct = Math.min(100, confFloor);
+
+  const riskBelow = risk <= threshold;
+  const confAbove = confidence >= confFloor;
+  const tone = cleared ? "good" : !riskBelow && !confAbove ? "crit" : "warn";
+
+  return (
+    <div className="vos-card vos-threshold-bar-card">
+      <div className="vos-threshold-bar-header">
+        <span className="vos-threshold-bar-title">
+          {stage} evidence bar
+          <span className="vos-threshold-bar-stage-tag">{stage}</span>
+        </span>
+        <span className={`vos-threshold-bar-status vos-threshold-bar-${tone}`}>
+          {cleared ? "Cleared" : "Needs evidence"}
+        </span>
+      </div>
+
+      {/* Risk bar — fills toward the threshold marker */}
+      <div className="vos-threshold-bar-section">
+        <div className="vos-threshold-bar-section-label">
+          <span>Risk</span>
+          <span className="vos-num vos-threshold-bar-section-val">{Math.round(risk)}</span>
+          <span className="vos-threshold-bar-section-target">bar ≤ {threshold}</span>
+        </div>
+        <div className="vos-threshold-bar-track">
+          <div
+            className={`vos-threshold-bar-fill vos-fill-${riskBelow ? "good" : tone}`}
+            style={{ width: `${riskPct}%` }}
+          />
+          <div
+            className="vos-threshold-bar-marker"
+            style={{ left: `${thresholdPct}%` }}
+            title={`Risk threshold: ${threshold}`}
+          />
+        </div>
+      </div>
+
+      {/* Confidence bar — fills toward the floor marker */}
+      <div className="vos-threshold-bar-section">
+        <div className="vos-threshold-bar-section-label">
+          <span>Confidence</span>
+          <span className="vos-num vos-threshold-bar-section-val">{formatSigned(confidence)}</span>
+          <span className="vos-threshold-bar-section-target">floor ≥ {confFloor}</span>
+        </div>
+        <div className="vos-threshold-bar-track vos-threshold-bar-track-conf">
+          <div
+            className={`vos-threshold-bar-fill vos-fill-${confAbove ? "good" : tone}`}
+            style={{ width: `${confPct}%` }}
+          />
+          <div
+            className="vos-threshold-bar-marker vos-threshold-bar-marker-conf"
+            style={{ left: `${confFloorPct}%` }}
+            title={`Confidence floor: ${confFloor}`}
+          />
+        </div>
+      </div>
+
+      <div className="vos-threshold-bar-hint">
+        {cleared
+          ? `Risk ${Math.round(risk)} ≤ ${threshold} and Confidence ${formatSigned(confidence)} ≥ ${confFloor} — cleared for ${stage}.`
+          : `Risk ${Math.round(risk)} ${riskBelow ? "≤" : ">"} ${threshold}, Confidence ${formatSigned(confidence)} ${confAbove ? "≥" : "<"} ${confFloor} — needs ${!riskBelow ? "lower Risk" : ""}${!riskBelow && !confAbove ? " + " : ""}${!confAbove ? "higher Confidence" : ""}.`}
+      </div>
     </div>
   );
 }

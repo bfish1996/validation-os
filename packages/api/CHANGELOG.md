@@ -1,5 +1,18 @@
 # @validation-os/api
 
+## 0.16.1
+
+### Patch Changes
+
+- Confidence floor for zero-evidence guard + expanded inference patterns
+
+  - Add CONFIDENCE_FLOOR_BY_STAGE (Discovery 10, Validation 25, Scale 40, Maturity 60). "Cleared" now requires BOTH Risk ≤ threshold AND Confidence ≥ floor — prevents a low-Impact belief from being "cleared" with zero evidence.
+  - Expand inferQuestionType patterns to match positive bar language (rightIf text uses "≥50% choose", "beats model by 15% lift", "regulator approves" — not just negative "we're wrong if" phrasing).
+  - Dashboard ThresholdBar redesigned as a two-bar visual: Risk bar + Confidence bar, both with threshold/floor markers.
+
+- Updated dependencies
+  - @validation-os/core@0.16.1
+
 ## 0.16.0
 
 ### Minor Changes

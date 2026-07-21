@@ -115,7 +115,26 @@ distinct from "ValueUtility") is a future schema change. Sustained retention is
 the ValueUtility ceiling today; a split would make retention its own claim kind
 with its own sub-ladder.
 
-### 4. Rung splits and an instrument axis (the v2 the spec gestures at)
+### 4. Question-type-keyed threshold multiplier
+
+Today the stopping threshold (Risk threshold + Confidence floor) is keyed by
+**Stage alone**. A v2 should add a **question-type multiplier** — some question
+types are inherently harder to settle than others, and the same stage should
+require more evidence for a CausalEffect claim than for a Regulatory claim
+(where one desk-research reading can be ground truth). The shape would be:
+
+```
+effective_threshold = RISK_THRESHOLD_BY_STAGE[stage] × QUESTION_TYPE_MULTIPLIER[questionType]
+```
+
+Where the multiplier is < 1.0 for question types that settle cheaply
+(Regulatory, Existence) and > 1.0 for question types that need replicated
+evidence (CausalEffect, Prevalence). This would also apply to the Confidence
+floor. The question type would then set both the *ceiling* (anchor) AND
+influence the *stopping bar* (threshold multiplier), while Stage sets the base
+bar (reversibility).
+
+### 5. Rung splits and an instrument axis (the v2 the spec gestures at)
 
 The current 6-rung vocabulary is fixed across all sub-ladders; only the anchors
 vary by question type. A v2 should consider **splitting rungs where the ceiling
