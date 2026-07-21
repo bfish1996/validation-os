@@ -69,6 +69,15 @@ const RULES: readonly Rule[] = [
       /\bregulator\b.*\bagainst\b/,
       /\bcompliance\s+audit\s+fails?\b/,
       /\bprohibits?\b.*\bscoring\b/,
+      // Positive bar patterns (the register's rightIf text):
+      /\bregulat(?:or|ion)s?\s+(?:approve|accept|confirm|permit)\b/,
+      /\bfca\b.*\bconfirm\b/,
+      /\blegal\s+opinion\b.*\bstate/i,
+      /\bnon[-\s]?compliant\b.*\boutputs?\b/,
+      /\bconduct\s+layer\b.*\b(?:safe|within|comply)\b/,
+      /\bconsumer\s+duty\b/,
+      /\bguardrails?\b.*\b(?:regulat|comply|within)\b/,
+      /\beducation\b.*\bguidance\b.*\bwithin\b/,
     ],
   },
   {
@@ -85,6 +94,14 @@ const RULES: readonly Rule[] = [
       /\boffered\s+users?\s+pay\b/,
       /\bpay(?:ing)?\s+(?:rate|share)?\s*(?:is\s+)?below\b/,
       /\bfewer\s+than\s+\d+\s+of\s+\d+\s+offered\s+users?\s+pay\b/,
+      // Positive bar patterns:
+      /\bsign\s+(?:a\s+)?(?:design[-\s]?partner|pilot)\s+agreement\b/,
+      /\bsigned\s+intent\b/i,
+      /\bcommit(?:s|ting)?\s+(?:before|to\s+pay|to\s+a)\b/,
+      /\badopt\s*(?:and\s*)?pay\b/,
+      /\bpay\s+for\b.*\b(?:layer|harness|governed)\b/,
+      /\bagree\s+(?:in\s+writing|to\s+ingest|to\s+sign)\b/,
+      /\b(?:design|pilot)\s+partner\b.*\bagreement\b/,
     ],
   },
   {
@@ -96,6 +113,15 @@ const RULES: readonly Rule[] = [
       /\bretention\s+(?:drops?|falls?)\s+below\b/,
       /\bweek-\d+\s+retention\s+drops?\s+below\b/,
       /\bdisuse\b/,
+      // Positive bar patterns:
+      /\bengage\s+(?:turn[-\s]by[-\s]turn|with|positively)\b/i,
+      /\bengage(?:s|ment)?\s+with\b/i,
+      /\breact\s+positively\b/i,
+      /\bcomfortable\s+with\b.*\b(?:bank|storing|context)\b/i,
+      /\bchoose\s+(?:voice|as\s+their\s+primary)\b/i,
+      /\bsustained\s+(?:retention|usage|engagement)\b/i,
+      /\bcome\s+back\b.*\bsession/i,
+      /\bprefer\b.*\b(?:modality|interface|experience)\b/i,
     ],
   },
   {
@@ -107,6 +133,12 @@ const RULES: readonly Rule[] = [
       /\bdiffer\s+from\s+control\b/,
       /\boutperform\s+control\b/,
       /\btreatment\s+vs\.?\s+control\b/,
+      // Positive bar patterns:
+      /\bbeats?\s+(?:a\s+)?\w+[-\s]only\s+(?:model|baseline|control)\b/i,
+      /\brelative\s+lift\b/i,
+      /\breplicated\s+in\b.*\bcohort/i,
+      /\bwins?\s+≥?\s*\d+\s*[×x]\b/i,
+      /\bframing\s+wins\b/i,
     ],
   },
   {
@@ -119,6 +151,11 @@ const RULES: readonly Rule[] = [
       /\b(?:in\s+)?surveyed\s+teams\b/,
       /\bshare\s+(?:of\s+\w+\s+)?(?:is\s+)?below\b/,
       /\bproportion\s+is\s+below\b/,
+      // Positive bar patterns:
+      /\b[≥>]\s*\d+%\s+of\b/i,
+      /\b[≥>]\s*\d+\s+of\b/i,
+      /\bnamed\b.*\b(?:as|in)\s+a\s+top[-\s]\d\b/i,
+      /\b[≥>]\s*\d+\s+(?:of\s+\d+\s+)?(?:institutions?|consumers?|users?|buyers?|banks?|teams?)\b/i,
     ],
   },
   {
@@ -130,6 +167,10 @@ const RULES: readonly Rule[] = [
       /\bcan'?t\s+ingest\b/,
       /\bprototype\s+can'?t\s+be\s+built\b/,
       /\bcan'?t\s+\w+\s+(?:unaided|without\s+(?:help|regressions))\b/,
+      // Positive bar patterns:
+      /\bcomplete\s+the\s+(?:flow|setup|wizard)\b.*\b(?:unaided|without\s+help)\b/i,
+      /\bingest\b.*\b(?:rows?|records?)\b.*\b(?:under|in)\s+\d+/i,
+      /\b(?:can|able\s+to)\s+(?:build|ship|deliver)\b.*\b(?:without|no)\s+(?:regress|break)/i,
     ],
   },
   {
@@ -140,6 +181,11 @@ const RULES: readonly Rule[] = [
       /\bcan'?t\s+describe\s+the\s+mechanism\b/,
       /\bno\s+one\s+reports\s+caring\b/,
       /\bno\s+one\s+describes\b/,
+      // Positive bar patterns:
+      /\bindependently\s+states?\b.*\b(?:needs?|wants?|values?|sees)\b/i,
+      /\bindependently\s+(?:report|state|confirm)s?\b/i,
+      /\bsay\s+they'?d\s+(?:be\s+)?(?:comfortable|prefer)\b/i,
+      /\b(?:credible|independent)\b.*\b(?:states?|reports?|confirms?)\b/i,
     ],
   },
 ];
