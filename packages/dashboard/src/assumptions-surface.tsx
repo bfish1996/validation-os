@@ -356,6 +356,24 @@ function PipelineRowView({ row, onOpen }: { row: PipelineRow; onOpen: () => void
           <span className="vos-num">impact {Math.round(row.impact)}</span>
           <span className={`vos-num vos-text-${row.riskTone}`}>risk {Math.round(row.risk)}</span>
           <span className="vos-num">conf {formatSigned(row.confidence)}</span>
+          {row.questionType ? (
+            <span className="vos-pipe-tag vos-pipe-tag-qt">{row.questionType}</span>
+          ) : null}
+          {row.stage ? (
+            <span className="vos-pipe-tag vos-pipe-tag-stage">{row.stage}</span>
+          ) : null}
+          {row.riskThreshold != null ? (
+            <span
+              className={`vos-pipe-tag vos-pipe-tag-thresh ${
+                row.clearedThreshold ? "vos-pipe-tag-cleared" : "vos-pipe-tag-needs"
+              }`}
+              title={`Stage threshold ${row.riskThreshold} — ${
+                row.clearedThreshold ? "cleared for this stage" : "needs evidence"
+              }`}
+            >
+              {row.clearedThreshold ? "cleared" : `bar ${row.riskThreshold}`}
+            </span>
+          ) : null}
         </span>
       </button>
       <div className="vos-pipe-prog-2seg" aria-label="Evidence progress (Framed + Known)">

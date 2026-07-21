@@ -160,8 +160,14 @@ export function buildJourney(
   const framed = assumptionCompleteness(belief as Record<string, unknown>);
   const stage = deriveBeliefStage({ framed, confidence, test });
 
+  // DEV-5890: thread the linked assumption's Question Type into each belief
+  // input so Strength reads the right sub-ladder.
+  const assumptionsById = new Map<string, AnyRecord>(
+    records.assumptions.map((a) => [String(a.id), a]),
+  );
+
   const myReadingInputs = records.readings
-    .flatMap(readingBeliefInputs)
+    .flatMap((r) => readingBeliefInputs(r, assumptionsById))
     .filter((i) => i.assumptionId === assumptionId);
   const myExperiments = live
     .filter((e) => testsAssumption(e, assumptionId))
@@ -182,7 +188,12 @@ export function buildJourney(
       (m) => m.assumptionId === assumptionId,
     ) ?? null;
 
-  const cycles = buildCycles(assumptionId, records.readings, records.experiments);
+  const cycles = buildCycles(
+    assumptionId,
+    records.readings,
+    records.experiments,
+    assumptionsById,
+  );
 
   return {
     id: assumptionId,

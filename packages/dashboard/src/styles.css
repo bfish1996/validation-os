@@ -3387,3 +3387,49 @@ button.vos-verdict-title {
 
 /* Topbar: hide the backend + agent indicators (clean header) */
 .vos-backend, .vos-hint:has(.vos-live-dot) { display: none !important; }
+
+/* ── DEV-5890: Question Type + stage threshold tags ────────────────────── */
+.vos-pipe-tag {
+  font-size: 9px;
+  padding: 1px 5px;
+  border: 1px solid var(--vos-border);
+  border-radius: 4px;
+  color: var(--vos-muted);
+  white-space: nowrap;
+}
+.vos-pipe-tag-qt { border-color: var(--vos-accent); color: var(--vos-accent); }
+.vos-pipe-tag-stage { border-color: var(--vos-border); }
+.vos-pipe-tag-thresh { font-weight: 600; }
+.vos-pipe-tag-cleared { color: var(--vos-good); border-color: var(--vos-good); }
+.vos-pipe-tag-needs { color: var(--vos-warn); border-color: var(--vos-warn); }
+.vos-detail-tag-qt { border-color: var(--vos-accent); color: var(--vos-accent); }
+
+/* Stage-keyed Risk threshold indicator (assumption detail) */
+.vos-threshold-indicator { padding: 10px 14px; }
+.vos-threshold-label { font-size: 9px; color: var(--vos-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+.vos-threshold-row { display: flex; gap: 12px; align-items: center; font-size: 12px; }
+.vos-threshold-bar { color: var(--vos-muted); }
+.vos-threshold-status { font-weight: 600; }
+.vos-threshold-cleared { color: var(--vos-good); }
+.vos-threshold-needs { color: var(--vos-warn); }
+.vos-threshold-hint { font-size: 11px; color: var(--vos-muted); margin-top: 4px; }
+
+/* Probative vs flagged-as-non-evidence grouping (assumption detail evidence list) */
+.vos-evidence-group { margin-top: 8px; }
+.vos-evidence-group-label {
+  font-size: 9px;
+  color: var(--vos-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+.vos-evidence-group-flagged .vos-evidence-group-label { color: var(--vos-warn); }
+.vos-evidence-row-flagged { opacity: 0.65; border-left-style: dashed; }
+.vos-evidence-flag {
+  font-size: 9px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--vos-warn-bg, rgba(234, 179, 8, 0.12));
+  color: var(--vos-warn, #b45309);
+  white-space: nowrap;
+}

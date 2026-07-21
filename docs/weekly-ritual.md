@@ -6,8 +6,7 @@ appears) happens ad hoc through the skills.
 
 > **First run — seed the register.** Before the first Monday, do an opening
 > evidence sweep: with `/find-evidence`, log what you already know about each
-> `Live` belief — even low-rung (`Opinion`, `Anecdotal`, one desk-research
-> citation). This differentiates Confidence across the register from t=0, so
+> `Live` belief — even low-rung (`Talk`, one desk-research citation). This differentiates Confidence across the register from t=0, so
 > Risk spreads out and the surface has a real top — instead of every row
 > sitting at the no-evidence prior (Confidence 0) and Risk collapsing to
 > Derived Impact for all of them.

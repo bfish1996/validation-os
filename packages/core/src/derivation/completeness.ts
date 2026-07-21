@@ -6,8 +6,14 @@
  * hand-maintained tags. `Completeness %` is `filled slots / all slots`; a
  * fully-filled assumption reads 100 and is Live-ready, an empty draft reads low.
  *
- * Slots (each an equal fifth):
+ * Slots (each an equal sixth):
  *   Description · Lens · Impact · Scoring justification · Dependencies traced
+ *   · Question Type
+ *
+ * Question Type (DEV-5890) is the 6th slot: an assumption without a Question
+ * Type has `Completeness %` < 100 and cannot go Live. The grill infers the
+ * Question Type from the falsification test and confirms with the user
+ * (the gaming guard).
  *
  * Pure, no backend dependency — the same function the recompute pass stamps
  * into the derived tuple and the audit checks readiness against.
@@ -20,6 +26,7 @@ export const COMPLETENESS_SLOTS = [
   "Impact",
   "Scoring justification",
   "Dependencies traced",
+  "Question Type",
 ] as const;
 
 export type CompletenessSlot = (typeof COMPLETENESS_SLOTS)[number];
@@ -32,6 +39,7 @@ export interface CompletenessInput {
   "Scoring justification"?: unknown;
   dependsOnIds?: unknown;
   enablesIds?: unknown;
+  "Question Type"?: unknown;
 }
 
 /** A text slot is present only when it is a non-blank string. */
@@ -60,6 +68,7 @@ export function completenessSlotPresence(
     "Scoring justification": hasText(record["Scoring justification"]),
     "Dependencies traced":
       hasAny(record.dependsOnIds) || hasAny(record.enablesIds),
+    "Question Type": hasText(record["Question Type"]),
   };
 }
 

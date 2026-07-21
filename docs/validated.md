@@ -64,14 +64,30 @@ Risk = Impact × (1 − max(0, Confidence)/100)
 at full Risk for its Impact — the negative zone routes to the kill review,
 not to more testing budget.)
 
-You stop testing a belief when its Risk falls below the working threshold
-— not when Confidence crosses a magic number. Because Impact varies, the
-same evidence can be plenty for a minor belief and dangerously thin for
-one a one-way-door decision rests on. Attention is governed by the Risk
-ranking, not by status: the register's job is to keep every belief's score
-current and keep you working above the threshold, not to march every row
-to a finish line. Where the threshold sits is a prioritisation rule, not a
-property of the record.
+You stop testing a belief when its Risk falls below the **stage's Risk
+threshold** (`RISK_THRESHOLD_BY_STAGE`, DEV-5890) — not when Confidence crosses
+a magic number. Because Impact varies, the same evidence can be plenty for a
+minor belief and dangerously thin for one a one-way-door decision rests on.
+Attention is governed by the Risk ranking, not by status: the register's job
+is to keep every belief's score current and keep you working above the
+threshold, not to march every row to a finish line. The threshold is a
+prioritisation rule, not a property of the record.
+
+The threshold **tightens with stage** (the reversibility proxy — Bezos two-way
+vs one-way doors, already in the repo on decisions):
+
+| Stage | Threshold | Why |
+|---|---|---|
+| Discovery | 30 | Two-way door — act on weak evidence |
+| Validation | 15 | Becoming one-way — need more before committing |
+| Scale | 10 | One-way door — strong evidence before scaling |
+| Maturity | 5 | Defensive, often regulatory — strongest evidence |
+
+A prevalence assumption at Discovery stops testing on a small survey; the same
+prevalence assumption at Maturity needs a bigger, replicated survey to clear the
+tighter threshold. The question type fixes what counts as evidence; the stage
+fixes how much is enough to act on (see `docs/question-types.md`,
+`docs/stage-policy.md`).
 
 ## What puts a supported belief back in the queue
 

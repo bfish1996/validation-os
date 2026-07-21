@@ -1,7 +1,7 @@
 # Prep playbook — survey
 
 Entered from SKILL.md step 7 when the run's **method** is a survey (a bundle
-whose beliefs sit on the `Survey at scale` rung). Inherits the question
+whose beliefs sit on the `Observed usage` rung). Inherits the question
 discipline of `interview-guide.md` (behaviour-first, non-leading, everything
 maps to a belief's bar, questions tagged per belief) adapted to a
 no-interviewer, larger-N instrument. **Distribution is not this skill's job** —
@@ -51,7 +51,7 @@ and which belief(s) the question feeds — [→ BELIEF-ID]>
 
 ### Signal → bar — one block PER bundled belief
 <!-- repeat per belief under test -->
-- Belief: <assumption title + link> · planned rung: `Survey at scale`
+- Belief: <assumption title + link> · planned rung: `Observed usage`
 - We're right if: <copied> · We're wrong if: <copied>
 - Decision rule: computed over QUALIFIED respondents only; below min-N →
   Inconclusive

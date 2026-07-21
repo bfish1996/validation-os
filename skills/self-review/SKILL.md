@@ -71,7 +71,7 @@ Only **internal team conversations where you spoke** are reviewed.
 External conversations — evidence interviews, customer, investor, or
 prospect calls — are skipped and logged: interviewing well is
 `/find-evidence` and `/experiment-design` territory, and a pitch *to a
-prospect* is `Pitch-deck reaction` evidence, not review material.
+prospect* is `Talk` evidence, not review material.
 
 ## Never — the privacy rails
 

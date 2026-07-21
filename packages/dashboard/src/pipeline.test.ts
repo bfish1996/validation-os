@@ -12,14 +12,15 @@ function assumption(over: Partial<AnyRecord> & { id: string }): AnyRecord {
     Status: "Live",
     Impact: 50,
     moot: false,
-    // The five structural completeness slots (OPS-1305) — a default fixture is
-    // fully framed (100). Framing is Description + Lens + Impact + Scoring
-    // justification + dependencies traced.
+    // The six structural completeness slots (OPS-1305 + DEV-5890) — a default
+    // fixture is fully framed (100). Framing is Description + Lens + Impact +
+    // Scoring justification + dependencies traced + Question Type.
     Description: "We assume adopters install because setup is one command.",
     Lens: "Adopter",
     "Scoring justification": "z",
     dependsOnIds: ["seed"],
     enablesIds: [],
+    "Question Type": "Existence",
     derived: { derivedImpact: 50, risk: 50, confidence: 0 },
     ...over,
   } as AnyRecord;
@@ -116,11 +117,11 @@ describe("buildPipeline", () => {
 
   it("walks the next-move ladder by stage", () => {
     const draft = buildPipeline(
-      // One slot missing (Scoring justification) → 4 of 5 → 80.
+      // One slot missing (Scoring justification) → 5 of 6 → 83.
       [assumption({ id: "d", Status: "Draft", "Scoring justification": "", derived: { derivedImpact: 50, risk: 50, confidence: 0 } })],
       [],
     ).rows[0]!;
-    expect(draft.framed).toBe(80);
+    expect(draft.framed).toBe(83);
     expect(draft.nextMove).toBe("Finish framing");
 
     const unplanned = buildPipeline([assumption({ id: "u" })], []).rows[0]!;

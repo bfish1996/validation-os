@@ -20,7 +20,7 @@
  * recent on ties). Market-rung readings never dedupe (each closed commitment
  * is its own unit). No corroboration bump.
  */
-import type { MagnitudeBand, Result, Rung } from "../types.js";
+import type { MagnitudeBand, QuestionType, Result, Rung } from "../types.js";
 import { MARKET_RUNG_VALUES } from "../types.js";
 import { round2 } from "./round.js";
 import { sourceQuality } from "./source-quality.js";
@@ -83,6 +83,8 @@ export interface ConfidenceReadingInput {
   source: string | null;
   rung: Rung;
   result: Result;
+  /** The linked assumption's question type — sets the anchor sub-ladder. */
+  questionType: QuestionType;
   representativeness: number;
   credibility: number;
   /** ISO date; used only as the dedupe tie-break (most recent wins). */

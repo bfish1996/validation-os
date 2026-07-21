@@ -12,10 +12,10 @@ the names/domains of the people the Lens points at; read full threads —
 context changes the reading of a single message.
 
 **Qualifies as evidence when:** the counterparty (matching the Lens) states
-a fact, describes past behaviour (`Anecdotal`), or commits to something
+a fact, describes past behaviour (`Talk`), or commits to something
 costly in writing (`Signed intent` — e.g. an LOI attached, an explicit
 purchase confirmation). An enthusiastic "sounds great!" is
-`Pitch-deck reaction` at best.
+`Talk` at best.
 
 **Caveats:**
 - Email is the natural join key across sources — the same person's email

@@ -193,6 +193,38 @@ the reading `body` on the canonical **`## Quote`** (verbatim what the source
 said/did) + **`## Source`** (who/when/link) template; keep analysis out of the
 body — it goes in each entry's `Grading justification`.
 
+**Only propose rungs from the assumption's question-type sub-ladder**
+(DEV-5890). The 6-rung vocabulary is fixed; the anchor (ceiling `s`) is per
+**(question type × rung × band)** — see `docs/evidence-ladder.md`. A rung that
+is **non-evidence** for the linked assumption's question type contributes `s=0`
+and must be **flagged** for human review ("this reading is non-evidence for
+this assumption's question type — reclassify the assumption or drop the
+reading"). Concretely:
+
+- Existence assumption: propose `Talk` / `Observed usage` / `Desk research`.
+  Warn if the user tries to log `Signed up` / `Signed intent` / `Paying users`
+  (market rungs don't prove a pain exists — non-evidence).
+- WillingnessToPay assumption: propose `Signed up` / `Signed intent` /
+  `Paying users`. Warn if the user tries to log `Talk` / `Desk research`
+  (talk is non-evidence for WTP — revealed preference).
+- CausalEffect assumption: propose `Observed usage` (A/B) / `Signed intent`
+  (natural experiment) / `Paying users` (A/B on live traffic). Warn on
+  `Talk` / `Desk research` (stated intention is non-evidence for causation).
+- Regulatory assumption: propose `Desk research` only. Warn on anything else.
+- ValueUtility assumption: propose `Talk` (experience sampling) /
+  `Observed usage` (sustained retention). Warn on `Signed intent` /
+  `Paying users` (WTP rungs are non-evidence for value — people pay for
+  things they don't use).
+- Prevalence assumption: propose `Observed usage` (large-N) / `Desk research`
+  (published rates). Warn on `Talk` (a few interviews are non-evidence for a
+  prevalence claim).
+- Feasibility assumption: propose `Observed usage` (prototype usability) /
+  `Desk research` (technical feasibility).
+
+The flag is a **warning, not a write blocker** — the reading is allowed,
+contributes nothing, and is surfaced for the human to reclassify the
+assumption or drop the reading.
+
 **Buyer-discovery / user-interview calls are bare readings.** A discovery call
 is external evidence: log it as a reading linked (via its `beliefs[]` entries)
 to whatever assumptions it bears on, `experimentId` **null** — **never**

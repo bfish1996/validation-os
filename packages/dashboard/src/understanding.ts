@@ -78,8 +78,11 @@ export function buildUnderstanding(
   readings: AnyRecord[],
   experiments: AnyRecord[],
 ): Understanding {
+  // DEV-5890: thread the assumption's Question Type into each belief input so
+  // Strength reads the right sub-ladder.
+  const assumptionsById = new Map<string, AnyRecord>([[String(assumption.id), assumption]]);
   const inputs = readings
-    .flatMap(readingBeliefInputs)
+    .flatMap((r) => readingBeliefInputs(r, assumptionsById))
     .filter((i) => i.assumptionId === assumption.id);
   const { confidence, movers } = confidenceAttribution(inputs);
 

@@ -64,7 +64,7 @@ detail into the body:
 **Anti-patterns:** counting impressions/clicks as intent (vanity —
 guardrails §3) · un-qualified traffic inflating the denominator · a soft ask
 dressed up as `Signed intent` (if the action costs nothing, the honest rung is
-`Pitch-deck reaction` — a Testing-grade design, not a commitment) · no
+`Talk` — a Testing-grade design, not a commitment) · no
 post-signup follow-up plan.
 
 **Terminology check:** `../../_shared/ubiquitous-language.md` — end-user

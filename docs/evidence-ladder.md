@@ -1,121 +1,165 @@
-# The evidence ladder
+# The evidence ladder — seven sub-ladders, one signed scale
 
-Eight rungs, **two categories, one signed scale**. The `Rung` a reading sits
-on (set on the bar line at design time, or directly for a bare reading) names
-*both* what you did and how strong the resulting evidence is: a concluded
-reading contributes a **signed value `s`** — positive when `Validated`,
-negative when `Invalidated`, magnitudes below. The gaps between rungs reflect
-**commitment**: what the signal cost to give.
+The evidence ladder fixes reading strength by **instrument × question-fit**
+(DEV-5890). The rung names an evidence TYPE; the question type (what kind of
+claim the linked assumption raises) sets which rungs are probative, what the
+ceiling is, and which rungs are **non-evidence** for that question type. The
+3D anchor table `RUNG_ANCHOR[questionType][rung][band]` is the single source
+of truth.
 
-## Two categories, by how the evidence is produced
+The rung vocabulary is fixed across all sub-ladders — the same six rungs exist
+in every sub-ladder, with different anchors (including `0` for non-evidence):
 
-- **🧪 Testing** — instruments you run on a sample you can enumerate:
-  recruit, ask, observe. Cheap and fast — and it plateaus. No pile of
-  recruited-sample evidence can push a belief past ±30.
-- **🎯 Market** — open-world targets with a deadline, closed by the market:
-  **two bars pre-registered at commit time** (`We're right if` the target,
-  `We're wrong if` the kill floor) and the measuring instrument named in
-  advance (`goals.md`). Everything commitment-grade runs through a committed
-  Experiment — a fake-door test is just a *short* commitment ("30 signups
-  from 200 visitors in two weeks").
+- **Talk** — the collapsed floor rung (Opinion + Pitch-deck + Anecdotal merged)
+- **Desk research** — regulation, published data, competitor facts
+- **Signed up** — the consumer lens's first do-rung (fake-door signup)
+- **Observed usage** — genuine usage sessions, sustained retention, A/B tests
+- **Signed intent** — LOI, deposit, costly commitment before build
+- **Paying users** — real money, signed contract, A/B on live traffic
 
-The boundary between them is the **commitment cliff**: confidence above ±30
-is only ever bought by the market answering a pre-registered target, never
-by another recruited sample. The categories are also the cost axis — Testing
-is quick and feasible, Market is slow and expensive with a high ceiling — so
-the natural sequence is to test cheaply until a belief earns a Market-tier
-bet.
+Magnitude band (Low / Typical / High) applies to EVERY rung; the lookup is
+`RUNG_ANCHOR[questionType][rung][band]`.
 
-| Category | Rung | `s` (± by Result) | What it is |
-|---|---|---|---|
-| 🧪 Testing | Opinion | ±3 | What someone says about a hypothetical ("I think users would love this"). Includes your own team's and advisors' views. |
-| 🧪 Testing | Pitch-deck reaction | ±6 | A verbal "yes, I'd…" to a pitch or mock — stated, but to a concrete stimulus. |
-| 🧪 Testing | Anecdotal | ±10 | A report of something that **actually happened** — a specific past behaviour, an unprompted real complaint. A weak, small-N shadow of revealed preference; that's why it beats Opinion. |
-| 🧪 Testing | Desk research | ±15 | Regulation, published data, competitor facts. Always ask first: "is this already knowable in hours, with no participants?" |
-| 🧪 Testing | Survey at scale | ±25 | A structured questionnaire at larger N. **This is where volume lives** — 100 people validating a belief is one Survey row, not 100 anecdotes. |
-| 🧪 Testing | Prototype usage | ±30 | Real (unpaid) use of a throwaway / Wizard-of-Oz build. A **usability** signal — comprehension, engagement — not demand; demand needs a Market rung. |
-| 🎯 Market | Signed intent | ±55 / 68 / 80 | A **costly** commitment made before the thing is built: fake-door signup, LOI, deposit. Magnitude Low / Typical / High. |
-| 🎯 Market | Paying users | ±75 / 88 / 99 | Real money: payment, A/B on live traffic, signed contract. Strongest, priciest. Magnitude Low / Typical / High. |
+## The seven sub-ladders
 
-**Magnitude (Low / Typical / High) exists only on the Market rungs** —
-that's where "$100k vs $5" and "12 customers vs 3" live (drivers: commitment
-size × count × activity depth). Testing rungs are single-valued; sample size
-gates the `Result` (too small / wrong audience → `Inconclusive`), never the
-magnitude.
+Each sub-ladder is a `Record<Rung, Record<MagnitudeBand, number>>`. The `0`
+entries are the non-evidence set for that question type — the reading is
+allowed (not a write blocker) but contributes `s=0` and is flagged at the
+UI/skill layer for human review. The **ceiling** is the rung's High band.
 
-## Market rungs: sign from the bars, magnitude from the world
+| Question type | Talk L/T/H | Desk L/T/H | Signed up L/T/H | Observed usage L/T/H | Signed intent L/T/H | Paying users L/T/H | Ceiling |
+|---|---|---|---|---|---|---|---|
+| **Existence** | 10/20/30 | 15/15/15 | 0/0/0 | 20/35/50 | 0/0/0 | 0/0/0 | Observed usage High (50) |
+| **Prevalence** | 0/0/0 | 15/15/15 | 0/0/0 | 25/40/50 | 0/0/0 | 0/0/0 | Observed usage High (50) |
+| **CausalEffect** | 0/0/0 | 0/0/0 | 0/0/0 | 30/50/70 | 30/50/70 | 50/70/90 | Paying users High (90) |
+| **WillingnessToPay** | 0/0/0 | 0/0/0 | 30/50/70 | 0/0/0 | 50/70/85 | 75/88/99 | Paying users High (99) |
+| **ValueUtility** | 10/20/30 | 0/0/0 | 0/0/0 | 30/50/70 | 0/0/0 | 0/0/0 | Observed usage High (70) |
+| **Regulatory** | 0/0/0 | 30/50/70 | 0/0/0 | 0/0/0 | 0/0/0 | 0/0/0 | Desk research High (70) |
+| **Feasibility** | 0/0/0 | 15/15/15 | 0/0/0 | 30/50/70 | 0/0/0 | 0/0/0 | Observed usage High (70) |
 
-- **Hit or beat the target** → full positive. **At or below the kill floor**
-  → commitment-grade negative. **Between** → interpolate: degree of
-  achievement.
-- **Magnitude keys to what actually materialised, on the absolute anchors —
-  never %-of-target.** Target 1, land 1 → Low +75, not +99; target 10, land
-  4 → still positive, at the magnitude of 4 real customers. There is no
-  ambition term: sandbagging can't inflate a reading, and a stretch target
-  is never punished.
-- **No pre-registered floor → no negative possible.** An uncontrolled
-  absence of sales or signups was never a closed commitment — it's
-  `Inconclusive`. The base-rate guard is structural: a −95 requires a
-  controlled, pre-registered, right-Lens paid test that decisively failed —
-  as hard to earn as a +95.
-- **A missed commitment is one negative reading, not a kill** — commit to
-  another. A wrong-framing miss decomposes per belief: a miss caused by
-  channel failure reads `Inconclusive` against the willingness-to-pay belief
-  and lands its negative on the channel belief.
-- **Churn is not a `Paying users` negative** — they paid, then left. It
-  reads against a *retention* belief, at `Prototype usage` grade.
+Notes on the shape (see `docs/question-types.md` for the full research backing):
+
+- **Existence**: qual (`Talk` High = 30) and observed complaints (`Observed
+  usage`) are probative; market rungs are non-evidence (you don't need a
+  fake-door to prove a pain exists).
+- **Prevalence**: only `Observed usage` (large-N) and `Desk research`
+  (published rates) are probative; a few interviews are non-evidence for a
+  prevalence claim.
+- **CausalEffect**: only `Observed usage` (A/B), `Signed intent` (natural
+  experiment), and `Paying users` (A/B on live traffic) are probative; stated
+  intention is non-evidence.
+- **WillingnessToPay**: `Signed up` (fake-door), `Signed intent` (LOI/deposit),
+  `Paying users` are probative; talk and desk are non-evidence. Note `Signed
+  up` is probative here (it's a costly commitment) but not for Existence.
+- **ValueUtility**: `Talk` (in-the-moment experience sampling) and `Observed
+  usage` (sustained retention) are probative; **WTP rungs are non-evidence**
+  (people pay for things they don't use, use things they won't pay for).
+  Ceiling is sustained retention.
+- **Regulatory**: `Desk research` is the ceiling; nothing else is probative. A
+  regulator ruling is a ground truth (graduates out of the register), not a
+  high rung.
+- **Feasibility**: `Observed usage` (prototype usability test) and `Desk
+  research` (technical feasibility) are probative.
+
+## Non-evidence is `s=0`, not a validation error
+
+A reading whose rung is non-evidence for its linked assumption's question type
+contributes `s=0` to Confidence. It is **not rejected at write time** — it's
+allowed, contributes nothing, and is flagged at the UI/skill layer for human
+review ("this reading is non-evidence for this assumption's question type —
+reclassify the assumption or drop the reading"). The flag is derived
+(`isNonEvidence(questionType, rung) → boolean`), not stored.
 
 ## How readings aggregate
 
 An assumption's **Confidence** is the signed, strength-weighted average of
-its concluded readings, shrunk toward 0 by a neutral prior:
+its concluded readings, shrunk toward 0 by a per-rung neutral prior:
 
 ```
-Confidence = (w₀·0 + Σ wᵢ·sᵢ) / (w₀ + Σ wᵢ)     w₀ = 100,  wᵢ = |sᵢ| × source_quality
+Confidence = (Σ wi·si) / (W0_rung + Σ wi)
+wi = |si| × Source quality × commitment,  si = readingStrength(questionType, rung, band) × sign(Result)
+W0_rung = per-rung prior (Desk 2, Talk 6.5, do-rungs 327)
 ```
 
-Signed, ranging −100…100; no evidence = 0. Full operational ruleset:
-`skills/_shared/experiment-guardrails.md §2`.
+Signed, ranging −100…100; no evidence = 0. The per-rung W0 is **retained from
+the per-rung-w0 branch**, unchanged in shape — W0 is keyed by **evidence type
+(within a question type)**, not by stage or question type. Desk saturates fast
+(W0=2 — one authoritative source nearly saturates), talk needs ~10 readings
+(W0=6.5), do-rungs need ~20 (W0=327). The cross-question-type variation is in
+the anchor (ceiling), not the W0 (learning rate). Empirical-Bayes
+per-question-type W0 tuning is flagged as v2 — see `docs/question-types.md`.
+
+Full operational ruleset: `skills/_shared/experiment-guardrails.md §2`.
+
+## The three axes, restated
+
+Three independent axes, three independent knobs, each backed by a different
+research tradition:
+
+| Axis | Knob | Set by | Research |
+|---|---|---|---|
+| Anchor (ceiling `s`) | `RUNG_ANCHOR[questionType][rung][band]` | Question type × evidence type | EBM GRADE, confirmation theory |
+| W0 (learning rate) | `W0_BY_RUNG[rung]` | Evidence type (within question type) | Qual saturation, reliability theory |
+| Risk threshold (stopping rule) | `RISK_THRESHOLD_BY_STAGE[stage]` | Stage → reversibility | Pragmatic encroachment, Bezos doors |
+
+Question type sets the ceiling. Evidence type sets the learning rate. Stage
+sets the stopping rule. None redundant; each backed by a different literature.
+
+## Stage → Risk threshold
+
+The Risk value below which an assumption is "validated enough" for its stage.
+It does NOT flip a status — Live assumptions stay Live and ranked forever
+(`docs/validated.md`). It is consumed by the dashboard's test-next surface,
+the `/assumptions audit` skill, and the `/experiment-design` skill.
+
+| Stage | Threshold | Why |
+|---|---|---|
+| Discovery | 30 | Two-way door — act on weak evidence |
+| Validation | 15 | Becoming one-way — need more before committing |
+| Scale | 10 | One-way door — strong evidence before scaling |
+| Maturity | 5 | Defensive, often regulatory — strongest evidence |
+
+A prevalence assumption at Discovery stops testing on a small survey; the same
+prevalence assumption at Maturity needs a bigger, replicated survey to clear
+the tighter threshold. The question type fixes what counts as evidence; the
+stage fixes how much is enough to act on.
 
 ## The rules that keep the ladder honest
 
 - **Revealed > stated.** What people *did* beats what they *say* they'd do —
-  within Testing (Prototype 30 > Survey 25) and across the cliff (any Market
-  rung beats every Testing rung).
+  within a sub-ladder (Observed usage High > Talk High for Existence) and
+  across the cliff (any do-rung beats Talk/Desk for WTP/CausalEffect).
 - **No corroboration bump.** Replication is just more evidence mass reducing
   shrinkage toward the prior — there is no separate uplift mechanic.
 - **Volume reaches toward the rung ceiling, never past it.** The average is
   bounded by the strongest reading's value, so no pile of weak evidence
-  outranks strong; and a lone top-rung reading lands near *half* its rung
-  (one max-grade hit ≈ +49), so approaching the ceiling takes a series.
+  outranks strong; and a lone top-rung reading lands near *half* its rung, so
+  approaching the ceiling takes a series.
 - **Source quality moves weight within a rung, never value across rungs.**
   `source_quality = Representativeness × Credibility` scales the reading's
-  *weight*; a high-credibility Opinion is still worth ±3.
+  *weight*; a high-credibility Talk is still worth its anchor in the sub-ladder.
 - **Independence keys off the source.** Same-source readings against one
   belief don't compound as independent mass — aggregation dedupes by the
-  artifact's canonical link. Readings from a closed committed plan are the
-  deliberate exception: **each closed plan is its own unit** — successive
-  cycles on the same instrument never dedupe (a series of misses could
-  otherwise never accumulate); the rising kill floor, not dedupe, stops an
-  unchanged world being re-counted (`goals.md §Found numbers`).
-- **Market rungs enter market-first, always.** A found scoreboard number is
-  never logged as evidence — it prompts minting a *forward* committed plan
-  with bars calibrated off it (`goals.md §Found numbers`). No bare
-  Market-side readings, no retro-registered bars.
-- **Only concluded readings count.** `Running` and `Inconclusive` contribute
-  nothing — excluded from the sum entirely, not counted as zeros.
-- **Base rate ≠ validation.** Desk research can tell you the world's
-  conversion rates; it cannot tell you *your* users will convert. For
-  your-user behavioural claims, desk evidence caps at Inconclusive.
+  artifact's canonical link. Market rungs never dedupe (each closed commitment
+  is its own unit).
+- **Only concluded readings count.** `Inconclusive` contributes nothing —
+  excluded from the sum entirely, not counted as zero.
 - **The ladder tops out at ±99, never ±100** (Cromwell's rule, both
   directions). No amount of evidence turns a bet into a certainty — an
-  assumption is never validated (`validated.md`).
+  assumption is never validated (`docs/validated.md`).
 - **The kill zone is earned by a series.** Confidence ≤ −50 raises the
-  kill-review flag for a human verdict — never an automatic kill. Testing
-  negatives asymptote at −30, and no single reading can reach −50 (one
-  max-grade missed commitment lands ≈ −49; a second fires the prompt):
-  **only a series of missed Market-rung commitments can kill a belief.**
+  kill-review flag for a human verdict — never an automatic kill.
+- **Non-evidence is `s=0`, not a rejection.** A reading at a non-evidence
+  rung for its assumption's question type is allowed, contributes nothing,
+  and is flagged for human review.
 
 Full operational ruleset: `skills/_shared/experiment-guardrails.md §2`.
-Credit: the ladder adapts Itamar Gilad's Confidence Meter; the Market rungs
-add OKR-style continuous grading plus experiment-style pre-registration.
+
+## v2 — out of scope
+
+See `docs/question-types.md § v2` for the v2 work: per-question-type W0 tuning,
+A/B-removal cross-counting, adding new question types (e.g. Retention split
+from ValueUtility), and rung splits + an instrument axis (split Talk into
+Interview/Survey, split Signed intent into LOI/Deposit/Front-door, split
+Observed usage into Prototype usability/Sustained retention) where the ceiling
+or W0 genuinely differs.

@@ -116,10 +116,13 @@ export function buildCycles(
   assumptionId: string,
   readings: AnyRecord[],
   experiments: AnyRecord[],
+  assumptionsById?: ReadonlyMap<string, AnyRecord>,
 ): CycleView[] {
   const mine = readings.filter((r) => readingGrades(r, assumptionId));
+  // DEV-5890: thread the assumption's Question Type into each input via the
+  // optional assumptionsById map; defaults to Existence when absent.
   const inputs = readings
-    .flatMap(readingBeliefInputs)
+    .flatMap((r) => readingBeliefInputs(r, assumptionsById))
     .filter((i) => i.assumptionId === assumptionId);
   const { movers } = confidenceAttribution(inputs);
   const moverByKey = new Map(movers.map((m) => [m.key, m]));

@@ -63,13 +63,13 @@ describe the source, not the belief.
 **One rung per artifact — split a mixed-rung artifact into separate readings.**
 Because rung is row-level, an artifact must sit at a **single** rung. When one
 raw artifact genuinely spans two rungs — e.g. a call that includes a real
-`Prototype usage` demo **and** a past-behaviour discussion — it becomes
-**multiple readings, one per rung** (the prototype-usage portion is its own
-reading, `Prototype usage`; the discussion its own, `Anecdotal`), each with its
-own `beliefs[]` entries and its own `## Quote`/`## Source` body slice. Never
+`Observed usage` demo **and** a past-behaviour discussion — it becomes
+**multiple readings, one per rung** (the usage portion is its own reading,
+`Observed usage`; the discussion its own, `Talk`), each with its own
+`beliefs[]` entries and its own `## Quote`/`## Source` body slice. Never
 average two rungs into one reading, and never stretch one rung to cover
-signal it doesn't fit. `Prototype usage` is reserved for **genuine
-prototype-usage sessions** — not a demo watched, not a pitch reaction.
+signal it doesn't fit. `Observed usage` is reserved for **genuine usage
+sessions** — not a demo watched, not a pitch reaction.
 
 **Evidence is external — a reading records an observation from a source
 OUTSIDE the team.** The generator behind every reading is a customer, user,
@@ -232,49 +232,63 @@ of it piles up.
 
 ## 2. The evidence ladder + feasibility (two axes of rung choice)
 
-Choosing each belief's **rung** is a trade-off of **two axes**, not one:
+Choosing each belief's **rung** is a trade-off of **two axes**, not one. The
+rung vocabulary is fixed (`Talk`, `Desk research`, `Signed up`, `Observed
+usage`, `Signed intent`, `Paying users`); the anchor (ceiling `s`) is per
+**(question type × rung × band)** — see `docs/evidence-ladder.md` for the 3D
+`RUNG_ANCHOR[questionType][rung][band]` table and `docs/question-types.md` for
+the seven question types. A rung that is **non-evidence** for the linked
+assumption's question type contributes `s=0` (flagged at the UI/skill layer,
+not a write blocker).
 
-**Axis A — evidence strength (climb as high as the belief needs).** The 7
-rungs, weakest → strongest, in **two categories**
-(`docs/evidence-ladder.md`). The gaps *between* rungs reflect **commitment**
-— what the signal cost the person to give:
+**Axis A — evidence strength (climb as high as the belief needs).** The 6
+rungs, in **two categories** (`docs/evidence-ladder.md`). The gaps *between*
+rungs reflect **commitment** — what the signal cost the person to give. The
+rung vocabulary is fixed; the **anchor** (ceiling `s`) is per
+**(question type × rung × band)** — see `docs/evidence-ladder.md` for the 3D
+`RUNG_ANCHOR[questionType][rung][band]` table:
 
-- 🧪 **Testing** (instruments run on a sample you can enumerate; plateau ±30):
-  - `Anecdotal` (±3) — **the floor** (absorbed the old `Opinion`, 0.10):
-    anything from a bare stated opinion about a **hypothetical** ("I think
-    users would like this" — self / team / advisor) up to an unprompted report
-    of something that **actually happened** ("three users told us they've been
-    doing this manually in a spreadsheet"). A bare opinion is just the weakest
-    anecdote, so both land here at the floor anchor; a specific past behaviour
-    is a stronger anecdote but still `Anecdotal` — push for a higher rung when
-    the belief needs it.
-  - `Pitch-deck reaction` (±6) — a verbal "yes, I'd…" to a pitch or mock.
-    Still stated, but to a concrete stimulus.
-  - `Desk research` (±15) — regulation, published data, competitor /
-    prior-internal facts. *Always ask first: "is this already knowable in
-    hours, no participants?"*
-  - `Survey at scale` (±25) — a structured questionnaire at larger N. This
-    is **where volume lives**: 100 people who validate a belief = **one
-    `Survey at scale` record**, not 100 `Anecdotal` records.
-  - `Prototype usage` (±30) — **genuine prototype-usage sessions only**: real,
-    hands-on use of a throwaway / Wizard-of-Oz build. A demo merely watched or
-    a pitch reaction is **not** `Prototype usage` (that's `Pitch-deck reaction`
-    / `Anecdotal`). Genuine behaviour, but it measures **comprehension /
-    usability / engagement**, not demand — and it's novelty-biased, drawn from
-    non-representative early users. Demand needs a Market rung.
+- 🧪 **Testing** (instruments run on a sample you can enumerate):
+  - `Talk` — **the collapsed floor** (Opinion + Pitch-deck + Anecdotal merged,
+    DEV-5879): anything from a bare stated opinion about a **hypothetical**
+    ("I think users would like this" — self / team / advisor) up to an
+    unprompted report of something that **actually happened** ("three users
+    told us they've been doing this manually in a spreadsheet"). Bands
+    Low / Typical / High carry the old Opinion (3) / Pitch-deck (6) /
+    Anecdotal (10) anchors under the legacy single-ladder; under the
+    question-type-aware ladder the anchors vary by question type (e.g.
+    Existence × Talk × High = 30, WTP × Talk = 0 non-evidence).
+  - `Desk research` — regulation, published data, competitor / prior-internal
+    facts. *Always ask first: "is this already knowable in hours, no
+    participants?"* Flat across bands under the legacy ladder; the ceiling
+    for Regulatory claims (High = 70).
+  - `Signed up` — the consumer lens's first do-rung (fake-door signup). A
+    **costly** commitment, but unpaid — probative for WillingnessToPay (a
+    fake-door is a short committed plan) and non-evidence for Existence.
+  - `Observed usage` — genuine usage sessions, sustained retention, A/B
+    tests. The ceiling for Existence / Prevalence / ValueUtility /
+    Feasibility claims; probative for CausalEffect (A/B).
 - 🎯 **Market** (open-world targets with a deadline, two pre-registered
   bars, closed by the market — renamed from "Goals" with the Goal→Experiment
   unification, `OPS-1305`; `docs/goals.md`):
-  - `Signed intent` (±55 / 68 / 80) — concept / fake-door / LOI / deposit: a
-    **costly** commitment made *before* the thing is built. A fake-door test
-    is a *short* committed plan.
-  - `Paying users` (±75 / 88 / 99) — real money, A/B, signed contract.
-    Strongest, priciest.
+  - `Signed intent` — LOI / deposit / costly commitment before build.
+  - `Paying users` — real money, A/B on live traffic, signed contract.
+    Strongest, priciest. The ceiling for WillingnessToPay (High = 99) and
+    CausalEffect (High = 90).
+
+**Non-evidence rungs** (anchor 0 across all bands): a rung that is
+non-evidence for the linked assumption's question type contributes `s=0` and
+is flagged at the UI/skill layer for human review ("reclassify the assumption
+or drop the reading"). The flag is derived (`isNonEvidence(questionType,
+rung)`), not stored. **Not a write blocker** — the reading is allowed,
+contributes nothing. See `docs/question-types.md` for the per-question-type
+probative / non-evidence table.
 
 Revealed > stated: a costly action beats a "would you?" — within Testing
-(`Prototype usage` > `Survey at scale`) and across the **commitment cliff**
-(any Market rung beats every Testing rung). Push for the highest rung the
-test can honestly reach.
+(`Observed usage` > `Talk`) and across the **commitment cliff** (any Market
+rung beats every Testing rung for WTP / CausalEffect). Push for the highest
+rung the test can honestly reach **within the assumption's question-type
+sub-ladder**.
 
 **Market rungs enter via a committed Experiment, commitment-first, always.**
 A Market-rung design *is* a committed plan — both bars pre-registered,
@@ -305,23 +319,25 @@ when access opens.
 per belief the reading scores), reading the artifact's **row-level `Rung`** and
 gated to that entry's conclusive `Result` (0 while `Running` or `Inconclusive`):
 
-- `s = rung anchor × sign(Result)` — the **row-level** `Rung`'s anchor times
-  the sign of *this entry's* `Result`; `Validated` positive, `Invalidated`
-  negative. Symmetric: a −95 is as strong, and as hard to earn, as a +95.
-- Rung anchors: `Anecdotal` 3 (the floor, absorbed `Opinion`) ·
-  `Pitch-deck reaction` 6 · `Desk research` 15 · `Survey at scale` 25 ·
-  `Prototype usage` 30 · `Signed intent` 55/68/80 · `Paying users` 75/88/99.
-- **Magnitude (Low / Typical / High) exists only on the Market rungs** —
-  picked from what actually materialised (commitment size × count ×
-  activity depth) on absolute anchors, **never %-of-target**. Target 1,
-  land 1 → Low; target 10, land 4 → the magnitude of 4 real customers. No
-  ambition term: sandbagging can't inflate, stretch is never punished.
+- `s = RUNG_ANCHOR[questionType][rung][band] × sign(Result)` — the
+  **row-level** `Rung`'s anchor in the linked assumption's question-type
+  sub-ladder, times the sign of *this entry's* `Result`; `Validated` positive,
+  `Invalidated` negative. Symmetric: a −99 is as strong, and as hard to earn,
+  as a +99. A rung that is non-evidence for the question type carries anchor
+  0 → `s=0` (flagged, not blocked). See `docs/evidence-ladder.md` for the
+  full 3D anchor table.
+- **Magnitude (Low / Typical / High) applies to EVERY rung** — picked from
+  what actually materialised (commitment size × count × activity depth for
+  Market rungs; intensity for Testing rungs) on absolute anchors, **never
+  %-of-target**. Target 1, land 1 → Low; target 10, land 4 → the magnitude
+  of 4 real customers. No ambition term: sandbagging can't inflate, stretch
+  is never punished.
 - **Market-rung sign comes from the two bars:** hit/beat `We're right if` →
   full positive; at/below `We're wrong if` → negative; between → interpolate
   (degree of achievement). **No pre-registered floor → no negative** — an
   uncontrolled absence of sales is `Inconclusive`, never a kill reading
   (the base-rate guard is structural). Churn is a *retention*-belief
-  negative at `Prototype usage` grade, never a clean `Paying users` kill.
+  negative at `Observed usage` grade, never a clean `Paying users` kill.
 
 **Source quality — *the who* (a weight, within a rung, never across).** Two
 judged sub-scores, each picked from `{1.0, 0.7, 0.5}`; the field stores the
@@ -368,8 +384,8 @@ Confidence = (w₀·0 + Σ wᵢ·sᵢ) / (w₀ + Σ wᵢ)
   Like `source_quality`, `commitmentFactor` scales an entry's *weight*, never
   its value `sᵢ` (the rung sets the ceiling). So the average stays bounded by
   the strongest entry's `|s|`, and a discounted found reading can never
-  outrank a stronger experiment-born one: a found `Prototype usage` still
-  beats an experiment `Anecdotal`. The discount changes how fast Confidence
+  outrank a stronger experiment-born one: a found `Observed usage` still
+  beats an experiment `Talk`. The discount changes how fast Confidence
   approaches a ceiling, never which ceiling applies.
 
 - **Signed, −100…100; no evidence = 0.** Stored signed; Risk clamps the
@@ -431,7 +447,8 @@ into the average — the `reading-ungraded` check flags it (`ontology.yaml`).
 **Volume lives in rung choice, not in a record count.** Same-source records
 don't stack (the dedupe), and weak records can't out-average strong ones. If
 you have volume, it should change the *rung* — a systematic ask of 100
-people is a `Survey at scale`, not 100 anecdotes.
+people is one `Observed usage` record at the right magnitude band, not 100
+`Talk` records.
 
 **Sample size (N) gates the `Result`; it is not a magnitude lever.** A test
 whose N is too small (or wrong-Lens) to mean anything comes back
@@ -523,8 +540,8 @@ you show a prototype in the interview?").
 
 | Discovering… | Build | Rung it belongs on |
 |---|---|---|
-| Problem **existence / severity** — did it happen, how often, how painful (past behaviour) | **Nothing** — interview without stimulus | `Anecdotal` |
-| Solution **comprehension / usability / engagement** — do they get it, can they use it, do they come back | **Prototype** (throwaway; Wizard-of-Oz allowed) | `Prototype usage` |
+| Problem **existence / severity** — did it happen, how often, how painful (past behaviour) | **Nothing** — interview without stimulus | `Talk` |
+| Solution **comprehension / usability / engagement** — do they get it, can they use it, do they come back | **Prototype** (throwaway; Wizard-of-Oz allowed) | `Observed usage` |
 | **Willingness to commit** before anything is built | **Fake-door / landing page** — not a full prototype | `Signed intent` |
 | Facts **already knowable** from published sources | **Nothing** — desk research | `Desk research` |
 

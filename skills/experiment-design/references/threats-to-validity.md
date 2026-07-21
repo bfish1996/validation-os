@@ -8,7 +8,7 @@ accept them in the record body. Silence is not the same as "not applicable."
 - **Selection bias** — are conditions/groups getting systematically different
   subjects? (e.g. only power users see the new flow)
 - **Novelty effects** — will the intervention look good just because it's
-  new, not because it's better? Most relevant to `Prototype usage`.
+  new, not because it's better? Most relevant to `Observed usage`.
 - **Hawthorne effect** — are subjects behaving differently because they know
   they're being observed? Relevant to any moderated interview or usability
   session.

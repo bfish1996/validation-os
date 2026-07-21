@@ -5,7 +5,7 @@ Fireflies MCP server connected in the harness.
 
 **What it holds:** recorded calls and user interviews — the primary internal
 source. Transcripts are the closest thing to raw revealed speech you have;
-an unprompted complaint or a described past behaviour here is `Anecdotal`
+an unprompted complaint or a described past behaviour here is `Talk`
 evidence, and a transcript may be *the run of* an open `Running` interview
 guide (close it out — `../../_shared/historic-evidence.md §5`).
 

@@ -12,6 +12,7 @@ import {
   RELATIONS,
   isNotFoundError,
   isStaleVersionError,
+  type AssumptionRecord,
   type Collection,
   type DataProvider,
   type RecordRef,
@@ -240,6 +241,20 @@ export function createApi(options: CreateApiOptions): ValidationOsApi {
   }
 
   /**
+   * Fetch the assumptions register as an id → record map, for inline Strength
+   * derivation on reading writes (DEV-5890: Strength is keyed by the linked
+   * assumption's Question Type).
+   */
+  async function assumptionsByIdFor(
+    p: DataProvider,
+  ): Promise<Map<string, AssumptionRecord>> {
+    const assumptions = (await p.list(
+      "assumptions",
+    )) as unknown as AssumptionRecord[];
+    return new Map(assumptions.map((a) => [a.id, a]));
+  }
+
+  /**
    * A relation can move a derived number (a reading joins a belief, a standing
    * decision lands, a dependency edge appears), so link/unlink run the same
    * backstop recompute the write routes use whenever either end is a trigger.
@@ -288,7 +303,17 @@ export function createApi(options: CreateApiOptions): ValidationOsApi {
         if (REGISTERS_WITH_OWNER.has(register) && ownerAbsent(data.Owner)) {
           data = { ...data, Owner: [name] };
         }
-        if (register === "readings") data = deriveReadingFields(data);
+        if (register === "readings") {
+          // DEV-5890: Strength is keyed by the linked assumption's Question
+          // Type — look it up so the inline-stamped Strength is correct from
+          // the first write (the recompute pass still backstops on every
+          // touching write).
+          const assumptions = (await provider.list(
+            "assumptions",
+          )) as unknown as AssumptionRecord[];
+          const byId = new Map(assumptions.map((a) => [a.id, a]));
+          data = deriveReadingFields(data, byId);
+        }
         const created = await provider.create(register, data);
         await maybeRecompute(register);
         return json({ data: created }, 201);
@@ -311,7 +336,12 @@ export function createApi(options: CreateApiOptions): ValidationOsApi {
         // An update may re-attribute Owner/Agreed-by, but only to roster members.
         assertIdentityFields(rawPatch, memberNames);
         const patch =
-          register === "readings" ? deriveReadingFields(rawPatch) : rawPatch;
+          register === "readings"
+            ? deriveReadingFields(
+                rawPatch,
+                await assumptionsByIdFor(provider),
+              )
+            : rawPatch;
         const updated = await provider.update(register, p.id, patch, version);
         await maybeRecompute(register);
         return json({ data: updated });

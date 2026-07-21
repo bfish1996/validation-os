@@ -26,9 +26,10 @@ registers:
       - {canonical: Derived Impact, backend: Derived Impact, type: number, derived: true, formula: "seed + (100 - seed) × S/(S + 100), S = Σ dependents' Derived Impact + 100 per standing decision Based on this row; experiments never contribute (assumption-guardrails.md §3); recomputed on every touching write (OPS-1251), bullet marked <!-- derived -->"}
       - {canonical: Risk, backend: Risk, type: number, derived: true, formula: "Derived Impact * (1 - max(0, Confidence) / 100); skill-computed, bullet marked <!-- derived -->"}
       - {canonical: Confidence, backend: Confidence, type: number, derived: true, formula: "signed weighted average of concluded Validated/Invalidated belief entries scored against this row, weight = |Strength| × Source quality × commitmentFactor (1.0 if the entry's reading has an Experiment else 0.85; never reorders rungs), neutral prior w0=100 (hard floor ≥98), deduped per (belief, source) to the strongest/most-recent (experiment-guardrails.md §2); skill-computed, bullet marked <!-- derived -->"}
-      - {canonical: Completeness %, backend: Completeness %, type: number, derived: true, formula: "filled slots / all slots × 100 over five structural slots: Description, Lens, Impact, Scoring justification, dependencies traced (≥1 Depends on/Enables link); replaces the retired Gaps/presence-field machinery (OPS-1305); skill-computed, bullet marked <!-- derived -->"}
+      - {canonical: Completeness %, backend: Completeness %, type: number, derived: true, formula: "filled slots / all slots × 100 over six structural slots: Description, Lens, Impact, Scoring justification, dependencies traced (≥1 Depends on/Enables link), Question Type; replaces the retired Gaps/presence-field machinery (OPS-1305); skill-computed, bullet marked <!-- derived -->"}
       - {canonical: Status, backend: Status, type: text, derived: false, options_source: registry-schema}
       - {canonical: Stage, backend: Stage, type: text, derived: false, options_source: registry-schema}
+      - {canonical: Question Type, backend: Question Type, type: text, derived: false, options_source: registry-schema}
       - {canonical: Owner, backend: Owner, type: text, derived: false, options_source: vocabulary.dashboard_users}
       - {canonical: Scoring justification, backend: "### Scoring justification section", type: text, derived: false}
     relations:
@@ -163,6 +164,7 @@ per record named by ID (`<ID>.md`):
 | Completeness % | `- **Completeness %**: ...` | number | yes |
 | Status | `- **Status**: ...` | text | no |
 | Stage | `- **Stage**: ...` | text (`Discovery`/`Validation`/`Scale`/`Maturity`) | no |
+| Question Type | `- **Question Type**: ...` | text (`Existence`/`Prevalence`/`CausalEffect`/`WillingnessToPay`/`ValueUtility`/`Regulatory`/`Feasibility`) | no |
 | Owner | `- **Owner**: ...` | text (dashboard-user reference) | no |
 | Scoring justification | `- **Scoring justification**: ...` | text | no |
 | Depends on / Enables | `- **Depends on**: ...` / `- **Enables**: ...` | text (IDs) | no |
@@ -188,10 +190,11 @@ commitmentFactor` (commitmentFactor 1.0 when the entry's reading has an
 `Experiment` else 0.85 — a weight-only term that never reorders rungs), neutral
 prior w₀ = 100, deduped per (belief, source) to the strongest/most-recent
 (`experiment-guardrails.md §2`).
-- **Completeness %** = filled slots / all slots × 100, over five structural
+- **Completeness %** = filled slots / all slots × 100, over six structural
 slots: Description, Lens, Impact, Scoring justification, dependencies traced
-(≥1 `Depends on`/`Enables` link). Replaces the retired `Gaps`/presence-field
-readiness machinery (`OPS-1305`); drives the `Draft` ⇔ `Live` gate.
+(≥1 `Depends on`/`Enables` link), Question Type. Replaces the retired
+`Gaps`/presence-field readiness machinery (`OPS-1305`); drives the `Draft` ⇔
+`Live` gate (the `Question Type` slot is the Live gate added in DEV-5890).
 
 Canonical formulas live in `experiment-guardrails.md §2` and
 `assumption-guardrails.md §3`; the recompute pass computes and writes them on
@@ -243,7 +246,7 @@ ID>` sub-block per belief:
 #### ASM-014
 - **We're right if**: ≥30% of interviewed operators say they'd switch within a quarter.
 - **We're wrong if**: <10% say they'd switch, or nobody can name a trigger.
-- **Planned rung**: Survey at scale
+- **Planned rung**: Observed usage
 - **Bar verdict**: (set at closure)
 ```
 
@@ -311,7 +314,7 @@ magnitude are on the row (above); each sub-block carries only `Result`,
 #### ASM-014
 - **Result**: Validated
 - **Strength**: 3 <!-- derived -->
-- **Grading justification**: Described reconciling by hand weekly, unprompted → Validated against ASM-014. (Reading rung Anecdotal; Rep 1.0, Cred 0.7.)
+- **Grading justification**: Described reconciling by hand weekly, unprompted → Validated against ASM-014. (Reading rung Talk; Rep 1.0, Cred 0.7.)
 ```
 
 One sub-block per scored assumption ID. A reading that bears on N beliefs has

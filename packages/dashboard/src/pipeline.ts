@@ -18,6 +18,8 @@ import {
   type BarLine,
   type BeliefReadingInput,
 } from "@validation-os/core";
+import { riskThresholdForStage } from "@validation-os/core/derivation";
+import { STAGE_ORDER } from "./stage-grid-model.js";
 import {
   beliefRisk,
   beliefTestMeters,
@@ -59,6 +61,14 @@ export interface PipelineRow {
   tested: { settled: number; total: number };
   /** The stage-aware verb the front door offers (navigates to the record). */
   nextMove: string;
+  /** The assumption's Question Type (DEV-5890) — kind of claim. */
+  questionType: string | null;
+  /** The assumption's Stage (DEV-5890) — kind of response / threshold. */
+  stage: string | null;
+  /** The stage's Risk threshold (DEV-5890) — the stopping bar. */
+  riskThreshold: number | null;
+  /** Whether the assumption has cleared its stage's threshold (Risk ≤ bar). */
+  clearedThreshold: boolean | null;
 }
 
 /** A belief taken off the board — killed (Invalidated) or made moot. */
@@ -200,6 +210,14 @@ export function buildPipeline(
     };
     const framed = assumptionCompleteness(a as Record<string, unknown>);
     const stage = deriveBeliefStage({ framed, confidence: d.confidence, test });
+    // DEV-5890: surface Question Type + Stage + threshold on the row.
+    const questionType = str(a["Question Type"]);
+    const stageName = str(a.Stage);
+    const stageKey =
+      stageName && (STAGE_ORDER as readonly string[]).includes(stageName)
+        ? (stageName as (typeof STAGE_ORDER)[number])
+        : null;
+    const riskThreshold = stageKey ? riskThresholdForStage(stageKey) : null;
     rows.push({
       id: a.id,
       statement: str(a.Title),
@@ -213,6 +231,11 @@ export function buildPipeline(
       planned: stage.planned,
       tested: stage.tested,
       nextMove: nextMove(stage.stage, stage.killZone),
+      questionType: questionType,
+      stage: stageName,
+      riskThreshold,
+      clearedThreshold:
+        riskThreshold != null ? d.risk <= riskThreshold : null,
     });
   }
 
@@ -260,8 +283,15 @@ export function weekOverWeekDelta(
   const cutoff = now.getTime() - 7 * 24 * 60 * 60 * 1000;
   // Fan every reading row out into one input per belief, then group by the
   // belief it scores — a single row can now score several beliefs (OPS-1305).
+  // DEV-5890: thread the linked assumption's Question Type into each input so
+  // Strength reads the right sub-ladder.
+  const assumptionsById = new Map<string, AnyRecord>(
+    assumptions.map((a) => [String(a.id), a]),
+  );
   const byAssumption = new Map<string, BeliefReadingInput[]>();
-  for (const input of readings.flatMap(readingBeliefInputs)) {
+  for (const input of readings.flatMap((r) =>
+    readingBeliefInputs(r, assumptionsById),
+  )) {
     if (!input.assumptionId) continue;
     const arr = byAssumption.get(input.assumptionId);
     if (arr) arr.push(input);

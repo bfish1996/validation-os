@@ -6,8 +6,9 @@ import {
   type ExperimentConfidenceReadingInput,
 } from "./index.js";
 
-// A concluded Validated Observed-usage (Low = 30) reading, full source quality,
-// unless overridden. Source-dedupe keys off `source` (falls back to id).
+// A concluded Validated Observed-usage (Low = 20, Existence) reading, full
+// source quality, unless overridden. Source-dedupe keys off `source` (falls
+// back to id). Defaults to the Existence sub-ladder.
 function reading(
   over: Partial<ExperimentConfidenceReadingInput> = {},
 ): ExperimentConfidenceReadingInput {
@@ -16,6 +17,7 @@ function reading(
     source: over.source ?? "src-1",
     rung: over.rung ?? "Observed usage",
     result: over.result ?? "Validated",
+    questionType: over.questionType ?? "Existence",
     magnitudeBand: over.magnitudeBand ?? "Low",
     representativeness: over.representativeness ?? 1.0,
     credibility: over.credibility ?? 1.0,
@@ -53,22 +55,22 @@ describe("experimentConfidence", () => {
   });
 
   it("lifts above 50 with a single Validated Observed-usage reading on one bar", () => {
-    // 1 bar, 1 Validated Observed-usage (Low = 30) reading, sq = 1.
-    // C = 1/1 = 1. f = 30 × 1 / 99 = 0.3030. F = 0.3030. S = 0.3030 / 1.3030 = 0.2326.
-    // A = 0 (no barVerdict). 50 + 50 × 1 × 0.2326 + 0 = 61.63 → ~62.
+    // Existence × Observed-usage (Low = 20), sq = 1.
+    // C = 1/1 = 1. f = 20 × 1 / 99 = 0.2020. F = 0.2020. S = 0.2020 / 1.2020 = 0.1681.
+    // A = 0 (no barVerdict). 50 + 50 × 1 × 0.1681 + 0 = 58.40 → ~58.
     const c = experimentConfidence([bar()], [reading()]);
-    expect(c).toBeGreaterThan(60);
-    expect(c).toBeLessThan(65);
+    expect(c).toBeGreaterThan(57);
+    expect(c).toBeLessThan(60);
     expect(MAX_STRENGTH).toBe(99);
   });
 
   it("stays near 50 with partial coverage — 2 Validated of 4 bars, one Inconclusive, one null", () => {
-    // 4 bars; 2 covered with Validated Talk (Typical = 6) readings, one
-    // Inconclusive, one with no reading.
+    // 4 bars; 2 covered with Validated Talk (Typical = 20, Existence) readings,
+    // one Inconclusive, one with no reading.
     // covered = 2 → C = 2/4 = 0.5.
-    // f per Talk reading = 6 × 1 / 99 = 0.0606. F = 2 × 0.0606 = 0.1212.
-    // S = 0.1212 / 1.1212 = 0.1081. A = 0 (no verdicts).
-    // 50 + 50 × 0.5 × 0.1081 = 50 + 2.70 = 52.70 → ~54.
+    // f per Talk reading = 20 × 1 / 99 = 0.2020. F = 2 × 0.2020 = 0.4040.
+    // S = 0.4040 / 1.4040 = 0.2877. A = 0 (no verdicts).
+    // 50 + 50 × 0.5 × 0.2877 = 50 + 7.19 = 57.19.
     const c = experimentConfidence(
       [
         bar({ assumptionId: "a1" }),
@@ -82,15 +84,15 @@ describe("experimentConfidence", () => {
         reading({ assumptionId: "a3", result: "Inconclusive" }),
       ],
     );
-    expect(c).toBeGreaterThan(50);
-    expect(c).toBeLessThan(56);
+    expect(c).toBeGreaterThan(51);
+    expect(c).toBeLessThan(55);
   });
 
   it("clamps near 100 with many strong Validated readings covering all bars", () => {
-    // 6 bar lines, all Validated, 5 Observed-usage (High = 70) readings each,
+    // 6 bar lines, all Validated, 5 Observed-usage (High = 50, Existence) readings each,
     // full source quality, distinct sources.
-    // covered = 6 → C = 1. fᵢ = 70 × 1 / 99 = 0.7071. F = 6 × 5 × 0.7071 = 21.21.
-    // S = 21.21 / 22.21 = 0.9550. 50 + 50 × 1 × 0.9550 = 97.75.
+    // covered = 6 → C = 1. fᵢ = 50 × 1 / 99 = 0.5051. F = 6 × 5 × 0.5051 = 15.15.
+    // S = 15.15 / 16.15 = 0.9381. 50 + 50 × 1 × 0.9381 = 96.90.
     const bars = Array.from({ length: 6 }, (_, i) =>
       bar({ assumptionId: `a${i + 1}` }),
     );
@@ -126,19 +128,19 @@ describe("experimentConfidence", () => {
   });
 
   it("drops below 50 when evidence is against (Invalidated)", () => {
-    // 1 bar, 1 Invalidated Observed-usage (Low = 30) reading.
-    // C = 1. f = -30 / 99 = -0.3030. F = -0.3030. S = -0.3030 / 1.3030 = -0.2326.
-    // 50 + 50 × 1 × (-0.2326) = 50 - 11.63 = 38.37.
+    // Existence × Observed-usage (Low = 20), Invalidated.
+    // C = 1. f = -20 / 99 = -0.2020. F = -0.2020. S = -0.2020 / 1.2020 = -0.1681.
+    // 50 + 50 × 1 × (-0.1681) = 50 - 8.40 = 41.60.
     const c = experimentConfidence([bar()], [
       reading({ result: "Invalidated" }),
     ]);
     expect(c).toBeLessThan(50);
-    expect(c).toBeGreaterThan(30);
+    expect(c).toBeGreaterThan(35);
   });
 
   it("dedupes readings sharing a Source to the strongest", () => {
-    // Same Source: an Observed-usage (30) and a Talk (3) on the same bar.
-    // After dedupe only the 30 counts.
+    // Same Source: an Observed-usage (20, Existence) and a Talk (10, Existence
+    // Low). After dedupe only the 20 counts.
     const one = experimentConfidence([bar()], [
       reading({ id: "a", source: "same", rung: "Observed usage", magnitudeBand: "Low" }),
     ]);
@@ -150,25 +152,28 @@ describe("experimentConfidence", () => {
   });
 
   it("never dedupes market-rung readings (each is its own unit)", () => {
-    // Two Paying-users readings sharing a source: both count.
+    // Two Paying-users readings (WillingnessToPay × Typical = 88) sharing a
+    // source: both count.
     const c = experimentConfidence([bar()], [
       reading({
         id: "g1",
         source: "same",
         rung: "Paying users",
+        questionType: "WillingnessToPay",
         magnitudeBand: "Typical",
       }),
       reading({
         id: "g2",
         source: "same",
         rung: "Paying users",
+        questionType: "WillingnessToPay",
         magnitudeBand: "Typical",
       }),
     ]);
-    // f per = 50/99 = 0.5051. F = 2 × 0.5051 = 1.0101.
-    // S = 1.0101 / 2.0101 = 0.5025. 50 + 50 × 1 × 0.5025 = 75.13.
-    expect(c).toBeGreaterThan(74);
-    expect(c).toBeLessThan(76);
+    // f per = 88/99 = 0.8889. F = 2 × 0.8889 = 1.7778.
+    // S = 1.7778 / 2.7778 = 0.6400. 50 + 50 × 1 × 0.6400 = 82.00.
+    expect(c).toBeGreaterThan(80);
+    expect(c).toBeLessThan(84);
   });
 
   it("adds the verdict-alignment nudge when a bar's verdict agrees with its evidence", () => {

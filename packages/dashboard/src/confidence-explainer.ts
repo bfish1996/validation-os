@@ -1,7 +1,7 @@
 /**
  * Confidence explainer (DEV-5879) — a user-facing breakdown of how an
  * assumption's Confidence is calculated, showing the formula, the per-rung
- * W0 priors, the lens-aware rung ladder with anchors, and what each piece of
+ * W0 priors, the question-type-aware rung ladder with anchors, and what each piece of
  * evidence contributes. The numbers come from the same `scoreAndDedupe` +
  * per-rung W0 math the hero number uses (via `buildEvidenceComposition`), so
  * the explainer literally adds up to Confidence.
@@ -60,7 +60,7 @@ const RUNG_INFO: Record<string, { label: string; description: string }> = {
   },
   "Observed usage": {
     label: "Observed usage (Consumer)",
-    description: "Prototype usage, analytics, telemetry. A do-rung — 20 observed users bring this to ~75% of its cap.",
+    description: "Usage sessions, analytics, telemetry, A/B tests. A do-rung — 20 observed users bring this to ~75% of its cap.",
   },
   "Signed intent": {
     label: "Signed intent (Commercial)",
@@ -79,6 +79,10 @@ export function buildConfidenceExplainer(
   const comp = buildEvidenceComposition(assumption, readings);
   const lens = str(assumption.Lens) ?? "";
   const lensRungs = new Set(comp.rungs.map((r) => r.rung));
+  // DEV-5890: read the assumption's Question Type so anchors come from the
+  // right sub-ladder.
+  const questionType =
+    (str(assumption["Question Type"]) as keyof typeof RUNG_ANCHOR) ?? "Existence";
 
   // All 6 rungs in the canonical order, lens-aware.
   const allRungs = [
@@ -96,7 +100,9 @@ export function buildConfidenceExplainer(
     return {
       rung,
       w0: W0_BY_RUNG[rung as keyof typeof W0_BY_RUNG] ?? 100,
-      anchors: RUNG_ANCHOR[rung as keyof typeof RUNG_ANCHOR] ?? { Low: 0, Typical: 0, High: 0 },
+      anchors:
+        RUNG_ANCHOR[questionType]?.[rung as keyof (typeof RUNG_ANCHOR)[typeof questionType]] ??
+        { Low: 0, Typical: 0, High: 0 },
       contribution: e?.contribution ?? 0,
       count: e?.count ?? 0,
       inLens: lensRungs.has(rung),

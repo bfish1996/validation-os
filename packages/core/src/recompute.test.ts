@@ -18,6 +18,8 @@ function assumption(over: Partial<AssumptionRecord> = {}): AssumptionRecord {
     Title: "Belief",
     Description: "We assume adopters will install because setup is one command.",
     Lens: "Adopter",
+    Stage: "Discovery",
+    "Question Type": "Existence",
     Theme: [],
     Impact: 50,
     Status: "Live",
@@ -77,10 +79,10 @@ const NO_DECISIONS: DecisionRecord[] = [];
 
 describe("recomputeDerived — row-level rung, per-belief result", () => {
   it("derives each belief's strength from the ROW rung and the belief's own Result", () => {
-    // One artifact, ONE rung (Observed usage Low = 30), committed, sq=1. Two
-    // beliefs with opposite Results: strength = 30 × sign(Result).
-    //  ASM-1 Validated   → s=+30, w=30 → 30×30/(327+30)  =  2.52
-    //  ASM-2 Invalidated → s=-30, w=30 → -900/357        = -2.52
+    // Existence × Observed usage × Low = 20, committed, sq=1. Two beliefs with
+    // opposite Results: strength = 20 × sign(Result).
+    //  ASM-1 Validated   → s=+20, w=20 → 20×20/(327+20)  =  1.15
+    //  ASM-2 Invalidated → s=-20, w=20 → -400/347        = -1.15
     const derived = recomputeDerived({
       assumptions: [
         assumption({ id: "ASM-1" }),
@@ -99,14 +101,14 @@ describe("recomputeDerived — row-level rung, per-belief result", () => {
       ],
       decisions: NO_DECISIONS,
     });
-    expect(derived.get("ASM-1")!.confidence).toBe(2.52);
-    expect(derived.get("ASM-2")!.confidence).toBe(-2.52);
+    expect(derived.get("ASM-1")!.confidence).toBe(1.15);
+    expect(derived.get("ASM-2")!.confidence).toBe(-1.15);
   });
 
   it("still discounts a found reading via the commitment factor", () => {
-    // Observed usage Low (30), Validated, sq=1. W0[Observed usage] = 140.
-    //  found:     w=30×0.85=25.5 → 25.5×30/352.5 = 2.17
-    //  committed: w=30           → 900/357        = 2.52
+    // Existence × Observed usage × Low = 20, Validated, sq=1.
+    //  found:     w=20×0.85=17 → 17×20/(327+17) = 0.99
+    //  committed: w=20         → 400/347        = 1.15
     const found = recomputeDerived({
       assumptions: [assumption()],
       readings: [reading({ experimentId: null })],
@@ -117,8 +119,8 @@ describe("recomputeDerived — row-level rung, per-belief result", () => {
       readings: [reading({ experimentId: "EXP-9" })],
       decisions: NO_DECISIONS,
     }).get("ASM-1")!;
-    expect(found.confidence).toBe(2.17);
-    expect(committed.confidence).toBe(2.52);
+    expect(found.confidence).toBe(0.99);
+    expect(committed.confidence).toBe(1.15);
   });
 
   it("matches the pure confidence() for the same reading's belief", () => {
@@ -134,6 +136,7 @@ describe("recomputeDerived — row-level rung, per-belief result", () => {
           source: "src-1",
           rung: "Observed usage",
           result: "Validated",
+          questionType: "Existence",
           representativeness: 1.0,
           credibility: 1.0,
           date: "2026-01-01",
@@ -146,8 +149,8 @@ describe("recomputeDerived — row-level rung, per-belief result", () => {
 
   it("dedupes per (assumption, Source), keeping the strongest rung", () => {
     // Two rows, same Source "bob", same belief ASM-1, different ROW rungs:
-    //   Observed usage Low (30) vs Talk Low (3, the merged floor).
-    // Dedupe keeps the 30 → 2.52, identical to a lone Observed-usage row.
+    //   Observed usage Low (20, Existence) vs Talk Low (10, Existence).
+    // Dedupe keeps the 20 → 1.15, identical to a lone Observed-usage row.
     const derived = recomputeDerived({
       assumptions: [assumption()],
       readings: [
@@ -162,7 +165,7 @@ describe("recomputeDerived — row-level rung, per-belief result", () => {
       decisions: NO_DECISIONS,
     }).get("ASM-1")!;
     expect(derived.confidence).toBe(lone.confidence);
-    expect(derived.confidence).toBe(2.52);
+    expect(derived.confidence).toBe(1.15);
   });
 
   it("carries completeness in the recomputed tuple", () => {
@@ -178,7 +181,9 @@ describe("recomputeDerived — row-level rung, per-belief result", () => {
       readings: [],
       decisions: NO_DECISIONS,
     }).get("ASM-1")!;
-    expect(partial.completeness).toBe(60);
+    // 4 of 6 slots present (Impact, Dependencies traced, Question Type, Description)
+    // → 4/6 × 100 = 66.67 → 67.
+    expect(partial.completeness).toBe(67);
   });
 
   it("never lets container origin feed Derived Impact", () => {

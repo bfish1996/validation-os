@@ -47,13 +47,16 @@ protocol run, one Lens-matched population — that may honestly test
 right if` / `We're wrong if` pair and its own planned rung on a composed bar
 line, all fixed before running (`skills/_shared/experiment-guardrails.md
 §1b`). Each rung is bought at the lowest step of the **evidence ladder**
-that can honestly move that belief (see `evidence-ladder.md`: 8 rungs in two
-categories — **Testing**, recruited-sample instruments from Opinion ±3 to
-Prototype usage ±30, and **Market**, market-closed targets from Signed
-intent up to Paying users ±99). A plan carrying a `Deadline` is
-commitment-grade: it closes with an `Outcome` (`Achieved` / `Missed` /
-`Dropped`) as well as its bar verdicts — the discipline a standalone `Goal`
-record used to give, now just a mode of the same record (`goals.md`).
+that can honestly move that belief (see `evidence-ladder.md`: 6 rungs in two
+categories — **Testing**, recruited-sample instruments from `Talk` to
+`Observed usage`, and **Market**, market-closed targets from `Signed intent`
+up to `Paying users`). The anchor (ceiling `s`) is per **(question type ×
+rung × band)** — the same rung carries a different ceiling for an Existence
+claim vs a WillingnessToPay claim (DEV-5890, `docs/question-types.md`). A
+plan carrying a `Deadline` is commitment-grade: it closes with an `Outcome`
+(`Achieved` / `Missed` / `Dropped`) as well as its bar verdicts — the
+discipline a standalone `Goal` record used to give, now just a mode of the
+same record (`goals.md`).
 Evidence arrives as **readings** — one per artifact × belief it actually
 addressed — born exactly two ways: from an Experiment (forward design, at
 its close for a committed plan), or bare (found evidence: desk research,

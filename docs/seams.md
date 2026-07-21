@@ -83,7 +83,7 @@ design questions: nothing gets built.
   the brief: design question ← brief ← experiment ← assumption.
 - **The A/B trap.** The moment you want to *count* a design question's
   answer — "which variant do users prefer?" — it has become an
-  experiment: variant testing in-session at `Prototype usage`, or a live
+  experiment: variant testing in-session at `Observed usage`, or a live
   A/B at `Paying users`. Builder vibes must never answer what the
   experiment was built to measure.
 

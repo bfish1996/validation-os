@@ -35,7 +35,7 @@ Keep only **internal team conversations where you spoke** (an alias matches
 a speaker label). Skip and log everything else: external conversations
 (evidence interviews, customer, investor, prospect calls — interview
 technique belongs to `/find-evidence` and `/experiment-design`, and a pitch
-*to a prospect* is `Pitch-deck reaction` evidence, not review material) and
+*to a prospect* is `Talk` evidence, not review material) and
 internal meetings where you didn't speak.
 
 **B — Detect your moments.** An evaluable **moment** is a stretch where
