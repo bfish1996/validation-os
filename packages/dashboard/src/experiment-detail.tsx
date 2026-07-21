@@ -1,9 +1,10 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import type { AnyRecord, BarLine, Result } from "@validation-os/core";
 import { Breadcrumb } from "./breadcrumb.js";
 import { readingBeliefs } from "./derived-views.js";
 import { EvidenceBody } from "./markdown.js";
 import { formatSigned } from "./primitives.js";
+import { ConfidenceDonut } from "./confidence-donut.js";
 import type { Route } from "./route.js";
 import { useList } from "./use-records.js";
 
@@ -64,21 +65,40 @@ export function ExperimentDetail({
     .filter((r) => String(r.experimentId ?? "") === experimentId)
     .sort((a, b) => String(b.Date ?? "").localeCompare(String(a.Date ?? "")));
 
-  // Classify each bar: settled (has a barVerdict), in-progress (has a reading),
-  // unstarted (no reading).
-  const settledBars = barLines.filter((b) => b.barVerdict);
-  const validatedCount = settledBars.filter((b) => b.barVerdict === "Validated").length;
-  const invalidatedCount = settledBars.filter((b) => b.barVerdict === "Invalidated").length;
+  // Classify each bar by what the READINGS say (not just the barVerdict field,
+  // which is only set at closure). A bar is validated/invalidated if any
+  // reading's belief for it has that Result; in-progress if it has a reading
+  // but no settled verdict; unstarted if no reading touches it.
+  const validatedBars = barLines.filter((b) =>
+    expReadings.some((r) =>
+      readingBeliefs(r).some(
+        (bl) => bl.assumptionId === b.assumptionId && bl.Result === "Validated",
+      ),
+    ),
+  );
+  const invalidatedBars = barLines.filter((b) =>
+    expReadings.some((r) =>
+      readingBeliefs(r).some(
+        (bl) => bl.assumptionId === b.assumptionId && bl.Result === "Invalidated",
+      ),
+    ),
+  );
   const readingAssumptionIds = new Set<string>();
   for (const r of expReadings) {
     for (const b of readingBeliefs(r)) readingAssumptionIds.add(b.assumptionId);
   }
   const inProgressBars = barLines.filter(
-    (b) => !b.barVerdict && readingAssumptionIds.has(b.assumptionId),
+    (b) =>
+      !validatedBars.includes(b) &&
+      !invalidatedBars.includes(b) &&
+      readingAssumptionIds.has(b.assumptionId),
   );
   const unstartedBars = barLines.filter(
-    (b) => !b.barVerdict && !readingAssumptionIds.has(b.assumptionId),
+    (b) => !readingAssumptionIds.has(b.assumptionId),
   );
+  const settledBars = [...validatedBars, ...invalidatedBars];
+  const validatedCount = validatedBars.length;
+  const invalidatedCount = invalidatedBars.length;
 
   return (
     <div>
@@ -101,7 +121,7 @@ export function ExperimentDetail({
       {/* Confidence gauge + coverage bar */}
       <div className="vos-card vos-exp-head">
         <div className="vos-exp-gauge">
-          <div className="vos-gauge-num vos-num">{Math.round(expConf)}</div>
+          <ConfidenceDonut value={expConf} size={80} />
           <div className="vos-gauge-label">exp confidence (50 = neutral)</div>
         </div>
         <div className="vos-exp-coverage">
@@ -141,31 +161,48 @@ export function ExperimentDetail({
         ) : (
           expReadings.map((r) => {
             const beliefs = readingBeliefs(r);
+            const rDate = String(r.Date ?? "");
+            const rTitle = String(r.Title ?? r.id);
+            const rId = String(r.id);
             return (
-              <div key={String(r.id)} className="vos-reading-card">
+              <details key={rId} className="vos-reading-card vos-reading-collapse">
+                <summary className="vos-reading-card-summary">
+                  <span className="vos-reading-date vos-num">{rDate}</span>
+                  <span className="vos-reading-title">{rTitle}</span>
+                  <span className="vos-reading-beliefs-count vos-num">
+                    {beliefs.length} belief{beliefs.length === 1 ? "" : "s"}
+                  </span>
+                </summary>
+                <div className="vos-reading-card-body">
                 <div className="vos-reading-head">
-                  <span className="vos-reading-date vos-num">{String(r.Date ?? "")}</span>
+                  <span className="vos-reading-source">{String(r.Source ?? "")}</span>
                   <button
                     type="button"
-                    className="vos-reading-title"
-                    onClick={() => onNavigate({ name: "reading", id: String(r.id) })}
+                    className="vos-link"
+                    onClick={() => onNavigate({ name: "reading", id: rId })}
                   >
-                    {String(r.Title ?? r.id)}
+                    open reading →
                   </button>
-                  <span className="vos-reading-source">{String(r.Source ?? "")}</span>
                 </div>
-                {/* Per-belief quotes — each belief has its own excerpt */}
+                {/* Per-belief quotes — each belief has its own excerpt.
+                    The excerpt is the belief's Grading justification; if that's
+                    empty, fall back to the reading's body (truncated). */}
                 {beliefs.length > 0 ? (
                   <div className="vos-reading-quotes">
-                    {beliefs.map((b) => (
-                      <div
-                        key={b.assumptionId}
-                        className={`vos-reading-quote vos-verdict-border-${verdictTone(b.Result)}`}
-                      >
-                        <span className="vos-reading-quote-id vos-num">{b.assumptionId} ·</span>
-                        "{String(b["Grading justification"] ?? "")}"
-                      </div>
-                    ))}
+                    {beliefs.map((b) => {
+                      const justification = String(b["Grading justification"] ?? "");
+                      const excerpt = justification || truncate(String(r.body ?? ""), 120);
+                      if (!excerpt) return null;
+                      return (
+                        <div
+                          key={b.assumptionId}
+                          className={`vos-reading-quote vos-verdict-border-${verdictTone(b.Result)}`}
+                        >
+                          <span className="vos-reading-quote-id vos-num">{b.assumptionId} ·</span>
+                          "{excerpt}"
+                        </div>
+                      );
+                    })}
                   </div>
                 ) : null}
                 {/* Per-belief verdicts with bar-line context */}
@@ -204,7 +241,8 @@ export function ExperimentDetail({
                     </div>
                   );
                 })}
-              </div>
+                </div>
+              </details>
             );
           })
         )}
@@ -247,6 +285,11 @@ export function ExperimentDetail({
 
 function pct(n: number, total: number): number {
   return total === 0 ? 0 : (n / total) * 100;
+}
+
+function truncate(s: string, max: number): string {
+  if (s.length <= max) return s;
+  return s.slice(0, max - 1) + "…";
 }
 
 function verdictTone(verdict: Result | string | null | undefined): "good" | "crit" | "neutral" {

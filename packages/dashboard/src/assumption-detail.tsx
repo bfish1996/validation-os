@@ -1,7 +1,8 @@
 import { useMemo } from "react";
 import type { AnyRecord } from "@validation-os/core";
 import { Breadcrumb } from "./breadcrumb.js";
-import { readingBeliefs, readingBeliefFor } from "./derived-views.js";
+import { buildEvidenceComposition } from "./evidence-composition.js";
+import { readingBeliefs, readingBeliefFor, liveExperiments } from "./derived-views.js";
 import { EvidenceBody } from "./markdown.js";
 import { GlossaryText } from "./glossary-text.js";
 import { toGlossaryTerms } from "./glossary.js";
@@ -92,8 +93,8 @@ export function AssumptionDetail({
   // for the detail we read the first meter that needs attention.)
   const nextMove = nextMoveFor(record, experiments.records ?? []);
 
-  // Linked experiments testing this assumption.
-  const linkedExperiments = (experiments.records ?? []).filter((e) => {
+  // Linked experiments testing this assumption — live only (exclude Archived).
+  const linkedExperiments = liveExperiments(experiments.records ?? []).filter((e) => {
     const ids = Array.isArray(e.barLineAssumptionIds)
       ? (e.barLineAssumptionIds as string[])
       : [];
@@ -149,8 +150,9 @@ export function AssumptionDetail({
         <ScoreCard label="Framed" value={`${Math.round(framed)}%`} />
       </div>
 
-      {/* Evidence composition — per-rung bars, lens-aware */}
-      <EvidenceComposition assumption={record} readings={readings.records ?? []} />
+      {/* Evidence composition — per-rung bars, lens-aware (uses the real
+          confidence attribution math, so contributions add up to Confidence) */}
+      <EvidenceCompositionView assumption={record} readings={readings.records ?? []} />
 
       {/* Body — Markdown with glossary auto-linking */}
       {statement ? (
@@ -403,65 +405,39 @@ function nextMoveFor(assumption: AnyRecord, experiments: AnyRecord[]): string {
 
 /* ── Evidence composition (per-rung bars, lens-aware) ──────────────────── */
 
-function EvidenceComposition({
+function EvidenceCompositionView({
   assumption,
   readings,
 }: {
   assumption: AnyRecord;
   readings: AnyRecord[];
 }) {
-  // Aggregate per-rung contributions for this assumption from its linked
-  // readings. Each reading at a rung contributes its strength; the cap is the
-  // rung's Typical anchor (from RUNG_ANCHOR).
-  const id = String(assumption.id ?? "");
-  const linked = readings.filter((r) => {
-    const beliefs = readingBeliefs(r);
-    return beliefs.some((b) => b.assumptionId === id);
-  });
-
-  const lens = String(assumption.Lens ?? "");
-  const rungs = rungsForLens(lens);
-
-  const perRung = new Map<string, { contribution: number; count: number }>();
-  for (const r of linked) {
-    const rung = String(r.Rung ?? "");
-    if (!rungs.includes(rung as any)) continue;
-    const belief = readingBeliefs(r).find((b) => b.assumptionId === id);
-    if (!belief) continue;
-    const result = String(belief.Result ?? "");
-    if (result === "Inconclusive") continue;
-    const strength = Math.abs((belief.derived as any)?.strength ?? 0);
-    const cur = perRung.get(rung) ?? { contribution: 0, count: 0 };
-    perRung.set(rung, {
-      contribution: cur.contribution + strength,
-      count: cur.count + 1,
-    });
-  }
-
+  const comp = useMemo(
+    () => buildEvidenceComposition(assumption, readings),
+    [assumption, readings],
+  );
   return (
     <div className="vos-card vos-detail-section">
-      <div className="vos-detail-section-label">Evidence composition</div>
-      {rungs.length === 0 ? (
+      <div className="vos-detail-section-label">
+        Evidence composition · Σ = {formatSigned(comp.totalContribution)} (adds to Confidence)
+      </div>
+      {comp.rungs.length === 0 ? (
         <div className="vos-muted">No lens set — evidence composition needs a lens.</div>
       ) : (
-        rungs.map((rung) => {
-          const e = perRung.get(rung);
-          const cap = RUNG_CAPS[rung] ?? 50;
-          const contribution = e?.contribution ?? 0;
-          const count = e?.count ?? 0;
-          const pct = cap > 0 ? Math.min(100, (contribution / cap) * 100) : 0;
-          const isEmpty = count === 0;
+        comp.rungs.map((r) => {
+          const pct = r.cap > 0 ? Math.min(100, (Math.abs(r.contribution) / r.cap) * 100) : 0;
+          const isEmpty = r.count === 0;
           return (
-            <div key={rung} className="vos-comp-row">
-              <span className={`vos-comp-rung ${isEmpty ? "is-empty" : ""}`}>{rung}</span>
+            <div key={r.rung} className="vos-comp-row">
+              <span className={`vos-comp-rung ${isEmpty ? "is-empty" : ""}`}>{r.rung}</span>
               <div className="vos-comp-bar">
                 <i className="vos-comp-fill" style={{ width: `${pct}%`, opacity: isEmpty ? 0.15 : 1 }} />
               </div>
               <span className="vos-comp-val vos-num">
-                {isEmpty ? "—" : `+${Math.round(contribution)}/${cap}`}
+                {isEmpty ? "—" : `${formatSigned(r.contribution)}/${r.cap}`}
               </span>
               <span className="vos-comp-count vos-num">
-                {count} src{count === 1 ? "" : "s"}
+                {r.count} src{r.count === 1 ? "" : "s"}
               </span>
             </div>
           );
@@ -470,31 +446,3 @@ function EvidenceComposition({
     </div>
   );
 }
-
-// Lens → rungs mapping (DEV-5879). Consumer: Talk + Desk + Signed up + Observed
-// usage. Commercial: Talk + Desk + Signed intent + Paying users. Any other
-// lens: the full 6 rungs.
-const LENS_RUNGS: Record<string, string[]> = {
-  Consumer: ["Talk", "Desk research", "Signed up", "Observed usage"],
-  Commercial: ["Talk", "Desk research", "Signed intent", "Paying users"],
-};
-const ALL_RUNGS = [
-  "Talk",
-  "Desk research",
-  "Signed up",
-  "Observed usage",
-  "Signed intent",
-  "Paying users",
-];
-function rungsForLens(lens: string): string[] {
-  return LENS_RUNGS[lens] ?? ALL_RUNGS;
-}
-// Caps = the rung's Typical anchor (from RUNG_ANCHOR in core).
-const RUNG_CAPS: Record<string, number> = {
-  Talk: 6,
-  "Desk research": 15,
-  "Signed up": 50,
-  "Observed usage": 50,
-  "Signed intent": 50,
-  "Paying users": 50,
-};

@@ -3049,3 +3049,31 @@ button.vos-verdict-title {
 /* Unstarted bars section */
 .vos-unstarted { border-style: dashed; }
 .vos-unstarted-bar { padding: 8px; margin-bottom: 4px; background: var(--vos-surface-2); border-radius: 6px; border: 1px dashed var(--vos-border); }
+
+/* ── DEV-5879 fixes: donut gauge, experiment rows, collapsible readings ── */
+
+/* Confidence donut gauge (SVG ring) */
+.vos-donut { position: relative; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.vos-donut-num { position: absolute; font-weight: 700; color: var(--vos-text); }
+
+/* Experiment list — bigger rows with donut gauge */
+.vos-exp-list { display: flex; flex-direction: column; gap: 8px; padding: 12px; }
+.vos-exp-row { display: flex; align-items: center; gap: 16px; padding: 14px 16px; background: var(--vos-surface-2); border: 1px solid var(--vos-border); border-radius: 10px; cursor: pointer; text-align: left; width: 100%; color: var(--vos-text); font: inherit; transition: border-color 0.15s; }
+.vos-exp-row:hover { border-color: var(--vos-accent); }
+.vos-exp-row-body { flex: 1; min-width: 0; }
+.vos-exp-row-title { font-size: 14px; font-weight: 500; color: var(--vos-text); margin-bottom: 4px; }
+.vos-exp-row-meta { font-size: 11px; color: var(--vos-muted); }
+
+/* Collapsible reading card (progressive disclosure) */
+.vos-reading-collapse { border: 1px solid var(--vos-border); border-radius: 8px; margin-bottom: 8px; background: var(--vos-surface-2); overflow: hidden; }
+.vos-reading-collapse > summary { display: flex; gap: 12px; align-items: baseline; padding: 12px 14px; cursor: pointer; list-style: none; user-select: none; }
+.vos-reading-collapse > summary::-webkit-details-marker { display: none; }
+.vos-reading-collapse > summary::before { content: "▸"; color: var(--vos-muted); font-size: 10px; transition: transform 0.15s; }
+.vos-reading-collapse[open] > summary::before { transform: rotate(90deg); }
+.vos-reading-collapse > summary:hover { background: var(--vos-surface); }
+.vos-reading-card-summary { display: flex; gap: 12px; align-items: baseline; width: 100%; }
+.vos-reading-beliefs-count { font-size: 10px; color: var(--vos-muted); margin-left: auto; }
+.vos-reading-card-body { padding: 0 14px 12px; }
+
+/* Evidence composition — fix the value display (signed contributions) */
+.vos-comp-val { width: 70px; }
