@@ -1,13 +1,13 @@
 ---
-"validation-os": patch
 "@validation-os/core": patch
 "@validation-os/dashboard": patch
+"@validation-os/adapter-firestore": patch
+"@validation-os/api": patch
 ---
 
-Remove stray `doshi` references from package source, tests, and docs
+Genericize adopter-specific references in package source, tests, and docs
 
-Genericize comments, JSDoc examples, and test fixtures that named a
-specific adopter (`doshi-validation-os`, `doshi-crm`, `DOSHI_TOKEN`,
-`https://doshi.example/api`) so the open-source packages stay
-adopt-agnostic. No runtime behavior change; test fixtures rewritten to
-neutral values (`example.invalid`, `REGISTER_TOKEN`).
+Replace comments, JSDoc examples, and test fixtures that named a specific
+adopter's workspace/identifiers with neutral values so the open-source
+packages stay adopt-agnostic. No runtime behavior change; test fixtures
+rewritten to neutral values (`example.invalid`, `REGISTER_TOKEN`).
