@@ -1,7 +1,7 @@
 /**
  * Confidence explainer (DEV-5879) — a user-facing breakdown of how an
  * assumption's Confidence is calculated, showing the formula, the per-rung
- * W0 priors, the lens-aware rung ladder with anchors, and what each piece of
+ * W0 priors, the question-type-aware rung ladder with anchors, and what each piece of
  * evidence contributes. The numbers come from the same `scoreAndDedupe` +
  * per-rung W0 math the hero number uses (via `buildEvidenceComposition`), so
  * the explainer literally adds up to Confidence.
@@ -60,7 +60,7 @@ const RUNG_INFO: Record<string, { label: string; description: string }> = {
   },
   "Observed usage": {
     label: "Observed usage (Consumer)",
-    description: "Prototype usage, analytics, telemetry. A do-rung — 20 observed users bring this to ~75% of its cap.",
+    description: "Usage sessions, analytics, telemetry, A/B tests. A do-rung — 20 observed users bring this to ~75% of its cap.",
   },
   "Signed intent": {
     label: "Signed intent (Commercial)",

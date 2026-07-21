@@ -25,7 +25,7 @@ export interface RungContribution {
 }
 
 export interface EvidenceCompositionView {
-  /** One entry per rung in the lens-aware ladder (lens → its 4 rungs), in
+  /** One entry per rung in the question-type-aware ladder (lens → its 4 rungs), in
    *  ladder order, whether or not there's evidence. */
   rungs: RungContribution[];
   /** Σ contributions — equals the assumption's Confidence (the attribution

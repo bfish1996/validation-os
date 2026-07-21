@@ -25,9 +25,11 @@ Validation-OS makes those beliefs impossible to ignore:
   graph.
 - Every assumption gets **Risk = Impact × (1 − max(0, Confidence)/100)** —
   and Confidence is *never typed by hand*: it's the signed, weighted
-  average of every concluded **Experiment** reading, on an 8-rung evidence
-  ladder from Opinion (±3) to Paying users (±99), where evidence against a
-  belief counts negative.
+  average of every concluded **Experiment** reading, on a 6-rung evidence
+  ladder where the anchor (ceiling) is per **(question type × rung × band)**
+  — so qual interviews are near-ceiling evidence for an existence claim but
+  non-evidence for a willingness-to-pay claim. Evidence against a belief
+  counts negative.
 - The register **reorders itself**: evidence lands → Confidence moves →
   Risk follows → the next test surfaces. You always know what to test next.
 - A shared **glossary** keeps the team speaking one language, and a

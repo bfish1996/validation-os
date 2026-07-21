@@ -72,7 +72,7 @@ describe("buildEvidenceComposition", () => {
     expect(talkExp.contribution).toBeGreaterThan(talk.contribution);
   });
 
-  it("shows the lens-aware rung ladder — Consumer shows Talk/Desk/Signed up/Observed usage", () => {
+  it("shows the question-type-aware rung ladder — Consumer shows Talk/Desk/Signed up/Observed usage", () => {
     const a = asm({ id: "ASM-1", Lens: "Consumer" });
     const comp = buildEvidenceComposition(a, []);
     // Empty readings → all lens rungs present with 0 contribution
