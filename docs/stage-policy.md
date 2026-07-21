@@ -32,6 +32,31 @@ Grounded in customer-development literature (Blank, IDEO, lean startup, Andreess
 
 **They are orthogonal.** A Lens can appear at multiple stages: Commercial spans all four (will banks engage / sign / integrate / get regulatory sign-off). Consumer spans 1-3 and is zero at Stage 4 (consumers don't drive defense bets). No Lens maps 1:1 to a stage. Both fields earn their keep; collapsing them loses signal.
 
+## The Question Type × Stage orthogonality (DEV-5890)
+
+**Question Type** = what kind of claim is this? (Existence, Prevalence,
+CausalEffect, WillingnessToPay, ValueUtility, Regulatory, Feasibility — see
+`docs/question-types.md`). Determines which evidence is probative and what the
+ceiling is — via `RUNG_ANCHOR[questionType][rung][band]`.
+
+**Stage** = what kind of external-actor response is this? (Discovery,
+Validation, Scale, Maturity). Determines the Risk threshold for action — via
+`RISK_THRESHOLD_BY_STAGE`.
+
+**They are orthogonal.** A prevalence assumption at Discovery and a
+prevalence assumption at Maturity use the *same* sub-ladder (Prevalence) and
+the *same* W0s; the Maturity one just has to clear a tighter Risk threshold
+(5 vs 30) before you act. The question type fixes what counts as evidence; the
+stage fixes how much is enough to act on.
+
+| Axis | Knob | Set by | Research |
+|---|---|---|---|
+| Anchor (ceiling `s`) | `RUNG_ANCHOR[questionType][rung][band]` | Question type × evidence type | EBM GRADE, confirmation theory |
+| W0 (learning rate) | `W0_BY_RUNG[rung]` | Evidence type (within question type) | Qual saturation, reliability theory |
+| Risk threshold (stopping rule) | `RISK_THRESHOLD_BY_STAGE[stage]` | Stage → reversibility | Pragmatic encroachment, Bezos doors |
+
+None redundant; each backed by a different literature.
+
 ## The dashboard surface
 
 A **Lens × Stage heatmap** with click-through to Risk-ranked assumptions:
