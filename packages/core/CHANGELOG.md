@@ -1,5 +1,16 @@
 # @validation-os/core
 
+## 0.14.1
+
+### Patch Changes
+
+- a972bc0: Genericize adopter-specific references in package source, tests, and docs
+
+  Replace comments, JSDoc examples, and test fixtures that named a specific
+  adopter's workspace/identifiers with neutral values so the open-source
+  packages stay adopt-agnostic. No runtime behavior change; test fixtures
+  rewritten to neutral values (`example.invalid`, `REGISTER_TOKEN`).
+
 ## 0.14.0
 
 ### Minor Changes
