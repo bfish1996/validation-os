@@ -1,6 +1,6 @@
 {
   "name": "@validation-os/api",
-  "version": "0.16.2",
+  "version": "0.16.3",
   "description": "Framework-neutral route-handler logic for validation-os: auth-guarded CRUD over a DataProvider, with derive-on-write via the shared derivation module.",
   "license": "MIT",
   "type": "module",

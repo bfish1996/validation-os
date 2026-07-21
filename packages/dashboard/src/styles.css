@@ -3375,11 +3375,12 @@ button.vos-verdict-title {
 .vos-stage-grid-stagename { font-size: 15px !important; }
 .vos-stage-grid-stagegloss { font-size: 11px !important; line-height: 1.4 !important; }
 .vos-stage-grid-corner { font-weight: 600; }
+/* Heat scale = Risk intensity (red = high risk) */
 .vos-heat-0 { background: var(--vos-surface); opacity: 0.45; color: var(--vos-muted); border-style: dashed; }
-.vos-heat-1 { background: color-mix(in srgb, var(--vos-accent) 16%, var(--vos-surface)); }
-.vos-heat-2 { background: color-mix(in srgb, var(--vos-accent) 30%, var(--vos-surface)); }
-.vos-heat-3 { background: color-mix(in srgb, var(--vos-accent) 44%, var(--vos-surface)); }
-.vos-heat-4 { background: color-mix(in srgb, var(--vos-accent) 58%, var(--vos-surface)); }
+.vos-heat-1 { background: color-mix(in srgb, var(--vos-crit) 16%, var(--vos-surface)); }
+.vos-heat-2 { background: color-mix(in srgb, var(--vos-crit) 30%, var(--vos-surface)); }
+.vos-heat-3 { background: color-mix(in srgb, var(--vos-crit) 44%, var(--vos-surface)); }
+.vos-heat-4 { background: color-mix(in srgb, var(--vos-crit) 58%, var(--vos-surface)); }
 
 /* Glossary popover: parent cards no longer clip overflow, so the absolute
  * popover can show. High z-index in case it overlaps other stacked cards. */
@@ -3387,6 +3388,66 @@ button.vos-verdict-title {
 
 /* Topbar: hide the backend + agent indicators (clean header) */
 .vos-backend, .vos-hint:has(.vos-live-dot) { display: none !important; }
+
+/* ── DEV-5890: Question Type filter tabs + heat legend ─────────────────── */
+.vos-qt-filter-bar {
+  display: flex;
+  gap: 4px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--vos-border);
+  flex-wrap: wrap;
+}
+
+.vos-qt-tab {
+  font-size: 10px;
+  font-weight: 500;
+  padding: 3px 10px;
+  border: 1px solid var(--vos-border);
+  border-radius: 12px;
+  background: transparent;
+  color: var(--vos-muted);
+  cursor: pointer;
+  transition: all 0.15s ease-out;
+}
+
+.vos-qt-tab:hover {
+  border-color: var(--vos-border-strong);
+  color: var(--vos-text);
+}
+
+.vos-qt-tab-active {
+  background: var(--vos-accent);
+  border-color: var(--vos-accent);
+  color: #fff;
+}
+
+.vos-heat-legend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  font-size: 9px;
+  color: var(--vos-muted);
+}
+
+.vos-heat-legend-label {
+  margin-right: 4px;
+  font-weight: 600;
+}
+
+.vos-heat-swatch {
+  display: inline-block;
+  width: 14px;
+  height: 10px;
+  border-radius: 2px;
+  border: 1px solid var(--vos-border);
+}
+
+.vos-heat-swatch.vos-heat-0 { background: var(--vos-surface-2); }
+.vos-heat-swatch.vos-heat-1 { background: rgba(214, 69, 80, 0.15); }
+.vos-heat-swatch.vos-heat-2 { background: rgba(214, 69, 80, 0.35); }
+.vos-heat-swatch.vos-heat-3 { background: rgba(214, 69, 80, 0.6); }
+.vos-heat-swatch.vos-heat-4 { background: rgba(214, 69, 80, 0.85); }
 
 /* ── DEV-5890: Question Type + stage threshold tags ────────────────────── */
 .vos-pipe-tag {
