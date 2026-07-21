@@ -75,7 +75,7 @@ This policy is a synthesis, not an invention. The lineage, credited honestly:
 
 ## Execution plan
 
-### Team A — Backend migration (doshi-validation-os worktree)
+### Team A — Backend migration (instance worktree)
 
 Repo: `/Users/benjifisher/.superset/worktrees/bca5dfb1-50d2-4d11-94d0-f9d4ccd1d3c7/review-remove-assumptions/` (this worktree).
 
