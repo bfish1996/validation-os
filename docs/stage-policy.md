@@ -21,7 +21,7 @@ Grounded in customer-development literature (Blank, IDEO, lean startup, Andreess
 
 - **No `type` field.** Everything in the register is a BET by construction — the stage placement *is* the membership test. BUILD/FACT are what the gate catches, not residents.
 - **No business-level stage flag.** Where the business is, per Lens, is *read off the distribution of bets held* — the modal stage per Lens is where that part of the business is. No "update my stage" button.
-- **No per-stage confidence model.** The 8-rung ladder is stage-agnostic; stage only affects *which rungs are honest* for a given bet, not how Confidence is computed.
+- **No per-stage confidence model.** The 6-rung ladder is stage-agnostic; stage only affects *which rungs are honest* for a given bet, not how Confidence is computed.
 - **No granularity field.** Granularity is enforced at write-time by the existing atomicity (§4) and general-law rejection (§1.2) rules.
 
 ## The Lens × Stage relationship
@@ -86,7 +86,7 @@ This policy is a synthesis, not an invention. The lineage, credited honestly:
 | **Discovery-Driven Planning (DDP)** | McGrath & MacMillan (HBR 1995) | Assumption-to-test mapping; the discipline of pre-registering what would prove you wrong. | DDP is scoped to new ventures only. Our stage taxonomy extends across the full lifecycle (Stages 1-4), with the U-shape: BET-heavy at 1, BUILD-heavy at 3, BET-returns at 4. |
 | **Customer development (4 stages)** | Steve Blank (2012) | The four-stage shape: Discovery → Validation → Scale → Maturity. The idea that the *kind* of uncertainty shifts by stage. | Blank's stages are a business-level property. We tag per-assumption, so a business with a mature core + a new segment shows mixed stages honestly. |
 | **Desirability → Feasibility → Viability triangle** | IDEO | The framing that different kinds of bet dominate at different times. | IDEO's triangle is a design lens; we made it a stored tag with a dashboard grid. |
-| **Build → Measure → Learn** | Eric Ries (Lean Startup) | The loop shape; the bias toward cheapest honest test first. | Our ladder (8 rungs, signed) is finer than Ries's "validated learning" — and our Confidence is signed, not binary. |
+| **Build → Measure → Learn** | Eric Ries (Lean Startup) | The loop shape; the bias toward cheapest honest test first. | Our ladder (6 rungs, signed) is finer than Ries's "validated learning" — and our Confidence is signed, not binary. |
 | **Pre/post-PMF framing** | Marc Andreessen | The intuition that what matters shifts after product-market fit. | Made operational as the Stage 2 → Stage 3 transition in the tag. |
 | **Subject-verb membership test** | Original to this policy | — | The rule that every assumption's subject must be an external actor. CAP/DDP don't draw this line; they include "we can build on time" as an assumption. We reject it. |
 | **Stage-as-derived-business-state** | Original to this policy | — | Reading "where the business is" off the distribution of bets held, not off a self-declared flag. |
@@ -95,7 +95,7 @@ This policy is a synthesis, not an invention. The lineage, credited honestly:
 **What we explicitly did NOT take from CAP/DDP:**
 - Their treatment of build risk as a type of assumption (we reject it).
 - Their binary test outcomes (we have a signed, graded Confidence).
-- Their evidence-type silence (we have an 8-rung ladder + Testing/Goals split).
+- Their evidence-type silence (we have an 6-rung ladder + Testing/Goals split).
 - Their new-venture-only scope (we extend across the full lifecycle).
 
 ## Execution plan
