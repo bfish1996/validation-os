@@ -1,8 +1,9 @@
 import { useMemo, useState, type ReactNode } from "react";
 import type { AnyRecord } from "@validation-os/core";
 import { coldStartFor, FIRST_RUN_LINE } from "./cold-start.js";
+import { EvidenceBody } from "./markdown.js";
 import { buildPipeline, type PipelineRow } from "./pipeline.js";
-import { buildRecommendedExperiments, type RecommendedExperiment } from "./recommended-experiments.js";
+import { buildRecommendedExperiments, buildNeedsFraming, type RecommendedExperiment, type NeedsFramingItem } from "./recommended-experiments.js";
 import { stageMeters } from "./stage-meters.js";
 import {
   buildStageGrid,
@@ -133,6 +134,10 @@ function GridPane({
     () => buildRecommendedExperiments(assumptions, experiments),
     [assumptions, experiments],
   );
+  const needsFraming = useMemo(
+    () => buildNeedsFraming(assumptions),
+    [assumptions],
+  );
 
   const cold = coldStartFor({
     assumptions,
@@ -225,11 +230,11 @@ function GridPane({
         </p>
       </div>
 
-      {/* Next moves — recommended experiments below the grid. This is where
-          the action is: top assumptions needing framing + experiment
-          recommendations, grouped by the riskiest related assumptions. */}
-      {recs.length > 0 ? (
-        <RecommendedExperimentsSection
+      {/* Next moves — two columns: top 2 assumptions needing framing + top 2
+          proposed experiments. This is where the action is on the grid home. */}
+      {(needsFraming.length > 0 || recs.length > 0) ? (
+        <NextMovesSection
+          needsFraming={needsFraming}
           recs={recs}
           onOpenAssumption={(id) => onNavigate({ name: "assumption", id })}
         />
@@ -395,7 +400,100 @@ function Meter2Seg({
   );
 }
 
-/* ── Recommended experiments section ────────────────────────────────────── */
+/* ── Next moves section — two columns: needs framing + proposed experiments ── */
+
+function NextMovesSection({
+  needsFraming,
+  recs,
+  onOpenAssumption,
+}: {
+  needsFraming: NeedsFramingItem[];
+  recs: RecommendedExperiment[];
+  onOpenAssumption: (id: string) => void;
+}) {
+  return (
+    <div className="vos-next-moves">
+      <div className="vos-next-moves-head">Next moves</div>
+      <div className="vos-next-moves-cols">
+        {/* Left column — top 2 assumptions needing framing */}
+        <div className="vos-card vos-next-moves-col">
+          <div className="vos-next-moves-col-label">Needs framing · top {needsFraming.length}</div>
+          {needsFraming.length === 0 ? (
+            <div className="vos-muted vos-next-moves-empty">Every belief is fully framed.</div>
+          ) : (
+            needsFraming.map((a) => (
+              <button
+                key={a.id}
+                type="button"
+                className="vos-next-moves-item"
+                onClick={() => onOpenAssumption(a.id)}
+              >
+                <div className="vos-next-moves-item-head">
+                  <span className="vos-next-moves-item-id vos-num">{a.id}</span>
+                  <span className={`vos-next-moves-item-risk vos-num vos-text-${riskToneClass(a.risk)}`}>
+                    {Math.round(a.risk)} risk
+                  </span>
+                </div>
+                <div className="vos-next-moves-item-title">{a.title}</div>
+                <div className="vos-next-moves-item-hint">{a.hint}</div>
+              </button>
+            ))
+          )}
+        </div>
+
+        {/* Right column — top 2 proposed experiments */}
+        <div className="vos-card vos-next-moves-col">
+          <div className="vos-next-moves-col-label">Proposed experiments · top {recs.length}</div>
+          {recs.length === 0 ? (
+            <div className="vos-muted vos-next-moves-empty">Every risk has a live test.</div>
+          ) : (
+            recs.map((rec) => (
+              <details key={rec.id} className="vos-pipe-rec vos-next-moves-rec">
+                <summary className="vos-pipe-rec-head">
+                  <span className="vos-pipe-rec-type">{rec.type}</span>
+                  <span className="vos-pipe-rec-title">{rec.title}</span>
+                  <span className="vos-pipe-rec-risk vos-num">{Math.round(rec.maxRisk)} risk</span>
+                </summary>
+                <div className="vos-pipe-rec-body-inner">
+                  <div className="vos-pipe-rec-chips">
+                    {rec.assumptionIds.map((id) => (
+                      <button
+                        key={id}
+                        type="button"
+                        className="vos-pipe-rec-chip"
+                        onClick={() => onOpenAssumption(id)}
+                      >
+                        {id}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="vos-pipe-rec-rationale">{rec.rationale}</div>
+                  <div className="vos-pipe-rec-bar">
+                    <strong>Right if:</strong> {rec.barPreview}
+                  </div>
+                  <div className="vos-pipe-rec-body">
+                    <EvidenceBody text={rec.body} />
+                  </div>
+                  <div className="vos-pipe-rec-actions">
+                    <button type="button" className="vos-btn vos-btn-sm vos-btn-accent">Accept & create experiment</button>
+                  </div>
+                </div>
+              </details>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function riskToneClass(risk: number): string {
+  if (risk >= 70) return "crit";
+  if (risk >= 40) return "warn";
+  return "good";
+}
+
+/* ── Recommended experiments section (standalone — used on the pipeline board) ── */
 
 function RecommendedExperimentsSection({
   recs,
@@ -407,33 +505,43 @@ function RecommendedExperimentsSection({
   return (
     <div className="vos-card vos-pipe-recs">
       <div className="vos-pipe-recs-head">
-        Recommended experiments · grouped by riskiest assumptions
+        Next moves · recommended experiments (top {recs.length})
       </div>
       <div className="vos-pipe-recs-list">
         {recs.map((rec) => (
-          <div key={rec.id} className="vos-pipe-rec">
-            <div className="vos-pipe-rec-head">
+          <details key={rec.id} className="vos-pipe-rec">
+            <summary className="vos-pipe-rec-head">
               <span className="vos-pipe-rec-type">{rec.type}</span>
               <span className="vos-pipe-rec-title">{rec.title}</span>
-              <button type="button" className="vos-btn vos-btn-sm vos-btn-accent">Accept</button>
+              <span className="vos-pipe-rec-risk vos-num">{Math.round(rec.maxRisk)} risk</span>
+            </summary>
+            <div className="vos-pipe-rec-body-inner">
+              <div className="vos-pipe-rec-chips">
+                {rec.assumptionIds.map((id) => (
+                  <button
+                    key={id}
+                    type="button"
+                    className="vos-pipe-rec-chip"
+                    onClick={() => onOpenAssumption(id)}
+                  >
+                    {id}
+                  </button>
+                ))}
+              </div>
+              <div className="vos-pipe-rec-rationale">{rec.rationale}</div>
+              <div className="vos-pipe-rec-bar">
+                <strong>Right if:</strong> {rec.barPreview}
+              </div>
+              {/* The generated experiment body — protocol, questions, how to run */}
+              <div className="vos-pipe-rec-body">
+                <EvidenceBody text={rec.body} />
+              </div>
+              {/* Accept inside the expanded card */}
+              <div className="vos-pipe-rec-actions">
+                <button type="button" className="vos-btn vos-btn-sm vos-btn-accent">Accept & create experiment</button>
+              </div>
             </div>
-            <div className="vos-pipe-rec-chips">
-              {rec.assumptionIds.map((id) => (
-                <button
-                  key={id}
-                  type="button"
-                  className="vos-pipe-rec-chip"
-                  onClick={() => onOpenAssumption(id)}
-                >
-                  {id}
-                </button>
-              ))}
-            </div>
-            <div className="vos-pipe-rec-rationale">{rec.rationale}</div>
-            <div className="vos-pipe-rec-bar">
-              <strong>Right if:</strong> {rec.barPreview}
-            </div>
-          </div>
+          </details>
         ))}
       </div>
     </div>

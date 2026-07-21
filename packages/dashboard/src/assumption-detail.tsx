@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import type { AnyRecord } from "@validation-os/core";
 import { Breadcrumb } from "./breadcrumb.js";
 import { buildEvidenceComposition } from "./evidence-composition.js";
+import { buildConfidenceExplainer } from "./confidence-explainer.js";
 import { readingBeliefs, readingBeliefFor, liveExperiments } from "./derived-views.js";
 import { EvidenceBody } from "./markdown.js";
 import { GlossaryText } from "./glossary-text.js";
@@ -154,6 +155,11 @@ export function AssumptionDetail({
           confidence attribution math, so contributions add up to Confidence) */}
       <EvidenceCompositionView assumption={record} readings={readings.records ?? []} />
 
+      {/* Confidence explainer — the formula, per-rung W0s, anchors, and what
+          each piece of evidence contributes. Demystifies how the number is
+          calculated. */}
+      <ConfidenceExplainerView assumption={record} readings={readings.records ?? []} />
+
       {/* Body — Markdown with glossary auto-linking */}
       {statement ? (
         <div className="vos-card vos-detail-section">
@@ -251,9 +257,12 @@ export function AssumptionDetail({
                   <span className={`vos-pill vos-pill-${verdictTone(result)}`}>{result}</span>
                   <span className="vos-rung-tag">{rung}</span>
                 </div>
-                <div className={`vos-reading-excerpt vos-verdict-border-${verdictTone(result)}`}>
-                  "{justification}"
-                </div>
+                {justification ? (
+                  <div className={`vos-belief-rationale vos-verdict-border-${verdictTone(result)}`}>
+                    <span className="vos-belief-rationale-label">grading rationale:</span>
+                    {justification}
+                  </div>
+                ) : null}
                 <div className="vos-reading-source">
                   {source}
                   {expId ? (
@@ -403,7 +412,84 @@ function nextMoveFor(assumption: AnyRecord, experiments: AnyRecord[]): string {
   return "Frame the belief";
 }
 
-/* ── Evidence composition (per-rung bars, lens-aware) ──────────────────── */
+/* ── Confidence explainer — the formula + per-rung breakdown ───────────── */
+
+function ConfidenceExplainerView({
+  assumption,
+  readings,
+}: {
+  assumption: AnyRecord;
+  readings: AnyRecord[];
+}) {
+  const view = useMemo(
+    () => buildConfidenceExplainer(assumption, readings),
+    [assumption, readings],
+  );
+  return (
+    <details className="vos-card vos-detail-section vos-explainer">
+      <summary className="vos-explainer-summary">
+        <span className="vos-detail-section-label">How Confidence is calculated</span>
+        <span className="vos-explainer-conf vos-num">{formatSigned(view.confidence)}</span>
+      </summary>
+      <div className="vos-explainer-body">
+        <p className="vos-explainer-formula">{view.formula}</p>
+        <p className="vos-explainer-summary-text">{view.summary}</p>
+        <div className="vos-explainer-rungs">
+          <div className="vos-explainer-rungs-head">
+            <span>Rung</span>
+            <span>W0 (prior)</span>
+            <span>Anchors (L/T/H)</span>
+            <span>Evidence</span>
+            <span>Contribution</span>
+          </div>
+          {view.rungs.map((r) => (
+            <div
+              key={r.rung}
+              className={`vos-explainer-rung ${!r.inLens ? "is-not-lens" : ""} ${r.count > 0 ? "has-evidence" : ""}`}
+            >
+              <span className="vos-explainer-rung-name" title={r.description}>
+                {r.label}
+              </span>
+              <span className="vos-explainer-rung-w0 vos-num">{r.w0}</span>
+              <span className="vos-explainer-rung-anchors vos-num">
+                {r.anchors.Low}/{r.anchors.Typical}/{r.anchors.High}
+              </span>
+              <span className="vos-explainer-rung-count vos-num">
+                {r.count > 0 ? `${r.count} source${r.count === 1 ? "" : "s"}` : "—"}
+              </span>
+              <span className={`vos-explainer-rung-contrib vos-num ${r.contribution > 0 ? "vos-text-good" : r.contribution < 0 ? "vos-text-crit" : ""}`}>
+                {r.count > 0 ? formatSigned(r.contribution) : "—"}
+              </span>
+            </div>
+          ))}
+        </div>
+        <div className="vos-explainer-foot">
+          <p>
+            <strong>W0</strong> = the prior weight for each rung — how many distinct
+            sources it takes to approach that rung's cap. Desk research has a low W0
+            (2 — one authoritative source nearly saturates it); Talk has a higher W0
+            (6.5 — needs ~10 sources); do-rungs have high W0s (327 — needs ~20
+            sources to reach 75% of the cap).
+          </p>
+          <p>
+            <strong>Strength</strong> = the rung's anchor × the sign of the result
+            (Validated = +, Invalidated = −, Inconclusive = 0). The anchor is the
+            band (Low/Typical/High) the evidence lands at.
+          </p>
+          <p>
+            <strong>Weight</strong> = |Strength| × source quality × commitment factor
+            (1.0 for evidence linked to an experiment, 0.85 for found evidence).
+          </p>
+          <p>
+            <strong>Contribution</strong> = (Weight × Strength) / denominator. The
+            sum of all contributions equals Confidence. Evidence at a higher rung
+            always outweighs evidence at a lower rung — the rung ladder dominates.
+          </p>
+        </div>
+      </div>
+    </details>
+  );
+}
 
 function EvidenceCompositionView({
   assumption,

@@ -2937,8 +2937,8 @@ button.vos-verdict-title {
 .vos-crumb-link:hover { color: var(--vos-accent); }
 .vos-crumb-current { color: var(--vos-text); font-weight: 600; }
 
-/* List surfaces (experiments / readings). Standardized 14px padding. */
-.vos-list-card { display: flex; flex-direction: column; gap: 4px; padding: 14px; }
+/* List surfaces (experiments / readings). Standardized 14px padding, 8px row gap. */
+.vos-list-card { display: flex; flex-direction: column; gap: 8px; padding: 14px; }
 .vos-list-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--vos-surface-2); border: 1px solid var(--vos-border); border-radius: 6px; cursor: pointer; text-align: left; width: 100%; color: var(--vos-text); font: inherit; transition: border-color 0.15s; }
 .vos-list-row:hover { border-color: var(--vos-accent); }
 .vos-list-row-date { font-size: 9px; color: var(--vos-muted); min-width: 80px; }
@@ -2969,17 +2969,17 @@ button.vos-verdict-title {
 .vos-detail-section-label { font-size: 11px; color: var(--vos-muted); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 8px; }
 
 /* Evidence composition (per-rung bars). Rung label shrinks on narrow screens;
-   value + count fixed so columns align; row wraps gracefully under ~360px. */
-.vos-comp-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: nowrap; }
+    value + count fixed so columns align; row wraps gracefully under ~360px. */
+.vos-comp-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: nowrap; }
 .vos-comp-rung { width: 90px; flex-shrink: 0; font-size: 10px; color: var(--vos-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .vos-comp-rung.is-empty { color: var(--vos-muted); }
 .vos-comp-bar { flex: 1 1 80px; min-width: 60px; height: 10px; background: var(--vos-surface-2); border-radius: 5px; overflow: hidden; }
 .vos-comp-fill { display: block; height: 100%; background: var(--vos-accent); border-radius: 5px; }
 .vos-comp-val { width: 70px; flex-shrink: 0; text-align: right; font-size: 10px; color: var(--vos-muted); }
-.vos-comp-count { width: 40px; flex-shrink: 0; font-size: 9px; color: var(--vos-muted); }
+.vos-comp-count { width: 52px; flex-shrink: 0; font-size: 9px; color: var(--vos-muted); }
 
 /* Relations */
-.vos-rel-group { margin-bottom: 10px; }
+.vos-rel-group { margin-bottom: 12px; }
 .vos-rel-kind { font-size: 10px; font-weight: 600; margin-bottom: 4px; }
 .vos-rel-kind-depends { color: var(--vos-accent-text); }
 .vos-rel-kind-enables { color: var(--vos-good); }
@@ -2993,8 +2993,8 @@ button.vos-verdict-title {
 .vos-rel-title { flex: 1; }
 .vos-rel-tag { font-size: 8px; color: var(--vos-muted); padding: 1px 4px; border: 1px solid var(--vos-border); border-radius: 3px; }
 
-/* Linked rows (experiments + readings on assumption detail). 14px padding. */
-.vos-linked-row { display: flex; gap: 8px; align-items: center; text-align: left; background: var(--vos-surface-2); border: 1px solid var(--vos-border); border-radius: 6px; padding: 14px; cursor: pointer; width: 100%; margin-bottom: 6px; font: inherit; color: var(--vos-text); transition: border-color 0.15s; }
+/* Linked rows (experiments + readings on assumption detail). 10px 12px padding matches list rows. */
+.vos-linked-row { display: flex; gap: 8px; align-items: center; text-align: left; background: var(--vos-surface-2); border: 1px solid var(--vos-border); border-radius: 6px; padding: 10px 12px; cursor: pointer; width: 100%; margin-bottom: 8px; font: inherit; color: var(--vos-text); transition: border-color 0.15s; }
 .vos-linked-row:hover { border-color: var(--vos-accent); }
 .vos-linked-gauge { font-size: 16px; font-weight: 700; min-width: 32px; text-align: center; }
 .vos-linked-title { flex: 1; font-size: 12px; }
@@ -3074,14 +3074,172 @@ button.vos-verdict-title {
 .vos-reading-collapse { border: 1px solid var(--vos-border); border-radius: 8px; margin-bottom: 8px; background: var(--vos-surface-2); overflow: hidden; transition: border-color 0.15s; }
 .vos-reading-collapse:hover { border-color: var(--vos-border-strong); }
 .vos-reading-collapse[open] { border-color: var(--vos-border-strong); }
-.vos-reading-collapse > summary { display: flex; gap: 12px; align-items: center; padding: 14px 16px; cursor: pointer; list-style: none; user-select: none; transition: background 0.15s; }
+.vos-reading-collapse > summary { display: flex; gap: 12px; align-items: center; padding: 14px; cursor: pointer; list-style: none; user-select: none; transition: background 0.15s; }
 .vos-reading-collapse > summary::-webkit-details-marker { display: none; }
-.vos-reading-collapse > summary::before { content: "▸"; color: var(--vos-muted); font-size: 10px; transition: transform 0.15s; flex-shrink: 0; }
+.vos-reading-collapse > summary::before { content: "▸"; color: var(--vos-muted); font-size: 10px; transition: transform 0.15s; flex-shrink: 0; display: inline-flex; align-items: center; }
 .vos-reading-collapse[open] > summary::before { transform: rotate(90deg); }
 .vos-reading-collapse > summary:hover { background: var(--vos-surface); }
 .vos-reading-card-summary { display: flex; gap: 12px; align-items: center; width: 100%; min-width: 0; }
 .vos-reading-beliefs-count { font-size: 10px; color: var(--vos-muted); margin-left: auto; flex-shrink: 0; }
-.vos-reading-card-body { padding: 0 16px 14px; }
+.vos-reading-card-body { padding: 0 14px 14px; }
 
-/* Evidence composition — fix the value display (signed contributions) */
-.vos-comp-val { width: 70px; }
+/* Evidence composition — fix the value display (signed contributions).
+   Width is set on the primary .vos-comp-val rule above; no override needed. */
+
+/* ── DEV-5879: confidence explainer + grading rationale labels ── */
+
+/* Grading rationale (NOT a quote — the grader's reason for the score) */
+.vos-reading-rationale, .vos-belief-rationale {
+  padding: 6px 10px;
+  border-left: 3px solid var(--vos-border);
+  background: var(--vos-surface);
+  border-radius: 0 4px 4px 0;
+  margin: 4px 0 6px;
+  font-size: 11px;
+  color: var(--vos-text);
+}
+.vos-reading-rationale { margin: 4px 0; }
+.vos-belief-rationale { margin: 4px 0 6px; }
+.vos-belief-rationale-label, .vos-reading-rationale-label {
+  font-size: 9px;
+  color: var(--vos-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-right: 6px;
+}
+
+/* Confidence explainer (collapsible) */
+.vos-explainer { border: 1px solid var(--vos-border); }
+.vos-explainer-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+.vos-explainer-summary::-webkit-details-marker { display: none; }
+.vos-explainer-summary::before { content: "▸"; color: var(--vos-muted); font-size: 10px; margin-right: 12px; transition: transform 0.15s; display: inline-flex; align-items: center; }
+.vos-explainer[open] > .vos-explainer-summary::before { transform: rotate(90deg); }
+.vos-explainer-conf { font-size: 18px; font-weight: 700; }
+.vos-explainer-body { padding: 0 14px 14px; }
+.vos-explainer-formula {
+  font-family: var(--vos-mono);
+  font-size: 12px;
+  color: var(--vos-accent-text);
+  background: var(--vos-surface-2);
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-bottom: 12px;
+}
+.vos-explainer-summary-text { font-size: 13px; color: var(--vos-text); margin-bottom: 16px; line-height: 1.5; }
+.vos-explainer-rungs { border: 1px solid var(--vos-border); border-radius: 6px; overflow: hidden; margin-bottom: 16px; }
+.vos-explainer-rungs-head, .vos-explainer-rung {
+  display: grid;
+  grid-template-columns: 1.5fr 0.8fr 1fr 1fr 0.8fr;
+  gap: 8px;
+  padding: 10px 12px;
+  font-size: 11px;
+  align-items: center;
+}
+.vos-explainer-rungs-head {
+  background: var(--vos-surface-2);
+  color: var(--vos-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  font-size: 9px;
+  padding: 8px 12px;
+}
+.vos-explainer-rung { border-top: 1px solid var(--vos-border); }
+.vos-explainer-rung.is-not-lens { opacity: 0.5; }
+.vos-explainer-rung.has-evidence { background: var(--vos-surface); }
+.vos-explainer-rung-name { font-weight: 500; color: var(--vos-text); }
+.vos-explainer-rung-w0, .vos-explainer-rung-anchors, .vos-explainer-rung-count { color: var(--vos-muted); }
+.vos-explainer-rung-contrib { font-weight: 600; text-align: right; }
+.vos-explainer-foot { font-size: 11px; color: var(--vos-muted); line-height: 1.6; }
+.vos-explainer-foot p { margin-bottom: 8px; }
+.vos-explainer-foot strong { color: var(--vos-text); }
+
+/* Recommended experiment cards — expandable with body + accept inside */
+.vos-pipe-rec { overflow: hidden; }
+.vos-pipe-rec-body {
+  padding: 12px 14px 14px;
+  border-top: 1px solid var(--vos-border);
+  background: var(--vos-surface);
+  font-size: 12px;
+  color: var(--vos-text);
+  line-height: 1.6;
+}
+.vos-pipe-rec-body h2 { font-size: 13px; font-weight: 600; margin: 12px 0 4px; color: var(--vos-text); }
+.vos-pipe-rec-body h2:first-child { margin-top: 0; }
+.vos-pipe-rec-body p { margin-bottom: 8px; }
+.vos-pipe-rec-body ul { padding-left: 18px; margin-bottom: 8px; }
+.vos-pipe-rec-body li { margin-bottom: 4px; }
+.vos-pipe-rec-expand {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--vos-accent-text);
+  font-size: 11px;
+  padding: 4px 0;
+  margin-top: 6px;
+}
+
+/* ── DEV-5879: Next moves two-column section ── */
+
+.vos-next-moves { margin-top: 16px; }
+.vos-next-moves-head {
+  font-size: 11px;
+  color: var(--vos-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+.vos-next-moves-cols {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 16px;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .vos-next-moves-cols { grid-template-columns: 1fr; }
+}
+.vos-next-moves-col { padding: 14px; }
+.vos-next-moves-col-label {
+  font-size: 11px;
+  color: var(--vos-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+.vos-next-moves-empty { padding: 12px 14px; font-size: 12px; }
+.vos-next-moves-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: var(--vos-surface-2);
+  border: 1px solid var(--vos-border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  color: var(--vos-text);
+  font: inherit;
+  transition: border-color 0.15s;
+}
+.vos-next-moves-item:hover { border-color: var(--vos-accent); }
+.vos-next-moves-item-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+.vos-next-moves-item-id { font-size: 10px; color: var(--vos-muted); }
+.vos-next-moves-item-risk { font-size: 10px; font-weight: 600; }
+.vos-next-moves-item-title { font-size: 12px; font-weight: 500; margin-bottom: 4px; line-height: 1.4; }
+.vos-next-moves-item-hint { font-size: 11px; color: var(--vos-muted); line-height: 1.4; }
+.vos-next-moves-rec { margin-bottom: 8px; }
