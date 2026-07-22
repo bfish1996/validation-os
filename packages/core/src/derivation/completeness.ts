@@ -26,7 +26,7 @@ export const COMPLETENESS_SLOTS = [
   "Impact",
   "Scoring justification",
   "Dependencies traced",
-  "Question Type",
+  "Assumption Type",
 ] as const;
 
 export type CompletenessSlot = (typeof COMPLETENESS_SLOTS)[number];
@@ -39,7 +39,7 @@ export interface CompletenessInput {
   "Scoring justification"?: unknown;
   dependsOnIds?: unknown;
   enablesIds?: unknown;
-  "Question Type"?: unknown;
+  "Assumption Type"?: unknown;
 }
 
 /** A text slot is present only when it is a non-blank string. */
@@ -68,7 +68,7 @@ export function completenessSlotPresence(
     "Scoring justification": hasText(record["Scoring justification"]),
     "Dependencies traced":
       hasAny(record.dependsOnIds) || hasAny(record.enablesIds),
-    "Question Type": hasText(record["Question Type"]),
+    "Assumption Type": hasText(record["Assumption Type"]),
   };
 }
 
