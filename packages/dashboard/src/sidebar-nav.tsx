@@ -47,18 +47,16 @@ export function SidebarNav({
   const activeRegister =
     route.name === "records" ? route.register : null;
 
-  // Which nav item is active for a given route — detail routes highlight
-  // their parent (assumption → assumptions, experiment → experiments, etc).
+  // Which nav item is active for a given route. The single `record` body route
+  // resolves its register at render (from the id), so it highlights no nav item
+  // rather than guessing one here.
   function activeNav(): string | null {
     switch (route.name) {
       case "assumptions":
-      case "assumption":
         return "assumptions";
       case "experiments":
-      case "experiment":
         return "experiments";
       case "readings":
-      case "reading":
         return "readings";
       default:
         return null;

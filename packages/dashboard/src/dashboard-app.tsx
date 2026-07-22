@@ -1,13 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import type { Collection } from "@validation-os/core";
 import { REGISTER_ORDER, REGISTER_SUBTITLE } from "./labels.js";
-import { AssumptionDetail } from "./assumption-detail.js";
 import { AssumptionsWorkspaceSurface } from "./assumptions-workspace-surface.js";
-import { ExperimentDetail } from "./experiment-detail.js";
 import { ExperimentsSurface } from "./experiments-surface.js";
-import { ReadingDetail } from "./reading-detail.js";
 import { ReadingsSurface } from "./readings-surface.js";
-import { RecordPage } from "./record-page.js";
+import { RecordView } from "./record-view.js";
 import { RegisterBrowser } from "./register-browser.js";
 import { formatRoute, parseRoute, type Route } from "./route.js";
 import { SidebarNav } from "./sidebar-nav.js";
@@ -173,14 +170,7 @@ export function ValidationOSDashboard({ config = {} }: ValidationOSDashboardProp
       />
 
       <main className="vos-main">
-        {route.name === "assumptions" ? (
-          <AssumptionsWorkspaceSurface
-            key="assumptions-workspace"
-            basePath={basePath}
-            onNavigate={navigate}
-            currentCycle={currentCycle}
-          />
-        ) : route.name === "experiments" ? (
+        {route.name === "experiments" ? (
           <ExperimentsSurface
             key="experiments"
             basePath={basePath}
@@ -193,53 +183,25 @@ export function ValidationOSDashboard({ config = {} }: ValidationOSDashboardProp
             basePath={basePath}
             onNavigate={navigate}
           />
-        ) : route.name === "assumption" ? (
-          <AssumptionDetail
-            key={`assumption-${route.id}`}
-            assumptionId={route.id}
-            basePath={basePath}
-            onNavigate={navigate}
-          />
-        ) : route.name === "experiment" ? (
-          <ExperimentDetail
-            key={`experiment-${route.id}`}
-            experimentId={route.id}
-            basePath={basePath}
-            onNavigate={navigate}
-          />
-        ) : route.name === "reading" ? (
-          <ReadingDetail
-            key={`reading-${route.id}`}
-            readingId={route.id}
+        ) : route.name === "record" ? (
+          <RecordView
+            key={route.id}
+            recordId={route.id}
             basePath={basePath}
             onNavigate={navigate}
           />
         ) : route.name === "records" ? (
           <RegisterBrowser
-            key={route.register + (route.view ?? "")}
+            key={route.register}
             register={route.register}
             basePath={basePath}
             subtitle={REGISTER_SUBTITLE[route.register]}
-            onOpenRecord={(id) => {
-              const r = route.register;
-              if (r === "assumptions") navigate({ name: "assumption", id });
-              else if (r === "experiments") navigate({ name: "experiment", id });
-              else if (r === "readings") navigate({ name: "reading", id });
-              else navigate({ name: "record", id });
-            }}
+            onOpenRecord={(id) => navigate({ name: "record", id })}
             currentCycle={currentCycle}
-          />
-        ) : route.name === "record" ? (
-          <RecordPage
-            key={route.id}
-            recordId={route.id}
-            onNavigate={navigate}
-            backRegister={registers[0] ?? "assumptions"}
-            basePath={basePath}
           />
         ) : (
           <AssumptionsWorkspaceSurface
-            key="assumptions-fallback"
+            key="assumptions-workspace"
             basePath={basePath}
             onNavigate={navigate}
             currentCycle={currentCycle}

@@ -1,122 +1,71 @@
 import type { Collection } from "@validation-os/core";
 
 /**
- * The dashboard's client-owned navigation state (the nav/IA shell / the
- * dashboard frontend redesign). One `<ValidationOSDashboard/>` mounts at a
- * single host route and drives everything off the URL hash — there is no
- * second entry point (the mountable dashboard app).
+ * The dashboard's client-owned navigation state. One `<ValidationOSDashboard/>`
+ * mounts at a single host route and drives everything off the URL hash — there
+ * is no second entry point.
  *
- *  - `assumptions` — the Assumptions nav item. The experiment-first workspace
- *    is the default landing; the `view` query param carries the workspace mode
- *    (`experiments` · `recommended` · `all`) for deep-linkable mode switching.
- *    The old `lens` / `stage` cell-drill params are gone (the Lens × Stage grid
- *    was retired); legacy deep links that carried them still resolve into the
- *    workspace, the params ignored.
- *  - `experiments` — the Experiments nav item (the live evidence plans list).
- *  - `readings` — the Readings nav item (the evidence log list).
- *  - `assumption` — the assumption detail (next-move, relations, glossary,
- *    evidence-first readings). The id is the assumption id.
- *  - `experiment` — the evidence-first experiment detail (readings lead, bar
- *    lines as context, unstarted bars separate). The id is the experiment id.
- *  - `reading` — the per-belief reading detail (Context + per-belief verdicts
- *    with excerpts). The id is the reading id.
- *  - `records` — one register's browse table (the manual-override surface,
- *    kept from the original scheme). Backward-compatible with `#<register>`.
- *  - `record` — the legacy unified record page (still mounted for decisions +
- *    glossary, which keep the tabbed layout). The id is the record id.
+ *  - `assumptions` — the experiment-first Assumptions workspace (the default
+ *    landing). It owns its own in-surface mode/cycle/search state; the route
+ *    carries nothing.
+ *  - `experiments` — the live evidence-plans list.
+ *  - `readings` — the evidence-log list.
+ *  - `record` — the single deep-linkable record body. The id is the record id;
+ *    `RecordView` resolves which register owns it and renders the right body
+ *    (belief · experiment · reading · decision/glossary). Every internal link
+ *    is just an id — no caller has to know the register, so a link can never
+ *    route to the wrong detail type.
+ *  - `records` — one register's browse table (the manual-override surface for
+ *    decisions + glossary). Backward-compatible with a bare `#<register>`.
  *
- * The legacy `next`, `pipeline`, and `stage-grid` routes still parse (they map
- * onto the new nav: `next`→`assumptions`, `pipeline`→`assumptions` with
- * `view: "all"`, `stage-grid`→`assumptions`) so old deep links keep working.
+ * Inbound aliases: the per-register detail paths `#assumption/:id`,
+ * `#experiment/:id`, and `#reading/:id` still parse — they collapse onto
+ * `record`, so old deep links and any externally-shared URLs keep working. The
+ * retired `#next`, `#pipeline`, and `#stage-grid` surfaces are gone; those
+ * hashes fall through to the default.
  */
-export type WorkspaceMode = "experiments" | "recommended" | "all";
-
 export type Route =
-  | { name: "assumptions"; view?: WorkspaceMode }
+  | { name: "assumptions" }
   | { name: "experiments" }
   | { name: "readings" }
-  | { name: "assumption"; id: string }
-  | { name: "experiment"; id: string }
-  | { name: "reading"; id: string }
-  | { name: "records"; register: Collection; view?: "all" }
-  | { name: "record"; id: string };
+  | { name: "record"; id: string }
+  | { name: "records"; register: Collection };
 
 const DEFAULT_ROUTE: Route = { name: "assumptions" };
 
-const WORKSPACE_MODES: readonly WorkspaceMode[] = [
-  "experiments",
-  "recommended",
-  "all",
-];
-
-function parseWorkspaceMode(v: string | null): WorkspaceMode | undefined {
-  return v && (WORKSPACE_MODES as readonly string[]).includes(v)
-    ? (v as WorkspaceMode)
-    : undefined;
-}
+/** The per-register detail path heads that collapse onto the single `record`
+ * route. `record` itself is the canonical head `formatRoute` emits. */
+const RECORD_HEADS = new Set(["record", "assumption", "experiment", "reading"]);
 
 /**
  * Parse a URL hash into a Route. The empty hash and anything unrecognised fall
- * back to the Assumptions workspace (the default landing). A bare register
- * name (`#assumptions`) stays backward-compatible with the original
- * `#<register>` scheme, so it resolves to that register's Records table;
- * `registers` is the set the instance allows, so an unknown or disallowed
- * register name falls through to the default.
- *
- * Legacy routes `#next`, `#pipeline`, and `#stage-grid` still parse — they map
- * onto the new nav so old deep links keep working. The `lens` / `stage`
- * cell-drill query params are dropped (the Lens × Stage grid was retired); any
- * deep link that carried them still resolves into the workspace, the params
- * ignored.
+ * back to the Assumptions workspace. A bare register name (`#glossary`) stays
+ * backward-compatible with the original `#<register>` scheme, resolving to that
+ * register's Records table; `registers` is the set the instance allows, so an
+ * unknown or disallowed register name falls through to the default.
  */
 export function parseRoute(hash: string, registers: Collection[]): Route {
   const h = hash.replace(/^#\/?/, "");
   if (!h) return DEFAULT_ROUTE;
-  const [pathPart = "", queryPart = ""] = h.split("?");
+  const pathPart = h.split("?")[0] ?? "";
   const parts = pathPart.split("/");
   const head = parts[0] ?? "";
-  const query = new URLSearchParams(queryPart ?? "");
-  const view = parseWorkspaceMode(query.get("view"));
 
-  // Legacy routes → new nav.
-  if (head === "next") return { name: "assumptions" };
-  // `#pipeline` historically meant "view all" → map onto the `all` mode.
-  if (head === "pipeline") return { name: "assumptions", view: "all" };
-  if (head === "stage-grid") return { name: "assumptions" };
-
-  // New detail routes.
-  if (head === "assumption") {
-    const id = parts.slice(1).join("/");
-    return id ? { name: "assumption", id } : DEFAULT_ROUTE;
-  }
-  if (head === "experiment") {
-    const id = parts.slice(1).join("/");
-    return id ? { name: "experiment", id } : DEFAULT_ROUTE;
-  }
-  if (head === "reading") {
-    const id = parts.slice(1).join("/");
-    return id ? { name: "reading", id } : DEFAULT_ROUTE;
-  }
-
-  // New top-level nav routes.
-  if (head === "assumptions") {
-    const r: Route = { name: "assumptions" };
-    if (view) r.view = view;
-    return r;
-  }
-  if (head === "experiments") return { name: "experiments" };
-  if (head === "readings") return { name: "readings" };
-
-  // Legacy record drill-in + records table.
-  if (head === "record") {
+  // The single record body — canonical `record`, plus the per-register aliases
+  // that collapse onto it so old/shared deep links keep resolving.
+  if (RECORD_HEADS.has(head)) {
     const id = parts.slice(1).join("/");
     return id ? { name: "record", id } : DEFAULT_ROUTE;
   }
+
+  // Top-level nav routes.
+  if (head === "assumptions") return { name: "assumptions" };
+  if (head === "experiments") return { name: "experiments" };
+  if (head === "readings") return { name: "readings" };
+
+  // A bare register name → that register's Records table.
   if ((registers as string[]).includes(head)) {
-    const r: Route = { name: "records", register: head as Collection };
-    const recordsView = query.get("view") === "all" ? "all" : undefined;
-    if (recordsView) r.view = recordsView;
-    return r;
+    return { name: "records", register: head as Collection };
   }
   return DEFAULT_ROUTE;
 }
@@ -124,26 +73,14 @@ export function parseRoute(hash: string, registers: Collection[]): Route {
 /**
  * The hash fragment (no leading `#`) for a Route — the inverse of `parseRoute`.
  * `records` serialises to the bare register name to keep deep links stable with
- * the original scheme.
+ * the original scheme; `record` serialises to the canonical `record/:id`.
  */
 export function formatRoute(route: Route): string {
   switch (route.name) {
-    case "assumptions": {
-      if (!route.view) return "assumptions";
-      return `assumptions?view=${route.view}`;
-    }
-    case "assumption":
-      return `assumption/${route.id}`;
-    case "experiment":
-      return `experiment/${route.id}`;
-    case "reading":
-      return `reading/${route.id}`;
-    case "records": {
-      if (!route.view) return route.register;
-      return `${route.register}?view=${route.view}`;
-    }
     case "record":
       return `record/${route.id}`;
+    case "records":
+      return route.register;
     default:
       return route.name;
   }
