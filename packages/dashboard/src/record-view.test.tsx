@@ -22,6 +22,15 @@ const DB: Record<string, AnyRecord[]> = {
       enablesIds: [],
       derived: { derivedImpact: 60, risk: 60, confidence: 0, completeness: 100, assumptionType: "ProblemExists" },
     } as unknown as AnyRecord,
+    {
+      id: "A-2",
+      Title: "New users reach activation within a week",
+      Status: "Live",
+      moot: false,
+      dependsOnIds: [],
+      enablesIds: [],
+      derived: { derivedImpact: 40, risk: 40, confidence: 0, completeness: 100, assumptionType: "ProblemExists" },
+    } as unknown as AnyRecord,
   ],
   experiments: [
     {
@@ -33,7 +42,14 @@ const DB: Record<string, AnyRecord[]> = {
   ],
   readings: [],
   decisions: [],
-  glossary: [],
+  glossary: [
+    {
+      id: "G-1",
+      Title: "activation",
+      Status: "Active",
+      Definition: "The point a new user first reaches the product's core value.",
+    } as unknown as AnyRecord,
+  ],
 };
 
 function mockApi() {
@@ -72,4 +88,15 @@ test("resolves an experiment id to the experiment body, and its criterion link n
   // wrong detail type because it carries no register.
   fireEvent.click(screen.getByRole("button", { name: "A-1" }));
   expect(onNavigate).toHaveBeenCalledWith({ name: "record", id: "A-1" });
+});
+
+test("auto-links a glossary term in the belief statement and navigates to its record", async () => {
+  const onNavigate = vi.fn();
+  mockApi();
+  render(<RecordView recordId="A-2" onNavigate={onNavigate} />);
+  // The statement's "activation" is linked to glossary term G-1 and is clickable
+  // (the old detail page left onOpenTerm unwired, so the chip did nothing).
+  const term = await screen.findByRole("button", { name: "activation" });
+  fireEvent.click(term);
+  expect(onNavigate).toHaveBeenCalledWith({ name: "record", id: "G-1" });
 });

@@ -9,6 +9,8 @@
  * A dumb renderer: all data logic lives in `record-body.ts` (the test surface).
  */
 import { EvidenceBody } from "./markdown.js";
+import { GlossaryText } from "./glossary-text.js";
+import { toGlossaryTerms, type GlossaryTerm } from "./glossary.js";
 import { StatusPill } from "./primitives-view.js";
 import { sparklinePath, sparklineY } from "./primitives.js";
 import {
@@ -60,6 +62,11 @@ export function RecordView({ recordId, basePath, onNavigate }: RecordViewProps) 
     glossary: glossary.records ?? [],
   };
   const resolved: ResolvedBody = buildRecordBody(recordId, records);
+  // Glossary terms for auto-linking prose; opening a term navigates to its
+  // record (a glossary entry resolves to the generic body). onOpenTerm is
+  // always wired here — the old detail page left it undefined, so term chips
+  // rendered clickable but did nothing.
+  const terms = toGlossaryTerms(records.glossary);
 
   if (resolved.kind === "not-found") {
     return (
@@ -87,13 +94,13 @@ export function RecordView({ recordId, basePath, onNavigate }: RecordViewProps) 
         ← {REGISTER_LABEL[resolved.register] ?? "Back"}
       </button>
       {resolved.kind === "belief" ? (
-        <BeliefBodyView body={resolved.body} onOpen={open} />
+        <BeliefBodyView body={resolved.body} onOpen={open} terms={terms} />
       ) : resolved.kind === "experiment" ? (
         <ExperimentBodyView body={resolved.body} onOpen={open} />
       ) : resolved.kind === "reading" ? (
         <ReadingBodyView body={resolved.body} onOpen={open} />
       ) : (
-        <GenericBodyView body={resolved.body} />
+        <GenericBodyView body={resolved.body} onOpen={open} terms={terms} />
       )}
     </div>
   );
@@ -101,12 +108,22 @@ export function RecordView({ recordId, basePath, onNavigate }: RecordViewProps) 
 
 /* ── Belief body ─────────────────────────────────────────────────────────── */
 
-function BeliefBodyView({ body, onOpen }: { body: BeliefBody; onOpen: (id: string) => void }) {
+function BeliefBodyView({
+  body,
+  onOpen,
+  terms,
+}: {
+  body: BeliefBody;
+  onOpen: (id: string) => void;
+  terms: GlossaryTerm[];
+}) {
   return (
     <>
       <div className="vos-record-head">
         <div className="vos-record-eyebrow">Belief · {body.id}</div>
-        <h1 className="vos-record-title">{body.statement}</h1>
+        <h1 className="vos-record-title">
+          <GlossaryText text={body.statement} terms={terms} selfId={body.id} onOpenTerm={onOpen} />
+        </h1>
       </div>
 
       <section className="vos-record-section">
@@ -378,7 +395,15 @@ function ReadingBodyView({ body, onOpen }: { body: ReadingBody; onOpen: (id: str
 
 /* ── Generic body (decisions + glossary) ─────────────────────────────────── */
 
-function GenericBodyView({ body }: { body: GenericBody }) {
+function GenericBodyView({
+  body,
+  onOpen,
+  terms,
+}: {
+  body: GenericBody;
+  onOpen: (id: string) => void;
+  terms: GlossaryTerm[];
+}) {
   return (
     <>
       <div className="vos-record-head">
@@ -390,7 +415,9 @@ function GenericBodyView({ body }: { body: GenericBody }) {
       {body.fields.map((f) => (
         <section key={f.label} className="vos-record-section">
           <div className="vos-record-section-label">{f.label}</div>
-          <p>{f.value}</p>
+          <p>
+            <GlossaryText text={f.value} terms={terms} selfId={body.id} onOpenTerm={onOpen} />
+          </p>
         </section>
       ))}
       {body.body ? (
