@@ -4,6 +4,7 @@ import { Breadcrumb } from "./breadcrumb.js";
 import { readingBeliefs, experimentCycle } from "./derived-views.js";
 import {
   buildExperimentAssumptions,
+  type CoincidentalResult,
   type TargetedStatus,
 } from "./experiment-assumptions.js";
 import { EvidenceBody } from "./markdown.js";
@@ -350,7 +351,7 @@ const TARGET_STATUS_LABEL: Record<TargetedStatus, string> = {
   unstarted: "Not started",
 };
 
-const COINCIDENTAL_LABEL: Record<string, string> = {
+const COINCIDENTAL_LABEL: Record<CoincidentalResult, string> = {
   validated: "Validated",
   invalidated: "Invalidated",
   mixed: "Mixed",
@@ -368,7 +369,7 @@ function targetedTone(status: TargetedStatus): "good" | "crit" | "warn" | "neutr
   return "neutral";
 }
 
-function coincidentalTone(result: string): "good" | "crit" | "warn" | "neutral" {
+function coincidentalTone(result: CoincidentalResult): "good" | "crit" | "warn" | "neutral" {
   if (result === "validated") return "good";
   if (result === "invalidated") return "crit";
   if (result === "mixed") return "warn";

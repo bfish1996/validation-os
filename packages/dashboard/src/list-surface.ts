@@ -371,8 +371,15 @@ export function groupByCycle(
   const none: AnyRecord[] = [];
   for (const r of records) {
     const cs = cyclesOf(r);
-    if (cs.length === 0) none.push(r);
-    else for (const c of cs) (numbered.get(c) ?? numbered.set(c, []).get(c)!).push(r);
+    if (cs.length === 0) {
+      none.push(r);
+      continue;
+    }
+    for (const c of cs) {
+      const bucket = numbered.get(c) ?? [];
+      if (!numbered.has(c)) numbered.set(c, bucket);
+      bucket.push(r);
+    }
   }
 
   const buckets: GroupBucket[] = [...numbered.keys()]

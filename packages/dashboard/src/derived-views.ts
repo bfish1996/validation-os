@@ -118,11 +118,12 @@ export function testsAssumption(exp: AnyRecord, assumptionId: string): boolean {
 // assumption's cycle membership is DERIVED from the experiments testing it
 // (ontology `cycle_membership`), never stored, mirroring `experiments_testing_me`.
 
-/** The validation cycle this experiment belongs to — a positive integer, or
- * null when unassigned or not a finite number. */
+/** The validation cycle this experiment belongs to — a positive integer
+ * (ontology `Cycle`, range [1, null]), or null when unassigned or out of range
+ * (0, negative, or non-integer read as "no cycle" rather than a bad bucket). */
 export function experimentCycle(exp: AnyRecord): number | null {
   const v = exp.Cycle;
-  return typeof v === "number" && Number.isFinite(v) ? v : null;
+  return typeof v === "number" && Number.isInteger(v) && v >= 1 ? v : null;
 }
 
 /** The validation cycles a belief is being tested in — the distinct `Cycle`

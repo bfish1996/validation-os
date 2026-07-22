@@ -298,6 +298,17 @@ describe("group-by cycle", () => {
     expect(buckets.map((b) => b.label)).toEqual(["No cycle"]);
   });
 
+  it("treats an out-of-range Cycle (0, negative, non-integer) as no cycle", () => {
+    const experiments = [
+      experiment("z", { Cycle: 0 }),
+      experiment("n", { Cycle: -1 }),
+      experiment("f", { Cycle: 1.5 }),
+    ];
+    const buckets = groupByCycle(experiments, "experiments", experiments);
+    expect(buckets.map((b) => b.label)).toEqual(["No cycle"]);
+    expect(buckets[0]!.records.map((r) => r.id)).toEqual(["z", "n", "f"]);
+  });
+
   it("shapes an experiments register grouped by Cycle from the rows themselves", () => {
     const experiments = [
       experiment("e1", { Cycle: 1, Status: "Running" }),

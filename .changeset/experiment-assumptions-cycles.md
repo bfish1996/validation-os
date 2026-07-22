@@ -1,8 +1,6 @@
 ---
 "@validation-os/core": minor
 "@validation-os/dashboard": minor
-"@validation-os/api": minor
-"@validation-os/adapter-firestore": minor
 ---
 
 Experiments now surface the assumptions they test and carry a validation Cycle.

@@ -99,6 +99,9 @@ const EDITORS: Record<Collection, FieldEditor[]> = {
     t("Deadline", "Deadline"),
     sel("Outcome", "Outcome", ["Achieved", "Missed", "Dropped"], true),
     t("Date", "Date"),
+    // The validation cycle (round) this run belongs to — editable so an
+    // existing experiment can be linked to a cycle without re-creating it.
+    num("Cycle", "Cycle", { min: 1 }),
   ],
   readings: [
     t("Title", "Reading"),

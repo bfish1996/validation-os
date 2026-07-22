@@ -1,5 +1,5 @@
 import type { AnyRecord } from "@validation-os/core";
-import { liveExperiments } from "./derived-views.js";
+import { experimentCycle, liveExperiments } from "./derived-views.js";
 import type { Route } from "./route.js";
 import { useList } from "./use-records.js";
 import { Breadcrumb } from "./breadcrumb.js";
@@ -63,8 +63,7 @@ export function ExperimentsSurface({
             const status = String(e.Status ?? "");
             const expConf = (e.derived as any)?.experimentConfidence ?? 50;
             const instrument = String(e.Instrument ?? "");
-            const cycle =
-              typeof e.Cycle === "number" && Number.isFinite(e.Cycle) ? e.Cycle : null;
+            const cycle = experimentCycle(e);
             return (
               <button
                 key={id}

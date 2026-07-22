@@ -5,7 +5,7 @@
  * headers are plain language and derived numbers are shown, never hidden.
  */
 import type { AnyRecord, Collection } from "@validation-os/core";
-import { readingMagnitudeBand, readingRung } from "./derived-views.js";
+import { experimentCycle, readingMagnitudeBand, readingRung } from "./derived-views.js";
 
 /**
  * How a cell renders. `text` is plain formatted text; `status` is a colored
@@ -75,10 +75,10 @@ const COLUMNS: Record<Collection, ColumnDef[]> = {
       key: "Cycle",
       header: "Cycle",
       align: "right",
-      accessor: (r) =>
-        typeof r.Cycle === "number" && Number.isFinite(r.Cycle)
-          ? `Cycle ${r.Cycle}`
-          : null,
+      accessor: (r) => {
+        const c = experimentCycle(r);
+        return c === null ? null : `Cycle ${c}`;
+      },
     },
   ],
   readings: [
