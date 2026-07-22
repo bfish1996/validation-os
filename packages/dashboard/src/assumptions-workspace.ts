@@ -36,12 +36,13 @@ import {
 import {
   derivedNum,
   experimentCycle,
+  experimentTargetIds,
   isArchivedExperiment,
+  isLiveBelief,
   liveExperiments,
   readingBeliefFor,
   readingBeliefs,
   str,
-  testsAssumption,
 } from "./derived-views.js";
 import { buildEvidenceComposition } from "./evidence-composition.js";
 import {
@@ -289,13 +290,6 @@ export function collectCycles(experiments: AnyRecord[]): number[] {
   return [...cycles].sort((a, b) => b - a);
 }
 
-/** Is a belief live (not Invalidated, not moot)? */
-function isLive(a: AnyRecord): boolean {
-  const status = str(a.Status);
-  const moot = a.moot === true;
-  return !moot && (status === "Live" || status === "Draft");
-}
-
 /** Has a belief graduated (confidence ≥ graduation bar)? */
 function isSettled(a: AnyRecord): boolean {
   const d = derivedOf(a);
@@ -371,10 +365,8 @@ function sortRiskiest(rows: BeliefRow[]): BeliefRow[] {
 /** The set of assumption ids tested by a live experiment. */
 function testedByLive(experiments: AnyRecord[]): Set<string> {
   const ids = new Set<string>();
-  for (const e of liveExperiments(experiments)) {
-    for (const id of (e.barLineAssumptionIds as string[]) ?? []) ids.add(id);
-    for (const b of (e.barLines as BarLine[]) ?? []) ids.add(b.assumptionId);
-  }
+  for (const e of liveExperiments(experiments))
+    for (const id of experimentTargetIds(e)) ids.add(id);
   return ids;
 }
 
@@ -477,13 +469,9 @@ function buildExperimentGroups(
 
   const groups: ExperimentGroup[] = filtered.map((exp) => {
     const bars = (exp.barLines as BarLine[]) ?? [];
-    const targetIds = new Set(
-      bars.length > 0
-        ? bars.map((b) => b.assumptionId)
-        : (exp.barLineAssumptionIds as string[]) ?? [],
-    );
+    const targetIds = experimentTargetIds(exp);
     const targetAssumptions = assumptions.filter(
-      (a) => targetIds.has(a.id) && isLive(a),
+      (a) => targetIds.has(a.id) && isLiveBelief(a),
     );
     const cycle = cycleOf(exp);
     const beliefs = targetAssumptions.map((a) =>
@@ -524,7 +512,7 @@ function buildRecommendedGroups(
 ): RecommendedGroup[] {
   const testedLive = testedByLive(experiments);
   const eligible = assumptions.filter(
-    (a) => isLive(a) && !isSettled(a) && !testedLive.has(a.id),
+    (a) => isLiveBelief(a) && !isSettled(a) && !testedLive.has(a.id),
   );
 
   const recs = buildRecommendedExperiments(eligible, experiments);
@@ -556,7 +544,7 @@ function buildAllRegister(
   search: string | undefined,
   assumptionsById: Map<string, AnyRecord>,
 ): BeliefRow[] {
-  const live = assumptions.filter(isLive);
+  const live = assumptions.filter(isLiveBelief);
   const testedMap = beliefToCycleMap(experiments);
 
   let rows = live.map((a) => {
@@ -588,11 +576,7 @@ function beliefToCycleMap(
   for (const exp of liveExperiments(experiments)) {
     const cycle = cycleOf(exp);
     if (cycle === null) continue;
-    const bars = (exp.barLines as BarLine[]) ?? [];
-    const ids = bars.length > 0
-      ? bars.map((b) => b.assumptionId)
-      : (exp.barLineAssumptionIds as string[]) ?? [];
-    for (const id of ids) map.set(id, cycle);
+    for (const id of experimentTargetIds(exp)) map.set(id, cycle);
   }
   return map;
 }
@@ -620,9 +604,14 @@ function computeExperimentConfidence(
       const result = str(b.Result);
       if (result !== "Validated" && result !== "Invalidated") continue;
       const assumption = assumptionsById.get(b.assumptionId);
+      // Prefer the derived (inferred-on-write) type; fall back to any stored
+      // top-level field for pre-inference records.
+      const derivedType = (assumption?.derived as { assumptionType?: unknown } | undefined)
+        ?.assumptionType;
       const assumptionType =
-        (str(assumption?.["Assumption Type"]) as ExperimentConfidenceReadingInput["assumptionType"]) ??
-        "ProblemExists";
+        ((typeof derivedType === "string" ? derivedType : null) ??
+          str(assumption?.["Assumption Type"]) ??
+          "ProblemExists") as ExperimentConfidenceReadingInput["assumptionType"];
       const rung = str(r.Rung) as ExperimentConfidenceReadingInput["rung"];
       readingInputs.push({
         id: r.id,

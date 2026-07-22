@@ -3,8 +3,10 @@ import { recomputeDerived } from "./recompute.js";
 import { confidence, graduationBar } from "./derivation/index.js";
 import type {
   AssumptionRecord,
+  AssumptionType,
   BeliefScore,
   DecisionRecord,
+  ExperimentRecord,
   ReadingRecord,
 } from "./types.js";
 
@@ -82,6 +84,61 @@ function reading(over: Partial<ReadingRecord> = {}): ReadingRecord {
 
 const NO_DECISIONS: DecisionRecord[] = [];
 
+/**
+ * A falsification-test phrase that `inferAssumptionType` (see
+ * `derivation/assumption-type.ts`) recognizes for each type — lets these tests
+ * drive inference the same way a real bar line's `wrongIf` would, instead of
+ * relying on a stored "Assumption Type" field recompute no longer reads.
+ */
+const WRONG_IF_BY_TYPE: Record<AssumptionType, string> = {
+  ProblemExists: "no one reports this pain",
+  ProblemWidespread: "the rate is below the threshold",
+  WantOurSolution: "they don't want our solution",
+  ItWorks: "the treatment group doesn't differ from control",
+  CanCompleteTask: "they can't complete the flow",
+  CanBuildIt: "the system can't do this",
+  LegalCompliant: "the regulator rules against it",
+  TheyllPay: "they don't pay",
+  TheyKeepUsingIt: "they stop using it",
+  ReachProfitably: "we can't reach them profitably",
+  EconomicsWork: "the unit economics don't work",
+};
+
+/** A minimal experiment carrying one bar line naming `assumptionId`, with a
+ * `wrongIf` that inference will read for `type`. */
+function experimentWithBar(
+  assumptionId: string,
+  type: AssumptionType,
+  over: Partial<ExperimentRecord> = {},
+): ExperimentRecord {
+  return {
+    id: "EXP-BAR",
+    version: 0,
+    createdAt: "",
+    updatedAt: "",
+    Title: "Bar-line experiment",
+    Instrument: null,
+    Feasibility: null,
+    Status: "Running",
+    closureReason: null,
+    Deadline: null,
+    Outcome: null,
+    Owner: [],
+    Date: null,
+    Cycle: null,
+    barLines: [
+      {
+        assumptionId,
+        rightIf: "",
+        wrongIf: WRONG_IF_BY_TYPE[type],
+        plannedRung: "Talk",
+      },
+    ],
+    barLineAssumptionIds: [assumptionId],
+    ...over,
+  };
+}
+
 describe("recomputeDerived — the confidence-scoring simplification graduation, risk group, cost tier", () => {
   it("talk-only readings graduate ProblemExists (saturated interviews → ~99)", () => {
     // ProblemExists × Talk × High = 99. Many distinct sources saturate toward
@@ -126,6 +183,7 @@ describe("recomputeDerived — the confidence-scoring simplification graduation,
       assumptions: [assumption({ "Assumption Type": "TheyllPay" })],
       readings,
       decisions: NO_DECISIONS,
+      experiments: [experimentWithBar("ASM-1", "TheyllPay")],
     }).get("ASM-1")!;
     expect(derived.confidence).toBe(0);
     expect(derived.riskGroup).toBe("Viability");
@@ -150,6 +208,7 @@ describe("recomputeDerived — the confidence-scoring simplification graduation,
       assumptions: [assumption({ "Assumption Type": "TheyllPay" })],
       readings,
       decisions: NO_DECISIONS,
+      experiments: [experimentWithBar("ASM-1", "TheyllPay")],
     }).get("ASM-1")!;
     expect(derived.confidence).toBeGreaterThan(50);
     expect(derived.graduationState).toBe("Graduated");
@@ -286,6 +345,7 @@ describe("recomputeDerived — the confidence-scoring simplification graduation,
         assumptions: [assumption({ "Assumption Type": type })],
         readings,
         decisions: NO_DECISIONS,
+        experiments: [experimentWithBar("ASM-1", type)],
       }).get("ASM-1")!;
       if (derived.confidence <= 70) {
         // debug only
@@ -336,5 +396,79 @@ describe("recomputeDerived — the confidence-scoring simplification graduation,
     }).get("ASM-1")!;
     // Seed capped at 60, no dependents → derivedImpact = 60.
     expect(derived.derivedImpact).toBe(60);
+  });
+});
+
+describe("recomputeDerived — Assumption Type inference is LIVING, never hand-entered", () => {
+  it("infers from Description when no bar line names the assumption yet", () => {
+    const derived = recomputeDerived({
+      assumptions: [
+        assumption({
+          "Assumption Type": null,
+          Description: "They stop using it after the first week.",
+        }),
+      ],
+      readings: [],
+      decisions: NO_DECISIONS,
+    }).get("ASM-1")!;
+    expect(derived.assumptionType).toBe("TheyKeepUsingIt");
+  });
+
+  it("prefers a bar line's wrongIf over a conflicting Description", () => {
+    const derived = recomputeDerived({
+      assumptions: [
+        assumption({
+          "Assumption Type": null,
+          Description: "They stop using it after the first week.",
+        }),
+      ],
+      readings: [],
+      decisions: NO_DECISIONS,
+      experiments: [experimentWithBar("ASM-1", "TheyllPay")],
+    }).get("ASM-1")!;
+    expect(derived.assumptionType).toBe("TheyllPay");
+  });
+
+  it("sharpens once grilled — a more specific wrongIf changes the inferred type on the next recompute, no manual field", () => {
+    const base = {
+      assumptions: [assumption({ "Assumption Type": null, Description: "" })],
+      readings: [],
+      decisions: NO_DECISIONS,
+    };
+    // An ambiguous, ungrilled bar defaults to the most permissive type.
+    const ungrilled = recomputeDerived({
+      ...base,
+      experiments: [
+        experimentWithBar("ASM-1", "ProblemExists", {
+          barLines: [
+            { assumptionId: "ASM-1", rightIf: "", wrongIf: "it doesn't land", plannedRung: "Talk" },
+          ],
+        }),
+      ],
+    }).get("ASM-1")!;
+    expect(ungrilled.assumptionType).toBe("ProblemExists");
+
+    // Grilling sharpens the bar's wrongIf text — recompute alone picks it up.
+    const grilled = recomputeDerived({
+      ...base,
+      experiments: [experimentWithBar("ASM-1", "TheyllPay")],
+    }).get("ASM-1")!;
+    expect(grilled.assumptionType).toBe("TheyllPay");
+  });
+
+  it("ignores a stale hand-set 'Assumption Type' — the stored field is inference output, never input", () => {
+    const derived = recomputeDerived({
+      assumptions: [
+        assumption({
+          // Deliberately wrong/stale — recompute must never read this as an input.
+          "Assumption Type": "LegalCompliant",
+          Description: "Something unrelated.",
+        }),
+      ],
+      readings: [],
+      decisions: NO_DECISIONS,
+      experiments: [experimentWithBar("ASM-1", "TheyllPay")],
+    }).get("ASM-1")!;
+    expect(derived.assumptionType).toBe("TheyllPay");
   });
 });

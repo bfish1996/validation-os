@@ -57,24 +57,29 @@ function isAssumptionType(v: string): v is AssumptionType {
   return (ASSUMPTION_TYPES as readonly string[]).includes(v);
 }
 
-export function buildEvidenceComposition(
+/**
+ * An assumption's Assumption Type, defaulting to ProblemExists. Prefers the
+ * derived value (inferred on write in core's recompute — the source of truth),
+ * falling back to any stored top-level field for pre-inference records.
+ */
+function assumptionTypeOf(assumption: AnyRecord): AssumptionType {
+  const derived = (assumption.derived as { assumptionType?: unknown } | undefined)?.assumptionType;
+  const raw = (typeof derived === "string" ? derived : null) ?? str(assumption["Assumption Type"]);
+  return raw && isAssumptionType(raw) ? raw : "ProblemExists";
+}
+
+/**
+ * The attribution inputs for ONE assumption: fan each linked reading's beliefs
+ * out, keep the one grading this assumption, drop Inconclusive, and shape it
+ * for `scoreAndDedupe`. Shared by the composition and the per-reading breakdown
+ * so the two never build inputs differently.
+ */
+function attributionInputsFor(
   assumption: AnyRecord,
   readings: AnyRecord[],
-): EvidenceCompositionView {
+  assumptionType: AssumptionType,
+): AttributionReadingInput[] {
   const id = str(assumption.id) ?? "";
-  // the confidence-scoring simplification: read the assumption's Assumption Type so the cap and the
-  // attribution math use the right sub-ladder. Default to ProblemExists.
-  const rawType = str(assumption["Assumption Type"]);
-  const assumptionType: AssumptionType =
-    rawType && isAssumptionType(rawType) ? rawType : "ProblemExists";
-  // The rungs that are evidence for this assumption type (non-zero anchors),
-  // in canonical order — empty rungs kept so gaps are honest.
-  const ladder = applicableRungs(assumptionType);
-
-  // Build the attribution inputs for THIS assumption only — fan each linked
-  // reading's beliefs out, keep only the one that scores this assumption, and
-  // feed those into the same scoreAndDedupe + per-rung contribution math the
-  // confidence formula uses.
   const inputs: AttributionReadingInput[] = [];
   for (const r of readings) {
     const belief = readingBeliefFor(r, id);
@@ -95,6 +100,21 @@ export function buildEvidenceComposition(
       experimentId: str(r.experimentId),
     });
   }
+  return inputs;
+}
+
+export function buildEvidenceComposition(
+  assumption: AnyRecord,
+  readings: AnyRecord[],
+): EvidenceCompositionView {
+  // the confidence-scoring simplification: read the assumption's Assumption Type so the cap and the
+  // attribution math use the right sub-ladder. Default to ProblemExists.
+  const assumptionType = assumptionTypeOf(assumption);
+  // The rungs that are evidence for this assumption type (non-zero anchors),
+  // in canonical order — empty rungs kept so gaps are honest.
+  const ladder = applicableRungs(assumptionType);
+
+  const inputs = attributionInputsFor(assumption, readings, assumptionType);
 
   // Dedupe to the winners (same math as confidence()) and compute the
   // per-rung contribution shares: cᵢ = (wᵢ·sᵢ) / den.
@@ -140,31 +160,9 @@ export function readingContributions(
   assumption: AnyRecord,
   readings: AnyRecord[],
 ): ReadingContribution[] {
-  const id = str(assumption.id) ?? "";
   // the confidence-scoring simplification: read the assumption's Assumption Type for the sub-ladder lookup.
-  const rawType = str(assumption["Assumption Type"]);
-  const assumptionType: AssumptionType =
-    rawType && isAssumptionType(rawType) ? rawType : "ProblemExists";
-  const inputs: AttributionReadingInput[] = [];
-  for (const r of readings) {
-    const belief = readingBeliefFor(r, id);
-    if (!belief) continue;
-    const result = str(belief.Result) ?? "Inconclusive";
-    if (result === "Inconclusive") continue;
-    const rung = str(r.Rung) ?? "Talk";
-    inputs.push({
-      id: str(r.id) ?? "",
-      source: str(r.Source) ?? null,
-      rung: rung as AttributionReadingInput["rung"],
-      result: result as AttributionReadingInput["result"],
-      assumptionType,
-      representativeness: Number(r.Representativeness) || 1.0,
-      credibility: Number(r.Credibility) || 1.0,
-      date: str(r.Date),
-      magnitudeBand: r.magnitudeBand as AttributionReadingInput["magnitudeBand"],
-      experimentId: str(r.experimentId),
-    });
-  }
+  const assumptionType = assumptionTypeOf(assumption);
+  const inputs = attributionInputsFor(assumption, readings, assumptionType);
 
   const winners = scoreAndDedupe(inputs);
   const winnerIds = new Set(winners.map((w) => w.input.id));

@@ -6,9 +6,17 @@
  *
  * the confidence-scoring simplification: `recompute()` returns, per assumption,
  * `{ confidence, riskGroup, assumptionType, costTier, graduationState,
- *    derivedImpact }`. Group/type/costTier/graduation are derived here from the
- * type map, anchor table, and graduation bar. Risk is deprecated (kept for
- * migration back-compat only).
+ *    derivedImpact, risk }`. Group/type/costTier/graduation are derived here
+ * from the type map, anchor table, and graduation bar. Risk is live dashboard
+ * ranking infrastructure (see `derivation/risk.ts`), not deprecated.
+ *
+ * Assumption Type is never hand-entered — it is inferred on every recompute
+ * from the assumption's own falsification test: the `wrongIf` text of a bar
+ * line naming it (looked up from `RecomputeInput.experiments`), or its
+ * Description when no bar line exists yet. The stored `Assumption Type` field
+ * is a cache of this inference output; it "sharpens once grilled" simply by
+ * re-running inference on every touching write as the wrongIf/description text
+ * gets more specific — no separate state.
  *
  * The stored-record → derivation-input mapping lives in `reading-input.ts`
  * (`readingBeliefInputs`, which fans a reading's beliefs[] out into one input
@@ -20,6 +28,7 @@ import {
   confidence,
   derivedImpacts,
   experimentConfidence,
+  inferAssumptionType,
   readingStrength,
   risk,
 } from "./derivation/index.js";
@@ -40,7 +49,6 @@ import type {
   ExperimentRecord,
   ReadingRecord,
 } from "./types.js";
-import { ASSUMPTION_TYPES } from "./types.js";
 
 /** Standing decisions (Provisional/Active) contribute to Derived Impact. */
 const STANDING_DECISION = new Set(["Active", "Provisional"]);
@@ -49,23 +57,73 @@ export interface RecomputeInput {
   assumptions: AssumptionRecord[];
   readings: ReadingRecord[];
   decisions: DecisionRecord[];
+  /**
+   * Optional — the experiments register, consulted only for its bar lines'
+   * `wrongIf` text (the falsification-test signal Assumption Type inference
+   * prefers). Omit when experiments aren't loaded; inference then falls back
+   * to Description alone, same as an assumption with no bar line yet.
+   */
+  experiments?: ExperimentRecord[];
+}
+
+/**
+ * The first non-blank `wrongIf` on a bar line naming this assumption, across
+ * every experiment — the falsification-test text Assumption Type inference
+ * prefers over Description. `""` when no bar line names the assumption yet.
+ */
+function wrongIfFor(assumptionId: string, experiments: ExperimentRecord[]): string {
+  for (const exp of experiments) {
+    for (const bar of exp.barLines ?? []) {
+      if (bar.assumptionId === assumptionId && bar.wrongIf) return bar.wrongIf;
+    }
+  }
+  return "";
+}
+
+/**
+ * Infer every assumption's Assumption Type — LIVING, recomputed here on every
+ * call from the current wrongIf-or-Description text, never read off a
+ * hand-typed field. Shared by {@link recomputeDerived} and
+ * {@link recomputeExperimentDerived} so both derive the same type for the
+ * same assumption in the same pass.
+ */
+function inferAssumptionTypes(
+  assumptions: AssumptionRecord[],
+  experiments: ExperimentRecord[],
+): Map<string, AssumptionType> {
+  const out = new Map<string, AssumptionType>();
+  for (const a of assumptions) {
+    out.set(a.id, inferAssumptionType(a.Description, wrongIfFor(a.id, experiments)));
+  }
+  return out;
 }
 
 /** id → recomputed derived tuple for every assumption in the register. */
 export function recomputeDerived(
   input: RecomputeInput,
 ): Map<string, AssumptionDerived> {
-  const { assumptions, readings, decisions } = input;
+  const { assumptions, readings, decisions, experiments = [] } = input;
+
+  // Assumption Type is inferred here, LIVE, from each assumption's own
+  // wrongIf-or-Description text — never read off a hand-typed field. Everyone
+  // downstream in this pass (the confidence ladder lookup below, and the
+  // returned tuple's `assumptionType`) reads the *same* inferred map, so the
+  // Strength math and the reported type can never diverge.
+  const inferredTypes = inferAssumptionTypes(assumptions, experiments);
 
   // Confidence: fan each reading row out into its per-belief inputs and group
   // those by the assumption each belief scores. A row that scores several
   // beliefs contributes one input to each of their assumptions; every input
   // carries the row-level Source, source quality, and experiment (commitment).
   // the confidence-scoring simplification: each belief input also carries the linked assumption's
-  // Assumption Type, looked up from the assumptions register — the type sets
-  // the anchor sub-ladder (`RUNG_ANCHOR[assumptionType][rung][band]`).
+  // Assumption Type — `readingBeliefInputs` looks it up off the assumption
+  // record, so the map here is patched with the freshly-inferred type (not
+  // whatever was last stored) before the lookup runs.
   const assumptionsById = new Map<string, AssumptionRecord>(
-    assumptions.map((a) => [a.id, a]),
+    assumptions.map((a) => [
+      a.id,
+      { ...a, "Assumption Type": inferredTypes.get(a.id) ?? null },
+    ]),
   );
   const inputsByAssumption = new Map<string, ConfidenceReadingInput[]>();
   for (const a of assumptions) inputsByAssumption.set(a.id, []);
@@ -85,7 +143,7 @@ export function recomputeDerived(
     confidenceById.set(a.id, confidence(inputs));
     // Effective evidence = at least one concluded reading with non-zero
     // strength (non-evidence readings contribute s=0 and don't count).
-    const type = readAssumptionType(a) ?? "ProblemExists";
+    const type = inferredTypes.get(a.id) ?? "ProblemExists";
     hasEvidenceById.set(
       a.id,
       inputs.some(
@@ -123,14 +181,14 @@ export function recomputeDerived(
   for (const a of assumptions) {
     const c = confidenceById.get(a.id) ?? 0;
     const di = impactById.get(a.id) ?? 0;
-    const type = readAssumptionType(a);
+    const type = inferredTypes.get(a.id) ?? null;
     const group = riskGroupFor(type);
     const costTier = costTierFor(type);
     const concluded = hasEvidenceById.get(a.id) ?? false;
     out.set(a.id, {
       confidence: c,
       derivedImpact: di,
-      // Risk is deprecated (the confidence-scoring simplification); kept for migration back-compat.
+      // Risk is live dashboard ranking infrastructure, not deprecated.
       risk: risk(di, c),
       // Completeness is a *structural* readiness meter: it reads a.Impact as
       // present/absent, not its value, so a moot assumption (whose Impact the
@@ -145,17 +203,6 @@ export function recomputeDerived(
   return out;
 }
 
-/** Read the Assumption Type off a record, validating against the enum. */
-function readAssumptionType(
-  a: AssumptionRecord,
-): AssumptionType | null {
-  const t = a["Assumption Type"];
-  if (t && (ASSUMPTION_TYPES as readonly string[]).includes(t)) {
-    return t as AssumptionType;
-  }
-  return null;
-}
-
 /** Recompute Source quality + Strength for a single reading. */
 export {
   sourceQuality as recomputeSourceQuality,
@@ -167,8 +214,9 @@ export {
  *
  * Groups readings by `experimentId`, filters each experiment's readings to its
  * `barLineAssumptionIds`, and calls {@link experimentConfidence}. the confidence-scoring simplification:
- * the assumption's Assumption Type is looked up from the assumptions register
- * so Strength reads the right sub-ladder.
+ * the assumption's Assumption Type is inferred from its own wrongIf-or-Description
+ * text (the same {@link inferAssumptionTypes} pass `recomputeDerived` uses) so
+ * Strength reads the right sub-ladder — never a hand-typed field.
  */
 export function recomputeExperimentDerived(input: {
   experiments: ExperimentRecord[];
@@ -176,8 +224,9 @@ export function recomputeExperimentDerived(input: {
   assumptions?: AssumptionRecord[];
 }): Map<string, ExperimentDerived> {
   const out = new Map<string, ExperimentDerived>();
-  const assumptionsById = new Map<string, AssumptionRecord>(
-    (input.assumptions ?? []).map((a) => [a.id, a]),
+  const inferredTypes = inferAssumptionTypes(
+    input.assumptions ?? [],
+    input.experiments,
   );
   const byExperiment = new Map<string, ReadingRecord[]>();
   for (const r of input.readings) {
@@ -199,13 +248,8 @@ export function recomputeExperimentDerived(input: {
       r.beliefs
         .filter((b) => barIds.has(b.assumptionId))
         .map((b) => {
-          const assumption = assumptionsById.get(b.assumptionId);
-          const t = assumption ? assumption["Assumption Type"] : null;
           const assumptionType =
-            (t &&
-              (ASSUMPTION_TYPES as readonly string[]).includes(String(t)) &&
-              (t as AssumptionType)) ||
-            "ProblemExists";
+            inferredTypes.get(b.assumptionId) ?? "ProblemExists";
           return {
             id: r.id,
             source: r.Source,

@@ -64,7 +64,7 @@ export function ReadingsSurface({
                 key={id}
                 type="button"
                 className="vos-list-row"
-                onClick={() => onNavigate({ name: "reading", id })}
+                onClick={() => onNavigate({ name: "record", id })}
               >
                 <span className="vos-list-row-date vos-num">{date}</span>
                 <span className="vos-list-row-title">{title}</span>

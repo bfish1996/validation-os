@@ -87,7 +87,7 @@ export function ExperimentsSurface({
                 key={id}
                 type="button"
                 className="vos-exp-row"
-                onClick={() => onNavigate({ name: "experiment", id })}
+                onClick={() => onNavigate({ name: "record", id })}
               >
                 <ConfidenceDonut value={expConf} size={56} />
                 <div className="vos-exp-row-body">

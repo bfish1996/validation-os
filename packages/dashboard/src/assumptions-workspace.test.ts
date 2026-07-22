@@ -630,6 +630,33 @@ describe("buildExperimentBody", () => {
   });
 });
 
+// ── Unified experiment targeting (latent-bug fix) ───────────────────────────
+
+describe("experiment groups include projected-but-not-bar-lined beliefs", () => {
+  it("groups a belief named only in barLineAssumptionIds alongside bar-lined ones", () => {
+    // e1 bar-lines b1 but only projects b2 (no bar line yet). The old
+    // prefer-bars-else-ids logic dropped b2 whenever any bar line existed; the
+    // unified experimentTargetIds keeps both, so the group shows every belief
+    // the experiment is testing.
+    const recs = records(
+      [
+        assumption({ id: "b1", derived: { derivedImpact: 60, risk: 60, confidence: 0, completeness: 100 } }),
+        assumption({ id: "b2", derived: { derivedImpact: 40, risk: 40, confidence: 0, completeness: 100 } }),
+      ],
+      [
+        experiment({
+          id: "e1",
+          barLines: [{ assumptionId: "b1", rightIf: "x", plannedRung: "Talk", barVerdict: null }],
+          barLineAssumptionIds: ["b2"],
+        }),
+      ],
+    );
+    const ws = buildAssumptionsWorkspace(recs, { cycle: "all", mode: "experiments" });
+    const ids = ws.experimentGroups[0]!.beliefs.map((b) => b.id).sort();
+    expect(ids).toEqual(["b1", "b2"]);
+  });
+});
+
 // ── Consistent belief row across modes ──────────────────────────────────────
 
 describe("consistent belief row across all three modes", () => {

@@ -188,7 +188,13 @@ export type SourceQualityPick = 1.0 | 0.7 | 0.5;
 /** The derived numbers stored on an assumption (never hand-typed). */
 export interface AssumptionDerived {
   derivedImpact: number;
-  /** @deprecated Risk was retired (the confidence-scoring simplification). Kept for migration back-compat. */
+  /**
+   * Risk — live dashboard ranking infrastructure, NOT retired by the
+   * confidence-scoring simplification (only Risk Group / Stage-threshold
+   * ranking were). `Derived Impact × (1 − max(0, Confidence) / 100)`; see
+   * `derivation/risk.ts`. Distinct from the (currently unsurfaced) categorical
+   * Risk Group.
+   */
   risk: number;
   confidence: number;
   /** Structural readiness meter, 0–100 (see `derivation/completeness.ts`). */

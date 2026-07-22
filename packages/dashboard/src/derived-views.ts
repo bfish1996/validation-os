@@ -104,12 +104,36 @@ export function strList(v: unknown): string[] {
   return Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : [];
 }
 
-/** Does this experiment pre-register a bar line against the belief? Reads the
- * composed bar lines, falling back to the projected id list. */
-export function testsAssumption(exp: AnyRecord, assumptionId: string): boolean {
+/**
+ * The assumption ids an experiment targets — the UNION of its composed bar
+ * lines and its projected id list (`barLineAssumptionIds`). This is the single
+ * definition of "which beliefs this experiment tests"; every surface reads it
+ * so they agree. Reading only one source silently drops beliefs that are
+ * projected but not yet bar-lined (or bar-lined but never projected) — the
+ * divergence that used to split `buildExperimentGroups`, `beliefToCycleMap`,
+ * and the recommended-experiments candidate filter from `testsAssumption`.
+ */
+export function experimentTargetIds(exp: AnyRecord): Set<string> {
+  const ids = new Set<string>();
   const bars = exp.barLines as BarLine[] | undefined;
-  if (bars?.some((b) => b.assumptionId === assumptionId)) return true;
-  return strList(exp.barLineAssumptionIds).includes(assumptionId);
+  if (bars) for (const b of bars) ids.add(b.assumptionId);
+  for (const id of strList(exp.barLineAssumptionIds)) ids.add(id);
+  return ids;
+}
+
+/** Does this experiment pre-register a bar line against the belief? Reads the
+ * union of composed bar lines and the projected id list. */
+export function testsAssumption(exp: AnyRecord, assumptionId: string): boolean {
+  return experimentTargetIds(exp).has(assumptionId);
+}
+
+/**
+ * Is a belief live to work on — not moot, and Status Live or Draft? The shared
+ * definition for the workspace and the recommended-experiments builder, so
+ * "live belief" means one thing across the package.
+ */
+export function isLiveBelief(a: AnyRecord): boolean {
+  return a.moot !== true && (str(a.Status) === "Live" || str(a.Status) === "Draft");
 }
 
 // ── Cycles (the validation round) ────────────────────────────────────────────

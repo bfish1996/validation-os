@@ -26,10 +26,10 @@ registers:
       - {canonical: Derived Impact, backend: Derived Impact, type: number, derived: true, formula: "seed + (100 - seed) × S/(S + 100), S = Σ dependents' Derived Impact + 100 per standing decision Based on this row; experiments never contribute (assumption-guardrails.md §3); recomputed on every touching write (the derive-on-write invariant), bullet marked <!-- derived -->"}
       - {canonical: Risk, backend: Risk, type: number, derived: true, formula: "Derived Impact * (1 - max(0, Confidence) / 100); skill-computed, bullet marked <!-- derived -->"}
       - {canonical: Confidence, backend: Confidence, type: number, derived: true, formula: "signed weighted average of concluded Validated/Invalidated belief entries scored against this row, weight = |Strength| × Source quality × commitmentFactor (1.0 if the entry's reading has an Experiment else 0.85; never reorders rungs), neutral prior w0=100 (hard floor ≥98), deduped per (belief, source) to the strongest/most-recent (experiment-guardrails.md §2); skill-computed, bullet marked <!-- derived -->"}
-      - {canonical: Completeness %, backend: Completeness %, type: number, derived: true, formula: "filled slots / all slots × 100 over six structural slots: Description, Lens, Impact, Scoring justification, dependencies traced (≥1 Depends on/Enables link), Question Type; replaces the retired Gaps/presence-field machinery (the evidence-remodel slice); skill-computed, bullet marked <!-- derived -->"}
+      - {canonical: Completeness %, backend: Completeness %, type: number, derived: true, formula: "filled slots / all slots × 100 over six structural slots: Description, Lens, Impact, Scoring justification, dependencies traced (≥1 Depends on/Enables link), Assumption Type; replaces the retired Gaps/presence-field machinery (the evidence-remodel slice); skill-computed, bullet marked <!-- derived -->"}
       - {canonical: Status, backend: Status, type: text, derived: false, options_source: registry-schema}
       - {canonical: Stage, backend: Stage, type: text, derived: false, options_source: registry-schema}
-      - {canonical: Question Type, backend: Question Type, type: text, derived: false, options_source: registry-schema}
+      - {canonical: Assumption Type, backend: Assumption Type, type: text, derived: true, formula: "inferAssumptionType(description, wrongIf bar text) — DERIVED, never hand-entered; recomputed on every touching write (packages/core/src/derivation/assumption-type.ts), bullet marked <!-- derived -->", options_source: registry-schema}
       - {canonical: Owner, backend: Owner, type: text, derived: false, options_source: vocabulary.dashboard_users}
       - {canonical: Scoring justification, backend: "### Scoring justification section", type: text, derived: false}
     relations:
@@ -165,7 +165,7 @@ per record named by ID (`<ID>.md`):
 | Completeness % | `- **Completeness %**: ...` | number | yes |
 | Status | `- **Status**: ...` | text | no |
 | Stage | `- **Stage**: ...` | text (`Discovery`/`Validation`/`Scale`/`Maturity`) | no |
-| Question Type | `- **Question Type**: ...` | text (`Existence`/`Prevalence`/`CausalEffect`/`WillingnessToPay`/`ValueUtility`/`Regulatory`/`Feasibility`) | no |
+| Assumption Type | `- **Assumption Type**: ...` | text (11 values — see `docs/evidence-ladder.md`) | **yes** — inferred on every write, never hand-entered |
 | Owner | `- **Owner**: ...` | text (dashboard-user reference) | no |
 | Scoring justification | `- **Scoring justification**: ...` | text | no |
 | Depends on / Enables | `- **Depends on**: ...` / `- **Enables**: ...` | text (IDs) | no |
@@ -193,9 +193,11 @@ prior w₀ = 100, deduped per (belief, source) to the strongest/most-recent
 (`experiment-guardrails.md §2`).
 - **Completeness %** = filled slots / all slots × 100, over six structural
 slots: Description, Lens, Impact, Scoring justification, dependencies traced
-(≥1 `Depends on`/`Enables` link), Question Type. Replaces the retired
+(≥1 `Depends on`/`Enables` link), Assumption Type. Replaces the retired
 `Gaps`/presence-field readiness machinery (`the evidence-remodel slice`); drives the `Draft` ⇔
-`Live` gate (the `Question Type` slot is the Live gate added in the question-type-aware evidence ladder).
+`Live` gate. `Assumption Type` is never hand-entered — it is inferred from the
+falsification test (`docs/evidence-ladder.md`), so this slot is present once a
+Description or a bar line's `wrongIf` exists.
 
 Canonical formulas live in `experiment-guardrails.md §2` and
 `assumption-guardrails.md §3`; the recompute pass computes and writes them on

@@ -10,7 +10,13 @@
  * experiments" section leads with the test that buys down the most risk.
  */
 import type { AnyRecord } from "@validation-os/core";
-import { derivedNum, str } from "./derived-views.js";
+import {
+  derivedNum,
+  experimentTargetIds,
+  isLiveBelief,
+  liveExperiments,
+  str,
+} from "./derived-views.js";
 
 export type RecommendedExperimentType =
   | "Test"
@@ -159,23 +165,15 @@ export function buildRecommendedExperiments(
   assumptions: AnyRecord[],
   experiments: AnyRecord[],
 ): RecommendedExperiment[] {
-  const liveAssumptions = assumptions.filter((a) => {
-    const status = str(a.Status);
-    const moot = a.moot === true;
-    return !moot && (status === "Live" || status === "Draft");
-  });
+  const liveAssumptions = assumptions.filter(isLiveBelief);
 
   // The set of assumption ids that already have a *live* experiment testing
-  // them — those are covered, not candidates for a recommendation.
+  // them — those are covered, not candidates for a recommendation. Uses the
+  // shared union (bar lines ∪ projected ids) so a belief that's bar-lined but
+  // never projected still counts as covered.
   const testedByLive = new Set<string>();
-  for (const e of experiments) {
-    const status = str(e.Status);
-    if (status === "Archived") continue;
-    const ids = Array.isArray(e.barLineAssumptionIds)
-      ? (e.barLineAssumptionIds as string[])
-      : [];
-    for (const id of ids) testedByLive.add(id);
-  }
+  for (const e of liveExperiments(experiments))
+    for (const id of experimentTargetIds(e)) testedByLive.add(id);
 
   // Cluster by Lens × Stage, keeping only assumptions not covered by a live
   // experiment. Then take the riskiest MAX_CLUSTER_SIZE per cluster.
