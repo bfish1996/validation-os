@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { Collection } from "@validation-os/core";
 import { REGISTER_ORDER, REGISTER_SUBTITLE } from "./labels.js";
 import { AssumptionDetail } from "./assumption-detail.js";
-import { AssumptionsSurface } from "./assumptions-surface.js";
+import { AssumptionsWorkspaceSurface } from "./assumptions-workspace-surface.js";
 import { ExperimentDetail } from "./experiment-detail.js";
 import { ExperimentsSurface } from "./experiments-surface.js";
 import { ReadingDetail } from "./reading-detail.js";
@@ -174,13 +174,10 @@ export function ValidationOSDashboard({ config = {} }: ValidationOSDashboardProp
 
       <main className="vos-main">
         {route.name === "assumptions" ? (
-          <AssumptionsSurface
-            key={`assumptions-${route.view ?? ""}-${route.lens ?? ""}-${route.stage ?? ""}`}
+          <AssumptionsWorkspaceSurface
+            key="assumptions-workspace"
             basePath={basePath}
             onNavigate={navigate}
-            view={route.view}
-            lens={route.lens}
-            stage={route.stage}
             currentCycle={currentCycle}
           />
         ) : route.name === "experiments" ? (
@@ -237,10 +234,11 @@ export function ValidationOSDashboard({ config = {} }: ValidationOSDashboardProp
             basePath={basePath}
           />
         ) : (
-          <AssumptionsSurface
+          <AssumptionsWorkspaceSurface
             key="assumptions-fallback"
             basePath={basePath}
             onNavigate={navigate}
+            currentCycle={currentCycle}
           />
         )}
       </main>

@@ -35,6 +35,7 @@ import {
 } from "@validation-os/core/derivation";
 import {
   derivedNum,
+  experimentCycle,
   isArchivedExperiment,
   liveExperiments,
   readingBeliefFor,
@@ -53,8 +54,8 @@ import {
 /** The three grouping modes for the workspace. */
 export type WorkspaceMode = "experiments" | "recommended" | "all";
 
-/** The cycle filter: a cycle name, or `"all"` for every cycle. */
-export type CycleFilter = string | "all";
+/** The cycle filter: a cycle number, or `"all"` for every cycle. */
+export type CycleFilter = number | "all";
 
 /** The full record set the workspace reads. */
 export interface WorkspaceRecords {
@@ -79,8 +80,8 @@ export interface BeliefRow {
   id: string;
   statement: string;
   lens: string | null;
-  /** "backlog" for untested beliefs, else the experiment's cycle. */
-  cycle: string;
+  /** null for untested beliefs (backlog), else the experiment's cycle number. */
+  cycle: number | null;
   /** Confidence over time, mapped to 0–100 for the trajectory line. */
   trajectory: number[];
   /** The decision bar (stage confidence floor) on the 0–100 scale. */
@@ -111,7 +112,7 @@ export interface ExperimentGroup {
   id: string;
   title: string;
   status: string;
-  cycle: string;
+  cycle: number | null;
   /** Σ risk of the beliefs this experiment tests — drives ranking. */
   riskRetired: number;
   /** The beliefs this experiment tests (as rows). */
@@ -241,8 +242,8 @@ export interface ExperimentBody {
 export interface AssumptionsWorkspace {
   mode: WorkspaceMode;
   cycle: CycleFilter;
-  /** Distinct cycles found on experiments (for the cycle switcher). */
-  cycles: string[];
+  /** Distinct cycle numbers found on experiments (for the cycle switcher). */
+  cycles: number[];
   /** In "experiments" mode — groups ordered by risk retired. */
   experimentGroups: ExperimentGroup[];
   /** In "recommended" mode — groups for untested beliefs. */
@@ -272,19 +273,20 @@ function derivedOf(rec: AnyRecord): {
   };
 }
 
-/** Read a cycle value off an experiment record (defensive — may be absent). */
-function cycleOf(exp: AnyRecord): string {
-  return str(exp.Cycle) ?? "current";
+/** Read a cycle value off an experiment record (number, or null if unassigned). */
+function cycleOf(exp: AnyRecord): number | null {
+  return experimentCycle(exp);
 }
 
-/** Collect distinct cycle values from experiments, ordered most-recent first. */
-export function collectCycles(experiments: AnyRecord[]): string[] {
-  const cycles = new Set<string>();
+/** Collect distinct cycle values from experiments, descending (most recent first). */
+export function collectCycles(experiments: AnyRecord[]): number[] {
+  const cycles = new Set<number>();
   for (const e of experiments) {
     if (isArchivedExperiment(e)) continue;
-    cycles.add(cycleOf(e));
+    const c = cycleOf(e);
+    if (c !== null) cycles.add(c);
   }
-  return [...cycles].sort((a, b) => b.localeCompare(a));
+  return [...cycles].sort((a, b) => b - a);
 }
 
 /** Is a belief live (not Invalidated, not moot)? */
@@ -336,7 +338,7 @@ function grillingOf(a: AnyRecord): {
 /** Build one belief row from an assumption record. */
 function beliefRow(
   a: AnyRecord,
-  cycle: string,
+  cycle: number | null,
   readings: AnyRecord[],
   assumptionsById: Map<string, AnyRecord>,
 ): BeliefRow {
@@ -531,7 +533,7 @@ function buildRecommendedGroups(
     const recBeliefs = rec.assumptionIds
       .map((id) => assumptionsById.get(id))
       .filter((a): a is AnyRecord => a !== undefined)
-      .map((a) => beliefRow(a, "backlog", readings, assumptionsById));
+      .map((a) => beliefRow(a, null, readings, assumptionsById));
     return {
       id: rec.id,
       title: rec.title,
@@ -558,7 +560,7 @@ function buildAllRegister(
   const testedMap = beliefToCycleMap(experiments);
 
   let rows = live.map((a) => {
-    const cycle = testedMap.get(a.id) ?? "backlog";
+    const cycle = testedMap.get(a.id) ?? null;
     return beliefRow(a, cycle, readings, assumptionsById);
   });
 
@@ -578,13 +580,14 @@ function buildAllRegister(
   return sortRiskiest(rows);
 }
 
-/** Map each tested assumption id to its experiment's cycle. */
+/** Map each tested assumption id to its experiment's cycle (number). */
 function beliefToCycleMap(
   experiments: AnyRecord[],
-): Map<string, string> {
-  const map = new Map<string, string>();
+): Map<string, number> {
+  const map = new Map<string, number>();
   for (const exp of liveExperiments(experiments)) {
     const cycle = cycleOf(exp);
+    if (cycle === null) continue;
     const bars = (exp.barLines as BarLine[]) ?? [];
     const ids = bars.length > 0
       ? bars.map((b) => b.assumptionId)

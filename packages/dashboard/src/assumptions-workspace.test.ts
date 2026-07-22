@@ -39,7 +39,7 @@ function experiment(over: Partial<AnyRecord> & { id: string }): AnyRecord {
     updatedAt: "",
     Title: "An experiment",
     Status: "Running",
-    Cycle: "current",
+    Cycle: 1,
     barLines: [],
     barLineAssumptionIds: [],
     ...over,
@@ -111,12 +111,12 @@ function records(
 describe("collectCycles", () => {
   it("returns distinct cycles from live experiments", () => {
     const cycles = collectCycles([
-      experiment({ id: "e1", Cycle: "2026-Q3" }),
-      experiment({ id: "e2", Cycle: "2026-Q3" }),
-      experiment({ id: "e3", Cycle: "2026-Q2" }),
-      experiment({ id: "e4", Status: "Archived", Cycle: "old" }),
+      experiment({ id: "e1", Cycle: 3 }),
+      experiment({ id: "e2", Cycle: 3 }),
+      experiment({ id: "e3", Cycle: 2 }),
+      experiment({ id: "e4", Status: "Archived", Cycle: 1 }),
     ]);
-    expect(cycles).toEqual(["2026-Q3", "2026-Q2"]);
+    expect(cycles).toEqual([3, 2]);
   });
 });
 
@@ -211,11 +211,11 @@ describe("buildAssumptionsWorkspace — experiments mode", () => {
     const recs = records(
       [assumption({ id: "b1" })],
       [
-        experiment({ id: "e1", Cycle: "2026-Q3", barLineAssumptionIds: ["b1"], barLines: [{ assumptionId: "b1", rightIf: "x", plannedRung: "Talk", barVerdict: null }] }),
-        experiment({ id: "e2", Cycle: "2026-Q2", barLineAssumptionIds: [], barLines: [] }),
+        experiment({ id: "e1", Cycle: 3, barLineAssumptionIds: ["b1"], barLines: [{ assumptionId: "b1", rightIf: "x", plannedRung: "Talk", barVerdict: null }] }),
+        experiment({ id: "e2", Cycle: 2, barLineAssumptionIds: [], barLines: [] }),
       ],
     );
-    const ws = buildAssumptionsWorkspace(recs, { cycle: "2026-Q3", mode: "experiments" });
+    const ws = buildAssumptionsWorkspace(recs, { cycle: 3, mode: "experiments" });
     expect(ws.experimentGroups.map((g) => g.id)).toEqual(["e1"]);
   });
 
@@ -223,8 +223,8 @@ describe("buildAssumptionsWorkspace — experiments mode", () => {
     const recs = records(
       [assumption({ id: "b1" })],
       [
-        experiment({ id: "e1", Cycle: "2026-Q3", barLineAssumptionIds: ["b1"], barLines: [{ assumptionId: "b1", rightIf: "x", plannedRung: "Talk", barVerdict: null }] }),
-        experiment({ id: "e2", Cycle: "2026-Q2", barLineAssumptionIds: [], barLines: [] }),
+        experiment({ id: "e1", Cycle: 3, barLineAssumptionIds: ["b1"], barLines: [{ assumptionId: "b1", rightIf: "x", plannedRung: "Talk", barVerdict: null }] }),
+        experiment({ id: "e2", Cycle: 2, barLineAssumptionIds: [], barLines: [] }),
       ],
     );
     const ws = buildAssumptionsWorkspace(recs, { cycle: "all", mode: "experiments" });
@@ -285,12 +285,12 @@ describe("buildAssumptionsWorkspace — experiments mode", () => {
     expect(row.id).toBe("b1");
     expect(row.lens).toBe("Consumer");
     expect(row.grilling.complete).toBe(false);
-    expect(row.grilling.filled).toBe(4); // Description, Lens, Impact, Dependencies traced
+    expect(row.grilling.filled).toBe(5); // Description, Lens, Impact, Dependencies traced, Question Type
     expect(row.grilling.total).toBe(6);
     expect(row.impact).toBe(60);
     expect(row.risk).toBe(60);
     expect(row.confidence).toBe(20); // derived confidence from fixture
-    expect(row.cycle).toBe("current");
+    expect(row.cycle).toBe(1);
     // OPS-1406: bar is the graduation bar (40 + 0.5×60 = 70), rescaled: (70+100)/2=85
     expect(row.bar).toBe(85);
   });
@@ -338,7 +338,7 @@ describe("buildAssumptionsWorkspace — recommended mode", () => {
     );
     const ws = buildAssumptionsWorkspace(recs, { cycle: "all", mode: "recommended" });
     const row = ws.recommendedGroups[0]!.beliefs[0]!;
-    expect(row.cycle).toBe("backlog");
+    expect(row.cycle).toBeNull();
   });
 });
 
@@ -364,14 +364,14 @@ describe("buildAssumptionsWorkspace — all mode", () => {
         assumption({ id: "b-untested" }),
       ],
       [
-        experiment({ id: "e1", Cycle: "2026-Q3", barLineAssumptionIds: ["b-tested"], barLines: [{ assumptionId: "b-tested", rightIf: "x", plannedRung: "Talk", barVerdict: null }] }),
+        experiment({ id: "e1", Cycle: 3, barLineAssumptionIds: ["b-tested"], barLines: [{ assumptionId: "b-tested", rightIf: "x", plannedRung: "Talk", barVerdict: null }] }),
       ],
     );
     const ws = buildAssumptionsWorkspace(recs, { cycle: "all", mode: "all" });
     const tested = ws.allRegister.beliefs.find((b) => b.id === "b-tested")!;
     const untested = ws.allRegister.beliefs.find((b) => b.id === "b-untested")!;
-    expect(tested.cycle).toBe("2026-Q3");
-    expect(untested.cycle).toBe("backlog");
+    expect(tested.cycle).toBe(3);
+    expect(untested.cycle).toBeNull();
   });
 
   it("searches by id", () => {
