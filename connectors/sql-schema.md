@@ -21,14 +21,18 @@ registers:
       - {canonical: Title, backend: title, type: TEXT, derived: false}
       - {canonical: Description, backend: description, type: TEXT, derived: false}
       - {canonical: Lens, backend: lens, type: TEXT, derived: false, options_source: vocabulary.lens}
+      - {canonical: Assumption Type, backend: assumption_type, type: TEXT, derived: true, formula: "inferred on write from the falsification bar (wrongIf) of any experiment naming the belief, falling back to the description; re-inferred on every touching write (living inference). Not a required input — no dropdown.", options_source: registry-schema}
+      - {canonical: Risk Group, backend: risk_group, type: TEXT, derived: true, formula: "derived from Assumption Type via TYPE_TO_GROUP; skill-computed", options_source: registry-schema}
+      - {canonical: Cost to test, backend: cost_tier, type: TEXT, derived: true, formula: "derived from the Assumption Type's ceiling-rung nature; skill-computed", options_source: registry-schema}
+      - {canonical: Graduation, backend: graduation_state, type: TEXT, derived: true, formula: "Untested/Signal/Graduated based on Confidence vs the graduation bar; skill-computed", options_source: registry-schema}
       - {canonical: Stage, backend: stage, type: TEXT, derived: false, options_source: registry-schema}
       - {canonical: Question Type, backend: question_type, type: TEXT, derived: false, options_source: registry-schema}
       - {canonical: Theme, backend: themes, type: JSON, derived: false, options_source: registry-schema}
       - {canonical: Impact, backend: impact, type: INTEGER, derived: false}
-      - {canonical: Derived Impact, backend: derived_impact, type: NUMERIC, derived: true, formula: "seed + (100 - seed) × S/(S + 100) over the dependency DAG, S = dependents' Derived Impact + 100 per standing decision Based on; experiments never contribute (assumption-guardrails.md §3); recomputed on every touching write (the derive-on-write invariant)"}
+      - {canonical: Derived Impact, backend: derived_impact, type: NUMERIC, derived: true, formula: "seed + (100 - seed) × S/(S + 100) over the dependency DAG, S = dependents' Derived Impact + 100 per standing decision Based on; experiments never contribute (assumption-guardrails.md §3); recomputed on every touching write ()"}
       - {canonical: Risk, backend: risk, type: NUMERIC, derived: true, formula: "derived_impact * (1 - max(0, confidence) / 100); skill-computed"}
       - {canonical: Confidence, backend: confidence, type: NUMERIC, derived: true, formula: "signed weighted average of concluded reading_beliefs entries scored against this row, wi=|si|×source_quality×commitmentFactor (1.0 if the entry's reading has experiment_id else 0.85; never reorders rungs), neutral prior w0=100, deduped per (belief, source) (experiment-guardrails.md §2); skill-computed"}
-      - {canonical: Completeness %, backend: completeness, type: NUMERIC, derived: true, formula: "filled slots / all slots × 100 over six structural slots: description, lens, impact, scoring_justification, dependencies traced (≥1 assumption_dependencies row), question_type; replaces the retired gaps/presence-field machinery (the evidence-remodel slice); skill-computed"}
+      - {canonical: Completeness %, backend: completeness, type: NUMERIC, derived: true, formula: "filled slots / all slots × 100 over six structural slots: description, lens, impact, scoring_justification, dependencies traced (≥1 assumption_dependencies row), assumption_type; the assumption_type slot is inferred on write (); replaces the retired gaps/presence-field machinery (); skill-computed"}
       - {canonical: Status, backend: status, type: TEXT, derived: false, options_source: registry-schema}
       - {canonical: Owner, backend: owner, type: TEXT, derived: false, options_source: vocabulary.dashboard_users}
       - {canonical: Scoring justification, backend: scoring_justification, type: TEXT, derived: false}
@@ -167,10 +171,10 @@ sql:
   `experiments` and `decisions` carry a `body` with their canonical `##`
   section headings; `readings` carry a `body` on the canonical **`## Quote`
   (verbatim what the source said/did) + `## Source` (who/when/link)** template —
-  one per reading, reintroduced as a deliberate reversal of the the evidence-remodel slice
+  one per reading, reintroduced as a deliberate reversal of the 
   no-body slice, backfilled from Notion and shown in the dashboard; analysis
   stays out of the body (it lives in `reading_beliefs.grading_justification`).
-  `assumptions` and `glossary` have no body column at all (`the evidence-remodel slice`).
+  `assumptions` and `glossary` have no body column at all (``).
 - Multi-value scalar fields (themes, agreed_by, context_links, avoid) are JSON
   arrays in a `JSON` column (`TEXT` holding JSON where the engine has no JSON
   type).
@@ -202,7 +206,7 @@ sql:
 - `owner` and `agreed_by` are `dashboard_user` references (the auth-sourced
   team list from `vocabulary.dashboard_users`), not free text and not a
   foreign key to their own table — the retired `people` table had no
-  replacement table (`the evidence-remodel slice`).
+  replacement table (``).
 - Derived columns should have a `COMMENT` (or inline docs) indicating they are
   computed.
 
@@ -213,8 +217,12 @@ sql:
 | Title | `title` | TEXT | no |
 | Description | `description` | TEXT | no |
 | Lens | `lens` | TEXT | no |
-| Stage | `stage` | TEXT (`Discovery` \| `Validation` \| `Scale` \| `Maturity`) | no |
-| Question Type | `question_type` | TEXT (`Existence` \| `Prevalence` \| `CausalEffect` \| `WillingnessToPay` \| `ValueUtility` \| `Regulatory` \| `Feasibility`) | no |
+| Assumption Type | `assumption_type` | TEXT (`ProblemExists` \| `ProblemWidespread` \| `WantOurSolution` \| `ItWorks` \| `CanCompleteTask` \| `CanBuildIt` \| `LegalCompliant` \| `TheyllPay` \| `TheyKeepUsingIt` \| `ReachProfitably` \| `EconomicsWork`) | yes (inferred on write — not a required input) |
+| Risk Group | `risk_group` | TEXT (`Desirability` \| `Usability` \| `Feasibility` \| `Viability`) | yes |
+| Cost to test | `cost_tier` | TEXT (`cheap` \| `moderate` \| `expensive`) | yes |
+| Graduation | `graduation_state` | TEXT (`Untested` \| `Signal` \| `Graduated`) | yes |
+| Stage | `stage` | TEXT (`Discovery` \| `Validation` \| `Scale` \| `Maturity`) | no (retired — retained for migration reading) |
+| Question Type | `question_type` | TEXT (`Existence` \| `Prevalence` \| `CausalEffect` \| `WillingnessToPay` \| `ValueUtility` \| `Regulatory` \| `Feasibility`) | no (retired — retained for migration reading) |
 | Theme | `themes` | JSON (array of strings) | no |
 | Impact | `impact` | INTEGER (0–100) | no |
 | Derived Impact | `derived_impact` | NUMERIC | yes |
@@ -231,7 +239,7 @@ sql:
 There is no stored `Experiments` relation on this table. "Which experiments
 test this belief" is a query over `experiment_bar_lines.assumption_id`
 joined back to `experiments` — never a stored column here. There is no
-`body` column on this table (`the evidence-remodel slice`) — the retired `five_whys`,
+`body` column on this table (``) — the retired `five_whys`,
 `metric_for_truth`, and `gaps` columns, and the `## Provenance & notes` body,
 are gone.
 
@@ -241,7 +249,7 @@ are gone.
 dependents' Derived Impact plus 100 per standing decision naming the row via
 `Based on assumption`; experiments never contribute. Recomputed on every
 touching write alongside `risk`/`confidence`/`completeness` — no deliberate
-staleness (`the derive-on-write invariant`; `assumption-guardrails.md §3`).
+staleness (``; `assumption-guardrails.md §3`).
 - `risk` = `derived_impact * (1 - max(0, confidence) / 100)`.
 - `confidence` is the signed weighted average of concluded `reading_beliefs`
 entries scored against this row (deduped per (belief, source); each entry's
@@ -252,7 +260,7 @@ term that never reorders rungs), with neutral prior `w0 = 100`
 - `completeness` = filled slots / all slots × 100, over five structural
 slots: `description`, `lens`, `impact`, `scoring_justification`, dependencies
 traced (≥1 `assumption_dependencies` row). Replaces the retired
-`gaps`/presence-field machinery (`the evidence-remodel slice`).
+`gaps`/presence-field machinery (``).
 - Skills recompute and rewrite `risk`, `confidence`, and `completeness` on
 every touching write; never hand-edit.
 
@@ -278,7 +286,7 @@ Readings a run produces. It bundles one-or-more beliefs through bar lines
 | Body | `body` | TEXT (Markdown; `## Method protocol`, `## Closure rollup`) | no |
 
 `Instrument` is a reference to an interview, a dataset, an analytics cohort,
-or a payment event (broadened with the unification, `the evidence-remodel slice`, to cover the
+or a payment event (broadened with the unification, ``, to cover the
 instruments a Goal used to carry). `Closure reason` is null while
 `Status IN ('Draft', 'Running', 'Archived')` — only a `Closed` run has one.
 `Archived` is a Draft/Running plan retired without concluding (shelved out of
@@ -341,7 +349,7 @@ output of concluding a committed experiment (and it must reference a
 live/non-archived experiment — `reading-orphaned-experiment`)**, unset means a
 bare/found Reading — the `goal_id` column is gone. The table **carries a `body`**
 on the canonical **`## Quote` + `## Source`** template (verbatim source text) —
-a deliberate reversal of the the evidence-remodel slice no-body slice (backfilled from Notion,
+a deliberate reversal of the  no-body slice (backfilled from Notion,
 shown in the dashboard); analysis stays out of the body — the per-belief
 `grading_justification` (scoring rationale) lives on `reading_beliefs`, and
 `## Notes` is cut.
@@ -410,7 +418,7 @@ first-class columns; `## Source` is cut outright — it only mirrored the
 
 Its own table (renamed from Terminology). **No `type` column.** `status` has
 no `Reversed` — a term is superseded by a better one, never reversed. All
-columns, no body (`the evidence-remodel slice`).
+columns, no body (``).
 
 | Canonical field | SQL column | Type | Derived |
 |---|---|---|---|
@@ -444,13 +452,13 @@ proposes a default set and writes them into the config.
 Every other select column (`status` — including `Archived` for experiments,
 `reading_beliefs.result`, `reading_beliefs.rung`, `reading_beliefs.magnitude_band`,
 `planned_rung`, `bar_verdict`, `feasibility`, `closure_reason`, `outcome`,
-`reversibility`, `representativeness`, `credibility`, `stage`) draws from the fixed lists
+`reversibility`, `representativeness`, `credibility`, `assumption_type`) draws from the fixed lists
 in `skills/_shared/ontology.yaml §vocabularies` — never the config. Writing a
 value outside that list is an `illegal-select-value` finding. The stored
-`stage` value is the **name** (`Discovery` | `Validation` | `Scale` |
-`Maturity`), not the ordinal 1–4 — the ordinal is for sorting only. See
-`docs/stage-policy.md` for the membership test (the subject-verb rule) and
-the Lens × Stage orthogonality.
+`assumption_type` value is the **name** (e.g. `ProblemExists`, `TheyllPay`),
+inferred on write from the falsification bar of any experiment naming the
+belief () — not a required input. See `docs/evidence-ladder.md` for
+the eleven sub-ladders and the inference rule.
 
 ## Relations
 
@@ -495,12 +503,12 @@ Reading leaves it unset.
 2. Create the five register tables plus the `experiment_bar_lines` and
    `reading_beliefs` child tables.
 3. Create junction tables for relations.
-4. Create indexes on `id`, `status`, `lens`, `area`, `stage`, and every
+4. Create indexes on `id`, `status`, `lens`, `area`, `assumption_type`, and every
    foreign-key column, including `readings.experiment_id`,
    `reading_beliefs.reading_id`, `reading_beliefs.assumption_id`,
    `experiment_bar_lines.experiment_id`, and
-   `experiment_bar_lines.assumption_id`. The `assumptions.stage` index
-   backs the dashboard's Lens × Stage heatmap drill-through.
+   `experiment_bar_lines.assumption_id`. The `assumptions.assumption_type` index
+   backs the dashboard's workspace filter.
 5. If the database supports it, add `CHECK` constraints for:
    - vocabulary-driven columns (`lens`, `area`) using the current
      `validation-os.config.yaml` values, and
@@ -509,7 +517,7 @@ Reading leaves it unset.
      (row-level, 0.10), `readings.representativeness`, `readings.credibility`,
      `experiment_bar_lines.planned_rung`, `experiment_bar_lines.bar_verdict`,
      `experiments.status` (now including `Archived`), `experiments.outcome`,
-     `glossary.status`, `assumptions.stage` —
+     `glossary.status`, `assumptions.assumption_type` —
      against `skills/_shared/ontology.yaml §vocabularies`.
 
 ### seed_starter_records
@@ -545,7 +553,7 @@ from `readings`; **keep `rung` and `magnitude_band` as row-level columns on
 `source`/`representativeness`/`credibility`/`source_quality`/`experiment_id`.
 **Add a `body` column to `readings` and backfill it** on the `## Quote` +
 `## Source` template from the Notion verbatim quote/excerpt (the reintroduced
-reading body, reversing the the evidence-remodel slice cut for readings). Promote each decision's `## Decision` body to `statement`
+reading body, reversing the  cut for readings). Promote each decision's `## Decision` body to `statement`
 and its unanimity rationale to `unanimity_justification`, dropping the
 `## Source` section from `body`; move each glossary row's body headings into
 `definition`/`avoid`/`how_it_differs`, dropping the `body` column.

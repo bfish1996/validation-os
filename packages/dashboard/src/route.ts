@@ -1,13 +1,17 @@
 import type { Collection } from "@validation-os/core";
 
 /**
- * The dashboard's client-owned navigation state (the nav/IA shell / the dashboard frontend redesign redesign).
- * One `<ValidationOSDashboard/>` mounts at a single host route and drives
- * everything off the URL hash — there is no second entry point (the mountable dashboard app).
+ * The dashboard's client-owned navigation state (the nav/IA shell / the
+ * dashboard frontend redesign). One `<ValidationOSDashboard/>` mounts at a
+ * single host route and drives everything off the URL hash — there is no
+ * second entry point (the mountable dashboard app).
  *
- *  - `assumptions` — the Assumptions nav item. The grid (Lens × Stage) is the
- *    default landing; `view: "all"` switches to the pipeline board; `lens` +
- *    `stage` drill into a single cell's assumptions (pipeline view filtered).
+ *  - `assumptions` — the Assumptions nav item. The experiment-first workspace
+ *    is the default landing; the `view` query param carries the workspace mode
+ *    (`experiments` · `recommended` · `all`) for deep-linkable mode switching.
+ *    The old `lens` / `stage` cell-drill params are gone (the Lens × Stage grid
+ *    was retired); legacy deep links that carried them still resolve into the
+ *    workspace, the params ignored.
  *  - `experiments` — the Experiments nav item (the live evidence plans list).
  *  - `readings` — the Readings nav item (the evidence log list).
  *  - `assumption` — the assumption detail (next-move, relations, glossary,
@@ -21,32 +25,49 @@ import type { Collection } from "@validation-os/core";
  *  - `record` — the legacy unified record page (still mounted for decisions +
  *    glossary, which keep the tabbed layout). The id is the record id.
  *
- * The legacy `next`, `pipeline`, and `stage-grid` routes still parse (they
- * map onto the new nav: `next`→`assumptions`, `pipeline`→`assumptions` with
+ * The legacy `next`, `pipeline`, and `stage-grid` routes still parse (they map
+ * onto the new nav: `next`→`assumptions`, `pipeline`→`assumptions` with
  * `view: "all"`, `stage-grid`→`assumptions`) so old deep links keep working.
  */
+export type WorkspaceMode = "experiments" | "recommended" | "all";
+
 export type Route =
-  | { name: "assumptions"; lens?: string; stage?: string; view?: "all" }
+  | { name: "assumptions"; view?: WorkspaceMode }
   | { name: "experiments" }
   | { name: "readings" }
   | { name: "assumption"; id: string }
   | { name: "experiment"; id: string }
   | { name: "reading"; id: string }
-  | { name: "records"; register: Collection; lens?: string; stage?: string; view?: "all" }
+  | { name: "records"; register: Collection; view?: "all" }
   | { name: "record"; id: string };
 
 const DEFAULT_ROUTE: Route = { name: "assumptions" };
 
+const WORKSPACE_MODES: readonly WorkspaceMode[] = [
+  "experiments",
+  "recommended",
+  "all",
+];
+
+function parseWorkspaceMode(v: string | null): WorkspaceMode | undefined {
+  return v && (WORKSPACE_MODES as readonly string[]).includes(v)
+    ? (v as WorkspaceMode)
+    : undefined;
+}
+
 /**
  * Parse a URL hash into a Route. The empty hash and anything unrecognised fall
- * back to the Assumptions grid (the default landing). A bare register name
- * (`#assumptions`) stays backward-compatible with the original `#<register>`
- * scheme, so it resolves to that register's Records table; `registers` is the
- * set the instance allows, so an unknown or disallowed register name falls
- * through to the default.
+ * back to the Assumptions workspace (the default landing). A bare register
+ * name (`#assumptions`) stays backward-compatible with the original
+ * `#<register>` scheme, so it resolves to that register's Records table;
+ * `registers` is the set the instance allows, so an unknown or disallowed
+ * register name falls through to the default.
  *
  * Legacy routes `#next`, `#pipeline`, and `#stage-grid` still parse — they map
- * onto the new nav so old deep links keep working.
+ * onto the new nav so old deep links keep working. The `lens` / `stage`
+ * cell-drill query params are dropped (the Lens × Stage grid was retired); any
+ * deep link that carried them still resolves into the workspace, the params
+ * ignored.
  */
 export function parseRoute(hash: string, registers: Collection[]): Route {
   const h = hash.replace(/^#\/?/, "");
@@ -55,12 +76,11 @@ export function parseRoute(hash: string, registers: Collection[]): Route {
   const parts = pathPart.split("/");
   const head = parts[0] ?? "";
   const query = new URLSearchParams(queryPart ?? "");
-  const lens = query.get("lens") ?? undefined;
-  const stage = query.get("stage") ?? undefined;
-  const view = (query.get("view") as "all" | null) ?? undefined;
+  const view = parseWorkspaceMode(query.get("view"));
 
   // Legacy routes → new nav.
   if (head === "next") return { name: "assumptions" };
+  // `#pipeline` historically meant "view all" → map onto the `all` mode.
   if (head === "pipeline") return { name: "assumptions", view: "all" };
   if (head === "stage-grid") return { name: "assumptions" };
 
@@ -81,8 +101,6 @@ export function parseRoute(hash: string, registers: Collection[]): Route {
   // New top-level nav routes.
   if (head === "assumptions") {
     const r: Route = { name: "assumptions" };
-    if (lens) r.lens = lens;
-    if (stage) r.stage = stage;
     if (view) r.view = view;
     return r;
   }
@@ -95,7 +113,10 @@ export function parseRoute(hash: string, registers: Collection[]): Route {
     return id ? { name: "record", id } : DEFAULT_ROUTE;
   }
   if ((registers as string[]).includes(head)) {
-    return { name: "records", register: head as Collection, lens, stage, view };
+    const r: Route = { name: "records", register: head as Collection };
+    const recordsView = query.get("view") === "all" ? "all" : undefined;
+    if (recordsView) r.view = recordsView;
+    return r;
   }
   return DEFAULT_ROUTE;
 }
@@ -108,12 +129,8 @@ export function parseRoute(hash: string, registers: Collection[]): Route {
 export function formatRoute(route: Route): string {
   switch (route.name) {
     case "assumptions": {
-      const q = new URLSearchParams();
-      if (route.lens) q.set("lens", route.lens);
-      if (route.stage) q.set("stage", route.stage);
-      if (route.view) q.set("view", route.view);
-      const qs = q.toString();
-      return qs ? `assumptions?${qs}` : "assumptions";
+      if (!route.view) return "assumptions";
+      return `assumptions?view=${route.view}`;
     }
     case "assumption":
       return `assumption/${route.id}`;
@@ -122,12 +139,8 @@ export function formatRoute(route: Route): string {
     case "reading":
       return `reading/${route.id}`;
     case "records": {
-      const q = new URLSearchParams();
-      if (route.lens) q.set("lens", route.lens);
-      if (route.stage) q.set("stage", route.stage);
-      if (route.view) q.set("view", route.view);
-      const qs = q.toString();
-      return qs ? `${route.register}?${qs}` : route.register;
+      if (!route.view) return route.register;
+      return `${route.register}?view=${route.view}`;
     }
     case "record":
       return `record/${route.id}`;

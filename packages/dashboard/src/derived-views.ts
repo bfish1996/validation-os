@@ -171,3 +171,60 @@ export function isTesting(a: AnyRecord, experiments: AnyRecord[]): boolean {
     (e) => str(e.Status) === "Running" && hasOpenBarOn(e, a.id),
   );
 }
+
+// ── Belief liveness + tested-by-live ( single home) ─────────────────
+// Two call sites (the workspace's `testedByLive` and the recommended-
+// experiments' `testedByLive`) used to carry their own copies and diverge: the
+// workspace read both `barLineAssumptionIds` and `barLines[].assumptionId`,
+// the recommended-experiments copy read only `barLineAssumptionIds` — so a
+// bar-lined-but-unprojected belief was dropped from the recommended list
+// (latent bug). Both now route through the single `testedByLiveExperiments`
+// here so the rules can't drift apart. .
+
+/** A live, non-moot belief — Draft or Live status, not moot, not Invalidated.
+ * The single home for the "is this belief live?" predicate the workspace, the
+ * pipeline, and the recommended-experiments builder all ask. . */
+export function isLiveBelief(a: AnyRecord): boolean {
+  const status = str(a.Status);
+  const moot = a.moot === true;
+  return !moot && (status === "Live" || status === "Draft");
+}
+
+/** The set of assumption ids tested by at least one live (non-archived)
+ * experiment — the single home for the "assumptions tested by a live
+ * experiment" predicate. Reads BOTH the projected `barLineAssumptionIds` and
+ * the composed `barLines[].assumptionId`, so a bar-lined-but-unprojected
+ * belief is still counted (the divergent recommended-experiments copy that
+ * read only the projection missed it — ). */
+export function testedByLiveExperiments(
+  experiments: AnyRecord[],
+): Set<string> {
+  const ids = new Set<string>();
+  for (const e of liveExperiments(experiments)) {
+    for (const id of strList(e.barLineAssumptionIds)) ids.add(id);
+    const bars = e.barLines as BarLine[] | undefined;
+    if (bars) for (const b of bars) ids.add(b.assumptionId);
+  }
+  return ids;
+}
+
+/** Map each assumption id tested by a live experiment to that experiment's
+ * cycle — the single home for the reading→belief-inputs fan-out idiom the
+ * workspace's `beliefToCycleMap` and the experiment-grouping code both do.
+ * . */
+export function beliefToCycleMap(
+  experiments: AnyRecord[],
+  cycleOf: (exp: AnyRecord) => string,
+): Map<string, string> {
+  const map = new Map<string, string>();
+  for (const exp of liveExperiments(experiments)) {
+    const cycle = cycleOf(exp);
+    const bars = (exp.barLines as BarLine[] | undefined) ?? [];
+    const ids =
+      bars.length > 0
+        ? bars.map((b) => b.assumptionId)
+        : strList(exp.barLineAssumptionIds);
+    for (const id of ids) map.set(id, cycle);
+  }
+  return map;
+}

@@ -30,15 +30,8 @@ export {
   needsReview as assumptionTypeNeedsReview,
   INFERABLE_ASSUMPTION_TYPES,
   DEFAULT_ASSUMPTION_TYPE,
+  isValidAssumptionType,
 } from "./assumption-type.js";
-export { migrateRegister } from "./migrate.js";
-export type {
-  MigrationAssumption,
-  MigrationReading,
-  MigratedAssumption,
-  MigratedReading,
-  MigrationResult,
-} from "./migrate.js";
 export { sourceQuality } from "./source-quality.js";
 export {
   confidence,

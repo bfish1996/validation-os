@@ -23,13 +23,17 @@ registers:
       - {canonical: Lens, backend: Lens, type: text, derived: false, options_source: vocabulary.lens}
       - {canonical: Theme, backend: Themes, type: text, derived: false, options_source: registry-schema}
       - {canonical: Impact, backend: Impact, type: number, derived: false}
-      - {canonical: Derived Impact, backend: Derived Impact, type: number, derived: true, formula: "seed + (100 - seed) × S/(S + 100), S = Σ dependents' Derived Impact + 100 per standing decision Based on this row; experiments never contribute (assumption-guardrails.md §3); recomputed on every touching write (the derive-on-write invariant), bullet marked <!-- derived -->"}
+      - {canonical: Derived Impact, backend: Derived Impact, type: number, derived: true, formula: "seed + (100 - seed) × S/(S + 100), S = Σ dependents' Derived Impact + 100 per standing decision Based on this row; experiments never contribute (assumption-guardrails.md §3); recomputed on every touching write (), bullet marked <!-- derived -->"}
       - {canonical: Risk, backend: Risk, type: number, derived: true, formula: "Derived Impact * (1 - max(0, Confidence) / 100); skill-computed, bullet marked <!-- derived -->"}
       - {canonical: Confidence, backend: Confidence, type: number, derived: true, formula: "signed weighted average of concluded Validated/Invalidated belief entries scored against this row, weight = |Strength| × Source quality × commitmentFactor (1.0 if the entry's reading has an Experiment else 0.85; never reorders rungs), neutral prior w0=100 (hard floor ≥98), deduped per (belief, source) to the strongest/most-recent (experiment-guardrails.md §2); skill-computed, bullet marked <!-- derived -->"}
-      - {canonical: Completeness %, backend: Completeness %, type: number, derived: true, formula: "filled slots / all slots × 100 over six structural slots: Description, Lens, Impact, Scoring justification, dependencies traced (≥1 Depends on/Enables link), Question Type; replaces the retired Gaps/presence-field machinery (the evidence-remodel slice); skill-computed, bullet marked <!-- derived -->"}
+      - {canonical: Completeness %, backend: Completeness %, type: number, derived: true, formula: "filled slots / all slots × 100 over six structural slots: Description, Lens, Impact, Scoring justification, dependencies traced (≥1 Depends on/Enables link), Assumption Type; the Assumption Type slot is inferred on write (); replaces the retired Gaps/presence-field machinery (); skill-computed, bullet marked <!-- derived -->"}
       - {canonical: Status, backend: Status, type: text, derived: false, options_source: registry-schema}
+      - {canonical: Assumption Type, backend: "Assumption Type", type: text, derived: true, formula: "inferred on write from the falsification bar (wrongIf) of any experiment naming the belief, falling back to the description; re-inferred on every touching write (living inference). Not a required input — no dropdown.", options_source: registry-schema}
+      - {canonical: Risk Group, backend: "Risk Group", type: text, derived: true, formula: "derived from Assumption Type via TYPE_TO_GROUP; skill-computed", options_source: registry-schema}
+      - {canonical: Cost to test, backend: "Cost to test", type: text, derived: true, formula: "derived from the Assumption Type's ceiling-rung nature; skill-computed", options_source: registry-schema}
+      - {canonical: Graduation, backend: "Graduation", type: text, derived: true, formula: "Untested/Signal/Graduated based on Confidence vs the graduation bar; skill-computed", options_source: registry-schema}
       - {canonical: Stage, backend: Stage, type: text, derived: false, options_source: registry-schema}
-      - {canonical: Question Type, backend: Question Type, type: text, derived: false, options_source: registry-schema}
+      - {canonical: Question Type, backend: "Question Type", type: text, derived: false, options_source: registry-schema}
       - {canonical: Owner, backend: Owner, type: text, derived: false, options_source: vocabulary.dashboard_users}
       - {canonical: Scoring justification, backend: "### Scoring justification section", type: text, derived: false}
     relations:
@@ -164,8 +168,12 @@ per record named by ID (`<ID>.md`):
 | Confidence | `- **Confidence**: ...` | number | yes |
 | Completeness % | `- **Completeness %**: ...` | number | yes |
 | Status | `- **Status**: ...` | text | no |
-| Stage | `- **Stage**: ...` | text (`Discovery`/`Validation`/`Scale`/`Maturity`) | no |
-| Question Type | `- **Question Type**: ...` | text (`Existence`/`Prevalence`/`CausalEffect`/`WillingnessToPay`/`ValueUtility`/`Regulatory`/`Feasibility`) | no |
+| Assumption Type | `- **Assumption Type**: ...` | text (`ProblemExists`/`ProblemWidespread`/`WantOurSolution`/`ItWorks`/`CanCompleteTask`/`CanBuildIt`/`LegalCompliant`/`TheyllPay`/`TheyKeepUsingIt`/`ReachProfitably`/`EconomicsWork`) | yes (inferred on write — not a required input) |
+| Risk Group | `- **Risk Group**: ...` | text (`Desirability`/`Usability`/`Feasibility`/`Viability`) | yes |
+| Cost to test | `- **Cost to test**: ...` | text (`cheap`/`moderate`/`expensive`) | yes |
+| Graduation | `- **Graduation**: ...` | text (`Untested`/`Signal`/`Graduated`) | yes |
+| Stage | `- **Stage**: ...` | text (`Discovery`/`Validation`/`Scale`/`Maturity`) | no (retired — retained for migration reading) |
+| Question Type | `- **Question Type**: ...` | text (`Existence`/`Prevalence`/`CausalEffect`/`WillingnessToPay`/`ValueUtility`/`Regulatory`/`Feasibility`) | no (retired — retained for migration reading) |
 | Owner | `- **Owner**: ...` | text (dashboard-user reference) | no |
 | Scoring justification | `- **Scoring justification**: ...` | text | no |
 | Depends on / Enables | `- **Depends on**: ...` / `- **Enables**: ...` | text (IDs) | no |
@@ -183,7 +191,7 @@ derived view over the Experiments' bar lines, never a stored bullet here.
 linked dependents' Derived Impact plus 100 per standing decision naming this
 row via `Based on assumption`. Experiments never contribute. Recomputed on
 every touching write alongside Risk/Confidence — no deliberate staleness
-(`the derive-on-write invariant`; `assumption-guardrails.md §3`).
+(``; `assumption-guardrails.md §3`).
 - **Risk** = `Derived Impact * (1 - max(0, Confidence) / 100)`.
 - **Confidence** = signed weighted average of concluded Validated/Invalidated
 belief entries scored against this row, weight `|Strength| × Source quality ×
@@ -193,17 +201,18 @@ prior w₀ = 100, deduped per (belief, source) to the strongest/most-recent
 (`experiment-guardrails.md §2`).
 - **Completeness %** = filled slots / all slots × 100, over six structural
 slots: Description, Lens, Impact, Scoring justification, dependencies traced
-(≥1 `Depends on`/`Enables` link), Question Type. Replaces the retired
-`Gaps`/presence-field readiness machinery (`the evidence-remodel slice`); drives the `Draft` ⇔
-`Live` gate (the `Question Type` slot is the Live gate added in the question-type-aware evidence ladder).
+(≥1 `Depends on`/`Enables` link), Assumption Type. The Assumption Type slot is
+inferred on write () — no dropdown. Replaces the retired
+`Gaps`/presence-field readiness machinery (``); drives the `Draft` ⇔
+`Live` gate (the `Assumption Type` slot is the Live gate).
 
 Canonical formulas live in `experiment-guardrails.md §2` and
 `assumption-guardrails.md §3`; the recompute pass computes and writes them on
-every touching write (`the derive-on-write invariant`) — never hand-edit.
+every touching write (``) — never hand-edit.
 
 ### Body
 
-Assumptions carry **no body** (`the evidence-remodel slice`) — `Scoring justification` is a
+Assumptions carry **no body** (``) — `Scoring justification` is a
 first-class bullet, and the audit trail lives in dashboard history, not a
 `### Provenance & notes` section.
 
@@ -213,7 +222,7 @@ An Experiment carries no rung and no strength — those live on the Readings
 the run produces. It bundles one-or-more beliefs through composed **bar
 lines** (below). A committed plan carries an optional `Deadline` and closes
 with an `Outcome` — the commitment-grade behaviour a Goal used to give
-(`the evidence-remodel slice`).
+(``).
 
 | Canonical field | Markdown bullet | Type | Derived |
 |---|---|---|---|
@@ -336,7 +345,7 @@ per-artifact; only Result (the sign) is per belief. Canonical table:
 ### Body
 
 Readings **carry a `body`** on the canonical two-heading template — a
-**deliberate reversal** of the the evidence-remodel slice no-body slice (brought back from
+**deliberate reversal** of the  no-body slice (brought back from
 Notion, shown in the dashboard):
 
 ```markdown
@@ -405,7 +414,7 @@ properties, no body.
 
 `Definition`, `Avoid`, and `How it differs` are first-class bullets — the
 old `### Definition` / `### Avoid / don't say` / `### How it differs` body
-headings are gone (`the evidence-remodel slice`).
+headings are gone (``).
 
 ## Vocabulary-driven fields
 
@@ -513,7 +522,7 @@ and `Magnitude band` as row-level bullets** (rung is per-artifact, 0.10)
 alongside `Source`/`Representativeness`/`Credibility`/`Source quality`/
 `Experiment`; **backfill the reading `body`** on the `### Quote` + `### Source`
 template from the Notion verbatim quote/excerpt (the reintroduced reading body,
-reversing the the evidence-remodel slice cut for readings). Promote each Decision's `## Decision`
+reversing the  cut for readings). Promote each Decision's `## Decision`
 to `Statement` and unanimity rationale to `Unanimity justification` while
 cutting `## Source`, and move each Glossary term's body headings into
 `Definition`/`Avoid`/`How it differs` bullets. The skill surfaces the diff

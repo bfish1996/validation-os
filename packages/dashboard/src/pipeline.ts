@@ -19,7 +19,6 @@ import {
   type BeliefReadingInput,
 } from "@validation-os/core";
 import { RUNG_ANCHOR, typeCeiling } from "@validation-os/core/derivation";
-import { STAGE_ORDER } from "./stage-grid-model.js";
 import {
   beliefRisk,
   beliefTestMeters,

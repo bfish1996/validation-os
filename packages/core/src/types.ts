@@ -8,7 +8,7 @@
 
 /**
  * The five registers. `goals` was unified into `experiments` and the `people`
- * reference collection retired (the evidence-remodel slice): Owner / Agreed by now reference a
+ * reference collection retired (): Owner / Agreed by now reference a
  * dashboard user (the auth-sourced team list), not a register row.
  */
 export const REGISTERS = [
@@ -36,7 +36,7 @@ export interface BaseRecord {
 
 export type AssumptionStatus = "Draft" | "Live" | "Invalidated";
 /**
- * The unified evidence-plan lifecycle (the evidence-remodel slice). `Draft` is the new gate a
+ * The unified evidence-plan lifecycle (). `Draft` is the new gate a
  * commit clears (Draft→Running); conclude+verdict stays the Running→Closed
  * gate. Absorbs what the retired Goal record's status used to carry.
  */
@@ -53,7 +53,7 @@ export type MagnitudeBand = "Low" | "Typical" | "High";
 export type Feasibility = "High" | "Medium" | "Low";
 
 /**
- * The evidence rung vocabulary (the confidence-scoring simplification). A rung is an evidence TYPE on the
+ * The evidence rung vocabulary (). A rung is an evidence TYPE on the
  * say→do axis plus operational rungs. Each assumption TYPE defines which rungs
  * are applicable; non-applicable rungs carry anchor 0 (allowed to attach,
  * flagged, never move the bar) and are hidden from the evidence composition UI.
@@ -89,7 +89,7 @@ export type Rung = (typeof RUNGS)[number];
 export const MARKET_RUNGS = ["Commitment", "Payment"] as const;
 
 /**
- * Risk Group — the foreground headline axis (the confidence-scoring simplification). Every assumption
+ * Risk Group — the foreground headline axis (). Every assumption
  * belongs to exactly one of Desirability · Usability · Feasibility ·
  * Viability. Derived from the Assumption Type, not separately hand-set.
  */
@@ -102,7 +102,7 @@ export const RISK_GROUPS = [
 export type RiskGroup = (typeof RISK_GROUPS)[number];
 
 /**
- * Assumption Type — the evidence key (the confidence-scoring simplification). Replaces the 7 academic
+ * Assumption Type — the evidence key (). Replaces the 7 academic
  * Question Types. A finer type that decides what evidence graduates this
  * assumption. Set by what would prove the claim false (the gaming guard),
  * inferred at authoring/grilling, surfaced only as a secondary
@@ -148,12 +148,12 @@ export function riskGroupFor(type: AssumptionType | null | undefined): RiskGroup
 export const COST_TIERS = ["cheap", "moderate", "expensive"] as const;
 export type CostTier = (typeof COST_TIERS)[number];
 
-/** Graduation state — the progression (the confidence-scoring simplification). */
+/** Graduation state — the progression (). */
 export const GRADUATION_STATES = ["Untested", "Signal", "Graduated"] as const;
 export type GraduationState = (typeof GRADUATION_STATES)[number];
 
 /**
- * @deprecated Stage was retired (the confidence-scoring simplification). Its IDEO-triangle meaning is
+ * @deprecated Stage was retired (). Its IDEO-triangle meaning is
  * absorbed by Risk Group; its reversibility meaning is dropped. Retained
  * only for migration reading of legacy records.
  */
@@ -161,7 +161,7 @@ export const STAGES = ["Discovery", "Validation", "Scale", "Maturity"] as const;
 export type Stage = (typeof STAGES)[number];
 
 /**
- * @deprecated QuestionType was retired (the confidence-scoring simplification), replaced by AssumptionType.
+ * @deprecated QuestionType was retired (), replaced by AssumptionType.
  * Retained only for migration reading of legacy records.
  */
 export const QUESTION_TYPES = [
@@ -175,7 +175,7 @@ export const QUESTION_TYPES = [
 ] as const;
 export type QuestionType = (typeof QUESTION_TYPES)[number];
 
-/** The max hand-scored Impact seed (the confidence-scoring simplification). Structure (dependents,
+/** The max hand-scored Impact seed (). Structure (dependents,
  * standing decisions) supplies the rest via Derived Impact; a single
  * hand-typed 100 can no longer pin Impact to 100. Config-driven, ~≤60. */
 export const IMPACT_SEED_CAP = 60;
@@ -188,18 +188,24 @@ export type SourceQualityPick = 1.0 | 0.7 | 0.5;
 /** The derived numbers stored on an assumption (never hand-typed). */
 export interface AssumptionDerived {
   derivedImpact: number;
-  /** @deprecated Risk was retired (the confidence-scoring simplification). Kept for migration back-compat. */
+  /**
+   * The live ranking/heat signal across the dashboard — `derivedImpact ×
+   * (1 − max(0, confidence)/100)`.  retired the Risk *bar* (the
+   * IDEO-triangle axis), NOT this number; the value is live ranking
+   * infrastructure, not migration back-compat ( corrected the
+   * misleading `@deprecated … migration back-compat` comment).
+   */
   risk: number;
   confidence: number;
   /** Structural readiness meter, 0–100 (see `derivation/completeness.ts`). */
   completeness: number;
-  /** Risk Group (the confidence-scoring simplification) — derived from assumptionType. */
+  /** Risk Group () — derived from assumptionType. */
   riskGroup: RiskGroup | null;
-  /** Assumption Type (the confidence-scoring simplification) — the evidence key. */
+  /** Assumption Type () — the evidence key. */
   assumptionType: AssumptionType | null;
-  /** Cost-to-test tier (the confidence-scoring simplification) — cheap / moderate / expensive. */
+  /** Cost-to-test tier () — cheap / moderate / expensive. */
   costTier: CostTier | null;
-  /** Graduation state (the confidence-scoring simplification) — Untested / Signal / Graduated. */
+  /** Graduation state () — Untested / Signal / Graduated. */
   graduationState: GraduationState;
 }
 
@@ -207,14 +213,16 @@ export interface AssumptionRecord extends BaseRecord {
   Title: string;
   Description: string;
   Lens: string | null;
-  /** @deprecated Stage retired (the confidence-scoring simplification). Kept for migration back-compat. */
+  /** @deprecated Stage retired (). Retained only for migration
+   * reading of legacy records; null on every post- belief. */
   Stage: Stage | null;
   /**
-   * The Assumption Type (the confidence-scoring simplification) — the evidence key that decides what
+   * The Assumption Type () — the evidence key that decides what
    * evidence graduates this assumption. Replaces the retired Question Type.
    */
   "Assumption Type": AssumptionType | null;
-  /** @deprecated Question Type retired (the confidence-scoring simplification). Kept for migration. */
+  /** @deprecated Question Type retired (), replaced by Assumption
+   * Type. Retained only for migration reading of legacy records. */
   "Question Type": QuestionType | null;
   Theme: string[];
   /** The hand-scored seed (0–IMPACT_SEED_CAP), the only hand-scored number here. */
@@ -224,7 +232,7 @@ export interface AssumptionRecord extends BaseRecord {
   Owner: string[];
   moot: boolean;
   /**
-   * Kept, narrowed to the Impact-seed rationale (the evidence-remodel slice): why the seed
+   * Kept, narrowed to the Impact-seed rationale (): why the seed
    * `Impact` was scored as it was, incl. dated moot lines. The `5 Whys`,
    * `Metric for truth`, and `Gaps` fields are gone — the why-trace lives in the
    * `Depends on / Enables` chain and the audit check-types are transient grill
@@ -268,7 +276,7 @@ export interface ReadingRecord extends BaseRecord {
   Source: string | null;
   /**
    * Provenance links (recording, dashboard, CRM row, user id) — 0..N, drives no
-   * math and never keys dedupe (the evidence-remodel slice). Split out from `Source` so the
+   * math and never keys dedupe (). Split out from `Source` so the
    * dedupe key stays narrow.
    */
   contextLinks: string[];
@@ -370,7 +378,7 @@ export interface GlossaryAvoid {
 export interface GlossaryRecord extends BaseRecord {
   Title: string;
   Status: GlossaryStatus;
-  /** All properties, no body (the evidence-remodel slice): the terminology check parses these. */
+  /** All properties, no body (): the terminology check parses these. */
   Definition: string;
   Avoid: GlossaryAvoid[];
   "How it differs": string;

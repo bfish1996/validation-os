@@ -60,15 +60,16 @@ describe("buildRecommendedExperiments", () => {
     expect(buildRecommendedExperiments(assumptions, experiments)).toEqual([]);
   });
 
-  it("proposes one experiment per cluster of risk-related assumptions that share a lens and stage and lack a live test", () => {
-    // Two Consumer / Discovery assumptions, no live experiment → one recommended
-    // experiment grouping both.
+  it("proposes one experiment per cluster of risk-related assumptions that share a lens and lack a live test", () => {
+    // Two Consumer assumptions, no live experiment → one recommended
+    // experiment grouping both. : Stage dropped from clustering.
     const assumptions = [
       asm({
         id: "A1",
         Lens: "Consumer",
         Theme: ["Discovery"],
         Impact: 60,
+        "Assumption Type": "ProblemExists",
         derived: { derivedImpact: 60, risk: 50, confidence: 0, completeness: 40 },
       }),
       asm({
@@ -76,6 +77,7 @@ describe("buildRecommendedExperiments", () => {
         Lens: "Consumer",
         Theme: ["Discovery"],
         Impact: 40,
+        "Assumption Type": "ProblemExists",
         derived: { derivedImpact: 40, risk: 30, confidence: 0, completeness: 40 },
       }),
     ];
@@ -83,25 +85,31 @@ describe("buildRecommendedExperiments", () => {
     expect(recs).toHaveLength(1);
     const rec = recs[0]!;
     expect(rec.assumptionIds.sort()).toEqual(["A1", "A2"]);
-    expect(rec.type).toMatch(/Test|Observation|Desk research|Survey/);
+    // : type is now a real rung label derived from the Assumption Type
+    // (ProblemExists → cheapest applicable rung = Talk), never a retired label.
+    expect(rec.type).toBe("Talk");
     expect(rec.title).toBeTruthy();
     expect(rec.rationale).toBeTruthy();
     expect(rec.barPreview).toBeTruthy();
     expect(rec.maxRisk).toBe(50);
   });
 
-  it("separates clusters by lens × stage — Consumer/Discovery and Commercial/Scale do not merge", () => {
+  it("separates clusters by lens — Consumer and Commercial do not merge", () => {
+    // : Stage dropped from the cluster key (null on every post-
+    //  belief); the cluster collapses to Lens.
     const assumptions = [
       asm({
         id: "A1",
         Lens: "Consumer",
         Theme: ["Discovery"],
+        "Assumption Type": "ProblemExists",
         derived: { derivedImpact: 50, risk: 40, confidence: 0, completeness: 50 },
       }),
       asm({
         id: "A2",
         Lens: "Commercial",
         Theme: ["Scale"],
+        "Assumption Type": "TheyllPay",
         derived: { derivedImpact: 50, risk: 40, confidence: 0, completeness: 50 },
       }),
     ];
@@ -131,18 +139,29 @@ describe("buildRecommendedExperiments", () => {
     expect(recs[1]!.maxRisk).toBe(20);
   });
 
-  it("picks the experiment type from the lens's do-rungs when the cluster has no evidence", () => {
-    // Consumer lens with no confidence → recommend an Observation (Observed usage)
-    // or Signed up test — anything in the consumer do-rungs.
+  it("derives the recommended rung from the cluster's Assumption Type ()", () => {
+    // ProblemExists → cheapest applicable rung = Talk. The recommended
+    // experiment's type names the real rung, never a retired label.
     const consumer = asm({
       id: "A1",
       Lens: "Consumer",
       Theme: ["Discovery"],
+      "Assumption Type": "ProblemExists",
       derived: { derivedImpact: 50, risk: 40, confidence: 0, completeness: 40 },
     });
     const recs = buildRecommendedExperiments([consumer], []);
     expect(recs).toHaveLength(1);
-    expect(["Test", "Observation", "Desk research", "Survey"]).toContain(recs[0]!.type);
+    expect(recs[0]!.type).toBe("Talk");
+    // TheyllPay → cheapest applicable rung is "Desk & data" (Talk/Survey are
+    // non-evidence for TheyllPay).
+    const wtp = asm({
+      id: "A2",
+      Lens: "Commercial",
+      "Assumption Type": "TheyllPay",
+      derived: { derivedImpact: 50, risk: 40, confidence: 0, completeness: 40 },
+    });
+    const recs2 = buildRecommendedExperiments([wtp], []);
+    expect(recs2[0]!.type).toBe("Desk & data");
   });
 
   it("ignores archived experiments when deciding a cluster is untested", () => {

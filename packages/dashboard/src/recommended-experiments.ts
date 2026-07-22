@@ -1,29 +1,46 @@
 /**
- * Recommended experiments (the recommended-experiments + donut redesign) — a UI-side derivation from the assumption
- * register, not a stored entity. For each cluster of risk-related assumptions
- * that share a Lens × Stage and lack a *live* experiment testing them, propose
- * one experiment (Test / Observation / Desk research / Survey) with a bar
- * preview. The user can "Accept" to create the experiment.
+ * Recommended experiments (the recommended-experiments derivation) — a UI-side
+ * derivation from the assumption register, not a stored entity. For each
+ * cluster of risk-related assumptions that share a Lens and lack a *live*
+ * experiment testing them, propose one experiment with a bar preview. The
+ * user can "Accept" to create the experiment.
+ *
+ * The finishing slice: the retired rung names ("Desk research", "Signed intent",
+ * "Observed usage") were removed from user-facing copy. The recommended
+ * experiment's suggested rung now derives from the cluster's Assumption Type
+ * via core's rung vocabulary — the cheapest applicable rung is the honest
+ * "next test". Stage was dropped from clustering (it's null on every post-
+ * retired-Stage belief); the cluster key collapses to Lens, which the code already
+ * effectively did.
  *
  * Pure: no I/O, no React. The surface mounts thinly over this. Clusters are
  * ranked by max risk (riskiest first), so the board's "Recommended
  * experiments" section leads with the test that buys down the most risk.
  */
-import type { AnyRecord } from "@validation-os/core";
-import { derivedNum, str } from "./derived-views.js";
+import type { AnyRecord, AssumptionType, Rung } from "@validation-os/core";
+import {
+  applicableRungs,
+  DEFAULT_ASSUMPTION_TYPE,
+  isValidAssumptionType,
+} from "@validation-os/core/derivation";
+import {
+  derivedNum,
+  isLiveBelief,
+  str,
+  testedByLiveExperiments,
+} from "./derived-views.js";
 
-export type RecommendedExperimentType =
-  | "Test"
-  | "Observation"
-  | "Desk research"
-  | "Survey";
+/** The recommended experiment's "what kind of test" label — a real rung from
+ * core's rung vocabulary, derived from the cluster's Assumption Type. Never
+ * a retired label.  */
+export type RecommendedExperimentType = Rung;
 
 export interface RecommendedExperiment {
   /** Stable id derived from the cluster's assumption ids (so React keys are stable). */
   id: string;
-  /** The experiment type — picked from the lens's do-rungs when the cluster has no evidence. */
+  /** The experiment type — a short label for the recommended rung. */
   type: RecommendedExperimentType;
-  /** One-line title, e.g. "Test 2 Consumer · Discovery beliefs". */
+  /** One-line title, e.g. "Test 2 Consumer beliefs". */
   title: string;
   /** The assumption ids this experiment would test. */
   assumptionIds: string[];
@@ -59,11 +76,11 @@ const LENS_COLOUR: Record<string, string> = {
 
 /**
  * The "needs framing" list — the riskiest live, non-moot assumption *per lens*
- * whose completeness is below 100% (the belief is written but not fully framed:
- * missing the 5 Whys, the metric for truth, or the scoring justification).
- * These are the beliefs where the next move is "frame the belief", not "design
- * an experiment". At most one assumption per lens, capped at MAX_NEEDS_FRAMING
- * (3 lenses), riskiest-first across lenses.
+ * whose completeness is below 100% (the belief is written but not fully
+ * framed: missing the scoring justification, the dependencies, or the
+ * Assumption Type). These are the beliefs where the next move is "frame the
+ * belief", not "design an experiment". At most one assumption per lens, capped
+ * at MAX_NEEDS_FRAMING (3 lenses), riskiest-first across lenses.
  */
 export interface NeedsFramingItem {
   id: string;
@@ -71,7 +88,6 @@ export interface NeedsFramingItem {
   risk: number;
   completeness: number;
   lens: string;
-  stage: string;
   /** What's missing — a plain-language hint. */
   hint: string;
   /** Display colour for the lens tag. */
@@ -81,11 +97,7 @@ export interface NeedsFramingItem {
 export function buildNeedsFraming(
   assumptions: AnyRecord[],
 ): NeedsFramingItem[] {
-  const live = assumptions.filter((a) => {
-    const status = str(a.Status);
-    const moot = a.moot === true;
-    return !moot && (status === "Live" || status === "Draft");
-  });
+  const live = assumptions.filter(isLiveBelief);
 
   const items = live
     .map((a) => {
@@ -93,11 +105,10 @@ export function buildNeedsFraming(
       const completeness = derivedNum(a, "completeness") ?? 0;
       const risk = derivedNum(a, "risk") ?? 0;
       const lens = str(a.Lens) ?? "—";
-      const stage = str(a.Stage) ?? "—";
       const title = str(a.Title) ?? id;
       const hint = framingHint(a, completeness);
       const lensColour = LENS_COLOUR[lens] ?? LENS_COLOUR["Investor"] ?? "#6b7484";
-      return { id, title, risk, completeness, lens, stage, hint, lensColour };
+      return { id, title, risk, completeness, lens, hint, lensColour };
     })
     .filter((a) => a.completeness < 100);
 
@@ -127,114 +138,120 @@ function framingHint(a: AnyRecord, completeness: number): string {
   if (!hasScoring) {
     return "Add a scoring justification — why is the Impact seed scored as it is?";
   }
-  return "Nearly framed — check the 5 Whys and the metric for truth are complete.";
+  return "Nearly framed — check the dependencies and the Assumption Type are complete.";
 }
 
 /**
- * The lens → do-rung mapping (the dashboard frontend redesign spec). The lens determines which "do"
- * rungs are available; Talk + Desk work for any lens. This is a grading
- * guideline, not a schema constraint. The recommended-experiment type is
- * picked from the lens's first do-rung when the cluster has no evidence:
- *
- *   Consumer  → Observation (Observed usage)
- *   Commercial → Test (Signed intent)
- *   any other lens → Desk research (the safe default)
+ * Resolve the Assumption Type for a cluster — the type shared by the cluster's
+ * beliefs (they share a lens and are typically the same kind of claim). Falls
+ * back to the permissive default when the beliefs have no type yet (an
+ * un-grilled belief). 
  */
-const LENS_TO_TYPE: Record<string, RecommendedExperimentType> = {
-  Consumer: "Observation",
-  Commercial: "Test",
-};
+function clusterAssumptionType(cluster: AnyRecord[]): AssumptionType {
+  for (const a of cluster) {
+    const t = a["Assumption Type"];
+    if (isValidAssumptionType(t)) return t;
+  }
+  return DEFAULT_ASSUMPTION_TYPE;
+}
+
+/**
+ * The cheapest applicable rung for an assumption type — the honest "next
+ * test". This is the rung the recommended experiment's copy names, derived
+ * from core's rung vocabulary (). Returns the first applicable rung
+ * (applicableRungs is ordered by the RUNG_ANCHOR key order: Talk, Survey,
+ * Desk & data, …), so the cheapest-from-the-top rung wins.
+ */
+function cheapestApplicableRung(type: AssumptionType): Rung {
+  const rungs = applicableRungs(type);
+  if (rungs.length === 0) return "Talk";
+  return rungs[0]!;
+}
 
 /**
  * Build recommended experiments from the assumption + experiment registers.
  *
  * A cluster is a TIGHT group of the riskiest live, non-moot assumptions sharing
- * a Lens × Stage pair, none of which has a *live* (non-Archived) experiment
- * testing it. One recommended experiment per cluster, max 3 assumptions per
- * cluster (the riskiest ones), max 2 recommendations total (the riskiest
- * clusters). Each recommendation carries a generated experiment body — a
- * protocol with what it tests, how to run it, and the questions to ask.
+ * a Lens, none of which has a *live* (non-Archived) experiment testing it. One
+ * recommended experiment per cluster, max 3 assumptions per cluster (the
+ * riskiest ones), max 3 recommendations total (the riskiest clusters). Each
+ * recommendation carries a generated experiment body — a protocol with what it
+ * tests, how to run it, and the questions to ask.
+ *
+ * The finishing slice: Stage was dropped from the cluster key (it's null on every post-
+ * retired-Stage belief); the cluster collapses to Lens, which the code already
+ * effectively did. The recommended rung derives from the cluster's Assumption
+ * Type via `cheapestApplicableRung` — never a retired rung label.
  */
 export function buildRecommendedExperiments(
   assumptions: AnyRecord[],
   experiments: AnyRecord[],
 ): RecommendedExperiment[] {
-  const liveAssumptions = assumptions.filter((a) => {
-    const status = str(a.Status);
-    const moot = a.moot === true;
-    return !moot && (status === "Live" || status === "Draft");
-  });
+  const liveAssumptions = assumptions.filter(isLiveBelief);
 
   // The set of assumption ids that already have a *live* experiment testing
-  // them — those are covered, not candidates for a recommendation.
-  const testedByLive = new Set<string>();
-  for (const e of experiments) {
-    const status = str(e.Status);
-    if (status === "Archived") continue;
-    const ids = Array.isArray(e.barLineAssumptionIds)
-      ? (e.barLineAssumptionIds as string[])
-      : [];
-    for (const id of ids) testedByLive.add(id);
-  }
+  // them — those are covered, not candidates for a recommendation. The finishing slice:
+  // the unified `testedByLiveExperiments` helper reads both the projected
+  // barLineAssumptionIds and the composed barLines[].assumptionId, so a
+  // bar-lined-but-unprojected belief is no longer dropped.
+  const testedByLive = testedByLiveExperiments(experiments);
 
-  // Cluster by Lens × Stage, keeping only assumptions not covered by a live
+  // Cluster by Lens, keeping only assumptions not covered by a live
   // experiment. Then take the riskiest MAX_CLUSTER_SIZE per cluster.
+  // The finishing slice: Stage dropped from the key (null on every post-retired-Stage belief).
   const clusters = new Map<string, AnyRecord[]>();
   for (const a of liveAssumptions) {
     const id = str(a.id) ?? "";
     if (testedByLive.has(id)) continue;
     const lens = str(a.Lens) ?? "—";
-    const stage = str(a.Stage) ?? "—";
-    const key = `${lens}×${stage}`;
-    const bucket = clusters.get(key);
+    const bucket = clusters.get(lens);
     if (bucket) bucket.push(a);
-    else clusters.set(key, [a]);
+    else clusters.set(lens, [a]);
   }
 
   // Rank assumptions within each cluster by risk, keep the top 3.
   // Then pick one cluster per lens (the riskiest), ranked by max risk.
   const rankedClusters = [...clusters.entries()]
-    .map(([key, cluster]) => {
+    .map(([lens, cluster]) => {
       const ranked = cluster
         .sort((a, b) => (derivedNum(b, "risk") ?? 0) - (derivedNum(a, "risk") ?? 0))
         .slice(0, MAX_CLUSTER_SIZE);
       const maxRisk = Math.max(...ranked.map((a) => derivedNum(a, "risk") ?? 0), 0);
-      return { key, cluster: ranked, maxRisk };
+      return { lens, cluster: ranked, maxRisk };
     })
     .sort((a, b) => b.maxRisk - a.maxRisk);
 
   const byLens = new Map<string, typeof rankedClusters[0]>();
   for (const entry of rankedClusters) {
-    const lens = entry.key.split("×")[0] ?? "—";
-    if (!byLens.has(lens)) byLens.set(lens, entry);
+    if (!byLens.has(entry.lens)) byLens.set(entry.lens, entry);
   }
   const clusterEntries = [...byLens.values()]
     .sort((a, b) => b.maxRisk - a.maxRisk)
     .slice(0, MAX_RECOMMENDED);
 
   const recs: RecommendedExperiment[] = [];
-  for (const { key, cluster, maxRisk } of clusterEntries) {
-    const lens = key.split("×")[0] ?? "—";
-    const stage = key.split("×")[1] ?? "—";
+  for (const { lens, cluster, maxRisk } of clusterEntries) {
     const assumptionIds = cluster
       .map((a) => str(a.id) ?? "")
       .filter(Boolean)
       .sort();
-    const type = LENS_TO_TYPE[lens ?? ""] ?? "Desk research";
+    const type = clusterAssumptionType(cluster);
+    const rung = cheapestApplicableRung(type);
+    const typeLabel: Rung = rung;
     const title =
       cluster.length === 1
         ? `Test ${assumptionIds[0]}`
-        : `Test ${cluster.length} ${lens} · ${stage} beliefs`;
+        : `Test ${cluster.length} ${lens} beliefs`;
     const rationale =
       cluster.length === 1
         ? `One belief (${assumptionIds[0]}) at ${Math.round(maxRisk)} risk with no live test. Designing an experiment here would buy down the most risk.`
-        : `${cluster.length} beliefs share ${lens} · ${stage}, the riskiest at ${Math.round(maxRisk)} risk. One experiment can address them all.`;
+        : `${cluster.length} beliefs share ${lens}, the riskiest at ${Math.round(maxRisk)} risk. One experiment can address them all.`;
     const barPreview = `The riskiest belief moves out of the kill zone, or stays in it.`;
-    const body = generateExperimentBody(type, lens, stage, cluster, maxRisk);
+    const body = generateExperimentBody(typeLabel, lens, rung, cluster, maxRisk);
     const lensColour = LENS_COLOUR[lens] ?? LENS_COLOUR["Investor"] ?? "#6b7484";
     recs.push({
       id: assumptionIds.join("+"),
-      type,
+      type: typeLabel,
       title,
       assumptionIds,
       maxRisk,
@@ -261,34 +278,31 @@ export function buildRecommendedExperiments(
  * how to run it, and the questions to ask. This is a UI-side draft, not a
  * stored entity; the user accepts it to create the experiment (and can edit
  * the body before running).
+ *
+ * The finishing slice: the rung named in the body is the real rung derived from the
+ * cluster's Assumption Type — never a retired label like "Desk research" or
+ * "Signed intent".
  */
 function generateExperimentBody(
-  type: RecommendedExperimentType,
+  typeLabel: string,
   lens: string,
-  stage: string,
+  rung: Rung,
   cluster: AnyRecord[],
   maxRisk: number,
 ): string {
   const beliefs = cluster
     .map((a) => `- **${str(a.id)}**: ${str(a.Title) ?? str(a.id) ?? ""}`)
     .join("\n");
-  const rung = type === "Observation" ? "Observed usage" : type === "Test" ? "Signed intent" : "Desk research";
 
   return `## What this tests
 
-This ${type.toLowerCase()} addresses ${cluster.length} ${lens} · ${stage} belief${cluster.length === 1 ? "" : "s"} at ${Math.round(maxRisk)} risk — the riskiest untested cluster on the board.
+This ${typeLabel} test addresses ${cluster.length} ${lens} belief${cluster.length === 1 ? "" : "s"} at ${Math.round(maxRisk)} risk — the riskiest untested cluster on the board.
 
 ${beliefs}
 
 ## How to run it
 
-${
-  type === "Observation"
-    ? `Set up a prototype or analytics instrument that captures real user behaviour. Watch how ${cluster.length === 1 ? "this belief plays out" : "these beliefs play out"} in actual usage — not what people say they'd do, but what they actually do. Log each observation as evidence at the **${rung}** rung.`
-    : type === "Test"
-      ? `Reach out to potential ${lens === "Consumer" ? "customers" : "businesses"} and seek a signed commitment — a letter of intent, a pre-order, a pilot agreement. The commitment is the evidence; it lands at the **${rung}** rung.`
-      : `Research published sources, competitor behaviour, and market data. Find external evidence that bears on ${cluster.length === 1 ? "this belief" : "these beliefs"}. Log each source as evidence at the **Desk research** rung.`
-}
+Gather evidence at the **${rung}** rung — the cheapest evidence that can move these beliefs. Log each piece as a reading at that rung, scoring each belief Validated or Invalidated against its pre-registered bar.
 
 ## Questions to answer
 

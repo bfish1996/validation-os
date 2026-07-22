@@ -8,7 +8,7 @@
  * Confidence.
  */
 import type { AnyRecord } from "@validation-os/core";
-import { ASSUMPTION_TYPES, RUNGS, type AssumptionType } from "@validation-os/core";
+import { ASSUMPTION_TYPES, DEFAULT_ASSUMPTION_TYPE, RUNGS, type AssumptionType } from "@validation-os/core";
 import { RUNG_ANCHOR, W0_BY_RUNG } from "@validation-os/core/derivation";
 import { buildEvidenceComposition, type RungContribution } from "./evidence-composition.js";
 import { readingBeliefFor, str } from "./derived-views.js";
@@ -109,7 +109,7 @@ export function buildConfidenceExplainer(
   // right sub-ladder.
   const rawType = str(assumption["Assumption Type"]);
   const assumptionType: AssumptionType =
-    rawType && isAssumptionType(rawType) ? rawType : "ProblemExists";
+    rawType && isAssumptionType(rawType) ? rawType : DEFAULT_ASSUMPTION_TYPE;
 
   // All 11 rungs in the canonical order, lens-aware.
   const allRungs = [...RUNGS];
