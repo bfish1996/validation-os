@@ -284,6 +284,34 @@ export type {
   ResolvedBarLine,
 } from "./detail-fields.js";
 export {
+  buildAssumptionsWorkspace,
+  buildBeliefBody,
+  buildExperimentBody,
+  collectCycles,
+  experimentCriteriaProgress,
+} from "./assumptions-workspace.js";
+export type {
+  AcceptanceCriterion,
+  AllRegister,
+  AssumptionsWorkspace,
+  AssumptionsWorkspaceOptions,
+  BeliefBody,
+  BeliefRow,
+  CriterionVerdict,
+  CycleFilter,
+  DecisionRef,
+  EvidenceRung,
+  ExperimentBody,
+  ExperimentGroup,
+  ExperimentProgress,
+  ExperimentReadingRow,
+  GrillingSlot,
+  RecommendedGroup,
+  ReadingChip,
+  WorkspaceMode,
+  WorkspaceRecords,
+} from "./assumptions-workspace.js";
+export {
   REGISTER_GROUPS,
   REGISTER_ICON,
   REGISTER_LABEL,
