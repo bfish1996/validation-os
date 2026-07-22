@@ -6,15 +6,10 @@
  * builder does everything; this file just renders.
  */
 import { useMemo, useState } from "react";
-import type { AnyRecord } from "@validation-os/core";
 import {
   buildAssumptionsWorkspace,
-  buildBeliefBody,
-  buildExperimentBody,
   type AssumptionsWorkspace,
-  type BeliefBody,
   type BeliefRow,
-  type ExperimentBody,
   type ExperimentGroup,
   type RecommendedGroup,
   type WorkspaceMode,
@@ -23,12 +18,10 @@ import {
 import { assumptionCycles } from "./derived-views.js";
 import {
   resolveCycleFilter,
-  inCycle,
   type CycleChoice,
 } from "./cycle-filter.js";
 import { CycleFilterBar } from "./cycle-filter-bar.js";
 import { coldStartFor, FIRST_RUN_LINE } from "./cold-start.js";
-import { EvidenceBody } from "./markdown.js";
 import { sparklinePath, sparklineY, riskLevel, type Tone } from "./primitives.js";
 import type { Route } from "./route.js";
 import { useList } from "./use-records.js";
@@ -52,8 +45,10 @@ export function AssumptionsWorkspaceSurface({
   const [mode, setMode] = useState<WorkspaceMode>("experiments");
   const [cycleSel, setCycleSel] = useState<CycleChoice | null>(null);
   const [search, setSearch] = useState("");
-  const [openBeliefId, setOpenBeliefId] = useState<string | null>(null);
-  const [openExperimentId, setOpenExperimentId] = useState<string | null>(null);
+
+  // A belief or experiment opens as the single deep-linkable record page — the
+  // same body every other surface links to — never an in-surface drawer.
+  const openRecord = (id: string) => onNavigate({ name: "record", id });
 
   const loading =
     assumptions.loading || experiments.loading || readings.loading || decisions.loading;
@@ -89,19 +84,7 @@ export function AssumptionsWorkspaceSurface({
     [allAssumptions, expRecords, readingRecords, decisionRecords, cycleView.effective, mode, search],
   );
 
-  const cold = coldStartFor({
-    assumptions: allAssumptions,
-    experiments: expRecords,
-    readings: readingRecords,
-    decisions: decisionRecords,
-  });
-
-  const openBelief = openBeliefId
-    ? buildBeliefBody(openBeliefId, records)
-    : null;
-  const openExperiment = openExperimentId
-    ? buildExperimentBody(openExperimentId, records)
-    : null;
+  const cold = coldStartFor({ assumptions: allAssumptions });
 
   return (
     <div>
@@ -149,7 +132,7 @@ export function AssumptionsWorkspaceSurface({
             <button
               type="button"
               className="vos-btn"
-              onClick={() => onNavigate({ name: "records", register: "assumptions", view: "all" })}
+              onClick={() => onNavigate({ name: "records", register: "assumptions" })}
             >
               Write your first bet
             </button>
@@ -158,43 +141,22 @@ export function AssumptionsWorkspaceSurface({
       ) : mode === "experiments" ? (
         <ExperimentsMode
           ws={ws}
-          onOpenBelief={setOpenBeliefId}
-          onOpenExperiment={setOpenExperimentId}
+          onOpenBelief={openRecord}
+          onOpenExperiment={openRecord}
         />
       ) : mode === "recommended" ? (
         <RecommendedMode
           ws={ws}
-          onOpenBelief={setOpenBeliefId}
+          onOpenBelief={openRecord}
         />
       ) : (
         <AllMode
           ws={ws}
           search={search}
           setSearch={setSearch}
-          onOpenBelief={setOpenBeliefId}
+          onOpenBelief={openRecord}
         />
       )}
-
-      {openBelief ? (
-        <BeliefBodyDrawer
-          body={openBelief}
-          onClose={() => setOpenBeliefId(null)}
-          onOpenExperiment={(id) => {
-            setOpenBeliefId(null);
-            setOpenExperimentId(id);
-          }}
-        />
-      ) : null}
-      {openExperiment ? (
-        <ExperimentBodyDrawer
-          body={openExperiment}
-          onClose={() => setOpenExperimentId(null)}
-          onOpenBelief={(id) => {
-            setOpenExperimentId(null);
-            setOpenBeliefId(id);
-          }}
-        />
-      ) : null}
     </div>
   );
 }
@@ -418,235 +380,3 @@ function BeliefRowView({ row, onOpen }: { row: BeliefRow; onOpen: () => void }) 
   );
 }
 
-/* ── Belief body drawer ──────────────────────────────────────────────────── */
-
-function BeliefBodyDrawer({
-  body,
-  onClose,
-  onOpenExperiment,
-}: {
-  body: BeliefBody;
-  onClose: () => void;
-  onOpenExperiment: (id: string) => void;
-}) {
-  return (
-    <>
-      <div className="vos-scrim" onClick={onClose} aria-hidden="true" />
-      <aside className="vos-drawer vos-ws-drawer" role="dialog" aria-modal="true" aria-label={`Belief: ${body.statement}`}>
-        <div className="vos-drawer-header">
-          <div>
-            <div className="vos-drawer-eyebrow">Belief</div>
-            <h2 className="vos-drawer-title">{body.statement}</h2>
-          </div>
-          <button type="button" className="vos-btn vos-btn-sm" onClick={onClose} aria-label="Close">✕</button>
-        </div>
-        <div className="vos-drawer-body">
-          {/* Trajectory */}
-          <div className="vos-ws-drawer-section">
-            <div className="vos-drawer-eyebrow">Confidence over time</div>
-            {body.trajectory.length > 0 ? (
-              <BeliefTrajectory trajectory={body.trajectory} bar={body.bar} />
-            ) : (
-              <p className="vos-muted">No dated evidence yet — the trajectory fills as readings land.</p>
-            )}
-          </div>
-
-          {/* Grilling checklist */}
-          <div className="vos-ws-drawer-section">
-            <div className="vos-drawer-eyebrow">Grilling gate</div>
-            <ul className="vos-ws-checklist">
-              {body.grillingChecklist.map((slot) => (
-                <li key={slot.slot} className={slot.filled ? "vos-ws-check-filled" : "vos-ws-check-empty"}>
-                  <span className="vos-ws-check-mark">{slot.filled ? "✓" : "○"}</span>
-                  <span>{slot.slot}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Evidence rungs */}
-          <div className="vos-ws-drawer-section">
-            <div className="vos-drawer-eyebrow">Evidence rungs</div>
-            <div className="vos-ws-rungs">
-              {body.evidenceRungs.map((r) => (
-                <div key={r.rung} className={`vos-ws-rung ${r.isMaxMover ? "vos-ws-rung-max" : ""}`}>
-                  <span className="vos-ws-rung-name">{r.rung}</span>
-                  <span className="vos-ws-rung-cap vos-num">cap {r.cap}</span>
-                  <span className={`vos-ws-rung-contrib vos-num ${r.contribution > 0 ? "vos-text-good" : r.contribution < 0 ? "vos-text-crit" : ""}`}>
-                    {r.contribution > 0 ? "+" : ""}{Math.round(r.contribution)}
-                  </span>
-                  <span className="vos-ws-rung-count vos-num">{r.count} reading{r.count === 1 ? "" : "s"}</span>
-                  {r.isMaxMover ? <span className="vos-ws-rung-flag">← go get this</span> : null}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Lineage */}
-          {(body.raisedBy || body.backs.length > 0) && (
-            <div className="vos-ws-drawer-section">
-              <div className="vos-drawer-eyebrow">Lineage</div>
-              {body.raisedBy ? (
-                <div className="vos-ws-lineage">
-                  <span className="vos-muted">Raised by:</span>{" "}
-                  <button type="button" className="vos-ws-link" onClick={() => onNavigateToRecord(body.raisedBy!.id)}>
-                    {body.raisedBy.title}
-                  </button>
-                </div>
-              ) : null}
-              {body.backs.length > 0 ? (
-                <div className="vos-ws-lineage">
-                  <span className="vos-muted">Backs:</span>{" "}
-                  {body.backs.map((d, i) => (
-                    <span key={d.id}>
-                      {i > 0 ? ", " : ""}
-                      <button type="button" className="vos-ws-link" onClick={() => onNavigateToRecord(d.id)}>
-                        {d.title}
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              ) : null}
-            </div>
-          )}
-        </div>
-      </aside>
-    </>
-  );
-
-  function onNavigateToRecord(id: string) {
-    onClose();
-    onOpenExperiment(id);
-  }
-}
-
-function BeliefTrajectory({ trajectory, bar }: { trajectory: { date: string; confidence: number }[]; bar: number | null }) {
-  const values = trajectory.map((t) => t.confidence);
-  const w = 200;
-  const h = 40;
-  const path = sparklinePath(values, w, h, -100, 100);
-  const barY = bar !== null ? sparklineY(bar, h, -100, 100) : null;
-  const last = values[values.length - 1] ?? 0;
-  const lastY = sparklineY(last, h, -100, 100);
-  return (
-    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`}>
-      <line x1="0" y1={sparklineY(0, h, -100, 100)} x2={w} y2={sparklineY(0, h, -100, 100)} stroke="currentColor" strokeWidth="0.5" className="vos-traj-zero" />
-      {barY !== null ? (
-        <line x1="0" y1={barY} x2={w} y2={barY} stroke="currentColor" strokeWidth="0.5" strokeDasharray="3 3" className="vos-traj-bar" />
-      ) : null}
-      {path ? (
-        <polyline points={path} fill="none" stroke="currentColor" strokeWidth="1.5" className="vos-traj-stroke-good" />
-      ) : null}
-      <circle cx={w - 2} cy={lastY} r="2.5" className="vos-traj-dot" />
-    </svg>
-  );
-}
-
-/* ── Experiment body drawer ───────────────────────────────────────────────── */
-
-function ExperimentBodyDrawer({
-  body,
-  onClose,
-  onOpenBelief,
-}: {
-  body: ExperimentBody;
-  onClose: () => void;
-  onOpenBelief: (id: string) => void;
-}) {
-  const progressPct = body.progress.total > 0
-    ? Math.round((body.progress.resolved / body.progress.total) * 100)
-    : 0;
-  return (
-    <>
-      <div className="vos-scrim" onClick={onClose} aria-hidden="true" />
-      <aside className="vos-drawer vos-ws-drawer" role="dialog" aria-modal="true" aria-label={`Experiment: ${body.title}`}>
-        <div className="vos-drawer-header">
-          <div>
-            <div className="vos-drawer-eyebrow">Experiment</div>
-            <h2 className="vos-drawer-title">{body.title}</h2>
-          </div>
-          <div style={{ marginLeft: "auto", display: "flex", gap: 8, alignItems: "center" }}>
-            <span className="vos-ws-tag">{body.status}</span>
-            {body.closureReason ? <span className="vos-ws-tag">{body.closureReason}</span> : null}
-            <button type="button" className="vos-btn vos-btn-sm" onClick={onClose} aria-label="Close">✕</button>
-          </div>
-        </div>
-        <div className="vos-drawer-body">
-          {/* Acceptance criteria */}
-          <div className="vos-ws-drawer-section">
-            <div className="vos-drawer-eyebrow">Acceptance criteria</div>
-            <div className="vos-ws-progress">
-              <div className="vos-ws-progress-bar">
-                <div
-                  className={`vos-ws-progress-fill ${body.progress.done ? "vos-fill-good" : "vos-fill-warn"}`}
-                  style={{ width: `${progressPct}%` }}
-                />
-              </div>
-              <span className="vos-ws-progress-label vos-num">
-                {body.progress.resolved}/{body.progress.total} {body.progress.done ? "✓ done" : "pending"}
-              </span>
-            </div>
-            <ul className="vos-ws-criteria">
-              {body.criteria.map((c) => (
-                <li key={c.assumptionId} className={`vos-ws-criterion vos-ws-criterion-${c.verdict}`}>
-                  <button type="button" className="vos-ws-link" onClick={() => onOpenBelief(c.assumptionId)}>
-                    {c.assumptionId}
-                  </button>
-                  <span className="vos-ws-criterion-rightif">{c.rightIf}</span>
-                  <span className="vos-ws-criterion-verdict">
-                    {c.verdict === "met" ? "✓ met" : c.verdict === "failed" ? "✗ failed" : c.verdict === "covered-unresolved" ? "● covered" : "○ no evidence"}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Plan/protocol */}
-          {body.body ? (
-            <div className="vos-ws-drawer-section">
-              <div className="vos-drawer-eyebrow">Plan</div>
-              <EvidenceBody text={body.body} />
-            </div>
-          ) : null}
-
-          {/* Readings */}
-          <div className="vos-ws-drawer-section">
-            <div className="vos-drawer-eyebrow">Evidence ({body.readings.length})</div>
-            {body.readings.length === 0 ? (
-              <p className="vos-muted">No readings collected yet.</p>
-            ) : (
-              <div className="vos-ws-readings">
-                {body.readings.map((r) => (
-                  <div key={r.id} className="vos-ws-reading">
-                    <div className="vos-ws-reading-head">
-                      <span className="vos-ws-reading-id vos-num">{r.id}</span>
-                      <span className="vos-ws-reading-title">{r.title}</span>
-                      {r.date ? <span className="vos-ws-tag">{r.date}</span> : null}
-                      {r.rung ? <span className="vos-ws-tag">{r.rung}</span> : null}
-                    </div>
-                    <div className="vos-ws-reading-chips">
-                      {r.chips.map((chip) => (
-                        <button
-                          key={chip.assumptionId}
-                          type="button"
-                          className={`vos-ws-chip ${chip.spillover ? "vos-ws-chip-spillover" : ""}`}
-                          onClick={() => onOpenBelief(chip.assumptionId)}
-                        >
-                          {chip.assumptionId}
-                          <span className={`vos-ws-chip-result vos-text-${chip.result === "Validated" ? "good" : "crit"}`}>
-                            {chip.result === "Validated" ? "✓" : chip.result === "Invalidated" ? "✗" : "●"}
-                          </span>
-                          {chip.spillover ? <span className="vos-ws-chip-spill">spillover</span> : null}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </aside>
-    </>
-  );
-}

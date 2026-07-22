@@ -14,12 +14,9 @@ import {
   type ViewDescriptor,
 } from "./list-surface.js";
 import { RegisterTable } from "./register-table.js";
-import { RecordDrawer } from "./record-drawer.js";
 import { RecordForm } from "./record-form.js";
 import { createSeed } from "./form-fields.js";
-import type { RelatedSet } from "./record-view.js";
-import { RelationEditor } from "./relation-editor.js";
-import { useList, useRecord } from "./use-records.js";
+import { useList } from "./use-records.js";
 import { useSavedViews } from "./use-saved-views.js";
 
 export interface RegisterBrowserProps {
@@ -95,14 +92,11 @@ export function RegisterBrowser({
 
   const [descriptor, setDescriptor] = useState<ViewDescriptor>({});
   const savedViews = useSavedViews(register);
-  const [openId, setOpenId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
-  const {
-    record,
-    loading: recordLoading,
-    error: recordError,
-    refresh: refreshRecord,
-  } = useRecord(register, openId, basePath);
+
+  // Opening a row means opening its canonical record page — the single
+  // deep-linkable body — never an inline peek drawer.
+  const openRecord = (id: string) => onOpenRecord?.(id);
 
   // "Today" for the Overdue view — a stable per-mount value.
   const [asOf] = useState(() => new Date().toISOString().slice(0, 10));
@@ -143,16 +137,6 @@ export function RegisterBrowser({
     if (!tab.needsHuman) return null;
     const n = humanCount[tab.id] ?? 0;
     return n > 0 ? n : null;
-  };
-
-  // The drawer's relation/bar-line links (the record-page rendering fix) read the same context
-  // registers the derived-view tabs already loaded above — one fetch, two
-  // consumers, never the other end of a link is left unresolved.
-  const related: RelatedSet = {
-    assumptions: ctx.assumptions,
-    experiments: ctx.experiments,
-    readings: ctx.readings,
-    decisions: ctx.decisions,
   };
 
   // Assumption id → title, so a reading row's belief chips (the evidence-remodel slice) read as
@@ -277,42 +261,11 @@ export function RegisterBrowser({
         <ShapedBody
           register={register}
           shaped={shaped}
-          onRowClick={setOpenId}
-          selectedId={openId}
+          onRowClick={openRecord}
+          selectedId={null}
           assumptionTitles={assumptionTitles}
         />
       )}
-
-      <RecordDrawer
-        register={register}
-        record={record}
-        loading={recordLoading}
-        error={recordError}
-        open={openId !== null}
-        onClose={() => setOpenId(null)}
-        basePath={basePath}
-        onOpenFull={
-          onOpenRecord && openId ? () => onOpenRecord(openId) : undefined
-        }
-        onOpenRecord={onOpenRecord}
-        related={related}
-        onChanged={() => {
-          refreshRecord();
-          refreshList();
-        }}
-      >
-        {openId ? (
-          <RelationEditor
-            register={register}
-            recordId={openId}
-            basePath={basePath}
-            onLinked={() => {
-              refreshRecord();
-              refreshList();
-            }}
-          />
-        ) : null}
-      </RecordDrawer>
 
       <DrawerShell
         open={creating}
@@ -332,7 +285,7 @@ export function RegisterBrowser({
           onCreated={(id) => {
             setCreating(false);
             refreshList();
-            setOpenId(id);
+            openRecord(id);
           }}
           onCancel={() => setCreating(false)}
         />
