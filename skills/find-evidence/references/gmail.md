@@ -13,7 +13,7 @@ context changes the reading of a single message.
 
 **Qualifies as evidence when:** the counterparty (matching the Lens) states
 a fact, describes past behaviour (`Talk`), or commits to something
-costly in writing (`Signed intent` — e.g. an LOI attached, an explicit
+costly in writing (`Commitment` — e.g. an LOI attached, an explicit
 purchase confirmation). An enthusiastic "sounds great!" is
 `Talk` at best.
 

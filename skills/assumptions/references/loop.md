@@ -23,7 +23,7 @@ wants gates, that's single mode; for a read-only report, that's audit mode.
   procedure, run autonomously here. Same procedure single mode and
   `/find-evidence` use.
 - `../../_shared/assumption-guardrails.md` §1–6.
-- `../../_shared/experiment-guardrails.md` — the 6-rung `Rung` ladder,
+- `../../_shared/experiment-guardrails.md` — the 11-rung `Rung` ladder,
   `Result` options.
 - `../../_shared/registry-schema.md` — schema and field map.
 

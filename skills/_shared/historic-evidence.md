@@ -69,10 +69,10 @@ With **no internal sources configured**, the internal flavour degrades to
 asking the user to paste or point at material (notes, a transcript file, an
 export) — the triage and write below apply unchanged.
 
-Schema: the field map, the 6-rung `Rung` ladder, and the `Result` options for
+Schema: the field map, the 11-rung `Rung` ladder, and the `Result` options for
 Readings are owned by `experiment-guardrails.md` (§0, §2) and
 `registry-schema.md` (§Field map — Readings) — read them for the schema; do
-not redefine it here. The anchor (ceiling `s`) is per (question type × rung ×
+not redefine it here. The anchor (ceiling `s`) is per (assumption type × rung ×
 band) — see `docs/evidence-ladder.md`. On the Notion connector, verify the Readings→
 Assumption relation target before the first write
 (`connectors/notion.md §Cautions`) — a record linked to the wrong register
@@ -94,7 +94,7 @@ the supporting one — the whole point is an honest read.
 **Pre-sweep — pull the assumption's open experiments first.** Before
 touching the raw sources, query Experiments for plans whose composed bar
 lines name this assumption **and** `Status = Running` — especially
-interview guides and `Desk research` tests. Hold these as candidate
+interview guides and `Desk & data` tests. Hold these as candidate
 **close-out targets**: a `Running` plan is a test someone already committed
 to running, so a transcript or note you find may be *the run of that plan*
 rather than fresh evidence. Reconciling against the open record (§5) is what
@@ -174,10 +174,11 @@ describing the source and origin):**
 - **`Rung`** (**row-level — one rung per artifact**) = the rung matching **what
   the artifact shows**, graded once for the whole reading (`experiment-guardrails.md
   §2`) — **Testing rungs only**: a stated opinion or an unprompted report of a
-  real past behaviour → 🧪 `Talk` (the collapsed floor — Opinion + Pitch-deck +
-  Anecdotal merged); regulation / published data / competitor fact →
-  🧪 `Desk research`; a structured questionnaire already run, or genuine
-  hands-on unpaid use → 🧪 `Observed usage`. **Found evidence
+  real past behaviour → 🧪 `Talk`; a structured survey/questionnaire already
+  run → 🧪 `Survey`; regulation / published data / competitor fact →
+  🧪 `Desk & data`; a pretended-offering signup already observed → 🧪
+  `Fake-door`; genuine hands-on unpaid prototype use → 🧪 `Prototype use`;
+  sustained usage over time → 🧪 `Retention`. **Found evidence
   never mints a 🎯 Market-rung reading** — there are no bare Market-rung
   readings (`experiment-guardrails.md §6`). A measured scoreboard number
   (product metric, CRM level) is Market-side: don't log it — surface it and
@@ -185,8 +186,9 @@ describing the source and origin):**
   per artifact:** if the artifact genuinely spans two rungs (a call with a real
   prototype-usage demo **and** a past-behaviour discussion), **split it into
   separate readings, one per rung** — never average two rungs into one reading.
-- **`Magnitude band`** (row-level) = only on a Market rung; omit on Testing
-  (so, in practice, omitted for found evidence).
+- **`Magnitude band`** (row-level) = applies to **every** rung, Testing
+  included (`docs/evidence-ladder.md`) — defaults to `Typical` when the
+  artifact gives no clear signal of its own magnitude.
 - **`Date`** = when the evidence occurred (historic internal) or the
   research date (desk), never a future date.
 - **`Owner`** if known.

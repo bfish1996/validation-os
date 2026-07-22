@@ -7,7 +7,7 @@ same way — this file's patterns transfer.
 **What it holds:** relationship state (who the person is, seniority,
 company, ICP-fit — exactly what `Source quality` needs), notes from past
 meetings, and deal/stage history (a signed deal or paid invoice recorded
-here is 🟢 `Paying users` / `Signed intent` evidence).
+here is 🎯 `Payment` / `Commitment` evidence).
 
 **How to search:** search records by the people/companies the assumption's
 Lens points at; read their notes and interaction history; use record

@@ -26,10 +26,17 @@ const PILL_CLASS: Record<Tone, string> = {
   neutral: "vos-pill vos-pill-neutral",
 };
 
+/** A tone-colored pill — the shared building block behind `StatusPill` and the
+ * ad hoc tag badges each list surface used to hand-roll (cycle badges, an
+ * exp/found tag, …). Callers work out the tone; this just paints it. */
+export function Pill({ tone, children }: { tone: Tone; children: ReactNode }) {
+  return <span className={PILL_CLASS[tone]}>{children}</span>;
+}
+
 /** A colored status pill — tone from the status, the label shown verbatim. */
 export function StatusPill({ status }: { status: string | null | undefined }) {
   if (!status) return <span className="vos-muted">—</span>;
-  return <span className={PILL_CLASS[statusTone(status)]}>{status}</span>;
+  return <Pill tone={statusTone(status)}>{status}</Pill>;
 }
 
 const FILL_CLASS: Record<Tone, string> = {
@@ -177,6 +184,41 @@ export function Sparkline({
       <path d={d} fill="none" stroke={stroke} strokeWidth={2} />
       <circle cx={lastX} cy={lastY} r={3} fill={stroke} />
     </svg>
+  );
+}
+
+/**
+ * A clickable list row that opens a record — the shell behind the Experiments
+ * and Readings surfaces' rows (`vos-exp-row` / `vos-list-row` are the same
+ * recipe: a bordered flex button that highlights on hover, just sized
+ * differently). `leading` sits before the body, `trailing` after; `size`
+ * picks which of the two card sizes to render. The Assumptions workspace's
+ * belief row is a genuinely different shape (a dense table row with a
+ * decoration outside the clickable area) and isn't built from this.
+ */
+export function ListRow({
+  onClick,
+  leading,
+  trailing,
+  size = "sm",
+  children,
+}: {
+  onClick: () => void;
+  leading?: ReactNode;
+  trailing?: ReactNode;
+  size?: "sm" | "lg";
+  children: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      className={size === "lg" ? "vos-exp-row" : "vos-list-row"}
+      onClick={onClick}
+    >
+      {leading}
+      {children}
+      {trailing}
+    </button>
   );
 }
 

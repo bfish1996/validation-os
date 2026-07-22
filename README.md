@@ -23,13 +23,14 @@ Validation-OS makes those beliefs impossible to ignore:
 - Every belief becomes an **Assumption** — one falsifiable sentence, scored
   for Impact, traced to its roots in the `Depends on` / `Enables` dependency
   graph.
-- Every assumption gets **Risk = Impact × (1 − max(0, Confidence)/100)** —
-  and Confidence is *never typed by hand*: it's the signed, weighted
-  average of every concluded **Experiment** reading, on a 6-rung evidence
-  ladder where the anchor (ceiling) is per **(question type × rung × band)**
-  — so qual interviews are near-ceiling evidence for an existence claim but
-  non-evidence for a willingness-to-pay claim. Evidence against a belief
-  counts negative.
+- Every assumption gets **Risk = Derived Impact × (1 − max(0, Confidence)/100)**
+  — and Confidence is *never typed by hand*: it's the signed, weighted
+  average of every concluded **Experiment** reading, on an 11-rung evidence
+  ladder where the anchor (ceiling) is per **(assumption type × rung × band)**
+  — so qual interviews are near-ceiling evidence for a "problem exists" claim
+  but non-evidence for a willingness-to-pay claim. The assumption type itself
+  is never hand-set — it's inferred from the falsification bar (what would
+  prove the claim wrong). Evidence against a belief counts negative.
 - The register **reorders itself**: evidence lands → Confidence moves →
   Risk follows → the next test surfaces. You always know what to test next.
 - A shared **glossary** keeps the team speaking one language, and a
@@ -48,10 +49,11 @@ Assumption → grill & score → Experiment (pre-registered pass/kill bars)
      → Evidence → Confidence moves → Risk follows → next test surfaces
 ```
 
-**Stage policy:** every assumption is a falsifiable claim about an external
-actor's response, tagged with one of four discovery stages (Discovery →
-Validation → Scale → Maturity). The Lens × Stage heatmap reads where your
-bets cluster — see [docs/stage-policy.md](docs/stage-policy.md).
+**Assumption Type:** every assumption is tagged with one of 11 types —
+never hand-set, inferred on every write from its falsification bar (what
+would prove the claim wrong, not what's cheap to test). Each type derives a
+**Risk Group** (`Desirability` / `Usability` / `Feasibility` / `Viability`)
+— see [docs/evidence-ladder.md](docs/evidence-ladder.md).
 
 Theory, ladder, cadence, and goals: [docs/method.md](docs/method.md) ·
 [docs/evidence-ladder.md](docs/evidence-ladder.md) ·

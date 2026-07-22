@@ -1,7 +1,7 @@
 # Prep playbook — interview guide
 
 Entered from SKILL.md step 7 when the run's **method** is an interview
-(± stimulus) — whatever mix of rungs the bundle holds (`Observed usage` uses
+(± stimulus) — whatever mix of rungs the bundle holds (`Survey` uses
 `survey.md`, which inherits this file's question discipline). The guide is
 **always required** for an interview experiment — with or without a prototype
 stimulus.

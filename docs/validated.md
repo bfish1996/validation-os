@@ -30,7 +30,7 @@ An assumption is a bet about the world, and the world moves. So:
   bet (the regulation passed; the contract is signed), not that testing
   finished.
 - **Assumption-level "validated" therefore always carries a rung.** Say
-  "validated at Signed intent, Confidence +42", never "validated" as if it
+  "validated at Commitment, Confidence +42", never "validated" as if it
   were done. It is prose shorthand, nothing more.
 
 ## The asymmetry: you can invalidate, you can never validate
@@ -41,9 +41,14 @@ exists as a stored state — the rare, human-affirmed kill — and `Validated`
 does not exist as a state at all. Evidence-against is a **score
 decrement**: it lowers signed Confidence, which raises Risk — a re-test
 signal, never a closure. The kill route runs through the score's negative
-zone: Confidence sinking to −50 (which only a series of missed Market-rung
-readings can do) raises an audit prompt for a **human** kill verdict —
-nothing flips automatically. An assumption's `Status` is only ever
+zone: Confidence sinking to −50 raises an audit prompt for a **human** kill
+verdict — nothing flips automatically. Reaching it always takes real
+evidence mass, never one reading in isolation (`evidence-ladder.md`), though
+how much depends on the belief's Assumption Type: for a type whose ceiling
+rung is Market/Operational (the Viability types, `ItWorks`) it takes a
+series of missed committed-plan readings; for a type whose ceiling rung is
+itself a Testing rung (e.g. `ProblemExists` via `Talk`) a short, strongly
+disconfirming run can get there. An assumption's `Status` is only ever
 `Draft` (still being built, `Completeness %` < 100), `Live` (ranked by Risk,
 forever), or `Invalidated` (`registry-schema.md §Status & derived views`).
 Validation is nothing but Confidence rising and Risk falling; "what we
@@ -51,55 +56,51 @@ currently know" is the derived proven-set view (`Live` + strongest
 concluded experiment `Validated`), a filter you compute, not a state you
 grant.
 
-## "Validated enough" is a Risk judgment, not a Confidence number
+## "Graduated" is a Confidence-vs-Impact judgment, not a status
 
 There is no global Confidence threshold above which an assumption counts
-as validated. The stopping rule is **Risk**:
+as validated. The stopping rule is the impact-scaled **graduation bar**
+(`packages/core/src/derivation/graduation.ts`, the confidence-scoring
+simplification — this replaced the old Stage-keyed Risk threshold):
 
 ```
-Risk = Impact × (1 − max(0, Confidence)/100)
+graduationBar(derivedImpact) = min(40 + 0.5 × derivedImpact, 90)
+```
+
+Bigger bets (higher Derived Impact) need more proof before "done" — the
+same evidence can be plenty for a minor belief and dangerously thin for one
+a one-way-door decision rests on. An assumption progresses through a
+derived, ever-recomputed state:
+
+- **Untested** — no concluded reading with non-zero strength yet.
+- **Signal** — some concluded evidence below the bar, positive or negative.
+- **Graduated** — Confidence ≥ the bar for its current Derived Impact.
+
+State recomputes on every write — a disconfirming reading can move an
+assumption backwards, `Graduated → Signal`, on the very next recompute.
+Graduation never flips `Status`: `Live` assumptions stay `Live` and ranked
+forever regardless of where their Graduation state sits.
+
+**Risk still governs attention, not "done"-ness:**
+
+```
+Risk = Derived Impact × (1 − max(0, Confidence)/100)
 ```
 
 (The clamp is deliberate: a belief the evidence is *against* already sits
-at full Risk for its Impact — the negative zone routes to the kill review,
-not to more testing budget.)
+at full Risk for its Derived Impact — the negative zone routes to the kill
+review, not to more testing budget.) Risk ranks the test-next queue —
+cheapest honest test of the riskiest belief on top — while Graduation
+answers a different question: has *this* belief earned enough proof for
+its stakes. Both read the same two derived numbers (Confidence, Derived
+Impact); neither is a property you set, and the register's job is keeping
+both current, not marching every row to a finish line.
 
-You stop testing a belief when its Risk falls below the **stage's Risk
-threshold** (`RISK_THRESHOLD_BY_STAGE`, the question-type-aware evidence ladder) — not when Confidence crosses
-a magic number. Because Impact varies, the same evidence can be plenty for a
-minor belief and dangerously thin for one a one-way-door decision rests on.
-Attention is governed by the Risk ranking, not by status: the register's job
-is to keep every belief's score current and keep you working above the
-threshold, not to march every row to a finish line. The threshold is a
-prioritisation rule, not a property of the record.
-
-The threshold **tightens with stage** (the reversibility proxy — Bezos two-way
-vs one-way doors, already in the repo on decisions). The threshold is the
-**max Risk** you can have and still stop testing. A **lower** threshold means
-a **higher** standard — you have to drive Risk down further (more evidence)
-before acting. Like a high-jump bar: a lower number means you have to clear
-more.
-
-| Stage | Risk threshold | Confidence floor | Why |
-|---|---|---|---|
-| Discovery | 30 | 10 | Two-way door — act on weak evidence, but need at least a signal |
-| Validation | 15 | 25 | Becoming one-way — need a real reading, not just vibes |
-| Scale | 10 | 40 | One-way door — solid evidence before scaling |
-| Maturity | 5 | 60 | Defensive, often regulatory — strongest evidence |
-
-**The Confidence floor** (the zero-evidence guard): Risk = Impact × (1 −
-Confidence/100), so a belief with Impact below the Risk threshold could read
-Risk ≤ threshold with **zero evidence** (Risk = Impact × (1 − 0/100) =
-Impact). The floor requires Confidence ≥ the stage's minimum before "cleared"
-is honest. "Cleared" requires **both** Risk ≤ threshold **and** Confidence ≥
-floor.
-
-A prevalence assumption at Discovery stops testing on a small survey (Risk
-drops below 30 AND Confidence rises above 10); the same prevalence assumption
-at Maturity needs a bigger, replicated survey to clear the tighter threshold
-(Risk below 5 AND Confidence above 60). The question type fixes what counts
-as evidence; the stage fixes how much is enough to act on (see
-`docs/question-types.md`, `docs/stage-policy.md`).
+A minor belief (Derived Impact 20, bar ≈ 50) graduates on a modest reading;
+a load-bearing belief a one-way-door decision rests on (Derived Impact 100,
+bar = 90) needs a near-ceiling series first. There's no discrete
+stage/threshold table any more — the bar is continuous in Derived Impact
+(`evidence-ladder.md`).
 
 ## What puts a supported belief back in the queue
 

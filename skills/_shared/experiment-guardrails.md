@@ -63,12 +63,12 @@ describe the source, not the belief.
 **One rung per artifact — split a mixed-rung artifact into separate readings.**
 Because rung is row-level, an artifact must sit at a **single** rung. When one
 raw artifact genuinely spans two rungs — e.g. a call that includes a real
-`Observed usage` demo **and** a past-behaviour discussion — it becomes
+`Prototype use` demo **and** a past-behaviour discussion — it becomes
 **multiple readings, one per rung** (the usage portion is its own reading,
-`Observed usage`; the discussion its own, `Talk`), each with its own
+`Prototype use`; the discussion its own, `Talk`), each with its own
 `beliefs[]` entries and its own `## Quote`/`## Source` body slice. Never
 average two rungs into one reading, and never stretch one rung to cover
-signal it doesn't fit. `Observed usage` is reserved for **genuine usage
+signal it doesn't fit. `Prototype use` is reserved for **genuine usage
 sessions** — not a demo watched, not a pitch reaction.
 
 **Evidence is external — a reading records an observation from a source
@@ -233,62 +233,75 @@ of it piles up.
 ## 2. The evidence ladder + feasibility (two axes of rung choice)
 
 Choosing each belief's **rung** is a trade-off of **two axes**, not one. The
-rung vocabulary is fixed (`Talk`, `Desk research`, `Signed up`, `Observed
-usage`, `Signed intent`, `Paying users`); the anchor (ceiling `s`) is per
-**(question type × rung × band)** — see `docs/evidence-ladder.md` for the 3D
-`RUNG_ANCHOR[questionType][rung][band]` table and `docs/question-types.md` for
-the seven question types. A rung that is **non-evidence** for the linked
-assumption's question type contributes `s=0` (flagged at the UI/skill layer,
-not a write blocker).
+rung vocabulary is fixed across every assumption type — 11 rungs in three
+categories (`docs/evidence-ladder.md`) — but the **anchor** (ceiling `s`) is
+per **(assumption type × rung × band)**: see `RUNG_ANCHOR[assumptionType][rung][band]`,
+the 3D table in `docs/evidence-ladder.md`. A rung that is **non-evidence**
+for the linked assumption's type contributes `s=0` (flagged at the UI/skill
+layer, not a write blocker).
 
-**Axis A — evidence strength (climb as high as the belief needs).** The 6
-rungs, in **two categories** (`docs/evidence-ladder.md`). The gaps *between*
-rungs reflect **commitment** — what the signal cost the person to give. The
-rung vocabulary is fixed; the **anchor** (ceiling `s`) is per
-**(question type × rung × band)** — see `docs/evidence-ladder.md` for the 3D
-`RUNG_ANCHOR[questionType][rung][band]` table:
+**Axis A — evidence strength (climb as high as the belief needs).** The 11
+rungs, in **three categories** (`docs/evidence-ladder.md`). The gaps
+*between* rungs reflect **commitment** — what the signal cost the person to
+give. The rung vocabulary is fixed; the **anchor** (ceiling `s`) is per
+**(assumption type × rung × band)**:
 
 - 🧪 **Testing** (instruments run on a sample you can enumerate):
-  - `Talk` — **the collapsed floor** (Opinion + Pitch-deck + Anecdotal merged,
-    the dashboard frontend redesign): anything from a bare stated opinion about a **hypothetical**
-    ("I think users would like this" — self / team / advisor) up to an
-    unprompted report of something that **actually happened** ("three users
-    told us they've been doing this manually in a spreadsheet"). Bands
-    Low / Typical / High carry the old Opinion (3) / Pitch-deck (6) /
-    Anecdotal (10) anchors under the legacy single-ladder; under the
-    question-type-aware ladder the anchors vary by question type (e.g.
-    Existence × Talk × High = 30, WTP × Talk = 0 non-evidence).
-  - `Desk research` — regulation, published data, competitor / prior-internal
-    facts. *Always ask first: "is this already knowable in hours, no
-    participants?"* Flat across bands under the legacy ladder; the ceiling
-    for Regulatory claims (High = 70).
-  - `Signed up` — the consumer lens's first do-rung (fake-door signup). A
-    **costly** commitment, but unpaid — probative for WillingnessToPay (a
-    fake-door is a short committed plan) and non-evidence for Existence.
-  - `Observed usage` — genuine usage sessions, sustained retention, A/B
-    tests. The ceiling for Existence / Prevalence / ValueUtility /
-    Feasibility claims; probative for CausalEffect (A/B).
+  - `Talk` — stated opinion (interviews): anything from a bare stated
+    opinion about a **hypothetical** ("I think users would like this" —
+    self / team / advisor) up to an unprompted report of something that
+    **actually happened** ("three users told us they've been doing this
+    manually in a spreadsheet"). Ceiling for `ProblemExists` (High = 99 —
+    talk alone can fully prove a problem exists); **non-evidence** for the
+    Viability types (`TheyllPay`, `ReachProfitably`, `EconomicsWork`) and for
+    Usability/Feasibility — stated intent proves nothing there.
+  - `Survey` — stated opinion at scale. Ceiling for `ProblemWidespread`
+    (High = 99): a systematic ask of many people is one `Survey` record at
+    the right magnitude band, not N `Talk` records.
+  - `Desk & data` — secondary research / public data (regulation, published
+    data, competitor / prior-internal facts). *Always ask first: "is this
+    already knowable in hours, no participants?"* Ceiling for
+    `LegalCompliant` (High = 99 — a regulator ruling is a ground truth, not
+    a high rung; a published opinion is the closest desk evidence gets).
+  - `Fake-door` — a pretended offering, observed signups. A **costly**
+    commitment, but unpaid — probative for `TheyllPay` and
+    `WantOurSolution`; non-evidence for `ProblemExists` / `ProblemWidespread`.
+  - `Prototype use` — observed usage of a prototype. Ceiling for
+    `WantOurSolution` and `CanCompleteTask` (High = 99 each) — reserved for
+    **genuine usage sessions**, never a demo watched or a pitch reaction.
+  - `Retention` — sustained usage over time. Ceiling for `TheyKeepUsingIt`
+    (High = 99): a churn reading is a `TheyKeepUsingIt` negative at
+    `Retention` grade, never a clean `Payment` kill.
 - 🎯 **Market** (open-world targets with a deadline, two pre-registered
   bars, closed by the market — renamed from "Goals" with the Goal→Experiment
   unification, `the evidence-remodel slice`; `docs/goals.md`):
-  - `Signed intent` — LOI / deposit / costly commitment before build.
-  - `Paying users` — real money, A/B on live traffic, signed contract.
-    Strongest, priciest. The ceiling for WillingnessToPay (High = 99) and
-    CausalEffect (High = 90).
+  - `Commitment` — signed intent (LOI, deposit, design-partner agreement)
+    before build.
+  - `Payment` — real money paid. Ceiling for `TheyllPay` (High = 99).
+    Strongest, priciest Viability evidence.
+- ⚙️ **Operational** (proof the system itself works, not that people want
+  it):
+  - `Build proof` — operational proof the system can be built. Ceiling for
+    `CanBuildIt` (High = 99).
+  - `Outcome test` — a causal/efficacy test (A/B, pre/post). Ceiling for
+    `ItWorks` (High = 99) — the only rung that reaches the ceiling for a
+    causal claim; stated intent is non-evidence there.
+  - `Cost data` — unit-economics data. Ceiling for `ReachProfitably` and
+    `EconomicsWork` (High = 99 each).
 
 **Non-evidence rungs** (anchor 0 across all bands): a rung that is
-non-evidence for the linked assumption's question type contributes `s=0` and
+non-evidence for the linked assumption's type contributes `s=0` and
 is flagged at the UI/skill layer for human review ("reclassify the assumption
-or drop the reading"). The flag is derived (`isNonEvidence(questionType,
+or drop the reading"). The flag is derived (`isNonEvidence(assumptionType,
 rung)`), not stored. **Not a write blocker** — the reading is allowed,
-contributes nothing. See `docs/question-types.md` for the per-question-type
+contributes nothing. See `docs/evidence-ladder.md` for the full per-type
 probative / non-evidence table.
 
 Revealed > stated: a costly action beats a "would you?" — within Testing
-(`Observed usage` > `Talk`) and across the **commitment cliff** (any Market
-rung beats every Testing rung for WTP / CausalEffect). Push for the highest
-rung the test can honestly reach **within the assumption's question-type
-sub-ladder**.
+(`Prototype use` / `Retention` > `Talk` / `Survey`) and across the
+**commitment cliff** (any Market rung beats every Testing rung for
+`TheyllPay`). Push for the highest rung the test can honestly reach
+**within the assumption's type sub-ladder**.
 
 **Market rungs enter via a committed Experiment, commitment-first, always.**
 A Market-rung design *is* a committed plan — both bars pre-registered,
@@ -308,7 +321,7 @@ high ceiling — test cheaply until a belief has earned a Market-tier bet.
 
 **Pick the rung that maximises strength × feasibility — per belief.**
 Recommend the highest strength rung that is still genuinely runnable, in one
-line ("`Signed intent` ideal but no buyer access yet → `Desk research`
+line ("`Commitment` ideal but no buyer access yet → `Desk & data`
 first, `High` feasibility"). If the ideal rung is `Low` feasibility, drop
 down and **say why** — don't design a test that won't get run. A high-Risk
 belief often needs several records: a feasible weak test now, a stronger one
@@ -319,13 +332,13 @@ when access opens.
 per belief the reading scores), reading the artifact's **row-level `Rung`** and
 gated to that entry's conclusive `Result` (0 while `Running` or `Inconclusive`):
 
-- `s = RUNG_ANCHOR[questionType][rung][band] × sign(Result)` — the
-  **row-level** `Rung`'s anchor in the linked assumption's question-type
+- `s = RUNG_ANCHOR[assumptionType][rung][band] × sign(Result)` — the
+  **row-level** `Rung`'s anchor in the linked assumption's type
   sub-ladder, times the sign of *this entry's* `Result`; `Validated` positive,
   `Invalidated` negative. Symmetric: a −99 is as strong, and as hard to earn,
-  as a +99. A rung that is non-evidence for the question type carries anchor
-  0 → `s=0` (flagged, not blocked). See `docs/evidence-ladder.md` for the
-  full 3D anchor table.
+  as a +99. A rung that is non-evidence for the assumption's type carries
+  anchor 0 → `s=0` (flagged, not blocked). See `docs/evidence-ladder.md` for
+  the full 3D anchor table.
 - **Magnitude (Low / Typical / High) applies to EVERY rung** — picked from
   what actually materialised (commitment size × count × activity depth for
   Market rungs; intensity for Testing rungs) on absolute anchors, **never
@@ -336,8 +349,8 @@ gated to that entry's conclusive `Result` (0 while `Running` or `Inconclusive`):
   full positive; at/below `We're wrong if` → negative; between → interpolate
   (degree of achievement). **No pre-registered floor → no negative** — an
   uncontrolled absence of sales is `Inconclusive`, never a kill reading
-  (the base-rate guard is structural). Churn is a *retention*-belief
-  negative at `Observed usage` grade, never a clean `Paying users` kill.
+  (the base-rate guard is structural). Churn is a `TheyKeepUsingIt`
+  negative at `Retention` grade, never a clean `Payment` kill.
 
 **Source quality — *the who* (a weight, within a rung, never across).** Two
 judged sub-scores, each picked from `{1.0, 0.7, 0.5}`; the field stores the
@@ -365,12 +378,23 @@ it rides the Impact seed. Neither is source quality.)
 
 **Confidence (canonical aggregation).** The assumption's Confidence is the
 signed, strength-weighted average of the concluded `beliefs[]` entries scored
-against it (across all readings), shrunk toward 0 by a neutral prior:
+against it (across all readings), shrunk toward 0 by a **per-rung** neutral
+prior:
 
 ```
-Confidence = (w₀·0 + Σ wᵢ·sᵢ) / (w₀ + Σ wᵢ)
-             w₀ = 100,  wᵢ = |sᵢ| × source_qualityᵢ × commitmentFactorᵢ
+Confidence = (Σ wᵢ·sᵢ) / (Σ_rung W0[rung] + Σ wᵢ)
+             — the prior sum runs over each RUNG with ≥1 concluded reading,
+             contributing that rung's W0 once (one prior per evidence stream)
+             wᵢ = |sᵢ| × source_qualityᵢ × commitmentFactorᵢ
 ```
+
+- **`W0` is per-rung, not a flat constant** (`W0_BY_RUNG`, `docs/evidence-ladder.md`):
+  `Desk & data` carries a low prior (`2` — one authoritative source nearly
+  saturates); every other rung uses `6.5` (~10 distinct sources reach ~90% of
+  the rung's ceiling). When evidence spans multiple rungs, each rung with a
+  concluded reading contributes its own `W0` to the denominator once (one
+  prior per evidence stream) — this is what lets Desk-only assumptions move
+  fast while Talk-only ones stay slow, independently.
 
 - **`commitmentFactor`** discounts *found* (non-experiment) evidence: it is
   `1.0` when the entry's reading carries an `experimentId` (the reading is the
@@ -384,7 +408,7 @@ Confidence = (w₀·0 + Σ wᵢ·sᵢ) / (w₀ + Σ wᵢ)
   Like `source_quality`, `commitmentFactor` scales an entry's *weight*, never
   its value `sᵢ` (the rung sets the ceiling). So the average stays bounded by
   the strongest entry's `|s|`, and a discounted found reading can never
-  outrank a stronger experiment-born one: a found `Observed usage` still
+  outrank a stronger experiment-born one: a found `Prototype use` still
   beats an experiment `Talk`. The discount changes how fast Confidence
   approaches a ceiling, never which ceiling applies.
 
@@ -412,11 +436,19 @@ Confidence = (w₀·0 + Σ wᵢ·sᵢ) / (w₀ + Σ wᵢ)
   bounded by the strongest reading), and a lone top-grade reading lands near
   half its rung (one max hit ≈ +49; one max miss ≈ −49) — approaching ±99
   takes a series (Cromwell's rule, both directions).
-- **`w₀ = 100`** is the one empirical knob (hard floor ≥ 98, so no single
-  reading can reach the kill zone). **Kill zone: Confidence ≤ −50** raises
-  the audit flag for a human-affirmed kill (`register-audit.md`) — never an
-  automatic `Invalidated`. Testing negatives asymptote at −30: **only a
-  series of missed Market-rung readings can kill a belief.**
+- **`W0` (per rung, `W0_BY_RUNG`) is the empirical knob**, not a single hard
+  floor — see the per-rung table above. **Kill zone: Confidence ≤ −50**
+  raises the audit flag for a human-affirmed kill (`register-audit.md`) —
+  never an automatic `Invalidated`. How fast a belief can reach it depends on
+  *where its type's ceiling sits*: for a type whose ceiling rung is Market or
+  Operational (the Viability types, `ItWorks`), only a **series** of missed
+  committed-plan readings accumulates that far, since Talk/Survey are
+  non-evidence there. For a type whose ceiling rung is itself a Testing rung
+  (e.g. `ProblemExists` via `Talk` — "Talk-only fully proves a problem
+  exists", `docs/evidence-ladder.md`), a single strongly disconfirming
+  reading can already land near the ceiling and enter the kill zone. Either
+  way, approaching the ceiling — positive or negative — takes real evidence
+  mass; one reading alone lands near half its rung (above).
 
 Backends never encode this in a native formula — a connector-agnostic script
 (and the evidence skills, on every touching write) recomputes `Strength`,
@@ -447,7 +479,7 @@ into the average — the `reading-ungraded` check flags it (`ontology.yaml`).
 **Volume lives in rung choice, not in a record count.** Same-source records
 don't stack (the dedupe), and weak records can't out-average strong ones. If
 you have volume, it should change the *rung* — a systematic ask of 100
-people is one `Observed usage` record at the right magnitude band, not 100
+people is one `Survey` record at the right magnitude band, not 100
 `Talk` records.
 
 **Sample size (N) gates the `Result`; it is not a magnitude lever.** A test
@@ -479,7 +511,7 @@ skeleton + how-to-ask rules, also the question discipline `survey.md`
 inherits), `prototype-brief.md` (prototype-needed rule table §3b + brief
 template), `fake-door.md` (stimulus / costly ask / instrumentation spec).
 
-### 🔵 Desk research
+### 🔵 Desk & data
 
 - **Sub-questions.** Break the belief into the specific questions sources
   must answer (each maps to part of `We're right if`).
@@ -504,7 +536,7 @@ template), `fake-door.md` (stimulus / costly ask / instrumentation spec).
 
 ### 🟠 Pitch / Prototype / Fake-door (incl. 🎯 Market rungs)
 
-A 🎯 Market-rung design (`Signed intent` / `Paying users`) is a **committed
+A 🎯 Market-rung design (`Commitment` / `Payment`) is a **committed
 plan**: both bars pre-registered, Deadline set, instrument named in advance
 (`docs/goals.md`) — a fake-door is a short committed plan.
 
@@ -541,9 +573,9 @@ you show a prototype in the interview?").
 | Discovering… | Build | Rung it belongs on |
 |---|---|---|
 | Problem **existence / severity** — did it happen, how often, how painful (past behaviour) | **Nothing** — interview without stimulus | `Talk` |
-| Solution **comprehension / usability / engagement** — do they get it, can they use it, do they come back | **Prototype** (throwaway; Wizard-of-Oz allowed) | `Observed usage` |
-| **Willingness to commit** before anything is built | **Fake-door / landing page** — not a full prototype | `Signed intent` |
-| Facts **already knowable** from published sources | **Nothing** — desk research | `Desk research` |
+| Solution **comprehension / usability / engagement** — do they get it, can they use it, do they come back | **Prototype** (throwaway; Wizard-of-Oz allowed) | `Prototype use` (sustained come-back signal is `Retention`) |
+| **Willingness to commit** before anything is built | **Fake-door / landing page** — not a full prototype | `Fake-door` (a signed commitment before build is `Commitment`) |
+| Facts **already knowable** from published sources | **Nothing** — desk research | `Desk & data` |
 
 A prototype spec is a **prototype brief** — the *experiment's constraints on
 the instrument*: what must be REAL, what can be FAKED, and the

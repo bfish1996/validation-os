@@ -8,7 +8,7 @@ accept them in the record body. Silence is not the same as "not applicable."
 - **Selection bias** — are conditions/groups getting systematically different
   subjects? (e.g. only power users see the new flow)
 - **Novelty effects** — will the intervention look good just because it's
-  new, not because it's better? Most relevant to `Observed usage`.
+  new, not because it's better? Most relevant to `Prototype use`.
 - **Hawthorne effect** — are subjects behaving differently because they know
   they're being observed? Relevant to any moderated interview or usability
   session.
@@ -31,7 +31,7 @@ accept them in the record body. Silence is not the same as "not applicable."
   group, or can one interviewee's answer bias the next (e.g. shared Slack
   channel)?
 - **Sample representativeness** — will results generalize past the tested
-  population? A `Signed intent` test with five design-partner customers
+  population? A `Commitment` test with five design-partner customers
   doesn't tell you what the long tail will do.
 - **Multiple comparisons** — testing many metrics inflates false positives.
   Commit to one primary metric (the `We're right if` bar); treat everything
@@ -48,7 +48,7 @@ where they get stuck, what they misread, the mental model they reveal,
 whether they can complete the task. **Destroyed:** enthusiasm, "would you
 use this", stated willingness to pay — anything about desire. Build the
 pass bar only on signals that survive the instrument; desirability needs
-its own revealed-preference record (`Signed intent` / `Paying users`), not
+its own revealed-preference record (`Commitment` / `Payment`), not
 a question tacked onto a watched session.
 
 ## Stopping rules

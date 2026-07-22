@@ -25,16 +25,16 @@ rank by structure, not by re-scoring
 An assumption that can't be proven wrong isn't an assumption — it's a
 belief, and it gets rejected or reframed at the grill. Readiness is a
 derived **Completeness %** — every structural slot present (Description,
-Lens, Impact, Scoring justification, dependencies traced) — not a stored
-checklist.
+Lens, Impact, Scoring justification, dependencies traced, Assumption Type)
+— not a stored checklist.
 
-Every assumption is tagged with a **Stage** — the kind of external-actor
-response it tests (Discovery → Validation → Scale → Maturity). The
-membership test is the subject-verb rule: the claim's subject must be an
-external actor (user, buyer, competitor, regulator, partner, distributor,
-investor) or the market, never "we" — there is no stage for "we can build
-X." The Lens × Stage heatmap reads where your bets cluster; see
-[stage-policy.md](stage-policy.md).
+Every assumption carries an **Assumption Type** — never hand-set, inferred
+on every write from the falsification bar (what would prove the claim
+WRONG, not what evidence is cheap to gather): 11 types, from `ProblemExists`
+to `EconomicsWork` (`evidence-ladder.md`). Each type derives a **Risk
+Group** — `Desirability` / `Usability` / `Feasibility` / `Viability` — the
+headline axis that replaced the old Stage taxonomy; Stage itself is retired
+(kept only so a legacy row's stored value can still be read).
 
 Skills: `/assumptions` (build, grill, audit). Rules:
 `skills/_shared/assumption-guardrails.md`.
@@ -47,12 +47,13 @@ protocol run, one Lens-matched population — that may honestly test
 right if` / `We're wrong if` pair and its own planned rung on a composed bar
 line, all fixed before running (`skills/_shared/experiment-guardrails.md
 §1b`). Each rung is bought at the lowest step of the **evidence ladder**
-that can honestly move that belief (see `evidence-ladder.md`: 6 rungs in two
-categories — **Testing**, recruited-sample instruments from `Talk` to
-`Observed usage`, and **Market**, market-closed targets from `Signed intent`
-up to `Paying users`). The anchor (ceiling `s`) is per **(question type ×
-rung × band)** — the same rung carries a different ceiling for an Existence
-claim vs a WillingnessToPay claim (the question-type-aware evidence ladder, `docs/question-types.md`). A
+that can honestly move that belief (see `evidence-ladder.md`: 11 rungs in
+three categories — **Testing**, recruited-sample instruments from `Talk` to
+`Retention`; **Market**, market-closed targets `Commitment` and `Payment`;
+**Operational**, proof the system itself works — `Build proof`, `Outcome
+test`, `Cost data`). The anchor (ceiling `s`) is per **(assumption type ×
+rung × band)** — the same rung carries a different ceiling for a
+`ProblemExists` claim vs a `TheyllPay` claim (`evidence-ladder.md`). A
 plan carrying a `Deadline` is commitment-grade: it closes with an `Outcome`
 (`Achieved` / `Missed` / `Dropped`) as well as its bar verdicts — the
 discipline a standalone `Goal` record used to give, now just a mode of the
@@ -73,7 +74,7 @@ Two derived numbers close the loop, and **neither is ever typed by hand**:
   Signed −100…100: evidence-for pushes it up, evidence-against pushes it
   down (a re-test signal, and at ≤ −50 a human kill prompt). No evidence →
   Confidence 0.
-- **Risk = Impact × (1 − max(0, Confidence)/100)** — expected unmitigated
+- **Risk = Derived Impact × (1 − max(0, Confidence)/100)** — expected unmitigated
   damage. As evidence lands, Confidence moves, Risk follows, and the
   **test-next surface** reorders itself: candidate experiments ranked by
   Feasibility × the Risk of the belief they'd test, so the cheapest honest

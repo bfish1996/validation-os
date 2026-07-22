@@ -83,8 +83,8 @@ design questions: nothing gets built.
   the brief: design question ← brief ← experiment ← assumption.
 - **The A/B trap.** The moment you want to *count* a design question's
   answer — "which variant do users prefer?" — it has become an
-  experiment: variant testing in-session at `Observed usage`, or a live
-  A/B at `Paying users`. Builder vibes must never answer what the
+  experiment: variant testing in-session at `Prototype use`, or a live
+  A/B at `Outcome test` / `Payment`. Builder vibes must never answer what the
   experiment was built to measure.
 
 ## Two kinds of prototype
@@ -178,7 +178,7 @@ mattpocock/skills.
 ## Backflow — the only thing that crosses back
 
 Shipping is the **highest-rung experiment**. Production usage and payments
-return to the register through `/find-evidence` as `Paying users` (99%)
+return to the register through `/find-evidence` as `Payment` (99%)
 readings — the single backflow. The build phase feeds the register rather
 than pausing it: it generates evidence and new thesis beliefs, so
 graduation never idles the OS. The register runs on the business's

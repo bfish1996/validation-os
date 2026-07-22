@@ -129,7 +129,7 @@ Then map the person to the **one** primary `Lens` their perspective serves
 (from the config's `vocabulary.lens`) and note any secondary. Be honest
 about the **evidence ceiling**: a person can only give evidence their
 position allows. An exec speaks first-hand on commercial claims (and can
-even sign — 🎯 `Signed intent`) but only a weak `Talk` on what end
+even sign — 🎯 `Commitment`) but only a weak `Talk` on what end
 consumers will do; a consumer gives `Talk` on their own behaviour but
 nothing on procurement. A single conversation is mostly low-rung 🧪 Testing evidence —
 don't plan for Confidence a chat can't deliver.

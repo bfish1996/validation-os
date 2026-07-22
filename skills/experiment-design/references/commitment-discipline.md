@@ -1,7 +1,7 @@
 # Commitment discipline — designing a Market-grade (committed) Experiment
 
 Fires when step 2 of the main gauntlet lands on a **Market rung**
-(`Signed intent` / `Paying users`) for a bundled belief. A Market-rung design
+(`Commitment` / `Payment`) for a bundled belief. A Market-rung design
 is not a different record — the Goal record was unified into the Experiment
 (`the evidence-remodel slice`) — it is the **same Experiment row**, carrying an optional
 `Deadline` and closing with an `Outcome` (Achieved / Missed / Dropped). This

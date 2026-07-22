@@ -34,24 +34,23 @@ time, gated, through single mode.
 Both diagnose with the **same** `register-audit.md` detection — audit stops
 at the report; loop carries the findings into autonomous fixes.
 
-## Stage-keyed Risk threshold (the question-type-aware evidence ladder)
+## Graduation bar (the confidence-scoring simplification)
 
-Flag each assumption against its **stage's threshold** — "cleared" requires
-BOTH Risk ≤ the stage's Risk threshold AND Confidence ≥ the stage's
-Confidence floor (the zero-evidence guard):
+Flag each assumption against its **impact-scaled graduation bar** — there is
+no Stage-keyed threshold any more (`docs/validated.md`,
+`packages/core/src/derivation/graduation.ts`):
 
-- **Cleared** (Risk ≤ threshold AND Confidence ≥ floor) → de-prioritized.
-  The belief has enough evidence for its stage's stopping bar.
-- **Needs evidence** (either condition fails) → testing-priority.
+```
+graduationBar(derivedImpact) = min(40 + 0.5 × derivedImpact, 90)
+```
 
-| Stage | Risk threshold | Confidence floor |
-|---|---|---|
-| Discovery | 30 | 10 |
-| Validation | 15 | 25 |
-| Scale | 10 | 40 |
-| Maturity | 5 | 60 |
+- **Graduated** (Confidence ≥ the bar) → de-prioritized. The belief has
+  enough evidence for its stakes.
+- **Untested / Signal** (no effective evidence yet, or below the bar) →
+  testing-priority.
 
-The Confidence floor prevents a low-Impact belief from being "cleared" with
-zero evidence — Risk = Impact × (1 − 0/100) = Impact, so a belief with Impact
-below the threshold would read "cleared" without any readings. The floor
-requires at least a minimum Confidence signal before "cleared" is honest.
+Graduation state recomputes on every write — a disconfirming reading can
+move a row backwards, `Graduated → Signal`, on the very next recompute. The
+bar itself has no "zero-evidence guard" to reason about separately: the
+`Untested` state already holds a belief with no concluded reading regardless
+of how low its bar sits (Derived Impact alone never "clears" it).

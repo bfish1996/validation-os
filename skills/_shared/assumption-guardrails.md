@@ -255,8 +255,9 @@ not the belief, and lives at the experiment-prioritisation layer
 **Confidence is derived, not a score.** You move it by **logging evidence
 readings**, never by typing a number. Signed, −100…100, 0 = no evidence: the
 signed, strength-weighted average of the record's concluded readings with a
-neutral prior (`w₀ = 100`) — full ruleset and the rung/magnitude/source
-tables: `experiment-guardrails.md §2`, `docs/evidence-ladder.md`. It
+**per-rung** neutral prior (`W0_BY_RUNG` — `Desk & data` = 2, every other
+rung = 6.5) — full ruleset and the rung/magnitude/source tables:
+`experiment-guardrails.md §2`, `docs/evidence-ladder.md`. It
 asymptotes at ±99: an assumption is never validated, and "validated enough"
 is a Risk judgment, not a Confidence number (`docs/validated.md`). The
 **negative zone is the kill-o-meter**: evidence net-against lowers
@@ -264,7 +265,7 @@ Confidence — a re-test signal (Risk stays clamped), and at **≤ −50** audit
 prompts a human-affirmed kill (never automatic).
 
 **Volume lives in rung choice, not record count.** 100 people validating a
-belief = one `Observed usage` record at the right magnitude band, not 100
+belief = one `Survey` record at the right magnitude band, not 100
 `Talk` records — the average is bounded by the strongest reading and
 same-source readings dedupe, so weak records don't stack. Three filters before a signal counts at all: (a)
 it must test *this* claim — evidence for a sibling or dependency doesn't

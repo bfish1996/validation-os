@@ -9,8 +9,8 @@ description: >-
   "We're right if" pass bar + a "We're wrong if" kill bar PER bundled belief,
   drafts the protocol by the run's method into the record body, then creates +
   links the Experiment (Status=Running) — one row, one bar line per bundled
-  belief, one question at a time, gated write. A Market-rung design (Signed
-  intent / Paying users) fires the commitment discipline in-skill (an optional
+  belief, one question at a time, gated write. A Market-rung design (Commitment
+  / Payment) fires the commitment discipline in-skill (an optional
   Deadline, SMART-bar challenge, advisory Confidence bands) — the Goal record
   was unified into the Experiment, there is no separate skill to hand off to.
   Then PREPARES the run via a references/ playbook keyed to the run's method:
@@ -136,36 +136,37 @@ before opening the next; the write is gated at the end.
 
 2. **Per-belief rung, one run Feasibility** (`§2`). Choose the **rung per
    bundled belief** — one run can honestly yield different-strength signal per
-   belief (past-behaviour questions vs prototype-in-hand). The 6-rung
-   vocabulary is fixed (`Talk`, `Desk research`, `Signed up`, `Observed
-   usage`, `Signed intent`, `Paying users`); the anchor (ceiling `s`) is per
-   **(question type × rung × band)** — see `docs/evidence-ladder.md`. Weigh
-   two axes per belief: (a) **strength** — the 6-rung ladder, 🧪 Testing
-   (`Talk` 3/6/10 → `Desk research` 15 → `Signed up` 30/50/70 → `Observed
-   usage` 30/50/70) → 🎯 Market (`Signed intent` 30/50/70 → `Paying users`
-   30/50/70, the legacy single-ladder anchors; the live anchors are per
-   question type); and (b) **feasibility**. Set **`Feasibility` once for the
-   whole run** — `High`/`Medium`/`Low` over access, cost, time — because the
-   instrument runs once against one population; bundling never splits it.
-   Drivers worth remembering land as a line in the protocol body ("Low: no
-   buyer access until Q3"). Recommend the highest-strength rung each belief
-   can still honestly reach, one-line why ("`Signed intent` ideal but no
-   buyer access yet → `Desk research`, `High` feasibility, this week").
+   belief (past-behaviour questions vs prototype-in-hand). The 11-rung
+   vocabulary is fixed across every assumption type — 🧪 Testing (`Talk`,
+   `Survey`, `Desk & data`, `Fake-door`, `Prototype use`, `Retention`),
+   🎯 Market (`Commitment`, `Payment`), ⚙️ Operational (`Build proof`,
+   `Outcome test`, `Cost data`); the anchor (ceiling `s`) is per
+   **(assumption type × rung × band)** — `RUNG_ANCHOR[assumptionType][rung][band]`,
+   see `docs/evidence-ladder.md`. Weigh two axes per belief: (a)
+   **strength** — which rung reaches closest to the assumption type's
+   ceiling (e.g. `Talk` is the ceiling for `ProblemExists`; `Payment` is the
+   ceiling for `TheyllPay`); and (b) **feasibility**. Set **`Feasibility`
+   once for the whole run** — `High`/`Medium`/`Low` over access, cost, time —
+   because the instrument runs once against one population; bundling never
+   splits it. Drivers worth remembering land as a line in the protocol body
+   ("Low: no buyer access until Q3"). Recommend the highest-strength rung
+   each belief can still honestly reach, one-line why ("`Commitment` ideal
+   but no buyer access yet → `Desk & data`, `High` feasibility, this week").
 
-   **Draft bar lines from the assumption's question-type sub-ladder**
-   (the question-type-aware evidence ladder). The planned rung must be **probative** for the bundled
-   assumption's question type — a bar line whose planned rung is
-   **non-evidence** for the assumption's question type must be **refused**
+   **Draft bar lines from the assumption's type sub-ladder**
+   (`docs/evidence-ladder.md`). The planned rung must be **probative** for
+   the bundled assumption's type — a bar line whose planned rung is
+   **non-evidence** for the assumption's type must be **refused**
    (a structural guard, not an advisory). Concretely: don't compose a
-   `Talk` bar line for a WillingnessToPay assumption (talk is non-evidence
-   for WTP); don't compose a `Talk` bar line for a CausalEffect assumption
+   `Talk` bar line for a `TheyllPay` assumption (talk is non-evidence
+   for WTP); don't compose a `Talk` bar line for an `ItWorks` assumption
    (stated intention is non-evidence for causation); don't compose anything
-   but `Desk research` for a Regulatory assumption. See
+   but `Desk & data` / `Build proof` for a `LegalCompliant` assumption. See
    `docs/evidence-ladder.md` for the full probative / non-evidence table.
    The guard is structural: refuse the bar line, don't just warn.
 
    **Market-rung designs fire the commitment discipline.** If a belief's
-   honest rung is `Signed intent` or `Paying users`, run
+   honest rung is `Commitment` or `Payment`, run
    `references/commitment-discipline.md` alongside this same gauntlet — it
    is still the **same Experiment record** (the Goal record was unified into
    it, `the evidence-remodel slice`), now carrying an optional `Deadline` and, at closure, an
@@ -336,7 +337,7 @@ theme).
   bundles write as sequential per-belief cards, never one bundled write.
 - **Never set `Status` to anything but `Running`.** Verdicts, findings,
   `Closure reason`, and `Outcome` belong to `/find-evidence`.
-- **A Market-rung plan (`Signed intent` / `Paying users`) is still an
+- **A Market-rung plan (`Commitment` / `Payment`) is still an
   Experiment row** — run the commitment discipline in-skill
   (`references/commitment-discipline.md`); there is no separate record type
   to hand off to (`the evidence-remodel slice`).

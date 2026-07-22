@@ -86,7 +86,7 @@ canonical link exists to store on the reading.
   still needs work.
 - **`/experiment-design`** (and **`/meeting-prep`**) — design a *new*
   forward test or commitment (`Status = Running`), including interview
-  guides and `Desk research` tests that this skill later **closes out**
+  guides and `Desk & data` tests that this skill later **closes out**
   once they've actually been run.
 - **`/assumptions` (loop mode)** — the whole register, autonomously.
 
@@ -163,7 +163,7 @@ That procedure does the searching, triage (against the assumption's
 Description + Lens), Rung/Result/Date/source-link assignment, the
 retrospective-honesty check, the gated write, and the Confidence roll-up.
 Follow it verbatim — don't re-derive the schema here. It first **pulls the
-assumption's open `Running` plans** (interview guides, `Desk research`
+assumption's open `Running` plans** (interview guides, `Desk & data`
 tests) so that a found transcript which is *the run of* one of those plans
 **closes that bar line out** — logs a `beliefs[]` entry against each bundled
 belief it addressed, `experimentId` set to that plan (the executed-plan case),
@@ -193,33 +193,46 @@ the reading `body` on the canonical **`## Quote`** (verbatim what the source
 said/did) + **`## Source`** (who/when/link) template; keep analysis out of the
 body — it goes in each entry's `Grading justification`.
 
-**Only propose rungs from the assumption's question-type sub-ladder**
-(the question-type-aware evidence ladder). The 6-rung vocabulary is fixed; the anchor (ceiling `s`) is per
-**(question type × rung × band)** — see `docs/evidence-ladder.md`. A rung that
-is **non-evidence** for the linked assumption's question type contributes `s=0`
-and must be **flagged** for human review ("this reading is non-evidence for
-this assumption's question type — reclassify the assumption or drop the
-reading"). Concretely:
+**Only propose rungs from the assumption's Assumption Type sub-ladder**
+(`docs/evidence-ladder.md`). The 11-rung vocabulary is fixed; the anchor
+(ceiling `s`) is per **(assumption type × rung × band)** —
+`RUNG_ANCHOR[assumptionType][rung][band]`. A rung that is **non-evidence**
+for the linked assumption's type contributes `s=0` and must be **flagged**
+for human review ("this reading is non-evidence for this assumption's
+type — reclassify the assumption or drop the reading"). Concretely:
 
-- Existence assumption: propose `Talk` / `Observed usage` / `Desk research`.
-  Warn if the user tries to log `Signed up` / `Signed intent` / `Paying users`
-  (market rungs don't prove a pain exists — non-evidence).
-- WillingnessToPay assumption: propose `Signed up` / `Signed intent` /
-  `Paying users`. Warn if the user tries to log `Talk` / `Desk research`
-  (talk is non-evidence for WTP — revealed preference).
-- CausalEffect assumption: propose `Observed usage` (A/B) / `Signed intent`
-  (natural experiment) / `Paying users` (A/B on live traffic). Warn on
-  `Talk` / `Desk research` (stated intention is non-evidence for causation).
-- Regulatory assumption: propose `Desk research` only. Warn on anything else.
-- ValueUtility assumption: propose `Talk` (experience sampling) /
-  `Observed usage` (sustained retention). Warn on `Signed intent` /
-  `Paying users` (WTP rungs are non-evidence for value — people pay for
-  things they don't use).
-- Prevalence assumption: propose `Observed usage` (large-N) / `Desk research`
-  (published rates). Warn on `Talk` (a few interviews are non-evidence for a
-  prevalence claim).
-- Feasibility assumption: propose `Observed usage` (prototype usability) /
-  `Desk research` (technical feasibility).
+- `ProblemExists`: propose `Talk` (the ceiling) / `Survey` / `Desk & data` /
+  `Prototype use`. Warn on `Fake-door` / `Commitment` / `Payment` (market
+  rungs don't prove a pain exists — non-evidence).
+- `ProblemWidespread`: propose `Survey` (the ceiling) / `Desk & data`. Warn
+  on `Fake-door` / `Prototype use` / market rungs (a rate claim needs scale,
+  not a handful of interviews).
+- `WantOurSolution`: propose `Prototype use` (the ceiling) / `Fake-door` /
+  `Commitment` / `Payment`. Warn on `Build proof` / `Outcome test` /
+  `Cost data` (operational proof doesn't show desire).
+- `ItWorks`: propose `Outcome test` (the ceiling, A/B) / `Prototype use` /
+  `Retention` / `Build proof`. Warn on `Talk` / `Survey` / `Commitment` /
+  `Payment` (stated intent is non-evidence for a causal claim).
+- `CanCompleteTask`: propose `Prototype use` (the ceiling) / `Outcome test` /
+  `Retention`. Warn on `Talk` / `Survey` (stated intent is non-evidence for
+  usability).
+- `CanBuildIt`: propose `Build proof` (the ceiling) / `Prototype use` /
+  `Outcome test` / `Desk & data`. Warn on `Talk` / `Survey` / `Fake-door`
+  (feasibility isn't proven by asking).
+- `LegalCompliant`: propose `Desk & data` (the ceiling) / `Build proof`. Warn
+  on anything else — a regulator ruling is a ground truth, not a rung at all.
+- `TheyllPay`: propose `Payment` (the ceiling) / `Commitment` / `Fake-door`.
+  Warn on `Talk` / `Survey` (stated intent is non-evidence for WTP —
+  revealed preference only).
+- `TheyKeepUsingIt`: propose `Retention` (the ceiling) / `Prototype use` /
+  `Payment`. Warn on `Desk & data` / `Commitment` / `Build proof` /
+  `Outcome test` (a sign-up or a build doesn't show they keep using it).
+- `ReachProfitably`: propose `Cost data` (the ceiling) / `Payment`. Warn on
+  `Talk` / `Survey` / `Fake-door` (CAC/LTV needs real unit economics, not
+  stated interest).
+- `EconomicsWork`: propose `Cost data` (the ceiling) / `Payment` /
+  `Build proof`. Warn on `Talk` / `Survey` / `Fake-door` (margin claims need
+  real cost/revenue data).
 
 The flag is a **warning, not a write blocker** — the reading is allowed,
 contributes nothing, and is surfaced for the human to reclassify the

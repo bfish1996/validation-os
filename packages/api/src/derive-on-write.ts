@@ -18,6 +18,7 @@ import {
   type BeliefScore,
   type DataProvider,
   type DecisionRecord,
+  type ExperimentRecord,
   type ReadingRecord,
 } from "@validation-os/core";
 
@@ -84,36 +85,56 @@ export function deriveReadingFields(
  * Recompute Confidence / Derived Impact / Risk for every assumption and write
  * back only those whose derived tuple actually changed (so unrelated rows
  * don't churn their version). Returns the number of rows updated.
+ *
+ * Also mirrors the freshly-inferred Assumption Type onto the record's
+ * top-level `"Assumption Type"` field — the stored field is a cache of the
+ * inference output (see `recompute.ts`), not a hand-set value, so every
+ * touching write is the one place it's kept current. The experiments
+ * register is fetched alongside assumptions/readings/decisions so inference
+ * prefers a bar line's `wrongIf` text over Description alone.
  */
 export async function recomputeAllDerived(
   provider: DataProvider,
 ): Promise<number> {
-  const [assumptions, readings, decisions] = await Promise.all([
+  const [assumptions, readings, decisions, experiments] = await Promise.all([
     provider.list("assumptions"),
     provider.list("readings"),
     provider.list("decisions"),
+    provider.list("experiments"),
   ]);
 
   const derived = recomputeDerived({
     assumptions: assumptions as unknown as AssumptionRecord[],
     readings: readings as unknown as ReadingRecord[],
     decisions: decisions as unknown as DecisionRecord[],
+    experiments: experiments as unknown as ExperimentRecord[],
   });
 
   let updated = 0;
   for (const a of assumptions) {
     const next = derived.get(a.id);
     if (!next) continue;
+    const asm = a as unknown as AssumptionRecord;
     const cur = (a.derived ?? {}) as Partial<AssumptionRecord["derived"]>;
+    // The stored field is a cache of the inference output — fall back to
+    // the previous value only when inference has nothing to say (empty
+    // register), never overwrite a real type with null.
+    const nextType = next.assumptionType ?? asm["Assumption Type"];
     if (
       cur.confidence === next.confidence &&
       cur.risk === next.risk &&
       cur.derivedImpact === next.derivedImpact &&
-      cur.completeness === next.completeness
+      cur.completeness === next.completeness &&
+      asm["Assumption Type"] === nextType
     ) {
       continue;
     }
-    await provider.update("assumptions", a.id, { derived: next }, a.version);
+    await provider.update(
+      "assumptions",
+      a.id,
+      { derived: next, "Assumption Type": nextType },
+      a.version,
+    );
     updated += 1;
   }
   return updated;

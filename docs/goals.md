@@ -222,7 +222,7 @@ in July.
 
 **Sept 30.** Attio shows 2 pilots + 4 LOIs. `Closed: Achieved` via
 `/find-evidence` close-out, decomposed per belief: 2 paying customers →
-ASM-12 takes a `Paying users` positive reading (magnitude Low — 2 pilots at
+ASM-12 takes a `Payment` positive reading (magnitude Low — 2 pilots at
 £500/mo) and Confidence jumps to ≈ +40; the ceiling takes a series, by
 design. Q4's commitment conversation starts from what is now the register's
 riskiest surviving belief.

@@ -1,18 +1,20 @@
-# Prep playbook — fake-door / signed intent
+# Prep playbook — fake-door / commitment
 
 Entered from SKILL.md step 7 when the run's **method** is a fake-door (concept
 test, waitlist, LOI, deposit). The evidence is the **costly action** — a
 signup, signature, or payment-intent — not stated enthusiasm.
 
-> **The record is a committed Experiment, at Market rung.** A fake-door sits
-> on the `Signed intent` rung, which is 🎯 Market-side
-> (`experiment-guardrails.md §2`). A fake-door is a **short committed
-> plan**: its two bars, `Deadline`, and instrument named in advance are set
-> through `references/commitment-discipline.md`
+> **The record's rung depends on how costly the ask is.** A bare signup or
+> qualifying form sits on the `Fake-door` rung — 🧪 Testing-side, costly
+> enough to be evidence but not yet a payment/LOI-level commitment
+> (`experiment-guardrails.md §2`). A deposit, signed LOI, or pre-order climbs
+> to the `Commitment` rung — 🎯 Market-side — and is designed as a
+> **committed Experiment**: its two bars, `Deadline`, and instrument named in
+> advance are set through `references/commitment-discipline.md`
 > (`../../../docs/goals.md`), the same skill's own commitment discipline —
 > there is no separate Goal record to hand off to (`the evidence-remodel slice`). **This
 > playbook specs the instrument** — the stimulus, the costly ask, and the
-> instrumentation — that the plan's instrument line points at.
+> instrumentation — whichever rung the ask lands on.
 
 ## The three parts (all pre-registered, into the Experiment record)
 
@@ -24,10 +26,11 @@ signup, signature, or payment-intent — not stated enthusiasm.
    prototype), referenced by its **canonical link** (`experiment-guardrails.md
    §0`), never copied in.
 2. **The costly ask** — what makes it evidence. Ranked by cost, pick the
-   highest honest one: deposit / card details > signed LOI > calendar-booked
-   call > email + qualifying form > bare email. A bare email signup is the
-   floor, and weak — say so if that's all that's feasible (and the honest rung
-   may then be a lower one).
+   highest honest one: deposit / card details (`Commitment`) > signed LOI
+   (`Commitment`) > calendar-booked call (`Fake-door`) > email + qualifying
+   form (`Fake-door`) > bare email (below `Fake-door` — too cheap to be
+   costly, honest rung is `Talk`). A bare email signup is the floor, and
+   weak — say so if that's all that's feasible.
 3. **Instrumentation** — name the exact event that counts as a conversion (an
    analytics event / form submission with qualifying fields complete), the
    denominator (unique qualified visitors — traffic source must match the
@@ -63,9 +66,8 @@ detail into the body:
 
 **Anti-patterns:** counting impressions/clicks as intent (vanity —
 guardrails §3) · un-qualified traffic inflating the denominator · a soft ask
-dressed up as `Signed intent` (if the action costs nothing, the honest rung is
-`Talk` — a Testing-grade design, not a commitment) · no
-post-signup follow-up plan.
+dressed up as `Fake-door` (if the action costs nothing, the honest rung is
+`Talk`) · no post-signup follow-up plan.
 
 **Terminology check:** `../../_shared/ubiquitous-language.md` — end-user
 audience for all on-page copy.

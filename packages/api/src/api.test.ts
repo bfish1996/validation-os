@@ -357,6 +357,51 @@ describe("derive-on-write", () => {
     expect(derived.derivedImpact).toBe(50);
     expect(derived.risk).toBe(42.77); // 50 × (1 − 14.47/100) = 50 × 0.8553 = 42.765 → 42.77
   });
+
+  it("mirrors the freshly-inferred Assumption Type onto the top-level field on write", async () => {
+    const provider = seededProvider();
+    // Seed a stale hand-set type the inference wouldn't produce: ASM-1's
+    // blank Description is ambiguous, so inference falls back to
+    // ProblemExists, not the "EconomicsWork" written here directly (bypassing
+    // the API, the way a pre-migration record would look).
+    const asm = await provider.get("assumptions", "ASM-1");
+    await provider.update(
+      "assumptions",
+      "ASM-1",
+      {
+        "Assumption Type": "EconomicsWork",
+        derived: { ...(asm.derived as object), assumptionType: "EconomicsWork" },
+      },
+      asm.version,
+    );
+
+    const api = createApi({ provider, authenticate: ALLOW, roster: ROSTER });
+    await api.create(
+      req({
+        id: "RDG-1",
+        Source: "proto-1",
+        experimentId: null,
+        Rung: "Prototype use",
+        magnitudeBand: "Low",
+        Representativeness: 1.0,
+        Credibility: 1.0,
+        beliefs: [
+          {
+            assumptionId: "ASM-1",
+            Result: "Validated",
+            "Grading justification": "why",
+          },
+        ],
+      }),
+      ctx({ register: "readings" }),
+    );
+
+    const updated = await provider.get("assumptions", "ASM-1");
+    expect(updated["Assumption Type"]).toBe("ProblemExists");
+    expect((updated.derived as { assumptionType: unknown }).assumptionType).toBe(
+      "ProblemExists",
+    );
+  });
 });
 
 describe("identity: membership gate + Owner/Agreed-by stamp", () => {

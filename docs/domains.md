@@ -46,10 +46,12 @@ the rung reflects what the signal **cost the prospect**:
 
 | Funnel event | Rung | Why |
 |---|---|---|
-| A reply, a "sounds interesting" | Talk (10–15%) | Words to a concrete stimulus — stated, not revealed. |
-| Campaign at N with a pre-registered rate bar | Observed usage (40%) | Volume changes the rung: 200 systematic sends judged against a reply/meeting-rate bar is one Observed-usage row, not 200 Talk records. |
-| LOI, deposit, fake-door signup from outreach | Signed intent (60%) | A costly commitment before the thing exists. |
-| Paid pilot, signed contract | Paying users (99%) | Real money. |
+| A reply, a "sounds interesting" | `Talk` | Words to a concrete stimulus — stated, not revealed. |
+| Campaign at N with a pre-registered rate bar | `Survey` | Volume changes the rung: 200 systematic sends judged against a reply/meeting-rate bar is one `Survey` row, not 200 `Talk` records. |
+| LOI, deposit, fake-door signup from outreach | `Fake-door` / `Commitment` | A costly commitment before the thing exists. |
+| Paid pilot, signed contract | `Payment` | Real money. |
+
+(Exact anchors are per assumption type, not flat percentages — `docs/evidence-ladder.md`.)
 
 Rules that bite hardest here:
 
@@ -115,17 +117,18 @@ changed is the `Theme` on the rows.
 *"We assume teams of this size will pay ≥ €50/month because the manual
 version of this job costs them 4+ hours."* Willingness-to-pay beliefs are the
 canonical case for **revealed > stated**: everyone says yes to a
-hypothetical price. Stated rungs (pricing question in an interview) cap
-low; the honest tests are Signed intent (deposit, pre-order, priced
-fake-door) and Paying users (a real price on real traffic). Van
-Westendorp-style surveys land at Observed usage — useful for *shape*,
+hypothetical price. `Talk` and `Survey` are **non-evidence** for a
+`TheyllPay` claim (stated intent isn't revealed preference); the honest
+tests are `Commitment` (deposit, pre-order) and `Fake-door` (a priced
+fake-door) climbing to `Payment` (a real price on real traffic). Van
+Westendorp-style surveys still land at `Survey` — useful for *shape*,
 never for "they will pay".
 
 ## Fundraising
 
 *"We assume seed funds writing €500k–1M cheques will treat [metric] as
 the traction bar because [reason]."* Investor beliefs are assumptions
-like any other: partner opinions are Opinion (5%) however warm the
+like any other: partner opinions are `Talk` however warm the
 meeting felt; a pass/term-sheet pattern across 20 pitches is revealed
 behaviour. Logging fundraise beliefs keeps warm-meeting glow from
 masquerading as validation — the same trap as the enthusiastic sales
@@ -135,9 +138,9 @@ call.
 
 *"We assume the bank's API team will grant production access within a
 quarter"*, *"we assume PSD2 permits this flow without a licence."*
-Regulatory beliefs are the home turf of Desk research (25%) — often
+Regulatory beliefs are the home turf of `Desk & data` — often
 knowable in hours, no participants. Partner-dependence beliefs climb the
-ladder through Signed intent (LOI, signed pilot agreement) and are
+ladder through `Commitment` (LOI, signed pilot agreement) and are
 frequent **one-way-door** material: a decision resting on an untested
 partner belief is exactly what `one-way-door-untested-basis` exists to
 catch.

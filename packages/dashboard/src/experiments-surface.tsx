@@ -2,10 +2,12 @@ import { useState } from "react";
 import { experimentCycle, experimentCycles, liveExperiments } from "./derived-views.js";
 import { resolveCycleFilter, inCycle, type CycleChoice } from "./cycle-filter.js";
 import { CycleFilterBar } from "./cycle-filter-bar.js";
+import { primaryLabel } from "./columns.js";
 import type { Route } from "./route.js";
 import { useList } from "./use-records.js";
 import { Breadcrumb } from "./breadcrumb.js";
 import { ConfidenceDonut } from "./confidence-donut.js";
+import { ListRow, Pill } from "./primitives-view.js";
 
 /**
  * The Experiments nav surface (the nav-surface redesign): the live evidence plans list, with
@@ -73,7 +75,7 @@ export function ExperimentsSurface({
         <div className="vos-card vos-exp-list">
           {live.map((e) => {
             const id = String(e.id ?? "");
-            const title = String(e.Title ?? id);
+            const title = primaryLabel(e);
             const bars = Array.isArray(e.barLines) ? e.barLines.length : 0;
             const settled = Array.isArray(e.barLines)
               ? e.barLines.filter((b: any) => b?.barVerdict).length
@@ -83,13 +85,18 @@ export function ExperimentsSurface({
             const instrument = String(e.Instrument ?? "");
             const cycle = experimentCycle(e);
             return (
-              <button
+              <ListRow
                 key={id}
-                type="button"
-                className="vos-exp-row"
+                size="lg"
                 onClick={() => onNavigate({ name: "record", id })}
+                leading={<ConfidenceDonut value={expConf} size={56} />}
+                trailing={
+                  <>
+                    {cycle !== null ? <Pill tone="accent">Cycle {cycle}</Pill> : null}
+                    <Pill tone={status === "Running" ? "good" : "neutral"}>{status}</Pill>
+                  </>
+                }
               >
-                <ConfidenceDonut value={expConf} size={56} />
                 <div className="vos-exp-row-body">
                   <div className="vos-exp-row-title">{title}</div>
                   <div className="vos-exp-row-meta vos-num">
@@ -98,13 +105,7 @@ export function ExperimentsSurface({
                     {e.Deadline ? <span> · deadline {String(e.Deadline)}</span> : null}
                   </div>
                 </div>
-                {cycle !== null ? (
-                  <span className="vos-pill vos-pill-accent">Cycle {cycle}</span>
-                ) : null}
-                <span className={`vos-pill ${status === "Running" ? "vos-pill-good" : "vos-pill-neutral"}`}>
-                  {status}
-                </span>
-              </button>
+              </ListRow>
             );
           })}
         </div>

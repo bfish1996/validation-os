@@ -204,8 +204,10 @@ derivations:
       a backstop for writes that bypass the dashboard
       (assumption-guardrails.md §3).
     range: [0, 100]
-  # @deprecated Risk (the confidence-scoring simplification). Retired as a surfaced number/field. Kept for
-  # migration back-compat only.
+  # Risk — live dashboard ranking infrastructure, NOT retired by the
+  # confidence-scoring simplification (only Risk Group / the Stage-keyed
+  # threshold were). Distinct from the (currently unsurfaced) categorical
+  # Risk Group below.
   risk:
     field: assumptions.Risk
     formula: "Derived Impact * (1 - max(0, Confidence) / 100)"
@@ -309,8 +311,8 @@ entities:
       # structure supplies the rest via Derived Impact.
       - { name: Impact, type: number, range: [0, 60], hand_scored: true }
       - { name: Derived Impact, type: number, derived: derivations.derived_impact }
-      # @deprecated Risk (the confidence-scoring simplification) — retired as a surfaced number. Kept for
-      # migration back-compat.
+      # Risk — live dashboard ranking infrastructure (the confidence-scoring
+      # simplification kept this, only the categorical Risk Group is new/separate).
       - { name: Risk, type: number, derived: derivations.risk }
       - { name: Confidence, type: number, derived: derivations.confidence }
       - { name: Completeness %, type: number, derived: derivations.completeness }
@@ -377,7 +379,7 @@ entities:
       - { name: Representativeness, type: select, options: vocabularies.source_quality.picks, required: true }   # source-level: one value per reading (grades the source, not the belief)
       - { name: Credibility, type: select, options: vocabularies.source_quality.picks, required: true }   # source-level: one value per reading
       - { name: Source quality, type: number, derived: true }   # = Representativeness × Credibility; scales each beliefs[] entry's weight
-      - { name: Rung, type: select, options: vocabularies.rung, required: true }   # ROW-LEVEL (0.10): one rung per artifact; the anchor is per (question type × rung × band), see derivations.strength
+      - { name: Rung, type: select, options: vocabularies.rung, required: true }   # ROW-LEVEL (0.10): one rung per artifact; the anchor is per (assumption type × rung × band), see derivations.strength
       - { name: Magnitude band, type: select, options: vocabularies.magnitude_band, required: false }   # ROW-LEVEL; Market rungs only; null on Testing rungs
       - { name: Date, type: date }
       - { name: Owner, type: dashboard_user, required: false }
@@ -547,7 +549,7 @@ status_machines:
     transitions:
       - { from: Draft, to: Live,
           by: "/assumptions (single|seed)", gate: gated,
-          trigger: "grill close-out in a gated session: Completeness % reaches 100 (every structural slot present — Description, Lens, Impact, Scoring justification, dependencies traced, Question Type) and the grill's transient semantic findings are all resolved; the inferred Question Type (from the falsification test) must match the stated Question Type (the gaming guard)" }
+          trigger: "grill close-out in a gated session: Completeness % reaches 100 (every structural slot present — Description, Lens, Impact, Scoring justification, dependencies traced, Assumption Type) and the grill's transient semantic findings are all resolved; the falsification bar (wrongIf, else Description) must be sharp enough that the inferred Assumption Type isn't flagged for review — a vague bar defaults to the permissive ProblemExists type (the gaming guard)" }
       - { from: Live, to: Draft,
           by: "/assumptions (gated session)", gate: gated,
           trigger: "the row falls below complete — a slot is emptied — or a grill finding (audit, contradiction, staleness) reopens it" }
@@ -742,7 +744,7 @@ integrity_rules:
     severity: error
     surfaced_by: ["/assumptions audit", "/find-evidence audit"]
     check: >-
-      A Market-rung (Signed intent / Paying users) beliefs[] entry concluded
+      A Market-rung (Commitment / Payment) beliefs[] entry concluded
       Invalidated whose originating Experiment bar has no pre-registered We're
       wrong if bar — no floor, no negative: an uncontrolled absence of the
       outcome is Inconclusive (experiment-guardrails.md §2).
@@ -796,21 +798,23 @@ integrity_rules:
     surfaced_by: ["/assumptions audit"]
     check: Two records asserting opposite truth values of the same proposition — a negation-duplicate; merge (assumption-guardrails.md §4a).
 
-  # Stage membership (docs/stage-policy.md)
+  # @deprecated Stage membership. Stage was retired (the confidence-scoring
+  # simplification); this rule only fires against legacy rows still carrying
+  # a stored Stage value from before the migration. Kept for migration
+  # back-compat only — do not extend it, and drop it once no row carries Stage.
   - id: stage-actor-consistency
     severity: warn
     surfaced_by: ["/assumptions audit"]
     check: >-
-      The claim's subject is inconsistent with its Stage's expected actor
-      (docs/stage-policy.md §The four stages). Advisory at first — the
-      membership test is the subject-verb rule: every assumption's subject
-      must be an external actor (user, buyer, competitor, regulator,
-      partner, distributor, investor) or the market, never "we". A Stage-4
-      (Maturity) record whose subject is "we" is suspect; a Stage-1
-      (Discovery) record framed as a build capability is suspect. Flag for
-      human re-framing — the gate's work is the stage taxonomy itself, so a
-      mis-staged record usually means the claim is a BUILD risk in disguise,
-      not a wrong tag.
+      A legacy row's Stage value is inconsistent with its subject's expected
+      actor. The membership test was the subject-verb rule: every
+      assumption's subject must be an external actor (user, buyer,
+      competitor, regulator, partner, distributor, investor) or the market,
+      never "we". A Stage-4 (Maturity) record whose subject is "we" is
+      suspect; a Stage-1 (Discovery) record framed as a build capability is
+      suspect. Flag for human re-framing during migration — a mis-staged
+      record usually means the claim was a BUILD risk in disguise, not a
+      wrong tag.
 
   # Status coherence (assumptions × readings)
   - id: draft-live-completeness-invariant
@@ -828,7 +832,7 @@ integrity_rules:
     check: >-
       A Live assumption at Completeness % < 100 — a missing structural slot
       (Description, Lens, Impact, Scoring justification, dependencies traced,
-      Question Type). The write model blocks a Draft→Live promotion below 100
+      Assumption Type). The write model blocks a Draft→Live promotion below 100
       (write-time enforcement lands with the CRUD write slice, the CRUD write slice); the
       audit confirms it meanwhile. A Draft may legally sit below 100.
   - id: unrolled-verdict
