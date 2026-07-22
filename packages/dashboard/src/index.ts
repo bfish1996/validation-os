@@ -75,6 +75,9 @@ export type {
   TargetedStatus,
 } from "./experiment-assumptions.js";
 export { assumptionCycles, experimentCycle } from "./derived-views.js";
+export { resolveCycleFilter, inCycle } from "./cycle-filter.js";
+export type { CycleChoice, CycleFilterView } from "./cycle-filter.js";
+export { CycleFilterBar } from "./cycle-filter-bar.js";
 export { SidebarNav } from "./sidebar-nav.js";
 export type { SidebarNavProps } from "./sidebar-nav.js";
 export { parseRoute, formatRoute } from "./route.js";

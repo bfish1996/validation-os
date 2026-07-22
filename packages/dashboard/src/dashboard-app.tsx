@@ -40,6 +40,11 @@ export interface DashboardConfig {
   user?: { name?: string; caption?: string };
   /** Restrict/reorder the registers shown; defaults to all, in order. */
   registers?: Collection[];
+  /** The active validation round. When set, the Experiments and Assumptions
+   * surfaces default to this cycle (with a secondary "All cycles" control, and
+   * a fallback to all when the cycle is still empty), and a new experiment's
+   * `Cycle` prefills to it. Omit in a workspace that doesn't run cycles. */
+  currentCycle?: number;
 }
 
 export interface ValidationOSDashboardProps {
@@ -77,6 +82,7 @@ export function ValidationOSDashboard({ config = {} }: ValidationOSDashboardProp
     agentLabel,
     user,
     registers = REGISTER_ORDER,
+    currentCycle,
   } = config;
 
   const [route, setRoute] = useState<Route>(() =>
@@ -175,12 +181,14 @@ export function ValidationOSDashboard({ config = {} }: ValidationOSDashboardProp
             view={route.view}
             lens={route.lens}
             stage={route.stage}
+            currentCycle={currentCycle}
           />
         ) : route.name === "experiments" ? (
           <ExperimentsSurface
             key="experiments"
             basePath={basePath}
             onNavigate={navigate}
+            currentCycle={currentCycle}
           />
         ) : route.name === "readings" ? (
           <ReadingsSurface
@@ -218,6 +226,7 @@ export function ValidationOSDashboard({ config = {} }: ValidationOSDashboardProp
             onOpenRecord={(id) => navigate({ name: "record", id })}
             lens={route.lens}
             stage={route.stage}
+            currentCycle={currentCycle}
           />
         ) : route.name === "record" ? (
           <RecordPage

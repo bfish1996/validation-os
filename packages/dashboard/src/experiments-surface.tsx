@@ -1,23 +1,38 @@
+import { useState } from "react";
 import type { AnyRecord } from "@validation-os/core";
 import { experimentCycle, liveExperiments } from "./derived-views.js";
+import { resolveCycleFilter, inCycle, type CycleChoice } from "./cycle-filter.js";
+import { CycleFilterBar } from "./cycle-filter-bar.js";
 import type { Route } from "./route.js";
 import { useList } from "./use-records.js";
 import { Breadcrumb } from "./breadcrumb.js";
 import { ConfidenceDonut } from "./confidence-donut.js";
 
+/** A record's cycle memberships as a list — an experiment has 0 or 1. */
+function cyclesOfExperiment(e: AnyRecord): number[] {
+  const c = experimentCycle(e);
+  return c === null ? [] : [c];
+}
+
 /**
  * The Experiments nav surface (DEV-5881): the live evidence plans list, with
  * bigger rows carrying a donut gauge + bar-line stats. Each row is a button;
- * clicking opens the evidence-first ExperimentDetail.
+ * clicking opens the evidence-first ExperimentDetail. When the workspace runs
+ * cycles, the list defaults to the current round (`currentCycle`) with a
+ * secondary "All cycles" control and a bootstrap fallback to all.
  */
 export function ExperimentsSurface({
   basePath,
   onNavigate,
+  currentCycle,
 }: {
   basePath?: string;
   onNavigate: (route: Route) => void;
+  /** The active validation round, from `DashboardConfig.currentCycle`. */
+  currentCycle?: number;
 }) {
   const experiments = useList("experiments", basePath);
+  const [cycleSel, setCycleSel] = useState<CycleChoice | null>(null);
 
   if (experiments.loading && !experiments.records) {
     return (
@@ -36,7 +51,15 @@ export function ExperimentsSurface({
     );
   }
 
-  const live = liveExperiments(experiments.records ?? []);
+  const allLive = liveExperiments(experiments.records ?? []);
+  const cycleView = resolveCycleFilter(
+    allLive.flatMap(cyclesOfExperiment),
+    currentCycle ?? null,
+    cycleSel,
+  );
+  const live = allLive.filter((e) =>
+    inCycle(cyclesOfExperiment(e), cycleView.effective),
+  );
 
   return (
     <div>
@@ -46,6 +69,8 @@ export function ExperimentsSurface({
           <h1>Experiments — the live evidence plans</h1>
           <p>{live.length} running {live.length === 1 ? "plan" : "plans"} · click to open the evidence-first view.</p>
         </div>
+        <div className="vos-spacer" />
+        <CycleFilterBar view={cycleView} onSelect={setCycleSel} />
       </div>
       {live.length === 0 ? (
         <div className="vos-card vos-empty">

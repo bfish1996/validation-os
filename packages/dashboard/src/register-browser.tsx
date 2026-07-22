@@ -33,6 +33,8 @@ export interface RegisterBrowserProps {
   /** Pre-filter applied before tab/free-text — Lens × Stage from the grid. */
   lens?: string;
   stage?: string;
+  /** The active validation round — prefills a new experiment's `Cycle`. */
+  currentCycle?: number;
 }
 
 /**
@@ -77,6 +79,7 @@ export function RegisterBrowser({
   onOpenRecord,
   lens,
   stage,
+  currentCycle,
 }: RegisterBrowserProps) {
   const { records, loading, error, refresh: refreshList } = useList(
     register,
@@ -324,6 +327,11 @@ export function RegisterBrowser({
         <RecordForm
           register={register}
           basePath={basePath}
+          initial={
+            register === "experiments" && currentCycle != null
+              ? { Cycle: String(currentCycle) }
+              : undefined
+          }
           onCreated={(id) => {
             setCreating(false);
             refreshList();

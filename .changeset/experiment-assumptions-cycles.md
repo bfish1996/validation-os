@@ -18,3 +18,8 @@ Experiments now surface the assumptions they test and carry a validation Cycle.
   experiments testing them). Added across the ontology, registry schema, all
   three connector guides, the create form, the experiments table column, and
   the group-by axis. Cycle badges show on the experiment and assumption detail.
+- **Active-cycle lens.** A new `currentCycle` on `DashboardConfig`: the
+  Experiments and Assumptions surfaces default to the current round, with a
+  secondary "All cycles" control and a graceful fallback to all when the
+  current cycle has nothing in it yet. A new experiment's `Cycle` prefills to
+  the current round. Pure `resolveCycleFilter`/`inCycle` seam (tested).
