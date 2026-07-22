@@ -19,6 +19,7 @@ function assumption(over: Partial<AssumptionRecord> = {}): AssumptionRecord {
     Description: "We assume adopters will install because setup is one command.",
     Lens: "Adopter",
     Stage: "Discovery",
+    "Assumption Type": "ProblemExists",
     "Question Type": "Existence",
     Theme: [],
     Impact: 50,
@@ -30,7 +31,16 @@ function assumption(over: Partial<AssumptionRecord> = {}): AssumptionRecord {
     enablesIds: ["ASM-2"],
     contradictsIds: [],
     readingIds: [],
-    derived: { confidence: 0, risk: 0, derivedImpact: 0, completeness: 0 },
+    derived: {
+      confidence: 0,
+      risk: 0,
+      derivedImpact: 0,
+      completeness: 0,
+      riskGroup: null,
+      assumptionType: null,
+      costTier: null,
+      graduationState: "Untested",
+    },
     ...over,
   };
 }
@@ -62,7 +72,7 @@ function reading(over: Partial<ReadingRecord> = {}): ReadingRecord {
     Source: "src-1",
     contextLinks: [],
     experimentId: null,
-    Rung: "Observed usage",
+    Rung: "Prototype use",
     magnitudeBand: "Low",
     Representativeness: 1.0,
     Credibility: 1.0,
@@ -79,10 +89,10 @@ const NO_DECISIONS: DecisionRecord[] = [];
 
 describe("recomputeDerived — row-level rung, per-belief result", () => {
   it("derives each belief's strength from the ROW rung and the belief's own Result", () => {
-    // Existence × Observed usage × Low = 20, committed, sq=1. Two beliefs with
+    // ProblemExists × Prototype use × Low = 20, committed, sq=1. Two beliefs with
     // opposite Results: strength = 20 × sign(Result).
-    //  ASM-1 Validated   → s=+20, w=20 → 20×20/(327+20)  =  1.15
-    //  ASM-2 Invalidated → s=-20, w=20 → -400/347        = -1.15
+    //  ASM-1 Validated   → s=+20, w=20 → 20×20/(6.5+20)  =  15.09
+    //  ASM-2 Invalidated → s=-20, w=20 → -400/26.5       = -15.09
     const derived = recomputeDerived({
       assumptions: [
         assumption({ id: "ASM-1" }),
@@ -90,7 +100,7 @@ describe("recomputeDerived — row-level rung, per-belief result", () => {
       ],
       readings: [
         reading({
-          Rung: "Observed usage",
+          Rung: "Prototype use",
           magnitudeBand: "Low",
           experimentId: "EXP-1",
           beliefs: [
@@ -101,14 +111,14 @@ describe("recomputeDerived — row-level rung, per-belief result", () => {
       ],
       decisions: NO_DECISIONS,
     });
-    expect(derived.get("ASM-1")!.confidence).toBe(1.15);
-    expect(derived.get("ASM-2")!.confidence).toBe(-1.15);
+    expect(derived.get("ASM-1")!.confidence).toBe(15.09);
+    expect(derived.get("ASM-2")!.confidence).toBe(-15.09);
   });
 
   it("still discounts a found reading via the commitment factor", () => {
-    // Existence × Observed usage × Low = 20, Validated, sq=1.
-    //  found:     w=20×0.85=17 → 17×20/(327+17) = 0.99
-    //  committed: w=20         → 400/347        = 1.15
+    // ProblemExists × Prototype use × Low = 20, Validated, sq=1.
+    //  found:     w=20×0.85=17 → 17×20/(6.5+17) = 340/23.5 = 14.47
+    //  committed: w=20         → 400/26.5       = 15.09
     const found = recomputeDerived({
       assumptions: [assumption()],
       readings: [reading({ experimentId: null })],
@@ -119,8 +129,8 @@ describe("recomputeDerived — row-level rung, per-belief result", () => {
       readings: [reading({ experimentId: "EXP-9" })],
       decisions: NO_DECISIONS,
     }).get("ASM-1")!;
-    expect(found.confidence).toBe(0.99);
-    expect(committed.confidence).toBe(1.15);
+    expect(found.confidence).toBe(14.47);
+    expect(committed.confidence).toBe(15.09);
   });
 
   it("matches the pure confidence() for the same reading's belief", () => {
@@ -134,9 +144,9 @@ describe("recomputeDerived — row-level rung, per-belief result", () => {
         {
           id: "RDG-1",
           source: "src-1",
-          rung: "Observed usage",
+          rung: "Prototype use",
           result: "Validated",
-          questionType: "Existence",
+          assumptionType: "ProblemExists",
           representativeness: 1.0,
           credibility: 1.0,
           date: "2026-01-01",
@@ -149,23 +159,24 @@ describe("recomputeDerived — row-level rung, per-belief result", () => {
 
   it("dedupes per (assumption, Source), keeping the strongest rung", () => {
     // Two rows, same Source "bob", same belief ASM-1, different ROW rungs:
-    //   Observed usage Low (20, Existence) vs Talk Low (10, Existence).
-    // Dedupe keeps the 20 → 1.15, identical to a lone Observed-usage row.
+    //   Prototype use Low (20, ProblemExists) vs Talk Low (30, ProblemExists).
+    // Dedupe keeps the 30 → 15.09+ , identical to a lone Talk row.
     const derived = recomputeDerived({
       assumptions: [assumption()],
       readings: [
-        reading({ id: "R1", Source: "bob", Rung: "Observed usage", magnitudeBand: "Low", experimentId: "EXP-1" }),
+        reading({ id: "R1", Source: "bob", Rung: "Prototype use", magnitudeBand: "Low", experimentId: "EXP-1" }),
         reading({ id: "R2", Source: "bob", Rung: "Talk", magnitudeBand: "Low", experimentId: "EXP-1" }),
       ],
       decisions: NO_DECISIONS,
     }).get("ASM-1")!;
     const lone = recomputeDerived({
       assumptions: [assumption()],
-      readings: [reading({ Rung: "Observed usage", magnitudeBand: "Low", experimentId: "EXP-1" })],
+      readings: [reading({ Rung: "Talk", magnitudeBand: "Low", experimentId: "EXP-1" })],
       decisions: NO_DECISIONS,
     }).get("ASM-1")!;
     expect(derived.confidence).toBe(lone.confidence);
-    expect(derived.confidence).toBe(1.15);
+    // ProblemExists × Talk × Low = 30. 30×30/(6.5+30) = 900/36.5 = 24.66
+    expect(derived.confidence).toBe(24.66);
   });
 
   it("carries completeness in the recomputed tuple", () => {

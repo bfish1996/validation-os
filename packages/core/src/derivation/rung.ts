@@ -1,58 +1,39 @@
 /**
- * The question-type-aware evidence ladder (DEV-5890).
+ * The assumption-type-aware evidence ladder (OPS-1406).
  *
  * Source of truth: `skills/_shared/ontology.yaml` → `vocabularies.rung` +
- * `vocabularies.question_type`. A rung is an evidence TYPE; magnitude band
- * (Low/Typical/High) is the intensity within a type. The band applies to
- * EVERY rung, so every rung looks up its anchor through the 3D table
- * `RUNG_ANCHOR[questionType][rung][band]`.
+ * `vocabularies.assumption_type`. A rung is an evidence TYPE on the say→do
+ * axis plus operational rungs; magnitude band (Low/Typical/High) is the
+ * intensity within a type. The band applies to EVERY rung, so every rung
+ * looks up its anchor through the 3D table
+ * `RUNG_ANCHOR[assumptionType][rung][band]`.
  *
- * Seven sub-ladders, one per question type. Evidence types that are
- * **non-evidence** for a question type carry anchor `0` across all bands —
+ * Eleven sub-ladders, one per assumption type. Evidence types that are
+ * **non-evidence** for an assumption type carry anchor `0` across all bands —
  * they contribute `s=0` and are flagged at the UI/skill layer (not a write
  * blocker). The `0` is structural, not a separate flag.
  *
- * The rung vocabulary itself (`Talk`, `Desk research`, `Signed up`,
- * `Observed usage`, `Signed intent`, `Paying users`) is unchanged across
- * all sub-ladders — the same six rungs exist in every sub-ladder, with
- * different anchors (including `0` for non-evidence). This preserves the
- * existing `Rung` type and all reading-row machinery.
+ * The rung vocabulary itself is fixed across all sub-ladders; only the
+ * anchors (including `0` for non-evidence) vary. This preserves the existing
+ * `Rung` type and all reading-row machinery.
  *
- * Research backing: EBM GRADE (evidence hierarchies are question-relative),
- * Bayesian confirmation theory (probative value is hypothesis-relative),
- * qualitative research methods (qual is the ceiling for mechanism/existence
- * questions; saturation is a validity criterion), revealed preference
- * (sustained usage is the cleanest utility signal; stated intent is
- * non-evidence for WTP). See `docs/question-types.md`.
+ * Every type's ceiling rung reaches ~99 — the effective cap emerges from the
+ * anchors + weighted average, not a separate ceiling constant (OPS-1406
+ * retired the per-question-type ceiling).
  *
- * W0 stays keyed by evidence type (within a question type), not by stage or
- * question type — see `confidence.ts` → `W0_BY_RUNG`. The learning rate
- * tracks the instrument's reliability, not the stakes or the claim kind.
- * Empirical-Bayes per-question-type W0 tuning is flagged as v2 (out of scope).
+ * Provisional v1 anchors (OPS-1406): the *shape* is the decision, the exact
+ * numbers are tunable. Key invariants encoded:
+ *  - Talk-only fully proves "problem exists" (saturated interviews → ~99).
+ *  - Payment is the ceiling for "they'll pay" — talk/survey are non-evidence.
+ *  - Each type's ceiling rung reaches ~99 on the High band.
  */
-import type { MagnitudeBand, QuestionType, Rung, Stage } from "../types.js";
+import type {
+  AssumptionType,
+  CostTier,
+  MagnitudeBand,
+  Rung,
+} from "../types.js";
 
-/**
- * The 3D anchor table — `RUNG_ANCHOR[questionType][rung][band]`.
- *
- * Seven sub-ladders. `0` entries are the non-evidence set for that question
- * type (the reading contributes `s=0`, flagged at the UI/skill layer). The
- * shape — what's probative, what's the ceiling, what's non-evidence — is
- * the decision; the exact values are illustrative anchors calibrated against
- * the research backing (see `docs/question-types.md`).
- *
- * Per the spec table:
- *
- * | Question Type     | Talk L/T/H   | Desk L/T/H   | Signed up L/T/H | Observed usage L/T/H | Signed intent L/T/H | Paying users L/T/H | Ceiling                |
- * |-------------------|--------------|--------------|-----------------|----------------------|----------------------|--------------------|-----------------------|
- * | Existence         | 10/20/30     | 15/15/15     | 0/0/0           | 20/35/50             | 0/0/0                | 0/0/0              | Observed usage High(50)|
- * | Prevalence        | 0/0/0        | 15/15/15     | 0/0/0           | 25/40/50             | 0/0/0                | 0/0/0              | Observed usage High(50)|
- * | CausalEffect      | 0/0/0        | 0/0/0        | 0/0/0           | 30/50/70             | 30/50/70             | 50/70/90           | Paying users High(90) |
- * | WillingnessToPay  | 0/0/0        | 0/0/0        | 30/50/70        | 0/0/0                | 50/70/85             | 75/88/99           | Paying users High(99) |
- * | ValueUtility      | 10/20/30     | 0/0/0        | 0/0/0           | 30/50/70             | 0/0/0                | 0/0/0              | Observed usage High(70)|
- * | Regulatory        | 0/0/0        | 30/50/70     | 0/0/0           | 0/0/0                | 0/0/0                | 0/0/0              | Desk research High(70)|
- * | Feasibility       | 0/0/0        | 15/15/15     | 0/0/0           | 30/50/70             | 0/0/0                | 0/0/0              | Observed usage High(70)|
- */
 type BandRecord = Record<MagnitudeBand, number>;
 type RungAnchors = Record<Rung, BandRecord>;
 
@@ -62,175 +43,238 @@ function band(low: number, typical: number, high: number): BandRecord {
   return { Low: low, Typical: typical, High: high };
 }
 
-/** The seven sub-ladders, keyed by question type. */
-export const RUNG_ANCHOR: Record<QuestionType, RungAnchors> = {
-  Existence: {
+/**
+ * The 11 sub-ladders, keyed by assumption type. `0` entries are the
+ * non-evidence set for that type (the reading contributes `s=0`, flagged at
+ * the UI/skill layer).
+ *
+ * Provisional v1 anchors — ceiling rung reaches ~99 High for every type.
+ */
+export const RUNG_ANCHOR: Record<AssumptionType, RungAnchors> = {
+  // Desirability — problem/solution/efficacy
+  ProblemExists: {
+    Talk: band(30, 60, 99),
+    Survey: band(20, 40, 60),
+    "Desk & data": band(15, 30, 45),
+    "Fake-door": Z,
+    "Prototype use": band(20, 40, 60),
+    Retention: Z,
+    Commitment: Z,
+    Payment: Z,
+    "Build proof": Z,
+    "Outcome test": Z,
+    "Cost data": Z,
+  },
+  ProblemWidespread: {
     Talk: band(10, 20, 30),
-    "Desk research": band(15, 15, 15),
-    "Signed up": Z,
-    "Observed usage": band(20, 35, 50),
-    "Signed intent": Z,
-    "Paying users": Z,
+    Survey: band(40, 70, 99),
+    "Desk & data": band(30, 50, 70),
+    "Fake-door": Z,
+    "Prototype use": Z,
+    Retention: Z,
+    Commitment: Z,
+    Payment: Z,
+    "Build proof": Z,
+    "Outcome test": Z,
+    "Cost data": Z,
   },
-  Prevalence: {
+  WantOurSolution: {
+    Talk: band(20, 40, 60),
+    Survey: band(25, 45, 65),
+    "Desk & data": band(10, 20, 30),
+    "Fake-door": band(40, 65, 85),
+    "Prototype use": band(50, 75, 99),
+    Retention: band(30, 50, 70),
+    Commitment: band(40, 60, 80),
+    Payment: band(50, 70, 90),
+    "Build proof": Z,
+    "Outcome test": Z,
+    "Cost data": Z,
+  },
+  ItWorks: {
     Talk: Z,
-    "Desk research": band(15, 15, 15),
-    "Signed up": Z,
-    "Observed usage": band(25, 40, 50),
-    "Signed intent": Z,
-    "Paying users": Z,
+    Survey: Z,
+    "Desk & data": band(15, 30, 45),
+    "Fake-door": Z,
+    "Prototype use": band(40, 65, 85),
+    Retention: band(30, 50, 70),
+    Commitment: Z,
+    Payment: Z,
+    "Build proof": band(30, 50, 70),
+    "Outcome test": band(60, 85, 99),
+    "Cost data": Z,
   },
-  CausalEffect: {
+  // Usability
+  CanCompleteTask: {
     Talk: Z,
-    "Desk research": Z,
-    "Signed up": Z,
-    "Observed usage": band(30, 50, 70),
-    "Signed intent": band(30, 50, 70),
-    "Paying users": band(50, 70, 90),
+    Survey: Z,
+    "Desk & data": band(10, 20, 30),
+    "Fake-door": Z,
+    "Prototype use": band(50, 75, 99),
+    Retention: band(30, 50, 70),
+    Commitment: Z,
+    Payment: Z,
+    "Build proof": Z,
+    "Outcome test": band(40, 65, 85),
+    "Cost data": Z,
   },
-  WillingnessToPay: {
+  // Feasibility
+  CanBuildIt: {
     Talk: Z,
-    "Desk research": Z,
-    "Signed up": band(30, 50, 70),
-    "Observed usage": Z,
-    "Signed intent": band(50, 70, 85),
-    "Paying users": band(75, 88, 99),
+    Survey: Z,
+    "Desk & data": band(30, 50, 70),
+    "Fake-door": Z,
+    "Prototype use": band(40, 65, 85),
+    Retention: Z,
+    Commitment: Z,
+    Payment: Z,
+    "Build proof": band(60, 85, 99),
+    "Outcome test": band(30, 50, 70),
+    "Cost data": Z,
   },
-  ValueUtility: {
+  LegalCompliant: {
+    Talk: Z,
+    Survey: Z,
+    "Desk & data": band(50, 75, 99),
+    "Fake-door": Z,
+    "Prototype use": Z,
+    Retention: Z,
+    Commitment: Z,
+    Payment: Z,
+    "Build proof": band(30, 50, 70),
+    "Outcome test": Z,
+    "Cost data": Z,
+  },
+  // Viability
+  TheyllPay: {
+    Talk: Z,
+    Survey: Z,
+    "Desk & data": band(10, 20, 30),
+    "Fake-door": band(30, 50, 70),
+    "Prototype use": Z,
+    Retention: Z,
+    Commitment: band(40, 60, 80),
+    Payment: band(70, 90, 99),
+    "Build proof": Z,
+    "Outcome test": Z,
+    "Cost data": Z,
+  },
+  TheyKeepUsingIt: {
     Talk: band(10, 20, 30),
-    "Desk research": Z,
-    "Signed up": Z,
-    "Observed usage": band(30, 50, 70),
-    "Signed intent": Z,
-    "Paying users": Z,
+    Survey: band(15, 30, 45),
+    "Desk & data": Z,
+    "Fake-door": band(20, 35, 50),
+    "Prototype use": band(30, 50, 70),
+    Retention: band(60, 85, 99),
+    Commitment: Z,
+    Payment: band(30, 50, 70),
+    "Build proof": Z,
+    "Outcome test": Z,
+    "Cost data": Z,
   },
-  Regulatory: {
+  ReachProfitably: {
     Talk: Z,
-    "Desk research": band(30, 50, 70),
-    "Signed up": Z,
-    "Observed usage": Z,
-    "Signed intent": Z,
-    "Paying users": Z,
+    Survey: Z,
+    "Desk & data": band(20, 35, 50),
+    "Fake-door": Z,
+    "Prototype use": Z,
+    Retention: Z,
+    Commitment: Z,
+    Payment: band(40, 60, 80),
+    "Build proof": Z,
+    "Outcome test": Z,
+    "Cost data": band(60, 85, 99),
   },
-  Feasibility: {
+  EconomicsWork: {
     Talk: Z,
-    "Desk research": band(15, 15, 15),
-    "Signed up": Z,
-    "Observed usage": band(30, 50, 70),
-    "Signed intent": Z,
-    "Paying users": Z,
+    Survey: Z,
+    "Desk & data": band(40, 65, 85),
+    "Fake-door": Z,
+    "Prototype use": Z,
+    Retention: Z,
+    Commitment: Z,
+    Payment: band(30, 50, 70),
+    "Build proof": band(30, 50, 70),
+    "Outcome test": Z,
+    "Cost data": band(60, 85, 99),
   },
 };
 
 /**
- * Is a rung **non-evidence** for a question type? A derived predicate — the
+ * Is a rung **non-evidence** for an assumption type? A derived predicate — the
  * reading is allowed (not a write blocker) but contributes `s=0` and is
- * flagged at the UI/skill layer for human review ("reclassify the assumption
- * or drop the reading"). Non-evidence is `0` anchor across all bands, by
- * construction.
+ * flagged at the UI/skill layer for human review. Non-evidence is `0` anchor
+ * across all bands, by construction.
  */
 export function isNonEvidence(
-  questionType: QuestionType,
+  assumptionType: AssumptionType,
   rung: Rung,
 ): boolean {
-  const anchors = RUNG_ANCHOR[questionType]?.[rung];
+  const anchors = RUNG_ANCHOR[assumptionType]?.[rung];
   if (!anchors) return false;
   return anchors.Low === 0 && anchors.Typical === 0 && anchors.High === 0;
 }
 
 /**
- * The ceiling anchor for a (question type × rung) — the strongest band
+ * The applicable rungs for an assumption type — rungs with a non-zero anchor.
+ * The evidence composition UI renders only these; non-applicable rungs are
+ * hidden (OPS-1406 user story 10).
+ */
+export function applicableRungs(type: AssumptionType): Rung[] {
+  const ladder = RUNG_ANCHOR[type];
+  if (!ladder) return [];
+  return (Object.keys(ladder) as Rung[]).filter((r) => !isNonEvidence(type, r));
+}
+
+/**
+ * The ceiling anchor for an (assumption type × rung) — the strongest band
  * (`High`). Used by the dashboard to label the ceiling on each sub-ladder and
- * by `/experiment-design` to size the next test against the question type's
- * ceiling.
+ * by `/experiment-design` to size the next test.
  */
 export function ceilingAnchor(
-  questionType: QuestionType,
+  assumptionType: AssumptionType,
   rung: Rung,
 ): number {
-  return RUNG_ANCHOR[questionType]?.[rung]?.High ?? 0;
+  return RUNG_ANCHOR[assumptionType]?.[rung]?.High ?? 0;
 }
 
 /**
- * The Risk threshold below which an assumption is "validated enough" for its
- * stage (DEV-5890). Pragmatic encroachment + Bezos two-way vs one-way doors;
- * Stage is the reversibility proxy. The threshold does NOT flip a status —
- * Live assumptions stay Live and ranked forever (`docs/validated.md`). It is
- * consumed by the dashboard's test-next surface, the `/assumptions audit`
- * skill, and the `/experiment-design` skill. It does NOT enter the
- * Confidence formula.
- *
- * The threshold is the max Risk you can have and still "stop testing" for
- * this stage. Later stages have LOWER thresholds because you need to drive
- * Risk down further (more evidence) before acting on a one-way door.
- * Discovery = 30: stop testing when Risk ≤ 30 (two-way door, little evidence
- * needed). Maturity = 5: stop testing when Risk ≤ 5 (one-way door, lots of
- * evidence needed). The bar being LOWER means the STANDARD is HIGHER — like
- * a high-jump bar: a lower number means you have to clear more.
+ * The max ceiling for an assumption type — the highest High-band anchor across
+ * all rungs in the sub-ladder. Every type reaches ~99 (OPS-1406 user story 12).
  */
-export const RISK_THRESHOLD_BY_STAGE: Record<Stage, number> = {
-  Discovery: 30, // two-way door — act on weak evidence
-  Validation: 15, // becoming one-way — need more before committing
-  Scale: 10, // one-way door — strong evidence before scaling
-  Maturity: 5, // defensive, often regulatory — strongest evidence
-};
+export function typeCeiling(type: AssumptionType): number {
+  const ladder = RUNG_ANCHOR[type];
+  if (!ladder) return 0;
+  return Math.max(...Object.values(ladder).map((r) => r.High));
+}
 
 /**
- * The minimum Confidence floor for "cleared" (DEV-5890 fix). A belief with
- * Impact below the stage's Risk threshold could read Risk ≤ threshold with
- * ZERO evidence (Risk = Impact × (1 − 0/100) = Impact). Without a Confidence
- * floor, a low-Impact belief gets a free pass. The floor requires at least
- * some evidence before "cleared" is honest. Tightens with stage, mirroring
- * the Risk threshold.
+ * Derive the cost-to-test tier from the assumption type's ceiling-rung nature
+ * (OPS-1406). Talk/desk → cheap; prototype/usability → moderate; sustained
+ * behaviour / money / operational → expensive. Overridable per assumption,
+ * since context can bend it (a spike can be trivial or brutal).
  */
-export const CONFIDENCE_FLOOR_BY_STAGE: Record<Stage, number> = {
-  Discovery: 10, // any signal counts for a two-way door
-  Validation: 25, // need a real reading, not just vibes
-  Scale: 40, // need solid evidence before scaling
-  Maturity: 60, // need strong evidence for a one-way door
-};
-
-/**
- * The Risk threshold for a given stage — the stopping rule for attention.
- * Falls back to the tightest threshold (Maturity) when the stage is absent,
- * so a missing stage never silently lowers the bar.
- */
-export function riskThresholdForStage(stage: Stage | null | undefined): number {
-  if (stage && stage in RISK_THRESHOLD_BY_STAGE) {
-    return RISK_THRESHOLD_BY_STAGE[stage];
+export function costTierFor(type: AssumptionType | null | undefined): CostTier | null {
+  if (!type) return null;
+  const ladder = RUNG_ANCHOR[type];
+  if (!ladder) return null;
+  // Find the ceiling rung (highest High anchor).
+  let ceilingRung: Rung | null = null;
+  let ceilingVal = -1;
+  for (const r of Object.keys(ladder) as Rung[]) {
+    if (ladder[r].High > ceilingVal) {
+      ceilingVal = ladder[r].High;
+      ceilingRung = r;
+    }
   }
-  return RISK_THRESHOLD_BY_STAGE.Maturity;
-}
-
-/**
- * The minimum Confidence floor for a given stage. Falls back to the tightest
- * (Maturity) when absent.
- */
-export function confidenceFloorForStage(stage: Stage | null | undefined): number {
-  if (stage && stage in CONFIDENCE_FLOOR_BY_STAGE) {
-    return CONFIDENCE_FLOOR_BY_STAGE[stage];
-  }
-  return CONFIDENCE_FLOOR_BY_STAGE.Maturity;
-}
-
-/**
- * Has the assumption cleared its stage's threshold? "Cleared" requires BOTH:
- *   1. Risk ≤ the stage's Risk threshold (enough evidence to drive Risk down)
- *   2. Confidence ≥ the stage's Confidence floor (at least some real evidence)
- *
- * The Confidence floor prevents a low-Impact belief from being "cleared" with
- * zero evidence — Risk = Impact × (1 − 0/100) = Impact, so a belief with
- * Impact below the threshold would read "cleared" without any readings. The
- * floor requires at least a minimum Confidence signal before "cleared" is
- * honest. "Needs evidence" = either condition fails — testing-priority.
- */
-export function hasClearedThreshold(
-  risk: number,
-  stage: Stage | null | undefined,
-  confidence?: number,
-): boolean {
-  const riskCleared = risk <= riskThresholdForStage(stage);
-  if (confidence === undefined) return riskCleared;
-  const confCleared = confidence >= confidenceFloorForStage(stage);
-  return riskCleared && confCleared;
+  if (!ceilingRung) return null;
+  const cheap = new Set<Rung>(["Talk", "Survey", "Desk & data"]);
+  const moderate = new Set<Rung>([
+    "Fake-door",
+    "Prototype use",
+    "Build proof",
+  ]);
+  if (cheap.has(ceilingRung)) return "cheap";
+  if (moderate.has(ceilingRung)) return "moderate";
+  return "expensive";
 }

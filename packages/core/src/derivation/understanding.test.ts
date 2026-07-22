@@ -14,9 +14,9 @@ function reading(
   return {
     id: over.id ?? "RDG-001",
     source: over.source ?? "src-1",
-    rung: over.rung ?? "Observed usage",
+    rung: over.rung ?? "Prototype use",
     result: over.result ?? "Validated",
-    questionType: over.questionType ?? "Existence",
+    assumptionType: over.assumptionType ?? "ProblemExists",
     representativeness: over.representativeness ?? 1.0,
     credibility: over.credibility ?? 1.0,
     date: "date" in over ? over.date : "2026-01-01",
@@ -34,16 +34,16 @@ describe("confidenceAttribution", () => {
 
   it("attributes a single reading to its experiment, contribution = confidence", () => {
     const a = confidenceAttribution([reading({ experimentId: "EXP-1" })]);
-    // Existence × Observed usage × Low = 20, Validated, sq=1, committed.
-    // W0[Observed usage] = 327. s=20, w=20 → 20×20/(327+20) = 1.15
-    expect(a.confidence).toBe(1.15);
+    // ProblemExists × Prototype use × Low = 20, Validated, sq=1, committed.
+    // W0[Prototype use] = 6.5. s=20, w=20 → 20×20/(6.5+20) = 15.09
+    expect(a.confidence).toBe(15.09);
     expect(a.movers).toHaveLength(1);
     expect(a.movers[0]!).toMatchObject({
       key: "EXP-1",
       kind: "experiment",
       experimentId: "EXP-1",
-      contribution: 1.15,
-      magnitude: 1.15,
+      contribution: 15.09,
+      magnitude: 15.09,
       readingCount: 1,
     });
   });
@@ -69,12 +69,12 @@ describe("confidenceAttribution", () => {
 
   it("ranks movers by |contribution|, strongest first", () => {
     const a = confidenceAttribution([
-      reading({ id: "a", source: "sa", experimentId: "weak", rung: "Talk", magnitudeBand: "Low" }),
+      reading({ id: "a", source: "sa", experimentId: "weak", rung: "Prototype use", magnitudeBand: "Low" }),
       reading({
         id: "b",
         source: "sb",
         experimentId: "strong",
-        rung: "Observed usage",
+        rung: "Talk",
         magnitudeBand: "Low",
       }),
     ]);
@@ -94,7 +94,7 @@ describe("confidenceAttribution", () => {
 
   it("buckets experiment-less readings (market-rung or bare) as direct", () => {
     const a = confidenceAttribution([
-      reading({ id: "g", source: "sg", rung: "Paying users" }), // no experiment
+      reading({ id: "g", source: "sg", rung: "Payment" }), // no experiment
       reading({ id: "d", source: "sd" }), // no experiment
     ]);
     const kinds = Object.fromEntries(a.movers.map((m) => [m.key, m.kind]));
@@ -105,8 +105,8 @@ describe("confidenceAttribution", () => {
 
   it("honours Source dedupe, so a shadowed reading never doubles a mover", () => {
     const a = confidenceAttribution([
-      reading({ id: "a", source: "same", experimentId: "EXP-1", rung: "Observed usage", magnitudeBand: "Low" }),
-      reading({ id: "b", source: "same", experimentId: "EXP-1", rung: "Talk", magnitudeBand: "Low" }),
+      reading({ id: "a", source: "same", experimentId: "EXP-1", rung: "Talk", magnitudeBand: "Low" }),
+      reading({ id: "b", source: "same", experimentId: "EXP-1", rung: "Prototype use", magnitudeBand: "Low" }),
     ]);
     expect(a.movers[0]!.readingCount).toBe(1);
     expect(a.movers[0]!.readingIds).toEqual(["a"]);

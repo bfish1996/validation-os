@@ -25,7 +25,8 @@
  * verdict-alignment nudge so a plan whose bars are settled the way the evidence
  * already points inches further in that direction.
  */
-import type { MagnitudeBand, QuestionType, Result, Rung } from "../types.js";
+import type { AssumptionType, MagnitudeBand, Result, Rung } from "../types.js";
+import { MARKET_RUNGS } from "../types.js";
 import { round2 } from "./round.js";
 import { sourceQuality } from "./source-quality.js";
 import { isConcluded, readingStrength, sign } from "./strength.js";
@@ -45,8 +46,8 @@ export interface ExperimentConfidenceReadingInput {
   source: string | null;
   rung: Rung;
   result: Result;
-  /** The linked assumption's question type — sets the anchor sub-ladder. */
-  questionType: QuestionType;
+  /** The linked assumption's type — sets the anchor sub-ladder. */
+  assumptionType: AssumptionType;
   magnitudeBand?: MagnitudeBand;
   representativeness: number;
   credibility: number;
@@ -67,7 +68,7 @@ function clamp(n: number, lo: number, hi: number): number {
 function dedupeBySource(
   readings: ExperimentConfidenceReadingInput[],
 ): ExperimentConfidenceReadingInput[] {
-  const MARKET = new Set<Rung>(["Signed intent", "Paying users"]);
+  const MARKET = new Set<Rung>(MARKET_RUNGS);
   const best = new Map<string, ExperimentConfidenceReadingInput>();
   for (const r of readings) {
     if (MARKET.has(r.rung)) {

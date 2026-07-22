@@ -1,12 +1,11 @@
 import { useMemo } from "react";
 import {
-  QUESTION_TYPES,
-  STAGES,
+  ASSUMPTION_TYPES,
   type AnyRecord,
-  type QuestionType,
+  type AssumptionType,
   type Rung,
 } from "@validation-os/core";
-import { confidenceFloorForStage, isNonEvidence, riskThresholdForStage } from "@validation-os/core/derivation";
+import { isNonEvidence } from "@validation-os/core/derivation";
 import { Breadcrumb } from "./breadcrumb.js";
 import { buildEvidenceComposition, readingContributions, type ReadingContribution } from "./evidence-composition.js";
 import { buildConfidenceExplainer } from "./confidence-explainer.js";
@@ -85,7 +84,7 @@ export function AssumptionDetail({
   const page = buildRecordPage("assumptions", record, related);
   const lens = String(record.Lens ?? "—");
   const stage = String(record.Stage ?? "—");
-  const questionType = String(record["Question Type"] ?? "—");
+  const assumptionType = String(record["Assumption Type"] ?? "—");
   const derived = (record.derived ?? {}) as {
     derivedImpact?: number;
     risk?: number;
@@ -96,18 +95,6 @@ export function AssumptionDetail({
   const risk = derived.risk ?? 0;
   const impact = derived.derivedImpact ?? 0;
   const framed = derived.completeness ?? 0;
-
-  // DEV-5890: stage-keyed Risk threshold — the stopping bar for this stage.
-  // "Cleared" requires BOTH Risk ≤ threshold AND Confidence ≥ floor (the
-  // zero-evidence guard: a low-Impact belief can't be "cleared" with no
-  // readings).
-  const stageKey = STAGES.find((s) => s === stage);
-  const riskThreshold = stageKey ? riskThresholdForStage(stageKey) : null;
-  const confFloor = stageKey ? confidenceFloorForStage(stageKey) : null;
-  const clearedThreshold =
-    riskThreshold != null && confFloor != null
-      ? risk <= riskThreshold && confidence >= confFloor
-      : null;
 
   // Next move — derive a one-line next move from the page's meters, or fall
   // back to a stage-aware verb. (The existing nextMove lives in pipeline.ts;
@@ -158,7 +145,7 @@ export function AssumptionDetail({
         <span className="vos-detail-id vos-num">{assumptionId}</span>
         <span className="vos-detail-tag">{lens}</span>
         <span className="vos-detail-tag">{stage}</span>
-        <span className="vos-detail-tag vos-detail-tag-qt">{questionType}</span>
+        <span className="vos-detail-tag vos-detail-tag-qt">{assumptionType}</span>
         {cycles.map((c) => (
           <span key={c} className="vos-pill vos-pill-accent">Cycle {c}</span>
         ))}
@@ -179,21 +166,9 @@ export function AssumptionDetail({
         <ScoreCard label="Framed" value={`${Math.round(framed)}%`} />
       </div>
 
-      {/* DEV-5890: stage-keyed Risk threshold indicator — a visual bar that
-          fills Risk toward the stage's stopping bar, with a threshold marker. */}
-      {riskThreshold != null ? (
-        <ThresholdBar
-          risk={risk}
-          threshold={riskThreshold}
-          confidence={confidence}
-          confFloor={confFloor ?? 0}
-          stage={stage}
-          cleared={clearedThreshold ?? false}
-        />
-      ) : null}
-
-      {/* Evidence composition — per-rung bars, lens-aware (uses the real
-          confidence attribution math, so contributions add up to Confidence) */}
+      {/* Evidence composition — per-rung bars, assumption-type-aware (uses
+          the real confidence attribution math, so contributions add up to
+          Confidence) */}
       <EvidenceCompositionView assumption={record} readings={readings.records ?? []} />
 
       {/* Confidence explainer — the formula, per-rung W0s, anchors, and what
@@ -280,7 +255,7 @@ export function AssumptionDetail({
           non-evidence for this assumption's question type. */}
       <EvidenceList
         assumptionId={assumptionId}
-        questionType={questionType}
+        assumptionType={assumptionType}
         readings={readings.records ?? []}
         onNavigate={onNavigate}
       />
@@ -290,12 +265,12 @@ export function AssumptionDetail({
 
 function EvidenceList({
   assumptionId,
-  questionType,
+  assumptionType,
   readings,
   onNavigate,
 }: {
   assumptionId: string;
-  questionType: string;
+  assumptionType: string;
   readings: AnyRecord[];
   onNavigate: (route: Route) => void;
 }) {
@@ -310,9 +285,11 @@ function EvidenceList({
     return new Map(rows.map((r) => [r.id, r]));
   }, [readings, assumptionId]);
 
-  // DEV-5890: group linked readings into probative vs flagged-as-non-evidence
-  // for this assumption's question type.
-  const qt = QUESTION_TYPES.find((q) => q === questionType);
+  // OPS-1406: group linked readings into probative vs flagged-as-non-evidence
+  // for this assumption's assumption type.
+  const qt = ASSUMPTION_TYPES.find((q) => q === assumptionType) as
+    | AssumptionType
+    | undefined;
   const { probative, flagged } = useMemo(() => {
     const prob: AnyRecord[] = [];
     const flag: AnyRecord[] = [];
@@ -358,7 +335,7 @@ function EvidenceList({
           <span className={`vos-pill vos-pill-${verdictTone(result)}`}>{result}</span>
           <span className="vos-rung-tag">{rung}</span>
           {flagged ? (
-            <span className="vos-evidence-flag" title="This rung is non-evidence for this assumption's question type — reclassify the assumption or drop the reading.">
+            <span className="vos-evidence-flag" title="This rung is non-evidence for this assumption's type — reclassify the assumption or drop the reading.">
               non-evidence
             </span>
           ) : null}
@@ -414,7 +391,7 @@ function EvidenceList({
       {flagged.length > 0 ? (
         <div className="vos-evidence-group vos-evidence-group-flagged">
           <div className="vos-evidence-group-label">
-            Flagged as non-evidence for this question type · {flagged.length}
+            Flagged as non-evidence for this assumption type · {flagged.length}
           </div>
           {flagged.map((r) => renderRow(r, true))}
         </div>
@@ -429,14 +406,19 @@ function contributionTone(v: number): Tone {
   return "neutral";
 }
 
-/** The 6 fixed rung values, for the non-evidence grouping check. */
+/** The 11 fixed rung values, for the non-evidence grouping check. */
 const RUNGS = [
   "Talk",
-  "Desk research",
-  "Signed up",
-  "Observed usage",
-  "Signed intent",
-  "Paying users",
+  "Survey",
+  "Desk & data",
+  "Fake-door",
+  "Prototype use",
+  "Retention",
+  "Commitment",
+  "Payment",
+  "Build proof",
+  "Outcome test",
+  "Cost data",
 ] as const;
 
 function snippetFromBody(body: string, cue: string): string {
@@ -471,106 +453,6 @@ function ScoreCard({
     <div className="vos-score-card">
       <div className={cls}>{value}</div>
       <div className="vos-score-label">{label}</div>
-    </div>
-  );
-}
-
-/**
- * The stage-keyed evidence bar (DEV-5890). Shows a SINGLE Confidence bar that
- * fills UP toward the stage's required floor — the intuitive direction:
- *   - Discovery: short target (floor = 10) → easy to fill → "cleared" quickly
- *   - Maturity: tall target (floor = 60) → hard to fill → "cleared" slowly
- *
- * The floor marker is the dashed line; the fill turns green when it reaches
- * the marker. Below the bar, a compact Risk summary shows whether Risk is
- * under the stage's acceptable-Risk cap (the lower the cap, the stricter).
- *
- * "Cleared" requires BOTH: Confidence ≥ floor AND Risk ≤ cap.
- */
-function ThresholdBar({
-  risk,
-  threshold,
-  confidence,
-  confFloor,
-  stage,
-  cleared,
-}: {
-  risk: number;
-  threshold: number;
-  confidence: number;
-  confFloor: number;
-  stage: string;
-  cleared: boolean;
-}) {
-  const confPct = Math.min(100, Math.max(0, Math.abs(confidence)));
-  const confFloorPct = Math.min(100, confFloor);
-  const riskBelow = risk <= threshold;
-  const confAbove = confidence >= confFloor;
-  const tone = cleared ? "good" : !riskBelow && !confAbove ? "crit" : "warn";
-
-  return (
-    <div className="vos-card vos-threshold-bar-card">
-      <div className="vos-threshold-bar-header">
-        <span className="vos-threshold-bar-title">
-          Evidence needed
-          <span className="vos-threshold-bar-stage-tag">{stage}</span>
-        </span>
-        <span className={`vos-threshold-bar-status vos-threshold-bar-${tone}`}>
-          {cleared ? "Cleared" : "Needs evidence"}
-        </span>
-      </div>
-
-      {/* Confidence bar — fills UP toward the floor marker */}
-      <div className="vos-threshold-bar-section">
-        <div className="vos-threshold-bar-section-label">
-          <span>Confidence</span>
-          <span className="vos-num vos-threshold-bar-section-val">{formatSigned(confidence)}</span>
-          <span className="vos-threshold-bar-section-target">
-            need ≥ {confFloor} {cleared ? "✓" : ""}
-          </span>
-        </div>
-        <div className="vos-threshold-bar-track vos-threshold-bar-track-tall">
-          {/* The target zone (above the floor marker) is tinted */}
-          <div
-            className="vos-threshold-bar-target-zone"
-            style={{ left: `${confFloorPct}%` }}
-          />
-          {/* The fill */}
-          <div
-            className={`vos-threshold-bar-fill vos-fill-${confAbove ? "good" : tone}`}
-            style={{ width: `${confPct}%` }}
-          />
-          {/* The floor marker */}
-          <div
-            className="vos-threshold-bar-marker"
-            style={{ left: `${confFloorPct}%` }}
-            title={`Need Confidence ≥ ${confFloor} for ${stage}`}
-          >
-            <span className="vos-threshold-bar-marker-label vos-num">{confFloor}</span>
-          </div>
-        </div>
-        <div className="vos-threshold-bar-scale">
-          <span className="vos-num">0</span>
-          <span className="vos-num vos-threshold-bar-scale-mid">50</span>
-          <span className="vos-num">100</span>
-        </div>
-      </div>
-
-      {/* Compact Risk summary — "Risk X of Y max" */}
-      <div className="vos-threshold-bar-risk-summary">
-        <span className={`vos-threshold-bar-risk-val vos-text-${riskBelow ? "good" : "crit"}`}>
-          Risk {Math.round(risk)}
-        </span>
-        <span className="vos-threshold-bar-risk-cap">
-          max {threshold} for {stage}
-        </span>
-      </div>
-
-      <div className="vos-threshold-bar-hint">
-        {cleared
-          ? `Confidence ${formatSigned(confidence)} ≥ ${confFloor} and Risk ${Math.round(risk)} ≤ ${threshold} — cleared for ${stage}.`
-          : `Need Confidence ≥ ${confFloor}${!confAbove ? ` (now ${formatSigned(confidence)})` : " ✓"} and Risk ≤ ${threshold}${!riskBelow ? ` (now ${Math.round(risk)})` : " ✓"}.`}
-      </div>
     </div>
   );
 }

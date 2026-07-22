@@ -392,10 +392,10 @@ function PipelineBoard({
  * dropped per the collapsed pipeline model (DEV-5879). */
 function PipelineRowView({ row, onOpen }: { row: PipelineRow; onOpen: () => void }) {
   const stripeTone: Tone = row.riskTone;
-  // The Known meter fills relative to the question type's max ceiling, not the
-  // absolute 100 — so near-ceiling evidence for Existence (ceiling 50) fills
-  // the bar near 100%, not near 50%. DEV-5890.
-  const ceiling = row.questionTypeCeiling ?? 99;
+  // The Known meter fills relative to the assumption type's max ceiling, not
+  // the absolute 100 — so near-ceiling evidence fills the bar near 100%.
+  // OPS-1406.
+  const ceiling = row.typeCeiling ?? 99;
   const knownPct = Math.max(0, Math.min(100, (Math.abs(row.confidence) / ceiling) * 100));
   const knownSign = row.confSign;
   return (
@@ -408,23 +408,11 @@ function PipelineRowView({ row, onOpen }: { row: PipelineRow; onOpen: () => void
           <span className="vos-num">impact {Math.round(row.impact)}</span>
           <span className={`vos-num vos-text-${row.riskTone}`}>risk {Math.round(row.risk)}</span>
           <span className="vos-num">conf {formatSigned(row.confidence)}</span>
-          {row.questionType ? (
-            <span className="vos-pipe-tag vos-pipe-tag-qt">{row.questionType}</span>
+          {row.assumptionType ? (
+            <span className="vos-pipe-tag vos-pipe-tag-qt">{row.assumptionType}</span>
           ) : null}
           {row.stage ? (
             <span className="vos-pipe-tag vos-pipe-tag-stage">{row.stage}</span>
-          ) : null}
-          {row.riskThreshold != null ? (
-            <span
-              className={`vos-pipe-tag vos-pipe-tag-thresh ${
-                row.clearedThreshold ? "vos-pipe-tag-cleared" : "vos-pipe-tag-needs"
-              }`}
-              title={`Stage threshold ${row.riskThreshold} — ${
-                row.clearedThreshold ? "cleared for this stage" : "needs evidence"
-              }`}
-            >
-              {row.clearedThreshold ? "cleared" : `bar ${row.riskThreshold}`}
-            </span>
           ) : null}
         </span>
       </button>

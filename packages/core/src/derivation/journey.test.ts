@@ -6,9 +6,9 @@ function reading(
 ): AttributionReadingInput {
   return {
     source: over.id,
-    rung: "Observed usage",
+    rung: "Prototype use",
     result: "Validated",
-    questionType: over.questionType ?? "Existence",
+    assumptionType: over.assumptionType ?? "ProblemExists",
     magnitudeBand: "Low",
     representativeness: 1.0,
     credibility: 1.0,
@@ -95,24 +95,19 @@ describe("assembleJourney", () => {
   });
 
   it("emits a confidence-cross at the first point the evidence enters the kill zone", () => {
-    // WillingnessToPay × Paying users × High × Invalidated: s=-99, w=99, found
+    // TheyllPay × Payment × High × Invalidated: s=-99, w=99, found
     // commitment 0.85 (journey's reading() helper defaults experimentId: null),
-    // so w_effective = 99 × 0.85 = 84.15. W0[Paying users]=327.
-    // Kill zone (≤ −50) is reached at 8 readings:
-    //   8×(-99×84.15) / (327 + 8×84.15) = -66807.6 / 1000.2 = -66.79 → crossed
-    //   7×(-99×84.15) / (327 + 7×84.15) = -58432.95 / 916.05 = -63.79 → crossed
-    //   3×(-99×84.15) / (327 + 3×84.15) = -25072.65 / 579.45 = -43.27 → above
-    //   5×(-99×84.15) / (327 + 5×84.15) = -41754.75 / 747.75 = -55.84 → crossed
-    //   4×(-99×84.15) / (327 + 4×84.15) = -33403.8 / 663.6 = -50.34 → crossed
-    //   3×(-99×84.15) = -43.27 → above. So the 4th miss tips it over.
-    const missReadings = Array.from({ length: 4 }, (_, i) => {
-      const month = i + 2; // 2..5 → Feb 2026 .. May 2026
+    // so w_effective = 99 × 0.85 = 84.15. W0[Payment] = 6.5.
+    // Kill zone (≤ −50) is reached at 1 reading:
+    //   1×(-99×84.15) / (6.5 + 1×84.15) = -8330.85 / 90.65 = -91.95 → crossed
+    const missReadings = Array.from({ length: 1 }, (_, i) => {
+      const month = i + 2; // 2 → Feb 2026
       const m = String(month).padStart(2, "0");
       return reading({
         id: `m${i + 1}`,
         date: `2026-${m}-01`,
-        rung: "Paying users",
-        questionType: "WillingnessToPay",
+        rung: "Payment",
+        assumptionType: "TheyllPay",
         magnitudeBand: "High",
         result: "Invalidated",
       });
@@ -125,7 +120,7 @@ describe("assembleJourney", () => {
     });
     const cross = events.find((e) => e.kind === "confidence-cross");
     expect(cross).toBeDefined();
-    expect(cross!.date).toBe(missReadings[3]!.date); // the 4th miss tips it over
+    expect(cross!.date).toBe(missReadings[0]!.date); // the 1st miss tips it over
     expect(cross!.confidence).toBeLessThanOrEqual(-50);
   });
 

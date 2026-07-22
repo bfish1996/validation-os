@@ -12,14 +12,22 @@
  * cycle guard, matching the instance's `migration/remodel.mjs`.
  */
 import { round2 } from "./round.js";
+import { IMPACT_SEED_CAP } from "../types.js";
 
 export interface ImpactAssumptionInput {
   id: string;
-  /** The hand-scored seed (0–100); null treated as 0. */
+  /** The hand-scored seed (0–IMPACT_SEED_CAP); null treated as 0. Capped so
+   * structure (dependents, standing decisions) supplies the rest — a single
+   * hand-typed 100 can no longer pin Impact to 100 (OPS-1406). */
   impact: number | null;
   moot?: boolean;
   /** Ids this assumption depends on. */
   dependsOnIds: string[];
+}
+
+/** Cap the hand-scored seed (OPS-1406). Structure supplies the rest. */
+function capSeed(seed: number): number {
+  return Math.min(seed, IMPACT_SEED_CAP);
 }
 
 /**
@@ -53,7 +61,7 @@ export function derivedImpacts(
       memo.set(id, 0);
       return 0;
     }
-    const seed = a.impact ?? 0;
+    const seed = capSeed(a.impact ?? 0);
     let S = 0;
     for (const depId of dependents.get(id) ?? []) {
       const d = byId.get(depId);

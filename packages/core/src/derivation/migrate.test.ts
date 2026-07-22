@@ -6,7 +6,7 @@ import type {
 } from "./migrate.js";
 
 /**
- * Seam 3 — Migration entry point (DEV-5890).
+ * Seam 3 — Migration entry point (DEV-5890 / OPS-1406).
  *
  * `migrateRegister(oldShape) → { newShape, flags, summary }` tested with a
  * fixture covering: existence assumption with qual evidence (should become
@@ -48,8 +48,8 @@ function reading(over: Partial<MigrationReading> & { id: string }): MigrationRea
   };
 }
 
-describe("migrateRegister — question-type-aware evidence ladder (DEV-5890)", () => {
-  it("infers Question Type from the falsification bar", () => {
+describe("migrateRegister — assumption-type-aware evidence ladder (DEV-5890)", () => {
+  it("infers Assumption Type from the falsification bar", () => {
     const result = migrateRegister(
       [
         assumption({
@@ -68,12 +68,12 @@ describe("migrateRegister — question-type-aware evidence ladder (DEV-5890)", (
       [],
     );
     const byId = new Map(result.assumptions.map((a) => [a.id, a]));
-    expect(byId.get("ASM-EXIST")!["Question Type"]).toBe("Existence");
-    expect(byId.get("ASM-WTP")!["Question Type"]).toBe("WillingnessToPay");
-    expect(byId.get("ASM-REG")!["Question Type"]).toBe("Regulatory");
+    expect(byId.get("ASM-EXIST")!["Assumption Type"]).toBe("ProblemExists");
+    expect(byId.get("ASM-WTP")!["Assumption Type"]).toBe("TheyllPay");
+    expect(byId.get("ASM-REG")!["Assumption Type"]).toBe("LegalCompliant");
   });
 
-  it("keeps an explicitly-set Question Type (no re-inference)", () => {
+  it("keeps an explicitly-set Question Type (mapped to Assumption Type, no re-inference)", () => {
     const result = migrateRegister(
       [
         assumption({
@@ -84,24 +84,24 @@ describe("migrateRegister — question-type-aware evidence ladder (DEV-5890)", (
       ],
       [],
     );
-    expect(result.assumptions[0]!["Question Type"]).toBe("CausalEffect");
-    expect(result.assumptions[0]!.questionTypeReviewNeeded).toBe(false);
+    expect(result.assumptions[0]!["Assumption Type"]).toBe("ItWorks");
+    expect(result.assumptions[0]!.assumptionTypeReviewNeeded).toBe(false);
   });
 
-  it("flags ambiguous bars for human review (defaults to Existence)", () => {
+  it("flags ambiguous bars for human review (defaults to ProblemExists)", () => {
     const result = migrateRegister(
       [assumption({ id: "ASM-1", wrongIfBar: "" })],
       [],
     );
-    expect(result.assumptions[0]!["Question Type"]).toBe("Existence");
-    expect(result.assumptions[0]!.questionTypeReviewNeeded).toBe(true);
+    expect(result.assumptions[0]!["Assumption Type"]).toBe("ProblemExists");
+    expect(result.assumptions[0]!.assumptionTypeReviewNeeded).toBe(true);
     expect(result.reviewQueueCount).toBe(1);
   });
 
-  it("an existence assumption with 7 Talk High readings → high Confidence (the bug fix)", () => {
+  it("a ProblemExists assumption with 7 Talk High readings → high Confidence (the bug fix)", () => {
     // 7 interviews on a pain-existence assumption. Under the OLD single-ladder
-    // Talk High = 10 → low Confidence. Under the new Existence sub-ladder,
-    // Talk High = 30 → Confidence approaches the qual ceiling.
+    // Talk High = 10 → low Confidence. Under the new ProblemExists sub-ladder,
+    // Talk High = 99 → Confidence approaches the qual ceiling.
     const result = migrateRegister(
       [
         assumption({
@@ -123,13 +123,13 @@ describe("migrateRegister — question-type-aware evidence ladder (DEV-5890)", (
       ),
     );
     const a = result.assumptions[0]!;
-    expect(a["Question Type"]).toBe("Existence");
-    expect(a.newConfidence).toBeGreaterThan(20); // well above the old single-digit
-    expect(a.confidenceDelta).toBeGreaterThan(15); // a big upward move
+    expect(a["Assumption Type"]).toBe("ProblemExists");
+    expect(a.newConfidence).toBeGreaterThan(90); // well above the old single-digit
+    expect(a.confidenceDelta).toBeGreaterThan(80); // a big upward move
   });
 
-  it("a WTP assumption with 7 Talk High readings → Confidence 0 (non-evidence flags)", () => {
-    // The same 7 interviews on a WTP claim. Under the new WTP sub-ladder, Talk
+  it("a TheyllPay assumption with 7 Talk High readings → Confidence 0 (non-evidence flags)", () => {
+    // The same 7 interviews on a TheyllPay claim. Under the new TheyllPay sub-ladder, Talk
     // is non-evidence → every reading contributes s=0 → Confidence stays 0.
     const result = migrateRegister(
       [
@@ -152,7 +152,7 @@ describe("migrateRegister — question-type-aware evidence ladder (DEV-5890)", (
       ),
     );
     const a = result.assumptions[0]!;
-    expect(a["Question Type"]).toBe("WillingnessToPay");
+    expect(a["Assumption Type"]).toBe("TheyllPay");
     expect(a.newConfidence).toBe(0); // non-evidence → no contribution
     expect(a.confidenceDelta).toBe(-25); // a big downward move
     // Every reading is flagged as non-evidence.
@@ -161,9 +161,9 @@ describe("migrateRegister — question-type-aware evidence ladder (DEV-5890)", (
     expect(result.readings.every((r) => r.newStrength === 0)).toBe(true);
   });
 
-  it("a regulatory assumption with 2 Desk research High readings → near the desk ceiling", () => {
-    // Regulatory × Desk research × High = 70. W0[Desk research] = 2.
-    // 2 readings → near the 70 ceiling.
+  it("a LegalCompliant assumption with 2 Desk & data High readings → near the desk ceiling", () => {
+    // LegalCompliant × Desk & data × High = 99. W0[Desk & data] = 2.
+    // 2 readings → near the 99 ceiling.
     const result = migrateRegister(
       [
         assumption({
@@ -176,7 +176,7 @@ describe("migrateRegister — question-type-aware evidence ladder (DEV-5890)", (
         reading({
           id: `r${i}`,
           assumptionId: "ASM-REG",
-          Rung: "Desk research",
+          Rung: "Desk & data",
           magnitudeBand: "High",
           Source: `src-${i}`,
           Result: "Validated",
@@ -185,12 +185,12 @@ describe("migrateRegister — question-type-aware evidence ladder (DEV-5890)", (
       ),
     );
     const a = result.assumptions[0]!;
-    expect(a["Question Type"]).toBe("Regulatory");
-    expect(a.newConfidence).toBeGreaterThan(60);
-    expect(a.newConfidence).toBeLessThanOrEqual(70);
+    expect(a["Assumption Type"]).toBe("LegalCompliant");
+    expect(a.newConfidence).toBeGreaterThan(90);
+    expect(a.newConfidence).toBeLessThanOrEqual(99);
   });
 
-  it("a causal assumption with mixed evidence — talk is non-evidence, paying users is probative", () => {
+  it("an ItWorks assumption with mixed evidence — talk is non-evidence, outcome test is probative", () => {
     const result = migrateRegister(
       [
         assumption({
@@ -200,7 +200,7 @@ describe("migrateRegister — question-type-aware evidence ladder (DEV-5890)", (
         }),
       ],
       [
-        // Talk is non-evidence for CausalEffect → s=0, flagged.
+        // Talk is non-evidence for ItWorks → s=0, flagged.
         reading({
           id: "r-talk",
           assumptionId: "ASM-CAUSAL",
@@ -210,28 +210,28 @@ describe("migrateRegister — question-type-aware evidence ladder (DEV-5890)", (
           Result: "Validated",
           derived: { strength: 10 },
         }),
-        // Paying users (A/B on live traffic) is probative for CausalEffect → s=90.
+        // Outcome test (A/B on live traffic) is probative for ItWorks → s=99.
         reading({
-          id: "r-pay",
+          id: "r-outcome",
           assumptionId: "ASM-CAUSAL",
-          Rung: "Paying users",
+          Rung: "Outcome test",
           magnitudeBand: "High",
-          Source: "src-pay",
+          Source: "src-outcome",
           Result: "Validated",
           derived: { strength: 70 },
         }),
       ],
     );
     const a = result.assumptions[0]!;
-    expect(a["Question Type"]).toBe("CausalEffect");
-    expect(a.newConfidence).toBeGreaterThan(0); // the Paying-users reading contributes
-    // The Talk reading is flagged non-evidence; the Paying-users reading is not.
+    expect(a["Assumption Type"]).toBe("ItWorks");
+    expect(a.newConfidence).toBeGreaterThan(0); // the Outcome-test reading contributes
+    // The Talk reading is flagged non-evidence; the Outcome-test reading is not.
     const talkReading = result.readings.find((r) => r.Rung === "Talk")!;
-    const payReading = result.readings.find((r) => r.Rung === "Paying users")!;
+    const outcomeReading = result.readings.find((r) => r.Rung === "Outcome test")!;
     expect(talkReading.nonEvidence).toBe(true);
     expect(talkReading.newStrength).toBe(0);
-    expect(payReading.nonEvidence).toBe(false);
-    expect(payReading.newStrength).toBe(90);
+    expect(outcomeReading.nonEvidence).toBe(false);
+    expect(outcomeReading.newStrength).toBe(99);
     expect(result.nonEvidenceFlagCount).toBe(1);
   });
 
@@ -246,7 +246,7 @@ describe("migrateRegister — question-type-aware evidence ladder (DEV-5890)", (
         assumption({
           id: "ASM-BIG",
           wrongIfBar: "We're wrong if fewer than 10 of 200 offered users pay",
-          derived: { confidence: 25 },
+          derived: { confidence: 98 },
         }),
       ],
       // Both get a single Talk High reading.
@@ -263,24 +263,11 @@ describe("migrateRegister — question-type-aware evidence ladder (DEV-5890)", (
         }),
       ],
     );
-    // ASM-BIG goes from 25 → 0 (delta -25, |25|); ASM-SMALL goes from 0 → ~16
-    // (small delta). The biggest |delta| is first.
+    // ASM-BIG goes from 98 → 0 (delta -98, |98|); ASM-SMALL goes from 0 → ~93
+    // (big delta). The biggest |delta| is first.
     expect(result.confidenceDeltas[0]!.id).toBe("ASM-BIG");
     expect(Math.abs(result.confidenceDeltas[0]!.delta)).toBeGreaterThanOrEqual(
       Math.abs(result.confidenceDeltas[1]!.delta),
     );
-  });
-
-  it("records the stage-keyed Risk threshold on each migrated assumption", () => {
-    const result = migrateRegister(
-      [
-        assumption({ id: "ASM-D", Stage: "Discovery", wrongIfBar: "no one reports" }),
-        assumption({ id: "ASM-M", Stage: "Maturity", wrongIfBar: "no one reports" }),
-      ],
-      [],
-    );
-    const byId = new Map(result.assumptions.map((a) => [a.id, a]));
-    expect(byId.get("ASM-D")!.riskThreshold).toBe(30);
-    expect(byId.get("ASM-M")!.riskThreshold).toBe(5);
   });
 });

@@ -1,12 +1,14 @@
 /**
  * Confidence explainer (DEV-5879) — a user-facing breakdown of how an
  * assumption's Confidence is calculated, showing the formula, the per-rung
- * W0 priors, the question-type-aware rung ladder with anchors, and what each piece of
- * evidence contributes. The numbers come from the same `scoreAndDedupe` +
- * per-rung W0 math the hero number uses (via `buildEvidenceComposition`), so
- * the explainer literally adds up to Confidence.
+ * W0 priors, the assumption-type-aware rung ladder with anchors, and what
+ * each piece of evidence contributes. The numbers come from the same
+ * `scoreAndDedupe` + per-rung W0 math the hero number uses (via
+ * `buildEvidenceComposition`), so the explainer literally adds up to
+ * Confidence.
  */
 import type { AnyRecord } from "@validation-os/core";
+import { ASSUMPTION_TYPES, RUNGS, type AssumptionType } from "@validation-os/core";
 import { RUNG_ANCHOR, W0_BY_RUNG } from "@validation-os/core/derivation";
 import { buildEvidenceComposition, type RungContribution } from "./evidence-composition.js";
 import { readingBeliefFor, str } from "./derived-views.js";
@@ -35,7 +37,7 @@ export interface ConfidenceExplainerView {
   confidence: number;
   /** The formula as a plain-language string. */
   formula: string;
-  /** The per-rung breakdown (all 6 rungs, lens-aware order). */
+  /** The per-rung breakdown (all 11 rungs, canonical order). */
   rungs: RungExplainer[];
   /** The total contribution (Σ = Confidence). */
   totalContribution: number;
@@ -50,27 +52,51 @@ const RUNG_INFO: Record<string, { label: string; description: string }> = {
     label: "Talk",
     description: "Opinions, pitch reactions, anecdotes. Quick to get but slow to move the needle — needs ~10 distinct sources to approach the cap.",
   },
-  "Desk research": {
-    label: "Desk research",
+  Survey: {
+    label: "Survey",
+    description: "Stated opinion at scale. A survey reaches more people than talk but is still self-reported.",
+  },
+  "Desk & data": {
+    label: "Desk & data",
     description: "Published sources, competitor analysis, market reports. Authoritative — 2 strong sources nearly saturate this rung.",
   },
-  "Signed up": {
-    label: "Signed up (Consumer)",
-    description: "Consumers signing up for the product. A do-rung — 20 signups bring this to ~75% of its cap.",
+  "Fake-door": {
+    label: "Fake-door",
+    description: "A pretended offering — observed signups reveal real demand, not stated intent.",
   },
-  "Observed usage": {
-    label: "Observed usage (Consumer)",
-    description: "Usage sessions, analytics, telemetry, A/B tests. A do-rung — 20 observed users bring this to ~75% of its cap.",
+  "Prototype use": {
+    label: "Prototype use",
+    description: "Observed usage of a prototype. A do-rung — 20 observed users bring this to ~75% of its cap.",
   },
-  "Signed intent": {
-    label: "Signed intent (Commercial)",
-    description: "LOIs, signed letters of intent from businesses. A do-rung — 20 signed intents bring this to ~75% of its cap.",
+  Retention: {
+    label: "Retention",
+    description: "Sustained usage over time. The strongest signal that the product keeps delivering value.",
   },
-  "Paying users": {
-    label: "Paying users (Commercial)",
+  Commitment: {
+    label: "Commitment",
+    description: "LOIs, signed letters of intent, design partner agreements. A market rung — each closed commitment is its own unit.",
+  },
+  Payment: {
+    label: "Payment",
     description: "Closed commitments — revenue. The strongest do-rung — 20 paying users bring this to ~75% of its cap.",
   },
+  "Build proof": {
+    label: "Build proof",
+    description: "Operational proof the system can be built — feasibility evidence at the rung level.",
+  },
+  "Outcome test": {
+    label: "Outcome test",
+    description: "Causal / efficacy tests (A/B, pre/post). The rung for causal-effect and efficacy claims.",
+  },
+  "Cost data": {
+    label: "Cost data",
+    description: "Unit economics data — the rung for viability / economics claims.",
+  },
 };
+
+function isAssumptionType(v: string): v is AssumptionType {
+  return (ASSUMPTION_TYPES as readonly string[]).includes(v);
+}
 
 export function buildConfidenceExplainer(
   assumption: AnyRecord,
@@ -79,20 +105,14 @@ export function buildConfidenceExplainer(
   const comp = buildEvidenceComposition(assumption, readings);
   const lens = str(assumption.Lens) ?? "";
   const lensRungs = new Set(comp.rungs.map((r) => r.rung));
-  // DEV-5890: read the assumption's Question Type so anchors come from the
+  // OPS-1406: read the assumption's Assumption Type so anchors come from the
   // right sub-ladder.
-  const questionType =
-    (str(assumption["Question Type"]) as keyof typeof RUNG_ANCHOR) ?? "Existence";
+  const rawType = str(assumption["Assumption Type"]);
+  const assumptionType: AssumptionType =
+    rawType && isAssumptionType(rawType) ? rawType : "ProblemExists";
 
-  // All 6 rungs in the canonical order, lens-aware.
-  const allRungs = [
-    "Talk",
-    "Desk research",
-    "Signed up",
-    "Observed usage",
-    "Signed intent",
-    "Paying users",
-  ];
+  // All 11 rungs in the canonical order, lens-aware.
+  const allRungs = [...RUNGS];
 
   const rungs: RungExplainer[] = allRungs.map((rung) => {
     const e = comp.rungs.find((r) => r.rung === rung);
@@ -101,7 +121,7 @@ export function buildConfidenceExplainer(
       rung,
       w0: W0_BY_RUNG[rung as keyof typeof W0_BY_RUNG] ?? 100,
       anchors:
-        RUNG_ANCHOR[questionType]?.[rung as keyof (typeof RUNG_ANCHOR)[typeof questionType]] ??
+        RUNG_ANCHOR[assumptionType]?.[rung] ??
         { Low: 0, Typical: 0, High: 0 },
       contribution: e?.contribution ?? 0,
       count: e?.count ?? 0,
