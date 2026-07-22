@@ -1,5 +1,5 @@
 /**
- * The Assumptions workspace view-model (OPS-1407) — the experiment-first
+ * The Assumptions workspace view-model (the experiment-first assumptions workspace) — the experiment-first
  * rebuild of the Assumptions surface. The experiment is the unit of *action*
  * (you run experiments, not beliefs); the belief is the unit you *read
  * progress* through.

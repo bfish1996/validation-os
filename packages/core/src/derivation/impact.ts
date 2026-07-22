@@ -18,14 +18,14 @@ export interface ImpactAssumptionInput {
   id: string;
   /** The hand-scored seed (0–IMPACT_SEED_CAP); null treated as 0. Capped so
    * structure (dependents, standing decisions) supplies the rest — a single
-   * hand-typed 100 can no longer pin Impact to 100 (OPS-1406). */
+   * hand-typed 100 can no longer pin Impact to 100 (the confidence-scoring simplification). */
   impact: number | null;
   moot?: boolean;
   /** Ids this assumption depends on. */
   dependsOnIds: string[];
 }
 
-/** Cap the hand-scored seed (OPS-1406). Structure supplies the rest. */
+/** Cap the hand-scored seed (the confidence-scoring simplification). Structure supplies the rest. */
 function capSeed(seed: number): number {
   return Math.min(seed, IMPACT_SEED_CAP);
 }

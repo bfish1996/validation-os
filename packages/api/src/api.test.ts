@@ -97,7 +97,7 @@ describe("createApi CRUD", () => {
     // The client's derived values are never trusted — the API recomputes.
     const asm = await provider.get("assumptions", "ASM-1");
     // completeness = 33: Impact + Question Type of the six structural slots are
-    // present on this minimal seed record (OPS-1305 + DEV-5890). 2 of 6 → 33.
+    // present on this minimal seed record (the evidence-remodel slice + the question-type-aware evidence ladder). 2 of 6 → 33.
     expect(asm.derived).toEqual({
       confidence: 0,
       derivedImpact: 60,
@@ -316,7 +316,7 @@ describe("derive-on-write", () => {
     expect(res.status).toBe(201);
     const body = await res.json();
     // Source quality is a row property; Strength is per belief.
-    // ProblemExists × Prototype use × Low = 20 (OPS-1406 sub-ladder).
+    // ProblemExists × Prototype use × Low = 20 (the confidence-scoring simplification sub-ladder).
     expect(body.data.derived).toEqual({ sourceQuality: 1 });
     expect(body.data.beliefs[0].derived).toEqual({ strength: 20 });
     // assumptionIds is kept in sync as the beliefs[] projection.

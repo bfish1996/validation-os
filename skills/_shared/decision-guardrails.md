@@ -15,7 +15,7 @@ A Decision record states **what was decided, by whom, and why** — not a vague
 direction, not a discussion summary. Write the `Statement` field as one line:
 *"We decided [X] instead of [alternative], on [date], because [reason]."*
 Plain language, no hyperbole — same discipline as an assumption's
-Description. (Promoted from the old `## Decision` body heading, `OPS-1305`.)
+Description. (Promoted from the old `## Decision` body heading, `the evidence-remodel slice`.)
 
 Every Decision record must carry: a `Decided date`, a `Source` (link back to
 the transcript/thread/note it came from), and at least one `Owner`. A record
@@ -46,7 +46,7 @@ was agreed, even if the words on the page look unanimous.
 Always record the chosen band + a one-line reason in `Unanimity
 justification` — so the number is auditable, same convention as an
 assumption's Impact score (`assumption-guardrails.md §3`). Promoted from the
-old `## Rationale` body prose (`OPS-1305`); `## Rationale` itself survives
+old `## Rationale` body prose (`the evidence-remodel slice`); `## Rationale` itself survives
 for the wider why, incl. risk-acceptance lines (§8).
 
 ---
@@ -221,7 +221,7 @@ reversibility door say nothing useful about a target. What a committed plan
 needs is two bars fixed in advance and a human verdict at the deadline.
 
 Committed plans live on the **Experiment record** — the Goal record was
-unified into it (`OPS-1305`): fields in `registry-schema.md`, the model and a
+unified into it (`the evidence-remodel slice`): fields in `registry-schema.md`, the model and a
 worked example in `docs/goals.md`, drafting via `/experiment-design`,
 close-out via `/find-evidence`. Nothing in this file applies to them.
 

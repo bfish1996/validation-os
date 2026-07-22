@@ -8,7 +8,7 @@ afterwards, one at a time, gated, through Capture mode.
 
 1. **Load the full Decisions register unfiltered** (never a filtered
    *view* — `../../_shared/registry-schema.md`; Decisions and Glossary are
-   separate registers now, `OPS-1305`, so there is no cross-register
+   separate registers now, `the evidence-remodel slice`, so there is no cross-register
    filter to get wrong). Rules: `../../_shared/decision-guardrails.md`.
 2. **Check each record against the guardrail summary**
    (`decision-guardrails.md §10`) and flag:

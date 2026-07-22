@@ -65,7 +65,7 @@ at full Risk for its Impact — the negative zone routes to the kill review,
 not to more testing budget.)
 
 You stop testing a belief when its Risk falls below the **stage's Risk
-threshold** (`RISK_THRESHOLD_BY_STAGE`, DEV-5890) — not when Confidence crosses
+threshold** (`RISK_THRESHOLD_BY_STAGE`, the question-type-aware evidence ladder) — not when Confidence crosses
 a magic number. Because Impact varies, the same evidence can be plenty for a
 minor belief and dangerously thin for one a one-way-door decision rests on.
 Attention is governed by the Risk ranking, not by status: the register's job

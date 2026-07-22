@@ -6,9 +6,9 @@ import { editableFields, type Draft, type FieldEditor } from "./edit.js";
  * driven by `edit.ts`'s schema (which fields are editable, and as what control).
  *
  * Factored out of the record drawer so the drawer and the journey's "edit the
- * bet" step-in (OPS-1330) render the same controls from the same schema: two
+ * bet" step-in (the journey rail + story UI) render the same controls from the same schema: two
  * surfaces editing one register should never drift into two different forms.
- * Derived numbers are never here — they are computed on write (OPS-1251).
+ * Derived numbers are never here — they are computed on write (the derive-on-write invariant).
  */
 export function EditFields({
   register,

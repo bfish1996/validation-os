@@ -1,5 +1,5 @@
 /**
- * The Lens × Stage × Question Type heatmap view-model (DEV-5890) — pure, no
+ * The Lens × Stage × Question Type heatmap view-model (the question-type-aware evidence ladder) — pure, no
  * React, no I/O. Extends the 2D Lens × Stage grid with a Question Type
  * filter axis and Risk-weighted heat.
  *

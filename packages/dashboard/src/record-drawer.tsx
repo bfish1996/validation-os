@@ -32,14 +32,14 @@ export interface RecordDrawerProps {
    * shows a "Full page" link; the drawer stays the quick read/edit peek. */
   onOpenFull?: () => void;
   /**
-   * Open *any* linked record's full page (OPS-1345) — the same navigation the
+   * Open *any* linked record's full page (the record-page rendering fix) — the same navigation the
    * canonical record page's Connections tab uses, reused here so a relation
    * field or a bar line's assumption is a click, not inert text. Falls back
    * to plain (unclickable) titles when omitted.
    */
   onOpenRecord?: (id: string) => void;
   /** The other registers' rows, loaded so a relation field / bar line can
-   * resolve to a title instead of a raw id (OPS-1345). Omitted relations
+   * resolve to a title instead of a raw id (the record-page rendering fix). Omitted relations
    * simply fall back to showing the id. */
   related?: RelatedSet;
   /** Extra content below the fields in read mode — e.g. the relation editor. */
@@ -326,7 +326,7 @@ export function RecordDrawer({
   );
 }
 
-/** One row in the generic field list (OPS-1345) — a relation field renders
+/** One row in the generic field list (the record-page rendering fix) — a relation field renders
  * as linked title(s), `Owner`/`Agreed by` as plain name(s), `barLines` as
  * structured rows with a linked assumption; everything else is `row.text`
  * from `formatValue`. Never the stored id or raw JSON. */

@@ -153,7 +153,7 @@ before opening the next; the write is gated at the end.
    buyer access yet → `Desk research`, `High` feasibility, this week").
 
    **Draft bar lines from the assumption's question-type sub-ladder**
-   (DEV-5890). The planned rung must be **probative** for the bundled
+   (the question-type-aware evidence ladder). The planned rung must be **probative** for the bundled
    assumption's question type — a bar line whose planned rung is
    **non-evidence** for the assumption's question type must be **refused**
    (a structural guard, not an advisory). Concretely: don't compose a
@@ -168,7 +168,7 @@ before opening the next; the write is gated at the end.
    honest rung is `Signed intent` or `Paying users`, run
    `references/commitment-discipline.md` alongside this same gauntlet — it
    is still the **same Experiment record** (the Goal record was unified into
-   it, `OPS-1305`), now carrying an optional `Deadline` and, at closure, an
+   it, `the evidence-remodel slice`), now carrying an optional `Deadline` and, at closure, an
    `Outcome`. There is no separate skill to hand off to; a fake-door is a
    *short* committed plan and `references/fake-door.md` stays the
    instrument-prep playbook for the stimulus itself.
@@ -339,7 +339,7 @@ theme).
 - **A Market-rung plan (`Signed intent` / `Paying users`) is still an
   Experiment row** — run the commitment discipline in-skill
   (`references/commitment-discipline.md`); there is no separate record type
-  to hand off to (`OPS-1305`).
+  to hand off to (`the evidence-remodel slice`).
 - **Never grow a bundle after design** — adding a belief mid-run is
   retro-registration (`§6`); design a new experiment referencing the same
   instrument. The **one exception is Merge mode** (above): consolidating

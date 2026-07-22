@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { inferQuestionType } from "./question-type.js";
 
 /**
- * Seam 2 — Question-type inference (DEV-5890).
+ * Seam 2 — Question-type inference (the question-type-aware evidence ladder).
  *
  * `inferQuestionType(description, wrongIfBar) → QuestionType` is the pure
  * function the migration and the grill both call. The question type is set by

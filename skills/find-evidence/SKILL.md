@@ -194,7 +194,7 @@ said/did) + **`## Source`** (who/when/link) template; keep analysis out of the
 body — it goes in each entry's `Grading justification`.
 
 **Only propose rungs from the assumption's question-type sub-ladder**
-(DEV-5890). The 6-rung vocabulary is fixed; the anchor (ceiling `s`) is per
+(the question-type-aware evidence ladder). The 6-rung vocabulary is fixed; the anchor (ceiling `s`) is per
 **(question type × rung × band)** — see `docs/evidence-ladder.md`. A rung that
 is **non-evidence** for the linked assumption's question type contributes `s=0`
 and must be **flagged** for human review ("this reading is non-evidence for

@@ -1,5 +1,5 @@
 /**
- * The record-page view-model (OPS-1286) — the pure join behind the canonical
+ * The record-page view-model (the canonical record page) — the pure join behind the canonical
  * full record page. Given a record and the related registers, it computes the
  * header lane/queue pills (all derived), the leading-score meters per register,
  * the genuine human-input free-text remainder, and the backlink panels grouped
@@ -175,7 +175,7 @@ export function leadingMeters(register: Collection, record: AnyRecord): Meter[] 
         },
       ];
     case "readings":
-      // Strength and Result are per belief now (OPS-1305) — they live in the
+      // Strength and Result are per belief now (the evidence-remodel slice) — they live in the
       // per-belief verdict list (`readingBeliefVerdicts`), not as row meters.
       // Source quality is the only row-level score left.
       return [
@@ -248,7 +248,7 @@ export interface HumanText {
 
 const HUMAN_FIELDS: Record<Collection, { key: string; label: string }[]> = {
   assumptions: [{ key: "Scoring justification", label: "Scoring justification" }],
-  // A reading's grading justification is per belief now (OPS-1305) — it renders
+  // A reading's grading justification is per belief now (the evidence-remodel slice) — it renders
   // in the verdict cards (`BeliefVerdicts`), so surfacing a stale row-level copy
   // here too would double up. The row carries no other genuine human free-text.
   readings: [],
@@ -276,7 +276,7 @@ export function humanInputFields(
 // ── Per-belief verdict list (reading detail) ─────────────────────────────────
 
 /** One belief a reading grades, prepared for the reading detail's verdict list
- * (OPS-1305). Modelled on the experiment bar-line view: the assumption resolved
+ * (the evidence-remodel slice). Modelled on the experiment bar-line view: the assumption resolved
  * to a title + navigable id, plus this belief's own Result / derived Strength
  * and the grading justification. Rung AND magnitude band are NOT here — they are
  * row-level attributes of the artifact now (0.10), the same for every belief the
@@ -347,7 +347,7 @@ function snippetFromBody(body: string, cue: string): string {
 }
 
 /** A reading's verdicts tallied by result — the one-line "what did this say?"
- * summary above the per-belief list (OPS-1305 design pass). `inconclusive`
+ * summary above the per-belief list (the evidence-remodel slice design pass). `inconclusive`
  * folds every non-Validated/Invalidated verdict (Inconclusive or ungraded) so
  * the three counts always sum to `total`. */
 export interface BeliefSummary {
@@ -410,7 +410,7 @@ export function scoreChip(register: Collection, record: AnyRecord): ScoreChip {
     return { label: "Confidence", value: formatSigned(c), tone: confidenceTone(c) };
   }
   if (register === "readings") {
-    // Strength is per belief now (OPS-1305); the row's glance score is its
+    // Strength is per belief now (the evidence-remodel slice); the row's glance score is its
     // Source quality (0–1 → 0–100), a property of the artifact, not a belief.
     const sq = derivedNum(record, "sourceQuality");
     return {
@@ -461,7 +461,7 @@ const PANELS: Record<Collection, PanelDef[]> = {
       id: "tested-by",
       label: "Tested by",
       register: "experiments",
-      // Archived plans never surface as a relation (OPS-1305) — live plans only.
+      // Archived plans never surface as a relation (the evidence-remodel slice) — live plans only.
       resolve: (r, rel) =>
         liveExperiments(rel.experiments ?? []).filter((e) =>
           testsAssumption(e, r.id),
@@ -487,14 +487,14 @@ const PANELS: Record<Collection, PanelDef[]> = {
       id: "assumption",
       label: "Beliefs",
       register: "assumptions",
-      // A reading grades several beliefs now (OPS-1305) — resolve them all.
+      // A reading grades several beliefs now (the evidence-remodel slice) — resolve them all.
       resolve: (r, rel) => byIds(rel.assumptions, strList(r.assumptionIds)),
     },
     {
       id: "experiment",
       label: "Evidence plan",
       register: "experiments",
-      // Only ever surface a NON-archived plan (OPS-1305): an archived origin
+      // Only ever surface a NON-archived plan (the evidence-remodel slice): an archived origin
       // reads as no plan at all, never a leaked backlink.
       resolve: (r, rel) =>
         byIds(rel.experiments, [str(r.experimentId) ?? ""].filter(Boolean)).filter(

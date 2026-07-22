@@ -39,7 +39,7 @@ clause schedules another round. A record is **done** when:
 
 1. **`Completeness % = 100`** — every structural slot present (Description,
    Lens, Impact, Scoring justification, dependencies traced) — **and**
-   `Status` stays `Draft`. Loop never flips `Status` (`OPS-1305` retired the
+   `Status` stays `Draft`. Loop never flips `Status` (`the evidence-remodel slice` retired the
    stored `Human review` gap that used to hold this open) — a record loop
    brought to 100 sits at "`Draft` at `Completeness % = 100`" as its own
    hand-off signal; a human works that queue through single mode with each
@@ -51,7 +51,7 @@ clause schedules another round. A record is **done** when:
    `Scoring justification`.
 5. Falsifiability check passed — a concrete, countable threshold was stated
    out loud in the run-log entry, even though nothing is stored on the
-   record for it (`OPS-1305`).
+   record for it (`the evidence-remodel slice`).
 6. Why-trace run per record, therefore-test applied; `Depends on` edges
    wired for every convergence; each branch terminates at an existing
    record, a ground truth, or a node consciously marked **root**.
@@ -127,7 +127,7 @@ Gates were waived, so these are built in instead:
   human-review session; loop leaves every record it touches at `Draft`,
   however high `Completeness %` climbs.
 - **Human review hand-off.** There is no stored review tag to set
-  (`OPS-1305`) — the queue is simply "`Draft` rows at `Completeness % =
+  (`the evidence-remodel slice`) — the queue is simply "`Draft` rows at `Completeness % =
   100`". The run-log doubles as the review packet — a human works that
   queue through single mode with each record's `Owner`.
 - **Reversibility instead of gating.** Every mutation (fields, new-record

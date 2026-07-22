@@ -1,5 +1,5 @@
 /**
- * The "Connect Claude Code" command composer (OPS-1349). A person signed into
+ * The "Connect Claude Code" command composer (the Connect Claude Code page). A person signed into
  * the dashboard mints a personal token and gets back ONE ready-to-paste command
  * that points their own Claude Code at this hosted register through the
  * `remote-api` connector. Everything environmental — the API URL, the env-var

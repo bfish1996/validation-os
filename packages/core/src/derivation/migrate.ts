@@ -1,5 +1,5 @@
 /**
- * Migration entry point — OPS-1406.
+ * Migration entry point — the confidence-scoring simplification.
  *
  * Takes the OLD-shape register (assumptions with legacy `Question Type` and
  * `Stage`, readings with the old rung vocabulary and stale Strength) and

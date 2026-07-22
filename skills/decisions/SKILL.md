@@ -49,7 +49,7 @@ work each register through the active connector (`connectors/SPEC.md`).
 
 **Classify the ask, state which register + mode you're in and why, in one
 line before acting.** Glossary and Decisions are separate registers
-(`OPS-1305`) — a session only ever works one at a time. Sweep is always
+(`the evidence-remodel slice`) — a session only ever works one at a time. Sweep is always
 invoked on demand, never scheduled.
 
 ## Terminology modes (Glossary register)
@@ -59,7 +59,7 @@ config's `vocabulary.audiences`. Pick the mode from how the user invoked it;
 one question at a time; recommend an answer each time. Modes can chain
 (lookup → build a missing term; audit → edit a record).
 
-The Glossary register carries **all properties, no body** (`OPS-1305` — the
+The Glossary register carries **all properties, no body** (`the evidence-remodel slice` — the
 terminology check parses structure directly): Title, Status (`Active` /
 `Provisional` / `Superseded` — no `Reversed`, a term is superseded by a
 better one, never reversed), Area, `Definition` (text, one sentence per

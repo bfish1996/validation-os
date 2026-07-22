@@ -1,5 +1,5 @@
 /**
- * A tiny, dependency-free Markdown renderer (OPS-1305) — enough to render a
+ * A tiny, dependency-free Markdown renderer (the evidence-remodel slice) — enough to render a
  * reading's quote (`body`) and an experiment's narrative (`body`) as formatted
  * prose without pulling a runtime dependency into a package that ships with
  * near-zero deps (only `@validation-os/core`). react-markdown + remark would add
@@ -25,7 +25,7 @@ export function Markdown({ text }: { text: string }) {
 }
 
 /**
- * A reading/experiment body presented for scanning (OPS-1305 design pass). A
+ * A reading/experiment body presented for scanning (the evidence-remodel slice design pass). A
  * merged reading concatenates several per-finding write-ups joined by `---`
  * rules; rendered as one blob it reads as a wall. This splits on those rules
  * into distinct "finding" cards and, past the first, tucks the rest behind a

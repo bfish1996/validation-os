@@ -349,7 +349,7 @@ describe("confidence — commitment factor", () => {
   });
 });
 
-describe("DEV-5890 — assumption-type-aware ladder (the bug fix)", () => {
+describe("the question-type-aware evidence ladder — assumption-type-aware ladder (the bug fix)", () => {
   it("7 Talk High readings on a ProblemExists assumption → Confidence in the 40–50 range", () => {
     // ProblemExists × Talk × High anchor = 99. W0[Talk] = 6.5.
     // 7 independent sources, all Validated, sq=1, committed:

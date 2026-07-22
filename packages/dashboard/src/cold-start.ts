@@ -1,11 +1,11 @@
 /**
- * The cross-surface cold-start view-model (OPS-1331) — pure, no React, no I/O,
+ * The cross-surface cold-start view-model (the cross-surface cold-start) — pure, no React, no I/O,
  * so the "what does the dashboard show before any beliefs exist?" mapping is
  * unit-tested at this seam (like `next-move.ts` / `pipeline.ts` / `journey.ts`).
  *
  * The dashboard has three workflow surfaces, and each one had a basic one-line
- * empty state from its own build (OPS-1304 front door, OPS-1300 pipeline). Now
- * that all three surfaces exist (OPS-1330 journey landed), this replaces them
+ * empty state from its own build (the front-door build front door, the portfolio pipeline overview pipeline). Now
+ * that all three surfaces exist (the journey rail + story UI journey landed), this replaces them
  * with one designed pass: a founder who opens the dashboard before any beliefs
  * exist is *guided in* rather than shown blank meters.
  *

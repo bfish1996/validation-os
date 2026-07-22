@@ -1,7 +1,7 @@
 # Writing a connector
 
-A connector makes the skills work against a new storage backend (Linear,
-Airtable, GitHub Issues, your internal tool). It's a pair of markdown
+A connector makes the skills work against a new storage backend (an
+issue tracker, Airtable, GitHub Issues, your internal tool). It's a pair of markdown
 documents, not code: the **runtime connector** doc translates abstract registry
 operations into your backend's concrete tool calls, and the **schema guide**
 doc tells `/setup-validation-os` how to build or validate the backend.

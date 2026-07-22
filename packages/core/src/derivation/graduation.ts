@@ -1,5 +1,5 @@
 /**
- * Graduation — the progression (OPS-1406).
+ * Graduation — the progression (the confidence-scoring simplification).
  *
  * One signed, ever-living Confidence bar filling toward an impact-scaled
  * graduation bar, with the assumption moving Untested → Signal → Graduated.
@@ -11,7 +11,7 @@
  *   e.g. ~40 at low impact → ~90 at impact 100 (provisional v1).
  *
  * State recomputes on every write, so a disconfirming reading can move it
- * backwards (OPS-1406 user story 13).
+ * backwards (the confidence-scoring simplification user story 13).
  */
 import type { GraduationState } from "../types.js";
 
@@ -44,7 +44,7 @@ export function graduationBar(derivedImpact: number): number {
  *
  * A disconfirming reading (negative confidence) is still "Signal" — it's
  * living evidence, just against. The state recomputes on every write, so an
- * assumption can un-graduate (OPS-1406 user story 13).
+ * assumption can un-graduate (the confidence-scoring simplification user story 13).
  */
 export function graduationState(
   confidence: number,

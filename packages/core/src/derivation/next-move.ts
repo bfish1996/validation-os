@@ -1,18 +1,18 @@
 /**
  * Next-move ranking — the front door's single source of truth for "what should
- * I do next" (build OPS-1304; placement OPS-1292; action vocabulary OPS-1291).
+ * I do next" (build the front-door build; placement the next-move ranking model; action vocabulary the next-move action vocabulary).
  *
  * Ranks *beliefs* — Model A: point at one belief, not a heterogeneous triage
- * queue (OPS-1291) — by the method's Feasibility × Risk rule (`docs/method.md`,
+ * queue (the next-move action vocabulary) — by the method's Feasibility × Risk rule (`docs/method.md`,
  * `ontology.yaml` → `derived_views.next_move`), and names the single act each
  * belief's stage demands. A belief at Confidence ≤ −50 jumps into a distinct
  * kill/re-test lane that sorts above the Feasibility × Risk order regardless of
  * rank — the one place act-urgency beats belief-risk (`derived_views.kill_lane`).
  *
- * Computed fresh on read: a whole-set ordering, so it stays OUT of the OPS-1251
+ * Computed fresh on read: a whole-set ordering, so it stays OUT of the the derive-on-write invariant
  * on-write recompute — it reads the derived numbers (Risk, Confidence) those
  * writes already keep current. Pure: no I/O, no caching, no weights framework —
- * the enum→multiplier map below IS the formula (OPS-1292: "no weights /
+ * the enum→multiplier map below IS the formula (the next-move ranking model: "no weights /
  * strategies / caching / framework").
  */
 import type { Feasibility } from "../types.js";
@@ -24,7 +24,7 @@ export const KILL_LANE_THRESHOLD = -50;
 /**
  * The acts the front door can name, one per belief-stage. The front door
  * *names* all of them; only a subset are human step-in forms — the rest are
- * agent-run / off-dashboard (OPS-1294). Which is which is a presentation
+ * agent-run / off-dashboard (the step-in human action set). Which is which is a presentation
  * concern the dashboard owns, not this ranking.
  */
 export type MoveKind =
@@ -35,7 +35,7 @@ export type MoveKind =
   | "retest"; // kill lane — Confidence ≤ −50, jumps the ordering
 
 /**
- * One belief's next move. `move`/`score`/`reason` are the OPS-1292 output
+ * One belief's next move. `move`/`score`/`reason` are the the next-move ranking model output
  * contract; the rest is context the front door renders (the risk chip, the kill
  * banner, the step-in adaptation) — every field read from the inputs, nothing
  * new computed here.

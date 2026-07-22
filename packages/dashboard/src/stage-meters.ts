@@ -1,11 +1,11 @@
 /**
  * The four loop meters as data — the Framed → Planned → Tested → Known spine
- * turned into captions and fills, once (OPS-1330).
+ * turned into captions and fills, once (the journey rail + story UI).
  *
  * Two surfaces draw the same four meters for one belief: the pipeline board's
- * row (OPS-1300, the cross-belief altitude) and the journey rail (this ticket,
+ * row (the portfolio pipeline overview, the cross-belief altitude) and the journey rail (this ticket,
  * the same spine zoomed to one belief). The *classification* is already shared
- * in core (`deriveBeliefStage`, OPS-1329); this shares the layer above it — what
+ * in core (`deriveBeliefStage`, the per-belief journey view-model); this shares the layer above it — what
  * each meter is captioned and how full it reads — so a board row and a rail can
  * never disagree about a belief while looking at the same numbers.
  *

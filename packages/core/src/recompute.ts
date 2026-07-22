@@ -4,7 +4,7 @@
  * module. The API calls this server-side on every touching write and writes the
  * results back; a batch pass is the backstop for non-dashboard writes.
  *
- * OPS-1406: `recompute()` returns, per assumption,
+ * the confidence-scoring simplification: `recompute()` returns, per assumption,
  * `{ confidence, riskGroup, assumptionType, costTier, graduationState,
  *    derivedImpact }`. Group/type/costTier/graduation are derived here from the
  * type map, anchor table, and graduation bar. Risk is deprecated (kept for
@@ -61,7 +61,7 @@ export function recomputeDerived(
   // those by the assumption each belief scores. A row that scores several
   // beliefs contributes one input to each of their assumptions; every input
   // carries the row-level Source, source quality, and experiment (commitment).
-  // OPS-1406: each belief input also carries the linked assumption's
+  // the confidence-scoring simplification: each belief input also carries the linked assumption's
   // Assumption Type, looked up from the assumptions register — the type sets
   // the anchor sub-ladder (`RUNG_ANCHOR[assumptionType][rung][band]`).
   const assumptionsById = new Map<string, AssumptionRecord>(
@@ -130,7 +130,7 @@ export function recomputeDerived(
     out.set(a.id, {
       confidence: c,
       derivedImpact: di,
-      // Risk is deprecated (OPS-1406); kept for migration back-compat.
+      // Risk is deprecated (the confidence-scoring simplification); kept for migration back-compat.
       risk: risk(di, c),
       // Completeness is a *structural* readiness meter: it reads a.Impact as
       // present/absent, not its value, so a moot assumption (whose Impact the
@@ -166,7 +166,7 @@ export {
  * Recompute the derived numbers for every experiment in the register.
  *
  * Groups readings by `experimentId`, filters each experiment's readings to its
- * `barLineAssumptionIds`, and calls {@link experimentConfidence}. OPS-1406:
+ * `barLineAssumptionIds`, and calls {@link experimentConfidence}. the confidence-scoring simplification:
  * the assumption's Assumption Type is looked up from the assumptions register
  * so Strength reads the right sub-ladder.
  */

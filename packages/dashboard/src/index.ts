@@ -1,6 +1,6 @@
 /**
  * @validation-os/dashboard — the whole styled dashboard as a mountable app, plus
- * the bricks it composes (OPS-1280). Two levels of entry:
+ * the bricks it composes (the mountable dashboard app). Two levels of entry:
  *
  *  - the assembled app: `<ValidationOSDashboard config={…} />` renders the frame
  *    (sidebar nav + counts, topbar, in-app navigation) and every register view.

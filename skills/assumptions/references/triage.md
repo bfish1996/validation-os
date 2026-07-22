@@ -30,7 +30,7 @@ A record is in scope for triage if **it has an open comment thread**. What
 block-anchored comments, not just page-level ones. On the local-files
 connector, review notes left in the record's `### Comments` subsection or
 `<!-- comment: … -->` markers (assumptions carry no body of their own,
-`OPS-1305` — comments are a connector-level annotation, not a schema field,
+`the evidence-remodel slice` — comments are a connector-level annotation, not a schema field,
 so this subsection is outside the entity's `body_headings`).
 
 A record at `Completeness % < 100` is already covered by the ordinary Draft

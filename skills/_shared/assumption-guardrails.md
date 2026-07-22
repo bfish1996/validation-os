@@ -22,7 +22,7 @@ The schema (field map, status & derived views) lives in
    ("always", "only", "nothing else"), and placeholders ("benefits exist
    though unclear what they are"). Each needs an observable threshold.
    **This is a grill check, not a stored field** — there is no `Metric for
-   truth` column (`OPS-1305`). It proves the claim is falsifiable in the
+   truth` column (`the evidence-remodel slice`). It proves the claim is falsifiable in the
    moment; the concrete number is re-authored as the bar's `We're right if`
    when `/experiment-design` pre-registers a test against this belief
    (`experiment-guardrails.md §4`) — never copied forward automatically,
@@ -51,7 +51,7 @@ verbosity buries.
 Disciplined root-cause trace down to the foundational assumption — the
 technique for building a healthy `Depends on` / `Enables` graph. **This is a
 transient grill stage, not a stored field**: there is no `5 Whys` column and
-no body to write the chain into (`OPS-1305`). The only durable output is the
+no body to write the chain into (`the evidence-remodel slice`). The only durable output is the
 relation itself — a `Depends on` edge to whatever existing or newly-created
 assumption the trace converges on. Without discipline it becomes a rabbit
 hole — so constrain both questions and answers.
@@ -94,7 +94,7 @@ graph self-completing without any prose trail to maintain.
   that already says it. Create a new record only if none exists — and a
   near-duplicate step is merged into its neighbour, not given its own record.
 - **The relation IS the closure.** There is no separate body tag to keep in
-  sync (assumptions carry no body, `OPS-1305`) — wiring `Depends on` at the
+  sync (assumptions carry no body, `the evidence-remodel slice`) — wiring `Depends on` at the
   moment of convergence is the whole act.
 
 **Depth is per-chain, not per-record.** The "5 Whys" is the trace from *this*
@@ -316,7 +316,7 @@ the record's own severity (e.g. "the thesis dies" scored 10) is a flag.
     deep customization") have **independent truth values resolved by
     different evidence** — they are genuinely two assumptions. **Keep both**,
     wire a **`Contradicts`** edge (set it both ways). The **Contradiction**
-    check is a transient grill stage, not a stored tag (`OPS-1305`) — say
+    check is a transient grill stage, not a stored tag (`the evidence-remodel slice`) — say
     which experiment will resolve the tension out loud in the grill session;
     there's no body to note it in, so the durable trail is whichever
     Experiment bar line eventually settles it, not a written provenance line.
@@ -327,7 +327,7 @@ the record's own severity (e.g. "the thesis dies" scored 10) is a flag.
   (`../assumptions/references/seed.md`), so this
   check always runs through single mode's dedup phase rather than being
   skipped when nothing looks like a duplicate. **This is a transient grill
-  check, not a stored tag or body note** (`OPS-1305`): resolve it live —
+  check, not a stored tag or body note** (`the evidence-remodel slice`): resolve it live —
   either merge (folding the redundant record's substance into the keeper), or
   confirm distinctness out loud by naming the concrete axis of difference
   (metric, lens, trigger, actor). A boundary statement that doesn't name a

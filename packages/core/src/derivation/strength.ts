@@ -5,7 +5,7 @@
  *   `RUNG_ANCHOR[assumptionType][rung][band] × sign(Result)`
  *   — Validated positive, Invalidated negative; 0 unless Validated/Invalidated.
  *
- * The anchor lookup is 3D (OPS-1406): keyed by the linked assumption's
+ * The anchor lookup is 3D (the confidence-scoring simplification): keyed by the linked assumption's
  * Assumption Type, the reading's Rung, and the row's Magnitude band. A rung
  * that is non-evidence for the assumption's type carries anchor 0 across all
  * bands, so the reading contributes `s=0` and is flagged at the UI/skill

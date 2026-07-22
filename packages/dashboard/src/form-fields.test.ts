@@ -39,7 +39,7 @@ describe("formFieldsFor", () => {
   it("offers the kept Scoring justification, not the retired presence fields", () => {
     const keys = formFieldsFor("assumptions").map((f) => f.key);
     expect(keys).toContain("Scoring justification");
-    // 5 Whys / Metric for truth were cut (OPS-1305).
+    // 5 Whys / Metric for truth were cut (the evidence-remodel slice).
     expect(keys).not.toContain("5 Whys");
     expect(keys).not.toContain("Metric for truth");
   });
@@ -48,7 +48,7 @@ describe("formFieldsFor", () => {
 describe("missingRequired", () => {
   it("flags a blank required field and clears once filled", () => {
     // A reading's per-belief scores (Rung / Result) moved to `beliefs[]`
-    // (OPS-1305), so only the headline is required on the row now.
+    // (the evidence-remodel slice), so only the headline is required on the row now.
     expect(missingRequired("readings", emptyDraft("readings"))).toEqual([
       "Reading",
     ]);
@@ -76,7 +76,7 @@ describe("toCreatePayload", () => {
       Date: "",
     };
     const payload = toCreatePayload("readings", draft);
-    // No row-level Rung/Result any more (OPS-1305) — the numeric quality selects
+    // No row-level Rung/Result any more (the evidence-remodel slice) — the numeric quality selects
     // still coerce, and the blank Date is dropped.
     expect(payload).toEqual({
       Title: "A reading",

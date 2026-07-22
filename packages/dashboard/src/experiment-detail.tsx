@@ -13,7 +13,7 @@ import type { Route } from "./route.js";
 import { useList } from "./use-records.js";
 
 /**
- * The evidence-first experiment detail (DEV-5884): readings lead, each showing
+ * The evidence-first experiment detail (the evidence-first experiment detail): readings lead, each showing
  * date, title, and a single set of per-belief verdict cards. Above the readings
  * a **Testing** panel names the beliefs the plan set out to test (its
  * pre-registered bar lines) with each one's live status — visible from the

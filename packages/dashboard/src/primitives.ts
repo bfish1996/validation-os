@@ -53,7 +53,7 @@ export function statusTone(status: string | null | undefined): Tone {
 }
 
 /**
- * Risk band thresholds — Critical ≥ 70, High 40–69, Watch < 40 (OPS-1287). A
+ * Risk band thresholds — Critical ≥ 70, High 40–69, Watch < 40 (the list-surface saved views). A
  * belief is critical at ≥ `RISK_CRIT`, watch/high at ≥ `RISK_WARN`. These are a
  * prioritisation setting (a config knob), not a record property; overriding them
  * is `configureRiskBands`. Kept dashboard-wide so the flat-table risk cell, the
@@ -62,7 +62,7 @@ export function statusTone(status: string | null | undefined): Tone {
 export let RISK_CRIT = 70;
 export let RISK_WARN = 40;
 
-/** The three fixed risk bands, strongest first (OPS-1287 story 19). */
+/** The three fixed risk bands, strongest first (the list-surface saved views story 19). */
 export type RiskBand = "Critical" | "High" | "Watch";
 
 /**

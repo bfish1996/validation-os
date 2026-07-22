@@ -1,7 +1,7 @@
 /**
  * Assumption completeness — a derived readiness meter, never stored.
  *
- * Replaces the old Gaps / presence-field machinery (OPS-1305): an assumption's
+ * Replaces the old Gaps / presence-field machinery (the evidence-remodel slice): an assumption's
  * Draft-vs-Live readiness is the structural presence of its slots, not a set of
  * hand-maintained tags. `Completeness %` is `filled slots / all slots`; a
  * fully-filled assumption reads 100 and is Live-ready, an empty draft reads low.
@@ -10,7 +10,7 @@
  *   Description · Lens · Impact · Scoring justification · Dependencies traced
  *   · Question Type
  *
- * Question Type (DEV-5890) is the 6th slot: an assumption without a Question
+ * Question Type (the question-type-aware evidence ladder) is the 6th slot: an assumption without a Question
  * Type has `Completeness %` < 100 and cannot go Live. The grill infers the
  * Question Type from the falsification test and confirms with the user
  * (the gaming guard).

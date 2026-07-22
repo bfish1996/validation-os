@@ -1,5 +1,5 @@
 /**
- * The per-belief journey event log (OPS-1329) — the belief's life ordered into
+ * The per-belief journey event log (the per-belief journey view-model) — the belief's life ordered into
  * dated events: bet → score → experiment → readings → confidence-cross → now.
  * It is the *story* half of the journey drill-in (the *rail* half is `stage.ts`).
  *
@@ -11,7 +11,7 @@
  * no real date carries `date: null` and takes its place by structural order).
  *
  * Pure and label-free: the dashboard journey view-model adds the copy. Computed
- * fresh on read, out of the OPS-1251 on-write recompute.
+ * fresh on read, out of the the derive-on-write invariant on-write recompute.
  */
 import type { Result } from "../types.js";
 import type { AttributionReadingInput } from "./attribution.js";

@@ -305,7 +305,7 @@ describe("backlinkPanels", () => {
 
     expect(byId["readings"]!.items.map((i) => i.title)).toEqual(["Survey"]);
     // A reading's glance chip is its Source quality now (0–1 → 0–100); Strength
-    // moved per belief (OPS-1305).
+    // moved per belief (the evidence-remodel slice).
     expect(byId["readings"]!.items[0]!.chip).toEqual({
       label: "Source quality",
       value: "100",

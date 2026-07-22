@@ -71,7 +71,7 @@ const FIELDS: Record<Collection, FormField[]> = {
     { key: "Title", label: "Reading", kind: "text", required: true },
     { key: "Source", label: "Source", kind: "text" },
     // Rung / Result / Magnitude band / Grading justification are PER BELIEF now
-    // (OPS-1305) — carried in `beliefs[]`, not on the row. They are omitted here
+    // (the evidence-remodel slice) — carried in `beliefs[]`, not on the row. They are omitted here
     // so the create form can never write a dead row-level field; grading a
     // reading's beliefs is a deferred follow-up (a `beliefs[]` editor).
     {

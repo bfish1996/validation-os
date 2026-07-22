@@ -1,6 +1,6 @@
 # Commitment discipline — Market-grade evidence plans
 
-> The standalone `Goal` record was retired in `OPS-1305` and folded into the
+> The standalone `Goal` record was retired in `the evidence-remodel slice` and folded into the
 > unified `Experiment` record — a committed, Market-grade evidence plan.
 > Everything below describes that discipline as it now rides on `Experiment`;
 > there is no separate record type and no separate skill.

@@ -1,5 +1,5 @@
 /**
- * The portfolio pipeline's view-model (OPS-1300) — pure, no React, no I/O, so
+ * The portfolio pipeline's view-model (the portfolio pipeline overview) — pure, no React, no I/O, so
  * the whole "where does everything stand" mapping is unit-tested at this seam
  * (like `understanding.ts` for the drawer). It joins the assumption, reading
  * and experiment registers into: one row per live belief carrying the four
@@ -36,7 +36,7 @@ import {
 import { liveExperiments } from "./derived-views.js";
 import { riskLevel, type Tone } from "./primitives.js";
 
-/** The four loop stages a belief travels, in order (OPS-1293). */
+/** The four loop stages a belief travels, in order (the four-stage loop). */
 export type { StageKey };
 
 /** One live belief's row on the board. */
@@ -61,12 +61,12 @@ export interface PipelineRow {
   tested: { settled: number; total: number };
   /** The stage-aware verb the front door offers (navigates to the record). */
   nextMove: string;
-  /** The assumption's Assumption Type (OPS-1406) — the evidence key. */
+  /** The assumption's Assumption Type (the confidence-scoring simplification) — the evidence key. */
   assumptionType: string | null;
   /** The max ceiling for this assumption type (highest anchor across all
    * rungs) — the Known meter fills relative to this, not the absolute 100. */
   typeCeiling: number | null;
-  /** The assumption's Stage (deprecated, OPS-1406) — kind of response. */
+  /** The assumption's Stage (deprecated, the confidence-scoring simplification) — kind of response. */
   stage: string | null;
 }
 
@@ -165,7 +165,7 @@ export function buildPipeline(
   assumptions: AnyRecord[],
   experiments: AnyRecord[],
 ): PipelineView {
-  // "Evidence ≠ tested" (OPS-1305): a belief's Planned / Tested stage is driven
+  // "Evidence ≠ tested" (the evidence-remodel slice): a belief's Planned / Tested stage is driven
   // by a LIVE plan's bar lines, never by whether readings exist. Archived plans
   // are dropped here, so a belief whose only plan is archived (or that has bare
   // readings but no live plan) reads as Framed → "Design test", not Tested.
@@ -209,7 +209,7 @@ export function buildPipeline(
     };
     const framed = assumptionCompleteness(a as Record<string, unknown>);
     const stage = deriveBeliefStage({ framed, confidence: d.confidence, test });
-    // OPS-1406: surface Assumption Type + Stage on the row.
+    // the confidence-scoring simplification: surface Assumption Type + Stage on the row.
     const assumptionType = str(a["Assumption Type"]);
     // The max ceiling for this assumption type = the highest High-band anchor
     // across all rungs in the sub-ladder. The Known meter fills relative to
@@ -283,8 +283,8 @@ export function weekOverWeekDelta(
 
   const cutoff = now.getTime() - 7 * 24 * 60 * 60 * 1000;
   // Fan every reading row out into one input per belief, then group by the
-  // belief it scores — a single row can now score several beliefs (OPS-1305).
-  // OPS-1406: thread the linked assumption's Assumption Type into each input so
+  // belief it scores — a single row can now score several beliefs (the evidence-remodel slice).
+  // the confidence-scoring simplification: thread the linked assumption's Assumption Type into each input so
   // Strength reads the right sub-ladder.
   const assumptionsById = new Map<string, AnyRecord>(
     assumptions.map((a) => [String(a.id), a]),

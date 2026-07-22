@@ -1,5 +1,5 @@
 /**
- * The "assumptions an experiment tests" view-model (DEV-5890 follow-up) — the
+ * The "assumptions an experiment tests" view-model (the question-type-aware evidence ladder follow-up) — the
  * pure split behind the experiment detail's belief lists. An experiment names
  * the beliefs it SET OUT to test up front, in its pre-registered **bar lines**;
  * those are the *targeted* assumptions, visible from the moment the plan is

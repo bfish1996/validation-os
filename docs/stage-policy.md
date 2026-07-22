@@ -32,7 +32,7 @@ Grounded in customer-development literature (Blank, IDEO, lean startup, Andreess
 
 **They are orthogonal.** A Lens can appear at multiple stages: Commercial spans all four (will banks engage / sign / integrate / get regulatory sign-off). Consumer spans 1-3 and is zero at Stage 4 (consumers don't drive defense bets). No Lens maps 1:1 to a stage. Both fields earn their keep; collapsing them loses signal.
 
-## The Question Type × Stage orthogonality (DEV-5890)
+## The Question Type × Stage orthogonality (the question-type-aware evidence ladder)
 
 **Question Type** = what kind of claim is this? (Existence, Prevalence,
 CausalEffect, WillingnessToPay, ValueUtility, Regulatory, Feasibility — see

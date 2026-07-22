@@ -25,7 +25,7 @@ import {
 import { useList } from "./use-records.js";
 
 /**
- * The assumption detail (DEV-5883): next-move panel at the top, score cards,
+ * The assumption detail (the assumption-detail redesign): next-move panel at the top, score cards,
  * evidence composition (per-rung bars, lens-aware), body (Markdown with
  * glossary auto-linking), graph relations grouped by kind, linked experiments
  * with bar-line preview, evidence-first linked readings (each with its own
@@ -251,7 +251,7 @@ export function AssumptionDetail({
 
       {/* Evidence list — one row per piece of evidence, with per-belief
           excerpt, verdict, rung, anchor score and its contribution to Confidence.
-          DEV-5890: readings are grouped into probative evidence vs flagged as
+          the question-type-aware evidence ladder: readings are grouped into probative evidence vs flagged as
           non-evidence for this assumption's question type. */}
       <EvidenceList
         assumptionId={assumptionId}
@@ -285,7 +285,7 @@ function EvidenceList({
     return new Map(rows.map((r) => [r.id, r]));
   }, [readings, assumptionId]);
 
-  // OPS-1406: group linked readings into probative vs flagged-as-non-evidence
+  // the confidence-scoring simplification: group linked readings into probative vs flagged-as-non-evidence
   // for this assumption's assumption type.
   const qt = ASSUMPTION_TYPES.find((q) => q === assumptionType) as
     | AssumptionType
@@ -543,7 +543,7 @@ function RelationRow({
 function nextMoveFor(assumption: AnyRecord, experiments: AnyRecord[]): string {
   // A simple stage-aware next-move verb: if there's a live experiment testing
   // this assumption → "Record a reading"; if framed but no test → "Design an
-  // experiment"; if not framed → "Frame the belief". (The full OPS-1292
+  // experiment"; if not framed → "Frame the belief". (The full the next-move ranking model
   // ranking lives in core's rankNextMoves; this is the detail's one-liner.)
   const id = String(assumption.id ?? "");
   const framed = ((assumption.derived as any)?.completeness ?? 0) >= 100;

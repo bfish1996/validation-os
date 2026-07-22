@@ -1,5 +1,5 @@
 /**
- * Recommended experiments (DEV-5882) — a UI-side derivation from the assumption
+ * Recommended experiments (the recommended-experiments + donut redesign) — a UI-side derivation from the assumption
  * register, not a stored entity. For each cluster of risk-related assumptions
  * that share a Lens × Stage and lack a *live* experiment testing them, propose
  * one experiment (Test / Observation / Desk research / Survey) with a bar
@@ -131,7 +131,7 @@ function framingHint(a: AnyRecord, completeness: number): string {
 }
 
 /**
- * The lens → do-rung mapping (DEV-5879 spec). The lens determines which "do"
+ * The lens → do-rung mapping (the dashboard frontend redesign spec). The lens determines which "do"
  * rungs are available; Talk + Desk work for any lens. This is a grading
  * guideline, not a schema constraint. The recommended-experiment type is
  * picked from the lens's first do-rung when the cluster has no evidence:

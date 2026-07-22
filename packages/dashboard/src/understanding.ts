@@ -1,5 +1,5 @@
 /**
- * The understanding layer's data join (OPS-1276). Pure: given an assumption
+ * The understanding layer's data join (the understanding layer). Pure: given an assumption
  * and the readings + experiments registers, it produces everything the Reveal
  * shows — the experiments testing the belief (each with how hard it moves
  * Confidence and how close it is to concluding), the goal/direct evidence that
@@ -8,7 +8,7 @@
  * The record → derivation-input mapping is `@validation-os/core`'s shared
  * `readingBeliefInputs`, which fans a reading row out into one input per belief;
  * we keep this belief's inputs, so a reading is read here exactly as it is
- * server-side. Archived experiments never surface here (OPS-1305) — the "Why?"
+ * server-side. Archived experiments never surface here (the evidence-remodel slice) — the "Why?"
  * only ever shows a live plan or direct evidence.
  */
 import {
@@ -78,7 +78,7 @@ export function buildUnderstanding(
   readings: AnyRecord[],
   experiments: AnyRecord[],
 ): Understanding {
-  // DEV-5890: thread the assumption's Question Type into each belief input so
+  // the question-type-aware evidence ladder: thread the assumption's Question Type into each belief input so
   // Strength reads the right sub-ladder.
   const assumptionsById = new Map<string, AnyRecord>([[String(assumption.id), assumption]]);
   const inputs = readings
@@ -94,7 +94,7 @@ export function buildUnderstanding(
   // Every live experiment testing this belief — whether or not it has moved the
   // number yet — plus any experiment a reading points at that isn't linked via
   // bar lines. So a freshly-started plan with no readings still shows. Archived
-  // plans are dropped entirely (OPS-1305): never a mover, never a row. A plan a
+  // plans are dropped entirely (the evidence-remodel slice): never a mover, never a row. A plan a
   // reading points at but that isn't in the register is kept (absent ≠ archived).
   const experimentIds = new Set<string>([
     ...liveExperiments(experiments)

@@ -1,6 +1,6 @@
 /**
  * Progress-to-conclusion — how close a running experiment is to concluding
- * (OPS-1276). An experiment concludes when every pre-registered bar line has
+ * (the understanding layer). An experiment concludes when every pre-registered bar line has
  * been given a Bar verdict; progress is the count of settled bars against the
  * total. Bar verdict is a report, never a Confidence input (nosql-schema.md),
  * so reading it here is exactly its intended use.

@@ -11,7 +11,7 @@ export interface SurfacePlaceholderProps {
 
 /**
  * A pane the navigation shell reserves for a surface built in its own step
- * (OPS-1298: "the shell can land first; each surface fills its pane as it
+ * (the nav/IA shell: "the shell can land first; each surface fills its pane as it
  * ships"). It renders the surface's heading and a labelled placeholder so the
  * route, nav slot, and title are real and reachable while the surface itself is
  * still to come. Each later build swaps this out for the real component.

@@ -62,7 +62,7 @@ Relations are ID references (`ASM-002`), comma-separated. Example
 - **Readings**: RDG-001
 ```
 
-Assumptions carry no body (OPS-1305): the `5 Whys` / `Metric for truth` /
+Assumptions carry no body (the evidence-remodel slice): the `5 Whys` / `Metric for truth` /
 `Gaps` fields and the `## Provenance & notes` section are gone. Readiness is
 the derived `Completeness %`; the why-trace lives in `Depends on` / `Enables`.
 

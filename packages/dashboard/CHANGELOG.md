@@ -21,7 +21,7 @@
 
 ### Minor Changes
 
-- 1406681: OPS-1406: simplify confidence scoring — risk groups, evidence-keyed types, graduation
+- 1406681: the confidence-scoring simplification: simplify confidence scoring — risk groups, evidence-keyed types, graduation
 
   - **Assumption Type replaces Question Type.** The 7 academic Question Types
     (Existence, Prevalence, …) are retired in favour of 11 evidence-keyed
@@ -62,7 +62,7 @@
 
 ### Minor Changes
 
-- e1e0590: Assumptions workspace view-model builder (OPS-1407): experiment-first workspace with three grouping modes (experiments / recommended / all), consistent belief row, belief body with trajectory + grilling + evidence rungs + lineage, and experiment body with acceptance criteria + spillover readings.
+- e1e0590: Assumptions workspace view-model builder (the experiment-first assumptions workspace): experiment-first workspace with three grouping modes (experiments / recommended / all), consistent belief row, belief body with trajectory + grilling + evidence rungs + lineage, and experiment body with acceptance criteria + spillover readings.
 
 ### Patch Changes
 
@@ -139,7 +139,7 @@
 
 ### Minor Changes
 
-- a34c1bb: Question-type-aware evidence ladder (DEV-5890):
+- a34c1bb: Question-type-aware evidence ladder (the question-type-aware evidence ladder):
 
   - **New axis: Question Type** (Existence, Prevalence, CausalEffect, WillingnessToPay, ValueUtility, Regulatory, Feasibility) — the kind of claim an assumption raises, set by the falsification-test rule. 6th Completeness slot; an assumption without a Question Type cannot go Live.
   - **3D anchor table**: `RUNG_ANCHOR[questionType][rung][band]` replaces the single-ladder anchors. Seven sub-ladders; non-evidence rungs carry anchor 0 (contribute s=0, flagged at the UI/skill layer — not a write blocker). W0_BY_RUNG retained unchanged (keyed by rung, within a sub-ladder).
@@ -151,7 +151,7 @@
   - **Docs**: new `docs/question-types.md` (with v2 section on rung splits + instrument axis), rewritten `docs/evidence-ladder.md` (seven sub-ladders), stage-keyed threshold in `docs/validated.md`, orthogonality statement in `docs/stage-policy.md`.
   - **Connectors**: Question Type property added to all three schema guides; Completeness formula updated to six slots.
 
-  Supersedes DEV-5880 (per-rung W0 + lens-aware rung ladder). The per-rung W0 work is retained; the lens-aware framing is replaced by the question-type-aware framing.
+  Supersedes the per-rung W0 + lens-aware ladder (per-rung W0 + lens-aware rung ladder). The per-rung W0 work is retained; the lens-aware framing is replaced by the question-type-aware framing.
 
 ### Patch Changes
 
@@ -170,7 +170,7 @@
 
 ### Patch Changes
 
-- d7c810b: DEV-5879 polish pass: thinner donut gauge, per-belief quote excerpts (new `excerpt` field on `BeliefScore`), "Readings" renamed to "Evidence" across the UI, evidence list now shows each piece's confidence contribution, next-moves are one-per-lens with colored lens tags and flat (non-dropdown) proposed-experiment cards, Lens × Stage grid cells are taller/bigger with subtler heat, evidence-composition bar capped at 100% with clearer `+N · cap M` labels, glossary popovers no longer clipped by card overflow.
+- d7c810b: the dashboard frontend redesign polish pass: thinner donut gauge, per-belief quote excerpts (new `excerpt` field on `BeliefScore`), "Readings" renamed to "Evidence" across the UI, evidence list now shows each piece's confidence contribution, next-moves are one-per-lens with colored lens tags and flat (non-dropdown) proposed-experiment cards, Lens × Stage grid cells are taller/bigger with subtler heat, evidence-composition bar capped at 100% with clearer `+N · cap M` labels, glossary popovers no longer clipped by card overflow.
 - Updated dependencies [d7c810b]
   - @validation-os/core@0.15.5
 
@@ -210,7 +210,7 @@
 
 ### Minor Changes
 
-- 537e001: Lens-aware ladder revision (DEV-5879): adds the `Signed up` consumer do-rung, equalizes all do-rung W0s at 327 (was 140/317.3/410.7), and flattens every do-rung's anchors to 30/50/70. Talk stays 3/6/10 (W0 6.5); Desk stays 15 (W0 2). The lens determines which do-rungs apply (consumer: Signed up + Observed usage; commercial: Signed intent + Paying users); Talk + Desk work for any lens. Confidence accumulation is now honest per-rung: 2 desk sources → ~90% of cap; 20 paying users → 75% of cap; 10 talk readings → ~90% of cap.
+- 537e001: Lens-aware ladder revision (the dashboard frontend redesign): adds the `Signed up` consumer do-rung, equalizes all do-rung W0s at 327 (was 140/317.3/410.7), and flattens every do-rung's anchors to 30/50/70. Talk stays 3/6/10 (W0 6.5); Desk stays 15 (W0 2). The lens determines which do-rungs apply (consumer: Signed up + Observed usage; commercial: Signed intent + Paying users); Talk + Desk work for any lens. Confidence accumulation is now honest per-rung: 2 desk sources → ~90% of cap; 20 paying users → 75% of cap; 10 talk readings → ~90% of cap.
 
 ### Patch Changes
 
@@ -322,7 +322,7 @@
 
 ### Minor Changes
 
-- 940c3f1: Add the "Connect Claude Code" page (OPS-1349): `composeConnectCommand` — a pure
+- 940c3f1: Add the "Connect Claude Code" page (the Connect Claude Code page): `composeConnectCommand` — a pure
   composer that bakes a minted token + the API URL into one ready-to-paste command
   wiring the `remote-api` connector — and `<ConnectClaudeCode>`, the page shell
   around it. Token minting is injected (`mintToken`), so the package takes no
@@ -343,7 +343,7 @@
 
 ### Minor Changes
 
-- 6fe26de: Designed cross-surface cold-start / empty state across the workflow dashboard (OPS-1331).
+- 6fe26de: Designed cross-surface cold-start / empty state across the workflow dashboard (the cross-surface cold-start).
 
   Replaces the basic one-line empty states the front door (`#next`) and
   pipeline (`#pipeline`) already rendered with one coherent designed pass,
@@ -404,13 +404,13 @@
 
 ### Minor Changes
 
-- c08746b: Portfolio pipeline overview across `core` + `dashboard` (OPS-1300).
+- c08746b: Portfolio pipeline overview across `core` + `dashboard` (the portfolio pipeline overview).
 
   `@validation-os/core` gains the one cross-belief roll-up: `portfolioProgress` (and its per-belief `beliefRisk`) in `derivation`, computing the burn-up "% of identified risk bought down" — Risk Retired ÷ Risk-ever-identified across the whole set, resolved beliefs included. Pure and numeric like `risk`/`confidence`/`impact`, computed fresh on read, so it stays out of the on-write recompute; ever-identified is floored at the seed Impact so a kill or moot retires risk without shrinking the denominator. `presence.ts` gains `assumptionCompleteness`, the framing meter as a percentage. New exports: `beliefRisk`, `portfolioProgress`, `assumptionCompleteness`, and the `BeliefRisk` / `PortfolioBeliefInput` / `PortfolioProgress` types.
 
   `@validation-os/dashboard` fills the `#pipeline` pane with `PipelineSurface`: one row per live belief, sorted riskiest-first, each carrying the four loop meters (Framed % → Planned → Tested settled/total → signed Known, with a re-test flag at Confidence ≤ −50) as a connected track plus its stage-aware next move; above them the single burn-up headline meter (no chart); resolved beliefs set apart behind a disclosure; the raw Impact shown only as a faint bar. The "this week" delta is derived honestly from the readings' own dates and simply omitted when none are dated. New exports: `PipelineSurface`, `buildPipeline`, `weekOverWeekDelta`, and the `PipelineRow` / `PipelineView` / `ResolvedRow` types.
 
-- 3edd917: Navigation / IA shell across the three workflow altitudes (OPS-1302).
+- 3edd917: Navigation / IA shell across the three workflow altitudes (the nav/IA shell).
 
   `<ValidationOSDashboard/>` now routes between the front door, the portfolio pipeline, the register tables, and the per-belief drill-in from a single client-owned hash router — no second entry point. New URL scheme: `#next` (the default landing) · `#pipeline` · `#<register>` (the Records tables, backward-compatible with the previous `#<register>` scheme) · `#record/<id>` (the drill-in). Parsing/formatting is a pure, tested module (`parseRoute`/`formatRoute`), and the hash is the single source of truth, so deep links and browser back/forward work.
 
@@ -418,19 +418,19 @@
 
   API: the sidebar brick `RegisterNav` is renamed `SidebarNav` (now route-aware). New exports: `parseRoute`, `formatRoute`, the `Route` type, `RecordPage`, and `SurfacePlaceholder`.
 
-- 2319058: Front-door "next move" surface across `core` + `dashboard` (OPS-1304).
+- 2319058: Front-door "next move" surface across `core` + `dashboard` (the front-door build).
 
   `@validation-os/core` gains `rankNextMoves` (in `derivation`) — one pure function, beside `risk`/`confidence`/`impact`, that ranks beliefs into their next move. It scores each unresolved belief by Feasibility × Risk (the cheapest honest test of the riskiest belief on top), floats any belief at Confidence ≤ −50 into a kill/re-test lane above that order, and names the act its stage demands (`score-impact` · `design-experiment` · `record-reading` · `decide` · `retest`). Computed fresh on read — it reads the derived numbers, never recomputing them — so it stays out of the on-write recompute. The rule is stated once in `ontology.yaml → derived_views.next_move`. New exports: `rankNextMoves`, `KILL_LANE_THRESHOLD`, and the `NextMove` / `MoveKind` / `NextMove*Input` types.
 
   `@validation-os/dashboard` fills the `#next` pane with `NextMoveSurface`: a centred hero (the belief, a seen-not-read risk chip with no number, and one act button whose label follows the belief's stage), all machinery behind a single "Why this?" reveal (the numeric risk, the Feasibility × Risk breakdown, the ranked list, and the Framed→Planned→Tested→Known stepper), an "On deck" list of runners-up, a manual-override pick-list, and a kill-lane banner. Step-in adapts to the act: human acts open a form, agent-run acts point at the record for review. Adds the two missing step-in forms — `ScoreImpactForm` (a real slider, not a bare cell) and `WriteDecisionForm` (create a decision and wire it to the belief via `based on`/`resolves` in one step). New exports: `NextMoveSurface`, `ScoreImpactForm`, `WriteDecisionForm`, `toNextMoveInput`, `movePresentation`.
 
-- 20b571c: Per-belief journey view-model — the pure, testable half of the drill-in (OPS-1329).
+- 20b571c: Per-belief journey view-model — the pure, testable half of the drill-in (the per-belief journey view-model).
 
   `@validation-os/core` gains, in `derivation`, a per-belief **stage-deriver** and an **event-log assembler**. `stage.ts` factors the pipeline's test-meter logic out of the dashboard row-builder into `beliefTestMeters`, and adds `deriveBeliefStage` / `classifyStage`: the single-belief analogue of the cross-belief pipeline aggregation, placing one belief on the Framed → Planned → Tested → Known spine with its four meters (the kill zone stays an overlay, not a stage). `journey.ts` adds `assembleJourney`, ordering a belief's life into dated events (bet → score → experiment → readings → confidence-cross → now) by reusing `confidenceTrajectory` / `confidence` — no new maths, no faked dates, absent events omitted. Both are pure and computed fresh on read, so they stay out of the on-write recompute. New exports: `beliefTestMeters`, `classifyStage`, `deriveBeliefStage`, `emptyTestMeter`, `assembleJourney`, and the `BeliefStage` / `BeliefStageInput` / `ConfSign` / `StageExperimentInput` / `StageKey` / `TestMeter` / `JourneyEvent` / `JourneyEventKind` / `JourneyBeliefInput` / `JourneyExperimentInput` / `AssembleJourneyInput` types.
 
   `@validation-os/dashboard` adds `buildJourney`, the pure journey view-model (mirroring `understanding.ts` / `pipeline.ts`) that composes one belief's rail (its `BeliefStage`), its event story (each event given front-door copy), and its next-move card (the same ranking the front door reads, filtered to this belief). `pipeline.ts` is refactored to derive its rows through the shared `deriveBeliefStage`, so the board and a belief's rail agree by construction. New exports: `buildJourney`, `toStageExperimentInput`, and the `JourneyView` / `JourneyEventView` types.
 
-  The rail + story UI that renders this (OPS-1330) is blocked on the record page and lands separately.
+  The rail + story UI that renders this (the journey rail + story UI) is blocked on the record page and lands separately.
 
 ### Patch Changes
 
@@ -443,7 +443,7 @@
 
 ### Minor Changes
 
-- 45508b2: Ship the whole styled dashboard as a mountable app (OPS-1280).
+- 45508b2: Ship the whole styled dashboard as a mountable app (the mountable dashboard app).
 
   `@validation-os/dashboard` now exports a single `<ValidationOSDashboard config={…} />` that renders the entire dashboard — the app frame (sidebar composing register nav + live counts, topbar with a backend indicator and user, in-app navigation owned by the dashboard) and every register view. A thin instance mounts this at one route, imports the new `@validation-os/dashboard/styles.css` once, supplies config/secrets, and builds no UI.
 
@@ -461,7 +461,7 @@
 
 ### Minor Changes
 
-- 50e3b93: Edit slice (OPS-1274): edit a record from the drawer under optimistic
+- 50e3b93: Edit slice (the edit-slice derive-on-write): edit a record from the drawer under optimistic
   concurrency, with derived fields recomputed server-side on write.
 
   - `RecordDrawer` gains an edit mode: an Edit button opens per-register field
@@ -469,7 +469,7 @@
     box (Confidence, Risk, Derived Impact, Strength) stays the hero and is never
     editable — after a save the recomputed numbers flow back in and the list
     re-fetches. A "Why?" affordance on Confidence explains how the number is
-    earned (per-experiment movers land in OPS-1275).
+    earned (per-experiment movers land in the create-and-link-records slice).
   - A concurrent edit is surfaced as a gentle, jargon-free prompt with a
     "Reload the latest" re-fetch path (spec user story 12) — never version
     jargon; the editor's in-progress draft is kept, not overwritten.
@@ -484,11 +484,11 @@
     `UseUpdateResult` types. `useRecord` now exposes `refresh`.
 
   The API's derive-on-write and the adapter's version guard (→ 409) already
-  shipped with the OPS-1270 foundation; this slice adds the editing surface over
+  shipped with the the monorepo foundation foundation; this slice adds the editing surface over
   them and the behaviour test that an Impact edit recomputes Risk / Derived
   Impact server-side.
 
-- 88751a2: Create & link records (OPS-1275): new records and two-way relations, end to end.
+- 88751a2: Create & link records (the create-and-link-records slice): new records and two-way relations, end to end.
 
   - `@validation-os/core`: each `RelationSpec` now carries a `targetRegister`, so
     the register a relation points at is known even when its inverse is a derived
@@ -507,7 +507,7 @@
     `missingRequired` / `toCreatePayload` and `linkChoicesFrom` back them and are
     unit-tested.
 
-- ea59431: Understanding layer (OPS-1276): the Confidence "Why?" now tells the story of
+- ea59431: Understanding layer (the understanding layer): the Confidence "Why?" now tells the story of
   the number — the reason a dashboard beats Notion, not polish.
 
   - `@validation-os/core` derivation gains three pure functions, all decomposing
@@ -556,7 +556,7 @@
 
 ### Minor Changes
 
-- 944213c: Read slice (OPS-1272): browse & open records across the six registers.
+- 944213c: Read slice (the browse-and-open-records slice): browse & open records across the six registers.
 
   `@validation-os/dashboard` gains the browse-and-open surface consumed by a
   thin host app:

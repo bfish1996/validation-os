@@ -115,7 +115,7 @@ evidence, concluding a plan, and auditing the Experiments register is
 semantic check has passed (gated, single/seed — loop never flips `Status`;
 a record it brings to `Completeness % = 100` simply stays `Draft`,
 awaiting a human hand-off session — there is no stored review tag,
-`OPS-1305`), and `Live` → `Draft` when a slot empties or a grill finding
+`the evidence-remodel slice`), and `Live` → `Draft` when a slot empties or a grill finding
 reopens it. Commitment linkage is never a status — it's
 `/experiment-design`'s bar line on a standing (committed) Experiment, read
 back as an evidence-plan view, never an Impact anchor, a Confidence input,

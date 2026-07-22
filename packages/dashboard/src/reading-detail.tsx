@@ -7,7 +7,7 @@ import type { Route } from "./route.js";
 import { useList } from "./use-records.js";
 
 /**
- * The per-belief reading detail (DEV-5885): a shared Context section (who,
+ * The per-belief reading detail (the per-belief reading detail): a shared Context section (who,
  * what, source — formerly "Evidence body") separate from per-belief verdict
  * cards. Each belief is a card with assumption link, verdict, rung, excerpt
  * (the per-assumption quote, color-coded by result), grading justification,

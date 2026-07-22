@@ -44,7 +44,7 @@ describe("statusTone", () => {
 });
 
 describe("riskLevel", () => {
-  it("crosses to warn at 40 and crit at 70 (OPS-1287 bands)", () => {
+  it("crosses to warn at 40 and crit at 70 (the list-surface saved views bands)", () => {
     expect(riskLevel(0)).toBe("good");
     expect(riskLevel(39)).toBe("good");
     expect(riskLevel(40)).toBe("warn");

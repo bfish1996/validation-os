@@ -4,8 +4,8 @@ import type { Collection } from "@validation-os/core";
  * teammate meets, so no jargon and no code-y plurals. */
 export const REGISTER_LABEL: Record<Collection, string> = {
   assumptions: "Assumptions",
-  // One container-agnostic lens now Goal is unified into Experiment (OPS-1299 /
-  // OPS-1287 story 22): all plans browse in one place under this label.
+  // One container-agnostic lens now Goal is unified into Experiment (the goal-unification-into-experiment /
+  // the list-surface saved views story 22): all plans browse in one place under this label.
   experiments: "Evidence plans",
   readings: "Evidence",
   decisions: "Decisions",
@@ -61,7 +61,7 @@ export const REGISTER_GROUPS: { label: string; registers: Collection[] }[] = [
 ];
 
 /** The workflow surfaces the sidebar lists above the register tables
- * (OPS-1298 / DEV-5879 redesign): three top-level nav items — Assumptions
+ * (the nav/IA shell / the dashboard frontend redesign redesign): three top-level nav items — Assumptions
  * (the default landing, the Lens × Stage grid with a "View all" toggle to
  * the pipeline board), Experiments (the live evidence plans), and Evidence
  * (the evidence log). Kept beside the register presentation data so all

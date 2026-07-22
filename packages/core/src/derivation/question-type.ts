@@ -1,5 +1,5 @@
 /**
- * Question-type inference — the falsification-test rule (DEV-5890).
+ * Question-type inference — the falsification-test rule (the question-type-aware evidence ladder).
  *
  * The question type is set by what would prove the assumption WRONG, not by
  * what evidence is cheap to gather. "Users will pay $50/mo" is falsified by

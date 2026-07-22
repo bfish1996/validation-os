@@ -9,16 +9,16 @@ import { ScoreImpactForm, WriteDecisionForm } from "./step-in-forms.js";
 import { useList } from "./use-records.js";
 
 /**
- * The front door — "what's my next move" (design OPS-1295, build OPS-1304): the
+ * The front door — "what's my next move" (design the front-door design, build the front-door build): the
  * map's headline surface. One belief, one act, all machinery behind one "Why
  * this?" (progressive disclosure — the hero stays clean). The single riskiest
- * unresolved belief leads (Model A, OPS-1291); a kill-lane belief (Confidence ≤
+ * unresolved belief leads (Model A, the next-move action vocabulary); a kill-lane belief (Confidence ≤
  * −50) raises a crit banner above the hero; three runners-up sit "On deck"; and
  * a quiet pick-list lets you act on any belief the ranking wouldn't pick (manual
- * override). Step-in adapts to the act (OPS-1294): human acts open a form here,
+ * override). Step-in adapts to the act (the step-in human action set): human acts open a form here,
  * agent-run acts point at the record for review.
  *
- * The ranking itself lives once in `packages/core` (OPS-1292); this surface only
+ * The ranking itself lives once in `packages/core` (the next-move ranking model); this surface only
  * fetches the registers, folds them into that function, and renders the result.
  */
 export interface NextMoveSurfaceProps {
@@ -280,7 +280,7 @@ function NextMoveFrame({ children }: { children: React.ReactNode }) {
 }
 
 /** The hero's act control — a form CTA for human acts, a review link for
- * agent-run acts (OPS-1294 step-in adaptation). */
+ * agent-run acts (the step-in human action set step-in adaptation). */
 function ActButton({
   move,
   onStepIn,
@@ -353,7 +353,7 @@ function OnDeckRow({
 }
 
 /** All the machinery, revealed on demand: the numeric risk, the Feasibility ×
- * Risk formula, the stage stepper, and the full ranked list (OPS-1295). */
+ * Risk formula, the stage stepper, and the full ranked list (the front-door design). */
 function WhyPanel({ top, ranked }: { top: NextMove; ranked: NextMove[] }) {
   return (
     <div className="vos-why-panel vos-next-why">

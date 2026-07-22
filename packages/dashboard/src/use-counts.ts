@@ -61,7 +61,7 @@ export interface UseNeedsHumanResult {
   counts: NeedsHumanCounts;
   byRegister: NeedsHumanByRegister;
   /**
-   * Live-only experiment count — archived plans excluded (OPS-1305). The API's
+   * Live-only experiment count — archived plans excluded (the evidence-remodel slice). The API's
    * `/counts` tallies every stored row, but an archived plan never surfaces
    * anywhere in the UI, so the nav badge would overcount (66 vs the live few).
    * `null` until the experiments list loads, so the caller falls back to the

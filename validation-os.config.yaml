@@ -17,7 +17,7 @@ vocabulary:
   lens: [Adopter, Contributor, Distributor]
   area: [Positioning, Distribution, Docs & DX, Product, Community]
   audiences: [End user, Contributor, Internal]
-  # The auth-sourced team list Owner / Agreed by reference (OPS-1305) — the
+  # The auth-sourced team list Owner / Agreed by reference (the evidence-remodel slice) — the
   # retired `people` collection had no replacement collection; this config
   # list is its stand-in until a connector-auth source replaces it.
   dashboard_users: [benji]
@@ -37,7 +37,7 @@ evidence_sources:
 #   raw:       { home: Google Drive "Raw evidence" folder, fetch: file URL }
 
 # Analytics — read at a committed experiment's deadline (the unified plan,
-# not a separate Goal record, OPS-1305), NOT an evidence_sources flavour. A
+# not a separate Goal record, the evidence-remodel slice), NOT an evidence_sources flavour. A
 # scoreboard number is read at that deadline, never logged as Testing
 # evidence (docs/goals.md §Found numbers). Read by /experiment-design (draft
 # names the instrument) and /find-evidence (close reads it), sharing

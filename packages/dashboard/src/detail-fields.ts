@@ -1,5 +1,5 @@
 /**
- * The record drawer's generic field list (OPS-1345) — the pure view-model
+ * The record drawer's generic field list (the record-page rendering fix) — the pure view-model
  * behind the "everything else" rows a record carries beyond its meters/
  * human-text/panels. `RecordDrawer` iterates a record's own keys (skipping
  * provenance/meta), and this module decides how each one reads: a relation
@@ -38,7 +38,7 @@ export const META_FIELDS = new Set([
 const SUPPRESSED_FIELDS = new Set([
   "barLineAssumptionIds",
   // A reading's `beliefs[]` is rendered as the richer per-belief verdict list
-  // (OPS-1305), never as raw JSON in the generic row list.
+  // (the evidence-remodel slice), never as raw JSON in the generic row list.
   "beliefs",
   // `body` (a reading's quote / an experiment's narrative) renders as Markdown
   // in its own block, not as a raw-text row.
@@ -61,7 +61,7 @@ const RELATION_TARGET: Partial<Record<string, Collection>> = {
 };
 
 /** Dashboard-user reference fields — an array of `{id, name}`, never a
- * navigable record (there is no `people` register, `OPS-1305`). */
+ * navigable record (there is no `people` register, `the evidence-remodel slice`). */
 const OWNER_FIELDS = new Set(["Owner", "Agreed by"]);
 
 export type DetailRowKind = "text" | "relation" | "owner" | "bar-lines";
@@ -176,7 +176,7 @@ export function detailRows(
     const target = RELATION_TARGET[key];
     if (target) {
       let items = idsOf(value).map((id) => resolveItem(related, target, id));
-      // Archived plans never surface as a relation (OPS-1305): drop any
+      // Archived plans never surface as a relation (the evidence-remodel slice): drop any
       // experiment target that resolves to an Archived record.
       if (target === "experiments") {
         const archived = new Set(
