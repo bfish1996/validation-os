@@ -20,14 +20,14 @@
  * recent on ties). Market-rung readings never dedupe (each closed commitment
  * is its own unit). No corroboration bump.
  */
-import type { MagnitudeBand, QuestionType, Result, Rung } from "../types.js";
-import { MARKET_RUNG_VALUES } from "../types.js";
+import type { AssumptionType, MagnitudeBand, Result, Rung } from "../types.js";
+import { MARKET_RUNGS } from "../types.js";
 import { round2 } from "./round.js";
 import { sourceQuality } from "./source-quality.js";
 import { isConcluded, readingStrength } from "./strength.js";
 
 /** Market rungs never dedupe (each closed commitment is its own unit). */
-const MARKET_RUNG_SET = new Set<Rung>(MARKET_RUNG_VALUES);
+const MARKET_RUNG_SET = new Set<Rung>(MARKET_RUNGS);
 function isMarketRung(rung: Rung): boolean {
   return MARKET_RUNG_SET.has(rung);
 }
@@ -37,19 +37,32 @@ function isMarketRung(rung: Rung): boolean {
  * rung's anchor. Tuned so: Desk 2 readings → ~90% of cap; talk 10 readings →
  * ~90% of cap; do-rungs 20 readings → ~75% of cap. See
  * `docs/evidence-ladder.md` for the derivation.
+ *
+ * OPS-1406: market/operational rungs lowered so saturated evidence reaches
+ * near-ceiling (~99), per the spec's "every type can reach ~99 on its ceiling
+ * rung" invariant.
  */
 export const W0_BY_RUNG: Record<Rung, number> = {
   // Talk — 10 readings → ~90% of cap.
   Talk: 6.5,
-  // Desk research — 2 readings → ~90% of cap (authoritative, rare).
-  "Desk research": 2,
-  // All do-rungs — 20 readings → ~75% of cap. Equal ceilings (70) and equal
-  // W0s across consumer (Signed up / Observed usage) and commercial
-  // (Signed intent / Paying users) lenses.
-  "Signed up": 327,
-  "Observed usage": 327,
-  "Signed intent": 327,
-  "Paying users": 327,
+  // Survey — 10 readings → ~90% of cap.
+  Survey: 6.5,
+  // Desk & data — 2 readings → ~90% of cap (authoritative, rare).
+  "Desk & data": 2,
+  // Fake-door — 10 readings → ~90% of cap.
+  "Fake-door": 6.5,
+  // Prototype use — 10 readings → ~90% of cap.
+  "Prototype use": 6.5,
+  // Retention — sustained behaviour, 10 readings → ~90% of cap.
+  Retention: 6.5,
+  // Market rungs — never dedupe; each closed commitment is its own unit.
+  // 10 readings → ~90% of cap.
+  Commitment: 6.5,
+  Payment: 6.5,
+  // Operational rungs — 10 readings → ~90% of cap.
+  "Build proof": 6.5,
+  "Outcome test": 6.5,
+  "Cost data": 6.5,
 };
 
 /**
@@ -83,8 +96,8 @@ export interface ConfidenceReadingInput {
   source: string | null;
   rung: Rung;
   result: Result;
-  /** The linked assumption's question type — sets the anchor sub-ladder. */
-  questionType: QuestionType;
+  /** The linked assumption's type — sets the anchor sub-ladder. */
+  assumptionType: AssumptionType;
   representativeness: number;
   credibility: number;
   /** ISO date; used only as the dedupe tie-break (most recent wins). */

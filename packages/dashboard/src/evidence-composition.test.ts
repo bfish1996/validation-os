@@ -18,6 +18,7 @@ function asm(over: Partial<AnyRecord> & { id: string }): AnyRecord {
     contradictsIds: [],
     readingIds: [],
     "Question Type": "Existence",
+    "Assumption Type": "ProblemExists",
     derived: { derivedImpact: 50, risk: 40, confidence: 0, completeness: 60 },
     ...over,
   } as AnyRecord;
@@ -53,50 +54,50 @@ describe("buildEvidenceComposition", () => {
 
   it("groups contributions by rung, using the confidence attribution math", () => {
     // One Talk Validated found reading (experimentId null → commitment 0.85).
-    // Existence × Talk × Typical s=20, w=|20|×0.85=17, W0=6.5 → 17×20 / (6.5+17) = 340/23.5 = 14.47
+    // ProblemExists × Talk × Typical s=60, w=|60|×0.85=51, W0=6.5 → 51×60 / (6.5+51) = 3060/57.5 ≈ 53.22
     const a = asm({ id: "ASM-1", Lens: "Consumer" });
     const r = reading({ id: "RDG-1", Rung: "Talk" }); // defaults experimentId: null
     const comp = buildEvidenceComposition(a, [r]);
     expect(comp.rungs).toHaveLength(4);
     const talk = comp.rungs.find((x) => x.rung === "Talk")!;
     expect(talk).toBeDefined();
-    expect(talk.contribution).toBeCloseTo(14.47, 1);
+    expect(talk.contribution).toBeCloseTo(53.22, 1);
     expect(talk.count).toBe(1);
-    expect(comp.totalContribution).toBeCloseTo(14.47, 1);
+    expect(comp.totalContribution).toBeCloseTo(53.22, 1);
     // An experiment-linked reading weighs full (1.0) → higher contribution
     const rExp = reading({ id: "RDG-2", Rung: "Talk", experimentId: "EXP-1" });
     const compExp = buildEvidenceComposition(a, [rExp]);
     const talkExp = compExp.rungs.find((x) => x.rung === "Talk")!;
-    // w=20, contribution = 20×20 / (6.5+20) = 400/26.5 = 15.09
-    expect(talkExp.contribution).toBeCloseTo(15.09, 1);
+    // w=60, contribution = 60×60 / (6.5+60) = 3600/66.5 ≈ 54.14
+    expect(talkExp.contribution).toBeCloseTo(54.14, 1);
     expect(talkExp.contribution).toBeGreaterThan(talk.contribution);
   });
 
-  it("shows the question-type-aware rung ladder — Consumer shows Talk/Desk/Signed up/Observed usage", () => {
+  it("shows the assumption-type sub-ladder — ProblemExists shows Talk/Survey/Desk & data/Prototype use", () => {
     const a = asm({ id: "ASM-1", Lens: "Consumer" });
     const comp = buildEvidenceComposition(a, []);
     // Empty readings → all lens rungs present with 0 contribution
     const rungNames = comp.rungs.map((r) => r.rung);
-    expect(rungNames).toEqual(["Talk", "Desk research", "Signed up", "Observed usage"]);
+    expect(rungNames).toEqual(["Talk", "Survey", "Desk & data", "Prototype use"]);
   });
 
-  it("Commercial lens shows Talk/Desk/Signed intent/Paying users", () => {
+  it("Commercial lens shows the ProblemExists sub-ladder too (Lens no longer selects rungs)", () => {
     const a = asm({ id: "ASM-1", Lens: "Commercial" });
     const comp = buildEvidenceComposition(a, []);
     const rungNames = comp.rungs.map((r) => r.rung);
-    expect(rungNames).toEqual(["Talk", "Desk research", "Signed intent", "Paying users"]);
+    expect(rungNames).toEqual(["Talk", "Survey", "Desk & data", "Prototype use"]);
   });
 
-  it("caps are the question-type sub-ladder High anchors (Existence)", () => {
-    // Existence sub-ladder ceilings (High band): Talk 30, Desk 15,
-    // Signed up 0 (non-evidence), Observed usage 50.
+  it("caps are the assumption-type sub-ladder High anchors (ProblemExists)", () => {
+    // ProblemExists sub-ladder ceilings (High band): Talk 99, Survey 60,
+    // Desk & data 45, Prototype use 60.
     const a = asm({ id: "ASM-1", Lens: "Consumer" });
     const comp = buildEvidenceComposition(a, []);
     const caps = Object.fromEntries(comp.rungs.map((r) => [r.rung, r.cap]));
-    expect(caps["Talk"]).toBe(30);
-    expect(caps["Desk research"]).toBe(15);
-    expect(caps["Signed up"]).toBe(0);
-    expect(caps["Observed usage"]).toBe(50);
+    expect(caps["Talk"]).toBe(99);
+    expect(caps["Survey"]).toBe(60);
+    expect(caps["Desk & data"]).toBe(45);
+    expect(caps["Prototype use"]).toBe(60);
   });
 
   it("filters out Inconclusive readings (they contribute 0 to confidence)", () => {

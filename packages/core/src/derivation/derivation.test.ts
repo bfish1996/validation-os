@@ -13,8 +13,8 @@ import {
   type ConfidenceReadingInput,
 } from "./index.js";
 
-// A concluded reading with full source quality and a question type set, unless
-// overridden. Defaults to an Existence assumption at Observed-usage Typical,
+// A concluded reading with full source quality and an assumption type set, unless
+// overridden. Defaults to a ProblemExists assumption at Prototype use Typical,
 // experiment-linked (commitment 1.0) so the hand-worked numbers read the rung
 // physics directly; the found-discount is exercised explicitly below.
 function reading(
@@ -23,9 +23,9 @@ function reading(
   return {
     id: over.id ?? "RDG-001",
     source: over.source ?? "src-1",
-    rung: over.rung ?? "Observed usage",
+    rung: over.rung ?? "Prototype use",
     result: over.result ?? "Validated",
-    questionType: over.questionType ?? "Existence",
+    assumptionType: over.assumptionType ?? "ProblemExists",
     representativeness: over.representativeness ?? 1.0,
     credibility: over.credibility ?? 1.0,
     date: over.date ?? "2026-01-01",
@@ -43,87 +43,32 @@ describe("sign", () => {
 });
 
 describe("readingStrength — 3D anchor lookup", () => {
-  it("Existence × Talk × High = 30 (the qual ceiling for existence)", () => {
+  it("ProblemExists × Talk × High = 99 (the qual ceiling for problem exists)", () => {
     expect(
       readingStrength({
-        questionType: "Existence",
+        assumptionType: "ProblemExists",
         rung: "Talk",
-        result: "Validated",
-        magnitudeBand: "High",
-      }),
-    ).toBe(30);
-  });
-
-  it("Existence × Talk × Low = 10", () => {
-    expect(
-      readingStrength({
-        questionType: "Existence",
-        rung: "Talk",
-        result: "Validated",
-        magnitudeBand: "Low",
-      }),
-    ).toBe(10);
-  });
-
-  it("WillingnessToPay × Talk × High = 0 (non-evidence for WTP)", () => {
-    expect(
-      readingStrength({
-        questionType: "WillingnessToPay",
-        rung: "Talk",
-        result: "Validated",
-        magnitudeBand: "High",
-      }),
-    ).toBe(0);
-  });
-
-  it("WillingnessToPay × Paying users × High = 99 (the ceiling for WTP)", () => {
-    expect(
-      readingStrength({
-        questionType: "WillingnessToPay",
-        rung: "Paying users",
         result: "Validated",
         magnitudeBand: "High",
       }),
     ).toBe(99);
   });
 
-  it("Regulatory × Desk research × High = 70 (the ceiling for regulatory)", () => {
+  it("ProblemExists × Talk × Low = 30", () => {
     expect(
       readingStrength({
-        questionType: "Regulatory",
-        rung: "Desk research",
+        assumptionType: "ProblemExists",
+        rung: "Talk",
         result: "Validated",
-        magnitudeBand: "High",
+        magnitudeBand: "Low",
       }),
-    ).toBe(70);
+    ).toBe(30);
   });
 
-  it("ValueUtility × Paying users × High = 0 (WTP rungs are non-evidence for value)", () => {
+  it("TheyllPay × Talk × High = 0 (non-evidence for TheyllPay)", () => {
     expect(
       readingStrength({
-        questionType: "ValueUtility",
-        rung: "Paying users",
-        result: "Validated",
-        magnitudeBand: "High",
-      }),
-    ).toBe(0);
-  });
-
-  it("ValueUtility × Observed usage × High = 70 (sustained retention ceiling)", () => {
-    expect(
-      readingStrength({
-        questionType: "ValueUtility",
-        rung: "Observed usage",
-        result: "Validated",
-        magnitudeBand: "High",
-      }),
-    ).toBe(70);
-  });
-
-  it("CausalEffect × Talk = 0 (talk is non-evidence for causal claims)", () => {
-    expect(
-      readingStrength({
-        questionType: "CausalEffect",
+        assumptionType: "TheyllPay",
         rung: "Talk",
         result: "Validated",
         magnitudeBand: "High",
@@ -131,40 +76,95 @@ describe("readingStrength — 3D anchor lookup", () => {
     ).toBe(0);
   });
 
-  it("CausalEffect × Paying users × High = 90 (A/B on live traffic)", () => {
+  it("TheyllPay × Payment × High = 99 (the ceiling for TheyllPay)", () => {
     expect(
       readingStrength({
-        questionType: "CausalEffect",
-        rung: "Paying users",
+        assumptionType: "TheyllPay",
+        rung: "Payment",
+        result: "Validated",
+        magnitudeBand: "High",
+      }),
+    ).toBe(99);
+  });
+
+  it("LegalCompliant × Desk & data × High = 99 (the ceiling for LegalCompliant)", () => {
+    expect(
+      readingStrength({
+        assumptionType: "LegalCompliant",
+        rung: "Desk & data",
+        result: "Validated",
+        magnitudeBand: "High",
+      }),
+    ).toBe(99);
+  });
+
+  it("WantOurSolution × Payment × High = 90 (Payment is probative for WantOurSolution)", () => {
+    expect(
+      readingStrength({
+        assumptionType: "WantOurSolution",
+        rung: "Payment",
         result: "Validated",
         magnitudeBand: "High",
       }),
     ).toBe(90);
   });
 
-  it("defaults the band to Typical for every rung", () => {
-    // Existence × Observed usage × Typical = 35
+  it("WantOurSolution × Prototype use × High = 99 (sustained retention ceiling)", () => {
     expect(
       readingStrength({
-        questionType: "Existence",
-        rung: "Observed usage",
+        assumptionType: "WantOurSolution",
+        rung: "Prototype use",
+        result: "Validated",
+        magnitudeBand: "High",
+      }),
+    ).toBe(99);
+  });
+
+  it("ItWorks × Talk = 0 (talk is non-evidence for causal claims)", () => {
+    expect(
+      readingStrength({
+        assumptionType: "ItWorks",
+        rung: "Talk",
+        result: "Validated",
+        magnitudeBand: "High",
+      }),
+    ).toBe(0);
+  });
+
+  it("ItWorks × Payment × High = 0 (Payment is non-evidence for ItWorks)", () => {
+    expect(
+      readingStrength({
+        assumptionType: "ItWorks",
+        rung: "Payment",
+        result: "Validated",
+        magnitudeBand: "High",
+      }),
+    ).toBe(0);
+  });
+
+  it("defaults the band to Typical for every rung", () => {
+    // ProblemExists × Prototype use × Typical = 40
+    expect(
+      readingStrength({
+        assumptionType: "ProblemExists",
+        rung: "Prototype use",
         result: "Validated",
       }),
-    ).toBe(35);
+    ).toBe(40);
   });
 
   it("is 0 for Inconclusive regardless of rung", () => {
     expect(
       readingStrength({
-        questionType: "Existence",
-        rung: "Observed usage",
+        assumptionType: "ProblemExists",
+        rung: "Prototype use",
         result: "Inconclusive",
       }),
     ).toBe(0);
     expect(
       readingStrength({
-        questionType: "WillingnessToPay",
-        rung: "Paying users",
+        assumptionType: "TheyllPay",
+        rung: "Payment",
         result: "Inconclusive",
       }),
     ).toBe(0);
@@ -173,8 +173,8 @@ describe("readingStrength — 3D anchor lookup", () => {
   it("is signed: Invalidated produces a negative strength", () => {
     expect(
       readingStrength({
-        questionType: "WillingnessToPay",
-        rung: "Paying users",
+        assumptionType: "TheyllPay",
+        rung: "Payment",
         result: "Invalidated",
         magnitudeBand: "High",
       }),
@@ -204,24 +204,24 @@ describe("confidence — per-rung W0 prior", () => {
   });
 
   it("computes a signed weighted average with the w0 prior", () => {
-    // One Existence × Observed-usage (High) Validated reading, full sq.
-    // s = 50, w = |50| × 1 × 1.0 = 50. W0[Observed usage] = 327.
-    // num = 50×50 = 2500. den = 327 + 50 = 377. 2500 / 377 = 6.631… → 6.63
+    // One ProblemExists × Prototype use (High) Validated reading, full sq.
+    // s = 60, w = |60| × 1 × 1.0 = 60. W0[Prototype use] = 6.5.
+    // num = 60×60 = 3600. den = 6.5 + 60 = 66.5. 3600 / 66.5 = 54.135… → 54.14
     expect(
       confidence([reading({ magnitudeBand: "High" })]),
-    ).toBe(6.63);
+    ).toBe(54.14);
     // W0 is per-rung; the flat constant is retained (legacy) at 100.
     expect(W0).toBe(100);
-    expect(w0ForRung("Observed usage")).toBe(327);
-    expect(w0ForRung("Desk research")).toBe(2);
-    expect(W0_BY_RUNG["Desk research"]).toBe(2);
+    expect(w0ForRung("Prototype use")).toBe(6.5);
+    expect(w0ForRung("Desk & data")).toBe(2);
+    expect(W0_BY_RUNG["Desk & data"]).toBe(2);
   });
 
   it("goes negative when evidence is against", () => {
-    // s = -50, num = -2500, den = 377 → -6.63
+    // s = -60, num = -3600, den = 66.5 → -54.14
     expect(
       confidence([reading({ result: "Invalidated", magnitudeBand: "High" })]),
-    ).toBe(-6.63);
+    ).toBe(-54.14);
   });
 
   it("nets opposing readings from independent sources", () => {
@@ -233,30 +233,30 @@ describe("confidence — per-rung W0 prior", () => {
   });
 
   it("dedupes readings sharing a source to the strongest", () => {
-    // Same source: an Observed-usage (High = 50) and a Talk (High = 30).
-    // Observed usage (50) is stronger → only it counts.
+    // Same source: a Prototype use (High = 60) and a Talk (High = 99).
+    // Talk (99) is stronger → only it counts.
     const deduped = confidence([
-      reading({ id: "a", source: "same", rung: "Observed usage", magnitudeBand: "High" }),
+      reading({ id: "a", source: "same", rung: "Prototype use", magnitudeBand: "High" }),
       reading({ id: "b", source: "same", rung: "Talk", magnitudeBand: "High" }),
     ]);
     expect(deduped).toBe(
-      confidence([reading({ rung: "Observed usage", magnitudeBand: "High" })]),
+      confidence([reading({ rung: "Talk", magnitudeBand: "High" })]),
     );
   });
 
   it("dedupes off Source alone — Context links never enter the math", () => {
     const shared = confidence([
-      reading({ id: "a", source: "person-7", rung: "Observed usage", magnitudeBand: "High" }),
+      reading({ id: "a", source: "person-7", rung: "Prototype use", magnitudeBand: "High" }),
       reading({ id: "b", source: "person-7", rung: "Talk", magnitudeBand: "High" }),
     ]);
     expect(shared).toBe(
-      confidence([reading({ rung: "Observed usage", magnitudeBand: "High" })]),
+      confidence([reading({ rung: "Talk", magnitudeBand: "High" })]),
     );
 
     // Different Source → both count independently, even against one belief.
     const independent = confidence([
-      reading({ id: "a", source: "person-7", result: "Validated", magnitudeBand: "High" }),
-      reading({ id: "b", source: "person-9", result: "Validated", magnitudeBand: "High" }),
+      reading({ id: "a", source: "person-7", rung: "Talk", result: "Validated", magnitudeBand: "High" }),
+      reading({ id: "b", source: "person-9", rung: "Talk", result: "Validated", magnitudeBand: "High" }),
     ]);
     expect(independent).toBeGreaterThan(shared);
   });
@@ -270,23 +270,23 @@ describe("confidence — per-rung W0 prior", () => {
   });
 
   it("never dedupes market-rung readings (each is its own unit)", () => {
-    // WillingnessToPay × Paying users × Typical (88), W0[Paying users] = 327.
-    // Two units: w=88 each → num = 2×(88×88)=15488, den = 327 + 2×88 = 503 → 30.79
+    // TheyllPay × Payment × Typical (90), W0[Payment] = 6.5.
+    // Two units: w=90 each → num = 2×(90×90)=16200, den = 6.5 + 2×90 = 186.5 → 86.86
     const both = confidence([
       reading({
         id: "g1",
         source: "s",
-        rung: "Paying users",
-        questionType: "WillingnessToPay",
+        rung: "Payment",
+        assumptionType: "TheyllPay",
       }),
       reading({
         id: "g2",
         source: "s",
-        rung: "Paying users",
-        questionType: "WillingnessToPay",
+        rung: "Payment",
+        assumptionType: "TheyllPay",
       }),
     ]);
-    expect(both).toBe(30.79);
+    expect(both).toBe(86.86);
   });
 
   it("stays within −100…100", () => {
@@ -294,8 +294,8 @@ describe("confidence — per-rung W0 prior", () => {
       reading({
         id: `r${i}`,
         source: `s${i}`,
-        rung: "Paying users",
-        questionType: "WillingnessToPay",
+        rung: "Payment",
+        assumptionType: "TheyllPay",
       }),
     );
     const c = confidence(many);
@@ -306,17 +306,17 @@ describe("confidence — per-rung W0 prior", () => {
 
 describe("confidence — commitment factor", () => {
   it("discounts a found reading (no experiment) to 0.85 of its weight", () => {
-    // Existence × Observed-usage (High) Validated, sq=1. s=50.
-    // committed:  w = 50 × 1 × 1.00 = 50    → 50×50 / (327+50)  = 6.631… → 6.63
-    // found:      w = 50 × 1 × 0.85 = 42.5  → 42.5×50 / (327+42.5) = 5.746… → 5.75
+    // ProblemExists × Prototype use (High) Validated, sq=1. s=60.
+    // committed:  w = 60 × 1 × 1.00 = 60    → 60×60 / (6.5+60)  = 54.135… → 54.14
+    // found:      w = 60 × 1 × 0.85 = 51   → 51×60 / (6.5+51) = 3060/57.5 = 53.22… → 53.22
     const committed = confidence([
       reading({ experimentId: "EXP-1", magnitudeBand: "High" }),
     ]);
     const found = confidence([
       reading({ experimentId: null, magnitudeBand: "High" }),
     ]);
-    expect(committed).toBe(6.63);
-    expect(found).toBe(5.75);
+    expect(committed).toBe(54.14);
+    expect(found).toBe(53.22);
     expect(found).toBeLessThan(committed);
     expect(COMMITMENT_FOUND).toBe(0.85);
   });
@@ -324,10 +324,10 @@ describe("confidence — commitment factor", () => {
   it("keeps Rung dominant: a high-rung committed reading outweighs a low-rung committed one", () => {
     // The commitment factor is a small tiebreaker, never a rung-reorderer.
     // With commitment held equal, the higher rung wins:
-    //   committed Observed usage High (50): 50×50/(327+50) = 6.63
-    //   committed Talk Low (10):           10×10/(6.5+10) = 6.06
+    //   committed Prototype use High (60): 60×60/(6.5+60) = 54.14
+    //   committed Talk Low (30):            30×30/(6.5+30) = 24.49
     const committedHigh = confidence([
-      reading({ rung: "Observed usage", magnitudeBand: "High", experimentId: "EXP-1" }),
+      reading({ rung: "Prototype use", magnitudeBand: "High", experimentId: "EXP-1" }),
     ]);
     const committedLow = confidence([
       reading({ rung: "Talk", magnitudeBand: "Low", experimentId: "EXP-1" }),
@@ -337,10 +337,10 @@ describe("confidence — commitment factor", () => {
 
   it("the found discount never reorders rungs: found high-rung > found low-rung", () => {
     // Both found (0.85), so the discount is held constant and rung dominates:
-    //   found Observed usage High (50): 50×0.85=42.5 → 42.5×50/(327+42.5) = 5.75
-    //   found Talk Low (10):           10×0.85=8.5  → 8.5×10/(6.5+8.5)   = 5.67
+    //   found Prototype use High (60): 60×0.85=51 → 51×60/(6.5+51) = 53.22
+    //   found Talk Low (30):           30×0.85=25.5 → 25.5×30/(6.5+25.5) = 24.16
     const foundHigh = confidence([
-      reading({ rung: "Observed usage", magnitudeBand: "High", experimentId: null }),
+      reading({ rung: "Prototype use", magnitudeBand: "High", experimentId: null }),
     ]);
     const foundLow = confidence([
       reading({ rung: "Talk", magnitudeBand: "Low", experimentId: null }),
@@ -349,91 +349,87 @@ describe("confidence — commitment factor", () => {
   });
 });
 
-describe("DEV-5890 — question-type-aware ladder (the bug fix)", () => {
-  it("7 Talk High readings on an Existence assumption → Confidence in the 40–50 range", () => {
-    // Existence × Talk × High anchor = 30. W0[Talk] = 6.5.
+describe("DEV-5890 — assumption-type-aware ladder (the bug fix)", () => {
+  it("7 Talk High readings on a ProblemExists assumption → Confidence in the 40–50 range", () => {
+    // ProblemExists × Talk × High anchor = 99. W0[Talk] = 6.5.
     // 7 independent sources, all Validated, sq=1, committed:
-    //   s = 30, w = 30 each. num = 7 × 30×30 = 6300. den = 6.5 + 7×30 = 216.5.
-    //   confidence = 6300 / 216.5 = 29.1 → ~29.1 (approaches the 30 ceiling).
-    // The spec says "40–50 range" but with anchor 30 the ceiling IS 30 — the
-    // spec's illustrative numbers anchor Talk High at 30 for Existence, so the
-    // asymptote is ~30. We assert it lands near the qual ceiling for this
-    // question type (no longer single digits — the bug fix).
+    //   s = 99, w = 99 each. num = 7 × 99×99 = 68607. den = 6.5 + 7×99 = 699.5.
+    //   confidence = 68607 / 699.5 = 98.08 → ~98 (approaches the 99 ceiling).
     const seven = Array.from({ length: 7 }, (_, i) =>
       reading({
         id: `t${i}`,
         source: `ts${i}`,
         rung: "Talk",
-        questionType: "Existence",
+        assumptionType: "ProblemExists",
         magnitudeBand: "High",
       }),
     );
     const c = confidence(seven);
-    expect(c).toBeGreaterThan(20); // well above the old single-digit result
-    expect(c).toBeLessThanOrEqual(30); // bounded by the Talk High anchor (30)
+    expect(c).toBeGreaterThan(90); // well above the old single-digit result
+    expect(c).toBeLessThanOrEqual(99); // bounded by the Talk High anchor (99)
   });
 
-  it("7 Talk High readings on a WillingnessToPay assumption → Confidence 0 (non-evidence)", () => {
-    // WTP × Talk × High anchor = 0 (non-evidence). Every reading contributes
+  it("7 Talk High readings on a TheyllPay assumption → Confidence 0 (non-evidence)", () => {
+    // TheyllPay × Talk × High anchor = 0 (non-evidence). Every reading contributes
     // s=0, so confidence stays 0 — the structural guard against fooling
-    // yourself into thinking talk evidence validates a WTP claim.
+    // yourself into thinking talk evidence validates a TheyllPay claim.
     const seven = Array.from({ length: 7 }, (_, i) =>
       reading({
         id: `t${i}`,
         source: `ts${i}`,
         rung: "Talk",
-        questionType: "WillingnessToPay",
+        assumptionType: "TheyllPay",
         magnitudeBand: "High",
       }),
     );
     expect(confidence(seven)).toBe(0);
   });
 
-  it("2 Desk research readings on a Regulatory assumption → near the desk ceiling", () => {
-    // Regulatory × Desk research × High anchor = 70. W0[Desk research] = 2.
+  it("2 Desk & data readings on a LegalCompliant assumption → near the desk ceiling", () => {
+    // LegalCompliant × Desk & data × High anchor = 99. W0[Desk & data] = 2.
     // 2 sources, both Validated, sq=1, committed:
-    //   s = 70, w = 70 each. num = 2 × 70×70 = 9800. den = 2 + 2×70 = 142.
-    //   confidence = 9800 / 142 = 69.01 → ~69 (near the 70 ceiling).
+    //   s = 99, w = 99 each. num = 2 × 99×99 = 19602. den = 2 + 2×99 = 200.
+    //   confidence = 19602 / 200 = 98.01 → ~98 (near the 99 ceiling).
     const two = Array.from({ length: 2 }, (_, i) =>
       reading({
         id: `d${i}`,
         source: `ds${i}`,
-        rung: "Desk research",
-        questionType: "Regulatory",
+        rung: "Desk & data",
+        assumptionType: "LegalCompliant",
         magnitudeBand: "High",
       }),
     );
     const c = confidence(two);
-    expect(c).toBeGreaterThan(60);
-    expect(c).toBeLessThanOrEqual(70);
+    expect(c).toBeGreaterThan(90);
+    expect(c).toBeLessThanOrEqual(99);
   });
 
-  it("Observed usage High readings on a ValueUtility assumption → near the 70 ceiling", () => {
-    // ValueUtility × Observed usage × High anchor = 70. W0[Observed usage] = 327.
+  it("Prototype use High readings on a WantOurSolution assumption → near the 99 ceiling", () => {
+    // WantOurSolution × Prototype use × High anchor = 99. W0[Prototype use] = 6.5.
     // 20 sources, all Validated, sq=1, committed:
-    //   s = 70, w = 70 each. num = 20 × 70×70 = 98000. den = 327 + 20×70 = 1727.
-    //   confidence = 98000 / 1727 = 56.74 → ~57 (approaching 70).
+    //   s = 99, w = 99 each. num = 20 × 99×99 = 196020. den = 6.5 + 20×99 = 1986.5.
+    //   confidence = 196020 / 1986.5 = 98.68 → ~99 (approaching 99).
     const twenty = Array.from({ length: 20 }, (_, i) =>
       reading({
         id: `u${i}`,
         source: `us${i}`,
-        rung: "Observed usage",
-        questionType: "ValueUtility",
+        rung: "Prototype use",
+        assumptionType: "WantOurSolution",
         magnitudeBand: "High",
       }),
     );
     const c = confidence(twenty);
-    expect(c).toBeGreaterThan(50);
-    expect(c).toBeLessThanOrEqual(70);
+    expect(c).toBeGreaterThan(90);
+    expect(c).toBeLessThanOrEqual(99);
   });
 
-  it("Paying users readings on a ValueUtility assumption → Confidence 0 (WTP is non-evidence for value)", () => {
+  it("Payment readings on an ItWorks assumption → Confidence 0 (Payment is non-evidence for ItWorks)", () => {
     const twenty = Array.from({ length: 20 }, (_, i) =>
       reading({
         id: `p${i}`,
         source: `ps${i}`,
-        rung: "Paying users",
-        questionType: "ValueUtility",
+        rung: "Payment",
+        assumptionType: "ItWorks",
         magnitudeBand: "High",
       }),
     );
@@ -442,52 +438,52 @@ describe("DEV-5890 — question-type-aware ladder (the bug fix)", () => {
 
   it("Rung dominates invariant holds within a sub-ladder", () => {
     // A high-anchor reading outweighs a low-anchor one within the same
-    // question type. Existence: Talk High (30) vs Desk research (15).
+    // assumption type. ProblemExists: Talk High (99) vs Desk & data (30).
     const high = confidence([
       reading({
         rung: "Talk",
-        questionType: "Existence",
+        assumptionType: "ProblemExists",
         magnitudeBand: "High",
       }),
     ]);
     const low = confidence([
       reading({
-        rung: "Desk research",
-        questionType: "Existence",
+        rung: "Desk & data",
+        assumptionType: "ProblemExists",
       }),
     ]);
     expect(high).toBeGreaterThan(low);
   });
 
   it("Per-rung W0 behaviour preserved within each sub-ladder (desk saturates fast, talk needs ~10)", () => {
-    // Desk: 2 readings → near the desk cap (within Existence sub-ladder).
+    // Desk: 2 readings → near the desk cap (within ProblemExists sub-ladder).
     const twoDesk = Array.from({ length: 2 }, (_, i) =>
       reading({
         id: `d${i}`,
         source: `ds${i}`,
-        rung: "Desk research",
-        questionType: "Existence",
+        rung: "Desk & data",
+        assumptionType: "ProblemExists",
       }),
     );
     const cDesk = confidence(twoDesk);
-    // Existence × Desk research anchor = 15. 2 readings → near 15.
-    expect(cDesk).toBeGreaterThan(10);
-    expect(cDesk).toBeLessThanOrEqual(15);
+    // ProblemExists × Desk & data anchor = 30. 2 readings → near 30.
+    expect(cDesk).toBeGreaterThan(20);
+    expect(cDesk).toBeLessThanOrEqual(30);
 
-    // Talk: 10 readings → near the talk cap (within Existence sub-ladder).
+    // Talk: 10 readings → near the talk cap (within ProblemExists sub-ladder).
     const tenTalk = Array.from({ length: 10 }, (_, i) =>
       reading({
         id: `t${i}`,
         source: `ts${i}`,
         rung: "Talk",
-        questionType: "Existence",
+        assumptionType: "ProblemExists",
         magnitudeBand: "High",
       }),
     );
     const cTalk = confidence(tenTalk);
-    // Existence × Talk High anchor = 30. 10 readings → near 30.
-    expect(cTalk).toBeGreaterThan(20);
-    expect(cTalk).toBeLessThanOrEqual(30);
+    // ProblemExists × Talk High anchor = 99. 10 readings → near 99.
+    expect(cTalk).toBeGreaterThan(90);
+    expect(cTalk).toBeLessThanOrEqual(99);
   });
 });
 

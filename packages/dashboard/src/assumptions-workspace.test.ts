@@ -25,7 +25,7 @@ function assumption(over: Partial<AnyRecord> & { id: string }): AnyRecord {
     "Scoring justification": "z",
     dependsOnIds: ["seed"],
     enablesIds: [],
-    "Question Type": "Existence",
+    "Assumption Type": "ProblemExists",
     Stage: "Discovery",
     derived: { derivedImpact: 50, risk: 50, confidence: 0, completeness: 100 },
     ...over,
@@ -285,13 +285,14 @@ describe("buildAssumptionsWorkspace — experiments mode", () => {
     expect(row.id).toBe("b1");
     expect(row.lens).toBe("Consumer");
     expect(row.grilling.complete).toBe(false);
-    expect(row.grilling.filled).toBe(5);
+    expect(row.grilling.filled).toBe(4); // Description, Lens, Impact, Dependencies traced
     expect(row.grilling.total).toBe(6);
     expect(row.impact).toBe(60);
     expect(row.risk).toBe(60);
     expect(row.confidence).toBe(20); // derived confidence from fixture
     expect(row.cycle).toBe("current");
-    expect(row.bar).toBe(55); // Discovery floor=10, rescaled: (10+100)/2=55
+    // OPS-1406: bar is the graduation bar (40 + 0.5×60 = 70), rescaled: (70+100)/2=85
+    expect(row.bar).toBe(85);
   });
 
   it("has no Status field on the belief row", () => {
@@ -427,9 +428,9 @@ describe("buildBeliefBody", () => {
     expect(filledSlots).toContain("Lens");
   });
 
-  it("builds type-aware evidence rungs for the belief's question type", () => {
+  it("builds type-aware evidence rungs for the belief's assumption type", () => {
     const recs = records(
-      [assumption({ id: "b1", "Question Type": "Existence", Lens: "Consumer" })],
+      [assumption({ id: "b1", "Assumption Type": "ProblemExists", Lens: "Consumer" })],
       [],
       [reading({ id: "r1", assumptionId: "b1", Rung: "Talk", Result: "Validated" })],
     );
@@ -437,28 +438,30 @@ describe("buildBeliefBody", () => {
     expect(body.evidenceRungs.length).toBeGreaterThan(0);
     const rungNames = body.evidenceRungs.map((r) => r.rung);
     expect(rungNames).toContain("Talk");
-    expect(rungNames).toContain("Observed usage");
+    expect(rungNames).toContain("Prototype use");
   });
 
   it("highlights the max mover among empty rungs", () => {
     const recs = records([
-      assumption({ id: "b1", "Question Type": "Existence", Lens: "Consumer" }),
+      assumption({ id: "b1", "Assumption Type": "ProblemExists", Lens: "Consumer" }),
     ]);
     const body = buildBeliefBody("b1", recs)!;
     const maxMovers = body.evidenceRungs.filter((r) => r.isMaxMover);
-    // Existence: Observed usage has cap 50 (highest), Talk cap 30, Desk 15, Signed up 0
-    // Max mover should be Observed usage (cap 50, count 0)
+    // ProblemExists: Talk High=99 (highest cap), Survey High=60, Prototype use High=60
+    // Max mover should be Talk (cap 99, count 0)
     expect(maxMovers.length).toBe(1);
-    expect(maxMovers[0]!.rung).toBe("Observed usage");
-    expect(maxMovers[0]!.cap).toBe(50);
+    expect(maxMovers[0]!.rung).toBe("Talk");
+    expect(maxMovers[0]!.cap).toBe(99);
   });
 
-  it("shows the decision bar from the stage's confidence floor", () => {
+  it("shows the graduation bar scaled to the trajectory axis", () => {
+    // OPS-1406: the bar is graduationBar(derivedImpact), not a stage floor.
+    // Default fixture impact is 50 → bar = 40 + 0.5×50 = 65 (raw signed scale).
     const recs = records([
-      assumption({ id: "b1", Stage: "Validation" }),
+      assumption({ id: "b1", derived: { derivedImpact: 50, risk: 50, confidence: 0, completeness: 50 } }),
     ]);
     const body = buildBeliefBody("b1", recs)!;
-    expect(body.bar).toBe(25); // Validation confidence floor (raw signed scale, body trajectory is signed)
+    expect(body.bar).toBe(65);
   });
 
   it("shows lineage — which decision raised it and which it backs", () => {

@@ -53,19 +53,19 @@ export function deriveReadingFields(
 
   if (Array.isArray(r.beliefs)) {
     const beliefs = r.beliefs.map((b) => {
-      const questionType = assumptionsById
-        ? (assumptionsById.get(b.assumptionId)?.["Question Type"] ??
-          "Existence")
-        : "Existence";
+      const assumptionType = assumptionsById
+        ? (assumptionsById.get(b.assumptionId)?.["Assumption Type"] ??
+          "ProblemExists")
+        : "ProblemExists";
       return {
         ...b,
         derived: {
           // Rung + magnitude band are row-level; only the Result varies per
-          // belief. Question Type is per-assumption (looked up here); the
+          // belief. Assumption Type is per-assumption (looked up here); the
           // recompute pass always supplies the map, so a stale inline Strength
           // from a partial write is corrected on the next touching recompute.
           strength: recomputeStrength({
-            questionType,
+            assumptionType,
             rung: r.Rung!,
             result: b.Result,
             magnitudeBand: r.magnitudeBand,

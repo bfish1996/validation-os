@@ -2,20 +2,18 @@
  * The shared derivation module — pure functions, no I/O.
  *
  * The same module the dashboard, the API (derive-on-write), and Claude Code
- * audits all call, so every writer computes the four derived numbers
- * identically. Ported from the instance's `migration/remodel.mjs` and
- * kept in lock-step with `skills/_shared/ontology.yaml`.
+ * audits all call, so every writer computes the derived numbers identically.
+ * Ported from the instance's `migration/remodel.mjs` and kept in lock-step
+ * with `skills/_shared/ontology.yaml`.
  */
 export { round2 } from "./round.js";
 export {
   RUNG_ANCHOR,
   isNonEvidence,
+  applicableRungs,
   ceilingAnchor,
-  RISK_THRESHOLD_BY_STAGE,
-  CONFIDENCE_FLOOR_BY_STAGE,
-  riskThresholdForStage,
-  confidenceFloorForStage,
-  hasClearedThreshold,
+  typeCeiling,
+  costTierFor,
 } from "./rung.js";
 export {
   COMPLETENESS_SLOTS,
@@ -28,11 +26,11 @@ export type { CompletenessSlot, CompletenessInput } from "./completeness.js";
 export { sign, isConcluded, readingStrength } from "./strength.js";
 export type { StrengthInput } from "./strength.js";
 export {
-  inferQuestionType,
-  needsReview,
-  INFERABLE_QUESTION_TYPES,
-  DEFAULT_QUESTION_TYPE,
-} from "./question-type.js";
+  inferAssumptionType,
+  needsReview as assumptionTypeNeedsReview,
+  INFERABLE_ASSUMPTION_TYPES,
+  DEFAULT_ASSUMPTION_TYPE,
+} from "./assumption-type.js";
 export { migrateRegister } from "./migrate.js";
 export type {
   MigrationAssumption,
@@ -108,3 +106,12 @@ export type {
   JourneyEventKind,
   JourneyExperimentInput,
 } from "./journey.js";
+// OPS-1406 — graduation + risk group + cost tier
+export {
+  graduationBar,
+  graduationState,
+  GRADUATION_BASE,
+  GRADUATION_K,
+  GRADUATION_MAX,
+} from "./graduation.js";
+export { riskGroupFor, TYPE_TO_GROUP } from "../types.js";

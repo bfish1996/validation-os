@@ -110,7 +110,7 @@ describe("detailRows", () => {
           assumptionId: "ASM-045",
           rightIf: "3+ of 5 pay",
           wrongIf: "0-1 of 5 pay",
-          plannedRung: "Observed usage",
+          plannedRung: "Prototype use",
           barVerdict: "Validated",
         },
       ],
@@ -122,7 +122,7 @@ describe("detailRows", () => {
       {
         rightIf: "3+ of 5 pay",
         wrongIf: "0-1 of 5 pay",
-        plannedRung: "Observed usage",
+        plannedRung: "Prototype use",
         barVerdict: "Validated",
         assumption: { id: "ASM-045", register: "assumptions", title: "Cost sensitivity" },
       },
@@ -132,7 +132,7 @@ describe("detailRows", () => {
   it("leaves an unset bar verdict/wrongIf as null, not a stringified undefined", () => {
     const record = base({
       barLines: [
-        { assumptionId: "ASM-045", rightIf: "3+ of 5 pay", plannedRung: "Observed usage" },
+        { assumptionId: "ASM-045", rightIf: "3+ of 5 pay", plannedRung: "Prototype use" },
       ],
     });
     const rows = detailRows("experiments", record, {});
@@ -141,7 +141,7 @@ describe("detailRows", () => {
       {
         rightIf: "3+ of 5 pay",
         wrongIf: null,
-        plannedRung: "Observed usage",
+        plannedRung: "Prototype use",
         barVerdict: null,
         assumption: { id: "ASM-045", register: "assumptions", title: "ASM-045" },
       },
@@ -172,7 +172,7 @@ describe("resolveBarLines", () => {
       ],
     };
     const resolved = resolveBarLines(
-      [{ assumptionId: "ASM-045", rightIf: "3+ of 5 pay", plannedRung: "Observed usage" }],
+      [{ assumptionId: "ASM-045", rightIf: "3+ of 5 pay", plannedRung: "Prototype use" }],
       related,
     );
     expect(resolved[0]!.assumption).toEqual({

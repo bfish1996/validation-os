@@ -26,7 +26,17 @@ function seededProvider() {
           moot: false,
           dependsOnIds: [],
           "Question Type": "Existence",
-          derived: { confidence: 0, risk: 50, derivedImpact: 50 },
+          "Assumption Type": "ProblemExists",
+          derived: {
+            confidence: 0,
+            risk: 50,
+            derivedImpact: 50,
+            completeness: 0,
+            riskGroup: "Desirability",
+            assumptionType: "ProblemExists",
+            costTier: "cheap",
+            graduationState: "Untested",
+          },
         } as never,
       ],
       readings: [],
@@ -90,9 +100,13 @@ describe("createApi CRUD", () => {
     // present on this minimal seed record (OPS-1305 + DEV-5890). 2 of 6 → 33.
     expect(asm.derived).toEqual({
       confidence: 0,
-      derivedImpact: 80,
-      risk: 80,
+      derivedImpact: 60,
+      risk: 60,
       completeness: 33,
+      riskGroup: "Desirability",
+      assumptionType: "ProblemExists",
+      costTier: "cheap",
+      graduationState: "Untested",
     });
   });
 
@@ -185,7 +199,7 @@ describe("createApi link", () => {
       id: "RDG-1",
       Source: "proto-1",
       experimentId: null,
-      Rung: "Observed usage",
+      Rung: "Prototype use",
         magnitudeBand: "Low",
       Representativeness: 1.0,
       Credibility: 1.0,
@@ -285,7 +299,7 @@ describe("derive-on-write", () => {
         Title: "Prototype run",
         Source: "proto-1",
         experimentId: null,
-        Rung: "Observed usage",
+        Rung: "Prototype use",
         magnitudeBand: "Low",
         Representativeness: 1.0,
         Credibility: 1.0,
@@ -302,7 +316,7 @@ describe("derive-on-write", () => {
     expect(res.status).toBe(201);
     const body = await res.json();
     // Source quality is a row property; Strength is per belief.
-    // Existence × Observed usage × Low = 20 (DEV-5890 sub-ladder).
+    // ProblemExists × Prototype use × Low = 20 (OPS-1406 sub-ladder).
     expect(body.data.derived).toEqual({ sourceQuality: 1 });
     expect(body.data.beliefs[0].derived).toEqual({ strength: 20 });
     // assumptionIds is kept in sync as the beliefs[] projection.
@@ -317,7 +331,7 @@ describe("derive-on-write", () => {
         id: "RDG-1",
         Source: "proto-1",
         experimentId: null,
-        Rung: "Observed usage",
+        Rung: "Prototype use",
         magnitudeBand: "Low",
         Representativeness: 1.0,
         Credibility: 1.0,
@@ -337,11 +351,11 @@ describe("derive-on-write", () => {
       risk: number;
       derivedImpact: number;
     };
-    // Existence × Observed-usage × Low = 20, Validated, sq=1, found → w=20×0.85=17.
-    // W0[Observed usage] = 327. 17×20 / (327+17) = 340/344 = 0.99
-    expect(derived.confidence).toBe(0.99);
+    // ProblemExists × Prototype use × Low = 20, Validated, sq=1, found →
+    // w=20×0.85=17. W0[Prototype use] = 6.5. 17×20 / (6.5+17) = 340/23.5 ≈ 14.47
+    expect(derived.confidence).toBe(14.47);
     expect(derived.derivedImpact).toBe(50);
-    expect(derived.risk).toBe(49.5); // 50 × (1 − 0.99/100) = 50 × 0.9901 = 49.505 → 49.5
+    expect(derived.risk).toBe(42.77); // 50 × (1 − 14.47/100) = 50 × 0.8553 = 42.765 → 42.77
   });
 });
 

@@ -24,11 +24,11 @@ import {
 import {
   COMPLETENESS_SLOTS,
   completenessSlotPresence,
-  confidenceFloorForStage,
   confidenceTrajectory,
   experimentConfidence,
+  graduationBar,
+  graduationState,
   RUNG_ANCHOR,
-  riskThresholdForStage,
   type ExperimentConfidenceBarInput,
   type ExperimentConfidenceReadingInput,
   type TrajectoryPoint,
@@ -294,13 +294,11 @@ function isLive(a: AnyRecord): boolean {
   return !moot && (status === "Live" || status === "Draft");
 }
 
-/** Has a belief cleared its stage threshold (settled)? */
+/** Has a belief graduated (confidence ≥ graduation bar)? */
 function isSettled(a: AnyRecord): boolean {
   const d = derivedOf(a);
-  const stage = str(a.Stage);
-  const riskThreshold = riskThresholdForStage(stage as any);
-  const confFloor = confidenceFloorForStage(stage as any);
-  return d.risk <= riskThreshold && d.confidence >= confFloor;
+  // A belief is settled only once it has real evidence and has graduated.
+  return graduationState(d.confidence, d.derivedImpact, d.confidence !== 0) === "Graduated";
 }
 
 /** Map a signed confidence (−100…100) to the 0–100 trajectory scale.
@@ -343,15 +341,14 @@ function beliefRow(
   assumptionsById: Map<string, AnyRecord>,
 ): BeliefRow {
   const d = derivedOf(a);
-  const stage = str(a.Stage);
-  const confFloor = stage ? confidenceFloorForStage(stage as any) : null;
+  const bar = graduationBar(d.derivedImpact);
   return {
     id: a.id,
     statement: str(a.Title) ?? a.id,
     lens: str(a.Lens),
     cycle,
     trajectory: trajectorySeries(a.id, readings, assumptionsById),
-    bar: confFloor !== null ? toTrajectoryScale(confFloor) : null,
+    bar: toTrajectoryScale(bar),
     confidence: d.confidence,
     impact: d.derivedImpact,
     risk: d.risk,
@@ -620,16 +617,16 @@ function computeExperimentConfidence(
       const result = str(b.Result);
       if (result !== "Validated" && result !== "Invalidated") continue;
       const assumption = assumptionsById.get(b.assumptionId);
-      const questionType =
-        (str(assumption?.["Question Type"]) as ExperimentConfidenceReadingInput["questionType"]) ??
-        "Existence";
+      const assumptionType =
+        (str(assumption?.["Assumption Type"]) as ExperimentConfidenceReadingInput["assumptionType"]) ??
+        "ProblemExists";
       const rung = str(r.Rung) as ExperimentConfidenceReadingInput["rung"];
       readingInputs.push({
         id: r.id,
         source: str(r.Source),
         rung,
         result: result as ExperimentConfidenceReadingInput["result"],
-        questionType,
+        assumptionType,
         magnitudeBand: r.magnitudeBand as ExperimentConfidenceReadingInput["magnitudeBand"],
         representativeness: Number(r.Representativeness) || 1.0,
         credibility: Number(r.Credibility) || 1.0,
@@ -662,8 +659,8 @@ export function buildBeliefBody(
     .filter((i) => i.assumptionId === assumptionId);
   const trajectory = confidenceTrajectory(inputs);
 
-  const stage = str(assumption.Stage);
-  const bar = stage ? confidenceFloorForStage(stage as any) : null;
+  const d = derivedOf(assumption);
+  const bar = graduationBar(d.derivedImpact);
 
   const presence = completenessSlotPresence(assumption as Record<string, unknown>);
   const grillingChecklist: GrillingSlot[] = COMPLETENESS_SLOTS.map((slot) => ({

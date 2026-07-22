@@ -1,41 +1,78 @@
 /**
- * Migration entry point — DEV-5890.
+ * Migration entry point — OPS-1406.
  *
- * Takes the OLD-shape register (assumptions without `Question Type`, readings
- * with stale Strength) and produces the new shape: each assumption with
- * `Question Type` filled via `inferQuestionType`, each reading's `s`
- * recomputed via the 3D `RUNG_ANCHOR[questionType][rung][band]` lookup, each
- * reading flagged if its rung is non-evidence for the linked assumption's
- * question type (keeping its would-have-been `s` visible for diffing), and a
- * summary report of Confidence deltas + flag counts.
+ * Takes the OLD-shape register (assumptions with legacy `Question Type` and
+ * `Stage`, readings with the old rung vocabulary and stale Strength) and
+ * produces the new shape: each assumption with `Assumption Type` filled via
+ * `inferAssumptionType` (mapped from the legacy Question Type when present),
+ * each reading's `s` recomputed via the 3D
+ * `RUNG_ANCHOR[assumptionType][rung][band]` lookup, each reading flagged if
+ * its rung is non-evidence for the linked assumption's type, and a summary
+ * report of Confidence deltas + flag counts.
  *
- * The migration is reversible: the entry point writes a backup of the
- * pre-migration state to `doshi-validation-os/docs/migration/backups/`. Roll
- * back restores from the backup.
+ * Legacy → new maps:
+ *   Question Type → Assumption Type:
+ *     Existence → ProblemExists
+ *     Prevalence → ProblemWidespread
+ *     WillingnessToPay → TheyllPay
+ *     CausalEffect → ItWorks
+ *     Regulatory → LegalCompliant
+ *     Feasibility → CanBuildIt
+ *     ValueUtility → SPLIT (appeal → WantOurSolution, retention →
+ *       TheyKeepUsingIt) — flagged for human review
+ *   Rung → Rung:
+ *     Talk → Talk
+ *     Desk research → Desk & data
+ *     Signed up → Fake-door
+ *     Observed usage → SPLIT (prototype usage → Prototype use, retention →
+ *       Retention) — flagged for human review
+ *     Signed intent → Commitment
+ *     Paying users → Payment
  *
  * Pure — no I/O. The caller (the migration script) reads the register, calls
- * `migrateRegister`, and writes the result. Tested at the highest seam with a
- * fixture covering existence, WTP, causal, and regulatory cases.
+ * `migrateRegister`, and writes the result.
  */
 import {
   confidence,
-  inferQuestionType,
+  inferAssumptionType,
   isNonEvidence,
-  needsReview,
   readingStrength,
-  RISK_THRESHOLD_BY_STAGE,
-  riskThresholdForStage,
-  RUNG_ANCHOR,
+  assumptionTypeNeedsReview as needsReview,
   type ConfidenceReadingInput,
 } from "./index.js";
 import type {
   AnyRecord,
-  AssumptionRecord,
+  AssumptionType,
   QuestionType,
   ReadingRecord,
   Result,
   Rung,
 } from "../types.js";
+
+/** Legacy Question Type → new Assumption Type. ValueUtility is flagged. */
+const QUESTION_TYPE_TO_ASSUMPTION_TYPE: Record<
+  QuestionType,
+  AssumptionType
+> = {
+  Existence: "ProblemExists",
+  Prevalence: "ProblemWidespread",
+  WillingnessToPay: "TheyllPay",
+  CausalEffect: "ItWorks",
+  Regulatory: "LegalCompliant",
+  Feasibility: "CanBuildIt",
+  // ValueUtility splits — default to WantOurSolution, flag for review.
+  ValueUtility: "WantOurSolution",
+};
+
+/** Legacy rung → new rung. Observed usage splits — default to Prototype use. */
+const LEGACY_RUNG_TO_RUNG: Record<string, Rung> = {
+  Talk: "Talk",
+  "Desk research": "Desk & data",
+  "Signed up": "Fake-door",
+  "Observed usage": "Prototype use",
+  "Signed intent": "Commitment",
+  "Paying users": "Payment",
+};
 
 /** A minimal assumption shape for migration input. */
 export interface MigrationAssumption {
@@ -43,11 +80,11 @@ export interface MigrationAssumption {
   Description?: string;
   /** The falsification test — the "we're wrong if" bar from the grill. */
   wrongIfBar?: string;
-  /** The existing question type, if any (otherwise inferred). */
+  /** The existing (legacy) question type, if any. */
   "Question Type"?: QuestionType | null;
   /** Existing derived Confidence (for the delta report). */
   derived?: { confidence?: number } | null;
-  /** The assumption's Stage, for the threshold comparison in the summary. */
+  /** The assumption's legacy Stage (retired, kept for back-compat). */
   Stage?: string | null;
   Impact?: number | null;
   moot?: boolean;
@@ -74,17 +111,17 @@ export interface MigrationReading {
 
 /** The output shape for a migrated assumption. */
 export interface MigratedAssumption extends MigrationAssumption {
-  "Question Type": QuestionType;
-  /** Whether the inferred question type was flagged for human review. */
-  questionTypeReviewNeeded: boolean;
+  "Assumption Type": AssumptionType;
+  /** The legacy Question Type, kept for audit. */
+  "Question Type": QuestionType | null;
+  /** Whether the inferred type was flagged for human review. */
+  assumptionTypeReviewNeeded: boolean;
   /** The new derived Confidence (recomputed under the new sub-ladder). */
   newConfidence: number;
   /** The pre-migration Confidence (for the delta report). */
   oldConfidence: number;
   /** The Confidence delta (new − old). */
   confidenceDelta: number;
-  /** The stage's Risk threshold (for the summary). */
-  riskThreshold: number;
 }
 
 /** The output shape for a migrated reading's belief. */
@@ -96,7 +133,7 @@ export interface MigratedReading {
   newStrength: number;
   /** The pre-migration Strength (for diffing). */
   oldStrength: number;
-  /** True if the rung is non-evidence for the linked assumption's question type. */
+  /** True if the rung is non-evidence for the linked assumption's type. */
   nonEvidence: boolean;
 }
 
@@ -106,73 +143,78 @@ export interface MigrationResult {
   readings: MigratedReading[];
   /** The number of readings flagged as non-evidence. */
   nonEvidenceFlagCount: number;
-  /** The number of assumptions flagged for human review of their question type. */
+  /** The number of assumptions flagged for human review of their type. */
   reviewQueueCount: number;
   /** Per-assumption Confidence deltas, sorted by |delta| descending. */
-  confidenceDeltas: { id: string; delta: number; oldConfidence: number; newConfidence: number }[];
-  /** Per-assumption ranking shifts in the Risk-ranked register (oldRank →
-   * newRank, 1-indexed; positive = moved down the ranking, negative = moved
-   * up). Sorted by |shift| descending. */
-  rankingShifts: { id: string; oldRank: number; newRank: number; shift: number }[];
+  confidenceDeltas: {
+    id: string;
+    delta: number;
+    oldConfidence: number;
+    newConfidence: number;
+  }[];
+  /** Per-assumption ranking shifts (1-indexed; positive = moved down). */
+  rankingShifts: {
+    id: string;
+    oldRank: number;
+    newRank: number;
+    shift: number;
+  }[];
 }
 
 /**
- * Migrate an old-shape register to the new question-type-aware shape. Pure —
- * no I/O. The caller reads the register, calls this, and writes the result;
- * the backup is the caller's responsibility (write a dated copy of the input
- * before calling `migrateRegister`).
+ * Migrate an old-shape register to the new assumption-type-aware shape. Pure —
+ * no I/O. The caller reads the register, calls this, and writes the result.
  *
  * The migration:
- * 1. Infers `Question Type` for each assumption from its falsification bar.
- * 2. Recomputes each reading's `s` via `RUNG_ANCHOR[questionType][rung][band]`.
- * 3. Flags readings whose rung is non-evidence for the linked assumption's
- *    question type (keeps the would-have-been `s` visible for diffing).
- * 4. Recomputes each assumption's Confidence under the new sub-ladder.
- * 5. Produces a summary report of Confidence deltas and flag counts.
+ * 1. Maps legacy Question Type → Assumption Type (ValueUtility flagged).
+ * 2. Infers `Assumption Type` from the falsification bar when no legacy type.
+ * 3. Maps legacy rungs → new rungs (Observed usage split flagged).
+ * 4. Recomputes each reading's `s` via `RUNG_ANCHOR[assumptionType][rung][band]`.
+ * 5. Flags readings whose rung is non-evidence for the linked assumption's type.
+ * 6. Recomputes each assumption's Confidence under the new sub-ladder.
+ * 7. Produces a summary report of Confidence deltas and flag counts.
  */
 export function migrateRegister(
   assumptions: MigrationAssumption[],
   readings: MigrationReading[],
 ): MigrationResult {
-  // 1. Infer Question Type for each assumption; build the id → type map.
-  const questionTypeById = new Map<string, QuestionType>();
+  // 1. Map legacy Question Type → Assumption Type; infer when absent.
+  const typeById = new Map<string, AssumptionType>();
   const reviewNeededById = new Set<string>();
   for (const a of assumptions) {
     const existing = a["Question Type"];
-    let qt: QuestionType;
+    let t: AssumptionType;
     let review = false;
-    if (existing && (["Existence", "Prevalence", "CausalEffect", "WillingnessToPay", "ValueUtility", "Regulatory", "Feasibility"] as const).includes(existing)) {
-      // An existing valid question type is kept; still check whether the bar
-      // matches (the gaming guard — infer from the bar and flag a mismatch).
-      qt = existing;
-      // No review when the question type was explicitly set.
+    if (
+      existing &&
+      (["Existence", "Prevalence", "CausalEffect", "WillingnessToPay",
+        "ValueUtility", "Regulatory", "Feasibility"] as const).includes(existing)
+    ) {
+      t = QUESTION_TYPE_TO_ASSUMPTION_TYPE[existing];
+      // ValueUtility splits — always flag for human review.
+      if (existing === "ValueUtility") review = true;
     } else {
-      qt = inferQuestionType(a.Description ?? "", a.wrongIfBar ?? "");
-      review = needsReview(a.Description ?? "", a.wrongIfBar ?? "", qt);
-      if (review) reviewNeededById.add(a.id);
+      t = inferAssumptionType(a.Description ?? "", a.wrongIfBar ?? "");
+      review = needsReview(a.Description ?? "", a.wrongIfBar ?? "", t);
     }
-    questionTypeById.set(a.id, qt);
+    if (review) reviewNeededById.add(a.id);
+    typeById.set(a.id, t);
   }
 
   // 2. Recompute each reading's Strength under the new sub-ladder.
   const migratedReadings: MigratedReading[] = [];
   let nonEvidenceFlagCount = 0;
   for (const r of readings) {
-    const questionType = questionTypeById.get(r.assumptionId) ?? "Existence";
+    const assumptionType = typeById.get(r.assumptionId) ?? "ProblemExists";
     const band = r.magnitudeBand ?? "Typical";
     const newStrength = readingStrength({
-      questionType,
+      assumptionType,
       rung: r.Rung,
       result: r.Result,
       magnitudeBand: band,
     });
-    // The would-have-been Strength under the OLD single-ladder (DEV-5880 /
-    // pre-DEV-5890 anchors). We approximate by the legacy anchor for the rung
-    // (the pre-DEV-5890 single-ladder Typical values) × sign. This is a
-    // best-effort diff; the caller can supply the actual old Strength via
-    // `r.derived.strength` when available.
     const oldStrength = r.derived?.strength ?? 0;
-    const nonEvidence = isNonEvidence(questionType, r.Rung);
+    const nonEvidence = isNonEvidence(assumptionType, r.Rung);
     if (nonEvidence) nonEvidenceFlagCount += 1;
     migratedReadings.push({
       id: r.id,
@@ -185,18 +227,16 @@ export function migrateRegister(
   }
 
   // 3. Recompute each assumption's Confidence under the new sub-ladder.
-  // Group the readings into ConfidenceReadingInput by assumption, threading
-  // the inferred question type.
   const inputsByAssumption = new Map<string, ConfidenceReadingInput[]>();
   for (const a of assumptions) inputsByAssumption.set(a.id, []);
   for (const r of readings) {
-    const questionType = questionTypeById.get(r.assumptionId) ?? "Existence";
+    const assumptionType = typeById.get(r.assumptionId) ?? "ProblemExists";
     inputsByAssumption.get(r.assumptionId)?.push({
       id: r.id,
       source: r.Source,
       rung: r.Rung,
       result: r.Result,
-      questionType,
+      assumptionType,
       representativeness: r.Representativeness,
       credibility: r.Credibility,
       date: r.Date,
@@ -206,18 +246,18 @@ export function migrateRegister(
   }
 
   const migratedAssumptions: MigratedAssumption[] = assumptions.map((a) => {
-    const questionType = questionTypeById.get(a.id) ?? "Existence";
+    const assumptionType = typeById.get(a.id) ?? "ProblemExists";
     const oldConfidence = a.derived?.confidence ?? 0;
     const newConfidence = confidence(inputsByAssumption.get(a.id) ?? []);
-    const stage = (a.Stage as keyof typeof RISK_THRESHOLD_BY_STAGE | null) ?? null;
     return {
       ...a,
-      "Question Type": questionType,
-      questionTypeReviewNeeded: reviewNeededById.has(a.id),
+      "Assumption Type": assumptionType,
+      "Question Type": a["Question Type"] ?? null,
+      assumptionTypeReviewNeeded: reviewNeededById.has(a.id),
       newConfidence,
       oldConfidence,
-      confidenceDelta: Math.round((newConfidence - oldConfidence) * 100) / 100,
-      riskThreshold: riskThresholdForStage(stage as never),
+      confidenceDelta:
+        Math.round((newConfidence - oldConfidence) * 100) / 100,
     };
   });
 
@@ -230,10 +270,6 @@ export function migrateRegister(
     }))
     .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
 
-  // Ranking shift: rank assumptions by (oldConfidence desc, id) and
-  // (newConfidence desc, id), then compute the rank delta per assumption.
-  // 1-indexed; positive shift = moved DOWN the ranking (less confident),
-  // negative = moved UP (more confident).
   const oldRanked = [...assumptions]
     .map((a) => ({ id: a.id, c: a.derived?.confidence ?? 0 }))
     .sort((a, b) => b.c - a.c || a.id.localeCompare(b.id));

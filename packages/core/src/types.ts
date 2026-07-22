@@ -53,60 +53,116 @@ export type MagnitudeBand = "Low" | "Typical" | "High";
 export type Feasibility = "High" | "Medium" | "Low";
 
 /**
- * The question-type-aware evidence ladder (DEV-5890). A rung is an evidence
- * TYPE; magnitude band (Low/Typical/High) is the intensity *within* a type.
- * The band applies to EVERY rung, so every rung looks up its anchor through
- * `RUNG_ANCHOR[questionType][rung][band]` — the anchor (ceiling `s`) is per
- * (question type × rung × band). A rung that is **non-evidence** for a
- * question type carries anchor 0 across all bands (contributes `s=0`,
- * flagged at the UI/skill layer — not a write blocker).
+ * The evidence rung vocabulary (OPS-1406). A rung is an evidence TYPE on the
+ * say→do axis plus operational rungs. Each assumption TYPE defines which rungs
+ * are applicable; non-applicable rungs carry anchor 0 (allowed to attach,
+ * flagged, never move the bar) and are hidden from the evidence composition UI.
  *
- *   Talk:           3 / 6 / 10   (Opinion / Pitch-deck / Anecdotal merged)
- *   Desk research:  15 / 15 / 15 (flat — desk research has no meaningful bands,
- *                                  but the field exists for uniformity)
- *   Signed up:      30 / 50 / 70 (consumer lens's first do-rung)
- *   Observed usage: 30 / 50 / 70 (consumer lens; was Prototype usage + Survey
- *                                at scale, now collapsed)
- *   Signed intent:  30 / 50 / 70 (commercial/investor lens)
- *   Paying users:   30 / 50 / 70 (commercial/investor lens)
- *
- * The above anchors are the LEGACY single-ladder values; the live anchors are
- * per question type — see `derivation/rung.ts` for the 3D table. The rung
- * vocabulary itself is fixed across all question types; only the anchors
- * (including `0` for non-evidence) vary.
- *
- * The lens determines which "do" rungs are available; Talk + Desk work for any
- * lens. The rung-to-lens mapping is a grading guideline, not a schema
- * constraint — any Rung can appear on any assumption.
+ *   Talk:          stated opinion (interviews)
+ *   Survey:        stated opinion at scale
+ *   Desk & data:   secondary research / public data
+ *   Fake-door:     pretended offering, observed signups
+ *   Prototype use: observed usage of a prototype
+ *   Retention:     sustained usage over time
+ *   Commitment:   signed intent (LOI, design partner agreement)
+ *   Payment:       real money paid
+ *   Build proof:   operational proof the system can be built
+ *   Outcome test:  causal/efficacy test (A/B, pre/post)
+ *   Cost data:     unit economics data
  */
-export const TESTING_RUNGS = [
+export const RUNGS = [
   "Talk",
-  "Desk research",
-  "Signed up",
-  "Observed usage",
+  "Survey",
+  "Desk & data",
+  "Fake-door",
+  "Prototype use",
+  "Retention",
+  "Commitment",
+  "Payment",
+  "Build proof",
+  "Outcome test",
+  "Cost data",
 ] as const;
-export const MARKET_RUNG_VALUES = ["Signed intent", "Paying users"] as const;
-export type TestingRung = (typeof TESTING_RUNGS)[number];
-export type MarketRung = (typeof MARKET_RUNG_VALUES)[number];
-export type Rung = TestingRung | MarketRung;
+export type Rung = (typeof RUNGS)[number];
+
+/** Market rungs never dedupe (each closed commitment is its own unit). */
+export const MARKET_RUNGS = ["Commitment", "Payment"] as const;
 
 /**
- * The four discovery stages (docs/stage-policy.md). The stored value is the
- * name; the ordinal 1–4 is for sorting only. Stage sets the Risk threshold
- * for action (the stopping rule, `RISK_THRESHOLD_BY_STAGE`) — it does NOT
- * enter the Confidence formula. Orthogonal to Question Type (kind of claim)
- * and Lens (who the actor is).
+ * Risk Group — the foreground headline axis (OPS-1406). Every assumption
+ * belongs to exactly one of Desirability · Usability · Feasibility ·
+ * Viability. Derived from the Assumption Type, not separately hand-set.
+ */
+export const RISK_GROUPS = [
+  "Desirability",
+  "Usability",
+  "Feasibility",
+  "Viability",
+] as const;
+export type RiskGroup = (typeof RISK_GROUPS)[number];
+
+/**
+ * Assumption Type — the evidence key (OPS-1406). Replaces the 7 academic
+ * Question Types. A finer type that decides what evidence graduates this
+ * assumption. Set by what would prove the claim false (the gaming guard),
+ * inferred at authoring/grilling, surfaced only as a secondary
+ * filter/grouping. Each type maps to exactly one Risk Group.
+ */
+export const ASSUMPTION_TYPES = [
+  "ProblemExists",
+  "ProblemWidespread",
+  "WantOurSolution",
+  "ItWorks",
+  "CanCompleteTask",
+  "CanBuildIt",
+  "LegalCompliant",
+  "TheyllPay",
+  "TheyKeepUsingIt",
+  "ReachProfitably",
+  "EconomicsWork",
+] as const;
+export type AssumptionType = (typeof ASSUMPTION_TYPES)[number];
+
+/** The type→group map. Each type maps to exactly one Risk Group. */
+export const TYPE_TO_GROUP: Record<AssumptionType, RiskGroup> = {
+  ProblemExists: "Desirability",
+  ProblemWidespread: "Desirability",
+  WantOurSolution: "Desirability",
+  ItWorks: "Desirability",
+  CanCompleteTask: "Usability",
+  CanBuildIt: "Feasibility",
+  LegalCompliant: "Feasibility",
+  TheyllPay: "Viability",
+  TheyKeepUsingIt: "Viability",
+  ReachProfitably: "Viability",
+  EconomicsWork: "Viability",
+};
+
+/** Derive the Risk Group from an Assumption Type. */
+export function riskGroupFor(type: AssumptionType | null | undefined): RiskGroup | null {
+  if (!type) return null;
+  return TYPE_TO_GROUP[type] ?? null;
+}
+
+/** Cost-to-test tier — derived from the type's ceiling-rung nature. */
+export const COST_TIERS = ["cheap", "moderate", "expensive"] as const;
+export type CostTier = (typeof COST_TIERS)[number];
+
+/** Graduation state — the progression (OPS-1406). */
+export const GRADUATION_STATES = ["Untested", "Signal", "Graduated"] as const;
+export type GraduationState = (typeof GRADUATION_STATES)[number];
+
+/**
+ * @deprecated Stage was retired (OPS-1406). Its IDEO-triangle meaning is
+ * absorbed by Risk Group; its reversibility meaning is dropped. Retained
+ * only for migration reading of legacy records.
  */
 export const STAGES = ["Discovery", "Validation", "Scale", "Maturity"] as const;
 export type Stage = (typeof STAGES)[number];
 
 /**
- * The seven question types (docs/question-types.md). The kind of CLAIM an
- * assumption raises — set by the falsification-test rule (what would prove
- * the assumption wrong), not by what evidence is cheap. The question type
- * determines which rungs are probative, what the ceiling is, and which rungs
- * are non-evidence (anchor 0) — via `RUNG_ANCHOR[questionType][rung][band]`.
- * Orthogonal to Stage (kind of response) and Lens (who the actor is).
+ * @deprecated QuestionType was retired (OPS-1406), replaced by AssumptionType.
+ * Retained only for migration reading of legacy records.
  */
 export const QUESTION_TYPES = [
   "Existence",
@@ -119,6 +175,11 @@ export const QUESTION_TYPES = [
 ] as const;
 export type QuestionType = (typeof QUESTION_TYPES)[number];
 
+/** The max hand-scored Impact seed (OPS-1406). Structure (dependents,
+ * standing decisions) supplies the rest via Derived Impact; a single
+ * hand-typed 100 can no longer pin Impact to 100. Config-driven, ~≤60. */
+export const IMPACT_SEED_CAP = 60;
+
 /** Representativeness and Credibility are each picked from these. */
 export type SourceQualityPick = 1.0 | 0.7 | 0.5;
 
@@ -127,25 +188,36 @@ export type SourceQualityPick = 1.0 | 0.7 | 0.5;
 /** The derived numbers stored on an assumption (never hand-typed). */
 export interface AssumptionDerived {
   derivedImpact: number;
+  /** @deprecated Risk was retired (OPS-1406). Kept for migration back-compat. */
   risk: number;
   confidence: number;
   /** Structural readiness meter, 0–100 (see `derivation/completeness.ts`). */
   completeness: number;
+  /** Risk Group (OPS-1406) — derived from assumptionType. */
+  riskGroup: RiskGroup | null;
+  /** Assumption Type (OPS-1406) — the evidence key. */
+  assumptionType: AssumptionType | null;
+  /** Cost-to-test tier (OPS-1406) — cheap / moderate / expensive. */
+  costTier: CostTier | null;
+  /** Graduation state (OPS-1406) — Untested / Signal / Graduated. */
+  graduationState: GraduationState;
 }
 
 export interface AssumptionRecord extends BaseRecord {
   Title: string;
   Description: string;
   Lens: string | null;
-  /** The kind of external-actor response this belief tests (Discovery /
-   * Validation / Scale / Maturity). Sets the Risk threshold for action. */
+  /** @deprecated Stage retired (OPS-1406). Kept for migration back-compat. */
   Stage: Stage | null;
-  /** The kind of claim this belief raises (Existence / Prevalence / ...).
-   * Determines which rungs are probative, the ceiling, and non-evidence —
-   * via `RUNG_ANCHOR[questionType][rung][band]`. */
+  /**
+   * The Assumption Type (OPS-1406) — the evidence key that decides what
+   * evidence graduates this assumption. Replaces the retired Question Type.
+   */
+  "Assumption Type": AssumptionType | null;
+  /** @deprecated Question Type retired (OPS-1406). Kept for migration. */
   "Question Type": QuestionType | null;
   Theme: string[];
-  /** The hand-scored seed (0–100), the only hand-scored number here. */
+  /** The hand-scored seed (0–IMPACT_SEED_CAP), the only hand-scored number here. */
   Impact: number | null;
   Status: AssumptionStatus;
   /** Reference to a dashboard user (auth team list), not a `people` row. */

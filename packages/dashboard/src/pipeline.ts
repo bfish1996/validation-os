@@ -18,11 +18,7 @@ import {
   type BarLine,
   type BeliefReadingInput,
 } from "@validation-os/core";
-import {
-  confidenceFloorForStage,
-  riskThresholdForStage,
-  RUNG_ANCHOR,
-} from "@validation-os/core/derivation";
+import { RUNG_ANCHOR, typeCeiling } from "@validation-os/core/derivation";
 import { STAGE_ORDER } from "./stage-grid-model.js";
 import {
   beliefRisk,
@@ -65,17 +61,13 @@ export interface PipelineRow {
   tested: { settled: number; total: number };
   /** The stage-aware verb the front door offers (navigates to the record). */
   nextMove: string;
-  /** The assumption's Question Type (DEV-5890) — kind of claim. */
-  questionType: string | null;
-  /** The max ceiling for this question type (highest anchor across all
+  /** The assumption's Assumption Type (OPS-1406) — the evidence key. */
+  assumptionType: string | null;
+  /** The max ceiling for this assumption type (highest anchor across all
    * rungs) — the Known meter fills relative to this, not the absolute 100. */
-  questionTypeCeiling: number | null;
-  /** The assumption's Stage (DEV-5890) — kind of response / threshold. */
+  typeCeiling: number | null;
+  /** The assumption's Stage (deprecated, OPS-1406) — kind of response. */
   stage: string | null;
-  /** The stage's Risk threshold (DEV-5890) — the stopping bar. */
-  riskThreshold: number | null;
-  /** Whether the assumption has cleared its stage's threshold (Risk ≤ bar). */
-  clearedThreshold: boolean | null;
 }
 
 /** A belief taken off the board — killed (Invalidated) or made moot. */
@@ -217,25 +209,18 @@ export function buildPipeline(
     };
     const framed = assumptionCompleteness(a as Record<string, unknown>);
     const stage = deriveBeliefStage({ framed, confidence: d.confidence, test });
-    // DEV-5890: surface Question Type + Stage + threshold on the row.
-    const questionType = str(a["Question Type"]);
-    // The max ceiling for this question type = the highest High-band anchor
+    // OPS-1406: surface Assumption Type + Stage on the row.
+    const assumptionType = str(a["Assumption Type"]);
+    // The max ceiling for this assumption type = the highest High-band anchor
     // across all rungs in the sub-ladder. The Known meter fills relative to
     // this so near-ceiling evidence looks near-full.
-    let questionTypeCeiling: number | null = null;
-    if (questionType && questionType in RUNG_ANCHOR) {
-      const subLadder = RUNG_ANCHOR[questionType as keyof typeof RUNG_ANCHOR];
-      questionTypeCeiling = Math.max(
-        ...Object.values(subLadder).map((r) => r.High),
+    let typeCeilingVal: number | null = null;
+    if (assumptionType && assumptionType in RUNG_ANCHOR) {
+      typeCeilingVal = typeCeiling(
+        assumptionType as keyof typeof RUNG_ANCHOR,
       );
     }
     const stageName = str(a.Stage);
-    const stageKey =
-      stageName && (STAGE_ORDER as readonly string[]).includes(stageName)
-        ? (stageName as (typeof STAGE_ORDER)[number])
-        : null;
-    const riskThreshold = stageKey ? riskThresholdForStage(stageKey) : null;
-    const confFloor = stageKey ? confidenceFloorForStage(stageKey) : null;
     rows.push({
       id: a.id,
       statement: str(a.Title),
@@ -249,14 +234,9 @@ export function buildPipeline(
       planned: stage.planned,
       tested: stage.tested,
       nextMove: nextMove(stage.stage, stage.killZone),
-      questionType: questionType,
-      questionTypeCeiling,
+      assumptionType: assumptionType,
+      typeCeiling: typeCeilingVal,
       stage: stageName,
-      riskThreshold,
-      clearedThreshold:
-        riskThreshold != null
-          ? d.risk <= riskThreshold && (confFloor == null || stage.confidence >= confFloor)
-          : null,
     });
   }
 
@@ -304,7 +284,7 @@ export function weekOverWeekDelta(
   const cutoff = now.getTime() - 7 * 24 * 60 * 60 * 1000;
   // Fan every reading row out into one input per belief, then group by the
   // belief it scores — a single row can now score several beliefs (OPS-1305).
-  // DEV-5890: thread the linked assumption's Question Type into each input so
+  // OPS-1406: thread the linked assumption's Assumption Type into each input so
   // Strength reads the right sub-ladder.
   const assumptionsById = new Map<string, AnyRecord>(
     assumptions.map((a) => [String(a.id), a]),

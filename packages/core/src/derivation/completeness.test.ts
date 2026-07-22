@@ -14,7 +14,7 @@ const filled = () => ({
   "Scoring justification": "High because distribution rests on it.",
   dependsOnIds: ["ASM-002"],
   enablesIds: [],
-  "Question Type": "Existence",
+  "Assumption Type": "ProblemExists",
 });
 
 describe("assumption completeness slots", () => {
@@ -25,7 +25,7 @@ describe("assumption completeness slots", () => {
       "Impact",
       "Scoring justification",
       "Dependencies traced",
-      "Question Type",
+      "Assumption Type",
     ]);
   });
 
@@ -61,7 +61,7 @@ describe("assumption completeness slots", () => {
       "Scoring justification": "",
       dependsOnIds: [],
       enablesIds: [],
-      "Question Type": "",
+      "Assumption Type": "",
     };
     expect(assumptionCompleteness(rec)).toBe(0);
     expect(missingCompletenessSlots(rec)).toEqual([...COMPLETENESS_SLOTS]);
@@ -72,10 +72,10 @@ describe("assumption completeness slots", () => {
     expect(missingCompletenessSlots(rec)).not.toContain("Dependencies traced");
   });
 
-  it("flags a missing Question Type as incomplete (Live gate)", () => {
-    const rec = { ...filled(), "Question Type": null };
+  it("flags a missing Assumption Type as incomplete (Live gate)", () => {
+    const rec = { ...filled(), "Assumption Type": null };
     expect(assumptionCompleteness(rec)).toBeLessThan(100);
     expect(assumptionComplete(rec)).toBe(false);
-    expect(missingCompletenessSlots(rec)).toContain("Question Type");
+    expect(missingCompletenessSlots(rec)).toContain("Assumption Type");
   });
 });
