@@ -52,7 +52,7 @@ categories — **Testing**, recruited-sample instruments from `Talk` to
 `Observed usage`, and **Market**, market-closed targets from `Signed intent`
 up to `Paying users`). The anchor (ceiling `s`) is per **(question type ×
 rung × band)** — the same rung carries a different ceiling for an Existence
-claim vs a WillingnessToPay claim (DEV-5890, `docs/question-types.md`). A
+claim vs a WillingnessToPay claim (the question-type-aware evidence ladder, `docs/question-types.md`). A
 plan carrying a `Deadline` is commitment-grade: it closes with an `Outcome`
 (`Achieved` / `Missed` / `Dropped`) as well as its bar verdicts — the
 discipline a standalone `Goal` record used to give, now just a mode of the

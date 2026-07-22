@@ -6,15 +6,15 @@ import type {
 } from "./migrate.js";
 
 /**
- * Seam 3 — Migration entry point (DEV-5890 / OPS-1406).
+ * Seam 3 — Migration entry point (the question-type-aware evidence ladder / the confidence-scoring simplification).
  *
  * `migrateRegister(oldShape) → { newShape, flags, summary }` tested with a
  * fixture covering: existence assumption with qual evidence (should become
  * high-Confidence), WTP assumption with qual-only evidence (should get
  * non-evidence flags), causal assumption with mixed evidence, regulatory
  * assumption with desk evidence. The test asserts the migrated shape, the
- * flag list, and the Confidence deltas. Prior art: `doshi-validation-os/docs/
- * migration/reshape-1305.mjs` and `remodel.mjs`.
+ * flag list, and the Confidence deltas. Prior art: the instance's
+ * `docs/migration/reshape-1305.mjs` and `remodel.mjs`.
  */
 
 function assumption(over: Partial<MigrationAssumption> & { id: string }): MigrationAssumption {
@@ -48,7 +48,7 @@ function reading(over: Partial<MigrationReading> & { id: string }): MigrationRea
   };
 }
 
-describe("migrateRegister — assumption-type-aware evidence ladder (DEV-5890)", () => {
+describe("migrateRegister — assumption-type-aware evidence ladder (the question-type-aware evidence ladder)", () => {
   it("infers Assumption Type from the falsification bar", () => {
     const result = migrateRegister(
       [

@@ -55,7 +55,7 @@ describe("toNextMoveInput", () => {
     const input = toNextMoveInput({
       assumptions: [rec({ id: "ASM-1", derived: {} })],
       experiments: [],
-      // A reading scores per belief now (OPS-1305): each concluded belief-score
+      // A reading scores per belief now (the evidence-remodel slice): each concluded belief-score
       // counts toward its own assumption.
       readings: [
         rec({ id: "R1", beliefs: [{ assumptionId: "ASM-1", Result: "Validated" }] }),
@@ -105,7 +105,7 @@ describe("toNextMoveInput", () => {
 });
 
 describe("movePresentation", () => {
-  it("makes score-impact / decide / retest human step-in forms (OPS-1294)", () => {
+  it("makes score-impact / decide / retest human step-in forms (the step-in human action set)", () => {
     expect(movePresentation("score-impact")).toMatchObject({
       steppable: true,
       form: "score-impact",

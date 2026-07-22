@@ -1,5 +1,5 @@
 /**
- * Evidence composition (DEV-5883) — the per-rung breakdown of what's moving an
+ * Evidence composition (the assumption-detail redesign) — the per-rung breakdown of what's moving an
  * assumption's Confidence. Uses the same `confidenceAttribution` math the
  * hero number uses (so the composition literally adds up to Confidence), not
  * raw strength sums. Each rung's `contribution` is its signed share of the
@@ -62,7 +62,7 @@ export function buildEvidenceComposition(
   readings: AnyRecord[],
 ): EvidenceCompositionView {
   const id = str(assumption.id) ?? "";
-  // OPS-1406: read the assumption's Assumption Type so the cap and the
+  // the confidence-scoring simplification: read the assumption's Assumption Type so the cap and the
   // attribution math use the right sub-ladder. Default to ProblemExists.
   const rawType = str(assumption["Assumption Type"]);
   const assumptionType: AssumptionType =
@@ -141,7 +141,7 @@ export function readingContributions(
   readings: AnyRecord[],
 ): ReadingContribution[] {
   const id = str(assumption.id) ?? "";
-  // OPS-1406: read the assumption's Assumption Type for the sub-ladder lookup.
+  // the confidence-scoring simplification: read the assumption's Assumption Type for the sub-ladder lookup.
   const rawType = str(assumption["Assumption Type"]);
   const assumptionType: AssumptionType =
     rawType && isAssumptionType(rawType) ? rawType : "ProblemExists";

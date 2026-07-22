@@ -1,11 +1,11 @@
 /**
- * Glossary auto-linking (OPS-1285) — the pure render-time pass that turns
+ * Glossary auto-linking (the glossary auto-linking) — the pure render-time pass that turns
  * glossary Titles appearing in prose into links, computed fresh on every render
  * so renames / retirements / status changes are always reflected with nothing
  * stored. Kept DOM-free at this seam and unit-tested exactly like
  * `link-choices.ts`; the `GlossaryText` component renders what it returns.
  *
- * The four forks the OPS-1285 prototype resolved are the rules here:
+ * The four forks the the glossary auto-linking prototype resolved are the rules here:
  *  - match on **Title only** (no alias list), case-insensitive, word-boundary,
  *    **longest title wins** (Derived Impact over Impact), **every** occurrence;
  *  - **Active + Provisional** terms link, **Superseded never**, and never a

@@ -93,7 +93,7 @@ const COLUMNS: Record<Collection, ColumnDef[]> = {
     { key: "Rung", header: "Rung", accessor: (r) => readingRung(r) },
     { key: "magnitudeBand", header: "Band", accessor: (r) => readingMagnitudeBand(r) },
     // The row's per-belief Result / Strength stay in the reading detail's
-    // verdict list (OPS-1305). The table previews the quote (`body`) so a row is
+    // verdict list (the evidence-remodel slice). The table previews the quote (`body`) so a row is
     // legible at a glance; assumption chips (see `readingAssumptionChips`)
     // disambiguate same-titled readings.
     {
@@ -175,7 +175,7 @@ export function primaryLabel(record: AnyRecord): string {
 
 /** Labels for the computed `derived` tuple. Both `derivedImpact` (the
  * derivation module's name) and `impact` (the migrated data's name, pending the
- * OPS-1273 schema ripple) map to one label so the drawer reads cleanly either
+ * the presence-gap promotion schema ripple) map to one label so the drawer reads cleanly either
  * way. */
 const DERIVED_LABEL: Record<string, string> = {
   confidence: "Confidence",

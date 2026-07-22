@@ -12,7 +12,7 @@
  * density tells you. Click a cell → the assumptions in it, ranked by Risk.
  *
  * Pure and computed fresh on read (like `pipeline.ts`): it only reads numbers
- * already kept current (`derived.risk`), so it stays out of the OPS-1251
+ * already kept current (`derived.risk`), so it stays out of the the derive-on-write invariant
  * on-write recompute. The Lens list comes from the caller (the surface
  * supplies the workspace's configured vocabulary); the Stage list is fixed
  * (the four discovery stages — see `ontology.yaml §vocabularies.stage`).

@@ -214,7 +214,7 @@ support it:
    (`../_shared/experiment-guardrails.md §1b`).
 2. **Interviewee** — named in the protocol body's recruit criteria (a
    reference to their CRM record link), never a register row: `people` is
-   retired (`OPS-1305`) and Experiments carry no `Interviewee` field.
+   retired (`the evidence-remodel slice`) and Experiments carry no `Interviewee` field.
 3. **Body additions** to an *existing* guide — appended as a clearly-marked
    section (`### Person-specific — <name>, <date>`), never interleaved. Run
    the terminology check (`../_shared/ubiquitous-language.md`) over any

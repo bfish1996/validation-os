@@ -15,7 +15,7 @@ container**, at any rung: a designed plan whose evidence arrives as
 readings, Testing-grade or committed (Market-grade) alike — the Goal record
 was unified into the Experiment; there is no separate record type, only a
 committed plan carrying an optional Deadline and closure Outcome
-(`OPS-1305`, `docs/goals.md`). It starts from each assumption's falsifiable
+(`the evidence-remodel slice`, `docs/goals.md`). It starts from each assumption's falsifiable
 disproof (the grill check set by `/assumptions §1`, not a stored field) and
 turns it into a runnable test with pre-registered per-belief bars. This file
 is the operational ruleset for the *design* and the *lifecycle* — not for
@@ -97,7 +97,7 @@ legitimate: they keep the experiment link as provenance and get **no bar**.
 A round's reading count is bounded by actual signal, not the plan grid.
 
 **Physical schema.** The split is real, not just conceptual
-(`registry-schema.md §Field map — Experiments`, `OPS-1305`): the Experiment
+(`registry-schema.md §Field map — Experiments`, `the evidence-remodel slice`): the Experiment
 row carries the plan (Instrument, Feasibility, Status, Deadline, Outcome);
 each bundled belief gets its own composed **bar line** (`We're right if` /
 `We're wrong if` / Planned rung / Bar verdict) realized backend-natively
@@ -132,7 +132,7 @@ entry (`registry-schema.md §Field map — Readings`). There is no run-level
   the designated **"Raw evidence" Drive folder** (listed in the source-map
   like any other home), which mints its canonical link. Quoting an excerpt
   in the reading's `body` (its verbatim quote/excerpt — readings carry a `body`
-  again, reversing that OPS-1305 slice) is fine — but the whole artifact lives
+  again, reversing that the evidence-remodel slice slice) is fine — but the whole artifact lives
   exactly once, at its link; pasting it into rows as the primary copy is banned
   (it recreates N-copy drift).
 - **Quality stays per-reading** (`Source quality`, §2) — source identity
@@ -250,7 +250,7 @@ rung vocabulary is fixed; the **anchor** (ceiling `s`) is per
 
 - 🧪 **Testing** (instruments run on a sample you can enumerate):
   - `Talk` — **the collapsed floor** (Opinion + Pitch-deck + Anecdotal merged,
-    DEV-5879): anything from a bare stated opinion about a **hypothetical**
+    the dashboard frontend redesign): anything from a bare stated opinion about a **hypothetical**
     ("I think users would like this" — self / team / advisor) up to an
     unprompted report of something that **actually happened** ("three users
     told us they've been doing this manually in a spreadsheet"). Bands
@@ -270,7 +270,7 @@ rung vocabulary is fixed; the **anchor** (ceiling `s`) is per
     Feasibility claims; probative for CausalEffect (A/B).
 - 🎯 **Market** (open-world targets with a deadline, two pre-registered
   bars, closed by the market — renamed from "Goals" with the Goal→Experiment
-  unification, `OPS-1305`; `docs/goals.md`):
+  unification, `the evidence-remodel slice`; `docs/goals.md`):
   - `Signed intent` — LOI / deposit / costly commitment before build.
   - `Paying users` — real money, A/B on live traffic, signed contract.
     Strongest, priciest. The ceiling for WillingnessToPay (High = 99) and
@@ -627,7 +627,7 @@ this skill's).
 
 Testing-grade and committed Market-grade plans are **one record type, one
 lifecycle shape** (`Draft → Running → Closed`) — the Goal record was
-unified into the Experiment (`OPS-1305`); they differ only in whether a
+unified into the Experiment (`the evidence-remodel slice`); they differ only in whether a
 Deadline/Outcome is set, never in shape.
 
 **Readings conclude rolling** — human-affirmed as logged (the

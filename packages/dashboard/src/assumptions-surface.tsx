@@ -25,7 +25,7 @@ import { resolveCycleFilter, inCycle, type CycleChoice } from "./cycle-filter.js
 import { CycleFilterBar } from "./cycle-filter-bar.js";
 
 /**
- * The Assumptions nav surface (DEV-5881 + DEV-5882): the Lens × Stage grid as
+ * The Assumptions nav surface (the nav-surface redesign + the recommended-experiments + donut redesign): the Lens × Stage grid as
  * the default landing, with a "Grid / View all" toggle. "View all" switches to
  * the pipeline board (hero burn-up + pipeline rows + recommended experiments).
  * A single-cell click (one assumption) opens the AssumptionDetail directly; a
@@ -218,7 +218,7 @@ function GridPane({
   return (
     <>
       <div className="vos-card vos-stage-grid-card">
-        {/* Question Type filter tabs (DEV-5890) */}
+        {/* Question Type filter tabs (the question-type-aware evidence ladder) */}
         <div className="vos-qt-filter-bar">
           {qtTabs.map((qt) => (
             <button
@@ -389,12 +389,12 @@ function PipelineBoard({
 
 /* The pipeline row — 4px risk stripe + belief + 2-segment meter + next-move.
  * The meter is 2 segments only (Framed + Known) — Planned and Tested are
- * dropped per the collapsed pipeline model (DEV-5879). */
+ * dropped per the collapsed pipeline model (the dashboard frontend redesign). */
 function PipelineRowView({ row, onOpen }: { row: PipelineRow; onOpen: () => void }) {
   const stripeTone: Tone = row.riskTone;
   // The Known meter fills relative to the assumption type's max ceiling, not
   // the absolute 100 — so near-ceiling evidence fills the bar near 100%.
-  // OPS-1406.
+  // the confidence-scoring simplification.
   const ceiling = row.typeCeiling ?? 99;
   const knownPct = Math.max(0, Math.min(100, (Math.abs(row.confidence) / ceiling) * 100));
   const knownSign = row.confSign;

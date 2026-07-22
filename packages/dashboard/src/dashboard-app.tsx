@@ -60,7 +60,7 @@ function initialsOf(name: string): string {
 }
 
 /**
- * The entire styled dashboard as one mountable app (spec OPS-1280 / DEV-5879
+ * The entire styled dashboard as one mountable app (spec the mountable dashboard app / the dashboard frontend redesign
  * redesign): the frame — a 3-item sidebar (Assumptions / Experiments /
  * Readings) plus a small Registers group for decisions + glossary, topbar with
  * the backend indicator and user — and the surfaces it routes between. The
@@ -70,7 +70,7 @@ function initialsOf(name: string): string {
  * Each detail view is evidence-first: readings lead, bar lines are context.
  *
  * Navigation is owned here, not the host router: the active route lives in
- * client state, synced to the URL hash (OPS-1298), so the instance mounts this
+ * client state, synced to the URL hash (the nav/IA shell), so the instance mounts this
  * at one route and wires no routing. Styled by the package's own token sheet —
  * the instance imports `styles.css` once and builds no UI.
  */
@@ -94,7 +94,7 @@ export function ValidationOSDashboard({ config = {} }: ValidationOSDashboardProp
   const { byRegister: needsHuman, liveExperimentCount } = useNeedsHuman(basePath);
 
   // The nav count must match what actually renders. `/counts` tallies every
-  // stored row, but archived evidence plans never surface (OPS-1305), so the
+  // stored row, but archived evidence plans never surface (the evidence-remodel slice), so the
   // experiments badge is corrected to the live-only count once it's known —
   // otherwise it reads e.g. 66 while the register shows a handful.
   const navCounts =

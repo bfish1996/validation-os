@@ -23,10 +23,10 @@ registers:
       - {canonical: Lens, backend: Lens, type: text, derived: false, options_source: vocabulary.lens}
       - {canonical: Theme, backend: Themes, type: text, derived: false, options_source: registry-schema}
       - {canonical: Impact, backend: Impact, type: number, derived: false}
-      - {canonical: Derived Impact, backend: Derived Impact, type: number, derived: true, formula: "seed + (100 - seed) × S/(S + 100), S = Σ dependents' Derived Impact + 100 per standing decision Based on this row; experiments never contribute (assumption-guardrails.md §3); recomputed on every touching write (OPS-1251), bullet marked <!-- derived -->"}
+      - {canonical: Derived Impact, backend: Derived Impact, type: number, derived: true, formula: "seed + (100 - seed) × S/(S + 100), S = Σ dependents' Derived Impact + 100 per standing decision Based on this row; experiments never contribute (assumption-guardrails.md §3); recomputed on every touching write (the derive-on-write invariant), bullet marked <!-- derived -->"}
       - {canonical: Risk, backend: Risk, type: number, derived: true, formula: "Derived Impact * (1 - max(0, Confidence) / 100); skill-computed, bullet marked <!-- derived -->"}
       - {canonical: Confidence, backend: Confidence, type: number, derived: true, formula: "signed weighted average of concluded Validated/Invalidated belief entries scored against this row, weight = |Strength| × Source quality × commitmentFactor (1.0 if the entry's reading has an Experiment else 0.85; never reorders rungs), neutral prior w0=100 (hard floor ≥98), deduped per (belief, source) to the strongest/most-recent (experiment-guardrails.md §2); skill-computed, bullet marked <!-- derived -->"}
-      - {canonical: Completeness %, backend: Completeness %, type: number, derived: true, formula: "filled slots / all slots × 100 over six structural slots: Description, Lens, Impact, Scoring justification, dependencies traced (≥1 Depends on/Enables link), Question Type; replaces the retired Gaps/presence-field machinery (OPS-1305); skill-computed, bullet marked <!-- derived -->"}
+      - {canonical: Completeness %, backend: Completeness %, type: number, derived: true, formula: "filled slots / all slots × 100 over six structural slots: Description, Lens, Impact, Scoring justification, dependencies traced (≥1 Depends on/Enables link), Question Type; replaces the retired Gaps/presence-field machinery (the evidence-remodel slice); skill-computed, bullet marked <!-- derived -->"}
       - {canonical: Status, backend: Status, type: text, derived: false, options_source: registry-schema}
       - {canonical: Stage, backend: Stage, type: text, derived: false, options_source: registry-schema}
       - {canonical: Question Type, backend: Question Type, type: text, derived: false, options_source: registry-schema}
@@ -183,7 +183,7 @@ derived view over the Experiments' bar lines, never a stored bullet here.
 linked dependents' Derived Impact plus 100 per standing decision naming this
 row via `Based on assumption`. Experiments never contribute. Recomputed on
 every touching write alongside Risk/Confidence — no deliberate staleness
-(`OPS-1251`; `assumption-guardrails.md §3`).
+(`the derive-on-write invariant`; `assumption-guardrails.md §3`).
 - **Risk** = `Derived Impact * (1 - max(0, Confidence) / 100)`.
 - **Confidence** = signed weighted average of concluded Validated/Invalidated
 belief entries scored against this row, weight `|Strength| × Source quality ×
@@ -194,16 +194,16 @@ prior w₀ = 100, deduped per (belief, source) to the strongest/most-recent
 - **Completeness %** = filled slots / all slots × 100, over six structural
 slots: Description, Lens, Impact, Scoring justification, dependencies traced
 (≥1 `Depends on`/`Enables` link), Question Type. Replaces the retired
-`Gaps`/presence-field readiness machinery (`OPS-1305`); drives the `Draft` ⇔
-`Live` gate (the `Question Type` slot is the Live gate added in DEV-5890).
+`Gaps`/presence-field readiness machinery (`the evidence-remodel slice`); drives the `Draft` ⇔
+`Live` gate (the `Question Type` slot is the Live gate added in the question-type-aware evidence ladder).
 
 Canonical formulas live in `experiment-guardrails.md §2` and
 `assumption-guardrails.md §3`; the recompute pass computes and writes them on
-every touching write (`OPS-1251`) — never hand-edit.
+every touching write (`the derive-on-write invariant`) — never hand-edit.
 
 ### Body
 
-Assumptions carry **no body** (`OPS-1305`) — `Scoring justification` is a
+Assumptions carry **no body** (`the evidence-remodel slice`) — `Scoring justification` is a
 first-class bullet, and the audit trail lives in dashboard history, not a
 `### Provenance & notes` section.
 
@@ -213,7 +213,7 @@ An Experiment carries no rung and no strength — those live on the Readings
 the run produces. It bundles one-or-more beliefs through composed **bar
 lines** (below). A committed plan carries an optional `Deadline` and closes
 with an `Outcome` — the commitment-grade behaviour a Goal used to give
-(`OPS-1305`).
+(`the evidence-remodel slice`).
 
 | Canonical field | Markdown bullet | Type | Derived |
 |---|---|---|---|
@@ -336,7 +336,7 @@ per-artifact; only Result (the sign) is per belief. Canonical table:
 ### Body
 
 Readings **carry a `body`** on the canonical two-heading template — a
-**deliberate reversal** of the OPS-1305 no-body slice (brought back from
+**deliberate reversal** of the the evidence-remodel slice no-body slice (brought back from
 Notion, shown in the dashboard):
 
 ```markdown
@@ -405,7 +405,7 @@ properties, no body.
 
 `Definition`, `Avoid`, and `How it differs` are first-class bullets — the
 old `### Definition` / `### Avoid / don't say` / `### How it differs` body
-headings are gone (`OPS-1305`).
+headings are gone (`the evidence-remodel slice`).
 
 ## Vocabulary-driven fields
 
@@ -513,7 +513,7 @@ and `Magnitude band` as row-level bullets** (rung is per-artifact, 0.10)
 alongside `Source`/`Representativeness`/`Credibility`/`Source quality`/
 `Experiment`; **backfill the reading `body`** on the `### Quote` + `### Source`
 template from the Notion verbatim quote/excerpt (the reintroduced reading body,
-reversing the OPS-1305 cut for readings). Promote each Decision's `## Decision`
+reversing the the evidence-remodel slice cut for readings). Promote each Decision's `## Decision`
 to `Statement` and unanimity rationale to `Unanimity justification` while
 cutting `## Source`, and move each Glossary term's body headings into
 `Definition`/`Avoid`/`How it differs` bullets. The skill surfaces the diff

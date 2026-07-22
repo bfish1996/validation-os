@@ -1,5 +1,5 @@
 /**
- * The experiment-first Assumptions workspace surface (OPS-1407) — mounts thinly
+ * The experiment-first Assumptions workspace surface (the experiment-first assumptions workspace) — mounts thinly
  * over the pure `buildAssumptionsWorkspace` view-model. Three grouping modes
  * (Experiments / Recommended / All), cycle switcher, search, and slide-in
  * drawers for belief bodies and experiment bodies. No data logic here — the

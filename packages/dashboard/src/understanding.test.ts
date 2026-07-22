@@ -171,7 +171,7 @@ describe("buildUnderstanding", () => {
     expect(u.otherMovers.every((m) => m.kind === "direct")).toBe(true);
   });
 
-  it("never surfaces an archived plan as a mover or a row (OPS-1305)", () => {
+  it("never surfaces an archived plan as a mover or a row (the evidence-remodel slice)", () => {
     // A reading points at an Archived plan; the plan must not appear at all,
     // not even as a mover — archived evidence plans are retired from the UI.
     const u = buildUnderstanding(

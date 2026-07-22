@@ -1,9 +1,9 @@
 import type { Collection } from "@validation-os/core";
 
 /**
- * The dashboard's client-owned navigation state (OPS-1298 / DEV-5879 redesign).
+ * The dashboard's client-owned navigation state (the nav/IA shell / the dashboard frontend redesign redesign).
  * One `<ValidationOSDashboard/>` mounts at a single host route and drives
- * everything off the URL hash — there is no second entry point (OPS-1280).
+ * everything off the URL hash — there is no second entry point (the mountable dashboard app).
  *
  *  - `assumptions` — the Assumptions nav item. The grid (Lens × Stage) is the
  *    default landing; `view: "all"` switches to the pipeline board; `lens` +

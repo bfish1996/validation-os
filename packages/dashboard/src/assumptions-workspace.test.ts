@@ -291,7 +291,7 @@ describe("buildAssumptionsWorkspace — experiments mode", () => {
     expect(row.risk).toBe(60);
     expect(row.confidence).toBe(20); // derived confidence from fixture
     expect(row.cycle).toBe(1);
-    // OPS-1406: bar is the graduation bar (40 + 0.5×60 = 70), rescaled: (70+100)/2=85
+    // the confidence-scoring simplification: bar is the graduation bar (40 + 0.5×60 = 70), rescaled: (70+100)/2=85
     expect(row.bar).toBe(85);
   });
 
@@ -455,7 +455,7 @@ describe("buildBeliefBody", () => {
   });
 
   it("shows the graduation bar scaled to the trajectory axis", () => {
-    // OPS-1406: the bar is graduationBar(derivedImpact), not a stage floor.
+    // the confidence-scoring simplification: the bar is graduationBar(derivedImpact), not a stage floor.
     // Default fixture impact is 50 → bar = 40 + 0.5×50 = 65 (raw signed scale).
     const recs = records([
       assumption({ id: "b1", derived: { derivedImpact: 50, risk: 50, confidence: 0, completeness: 50 } }),

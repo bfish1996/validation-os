@@ -38,7 +38,7 @@ function isMarketRung(rung: Rung): boolean {
  * ~90% of cap; do-rungs 20 readings → ~75% of cap. See
  * `docs/evidence-ladder.md` for the derivation.
  *
- * OPS-1406: market/operational rungs lowered so saturated evidence reaches
+ * the confidence-scoring simplification: market/operational rungs lowered so saturated evidence reaches
  * near-ceiling (~99), per the spec's "every type can reach ~99 on its ceiling
  * rung" invariant.
  */

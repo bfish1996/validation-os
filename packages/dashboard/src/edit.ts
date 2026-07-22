@@ -80,7 +80,7 @@ const EDITORS: Record<Collection, FieldEditor[]> = {
     area("Scoring justification", "Scoring justification"),
     // `moot` is deliberately not editable here — mooting an assumption is a
     // gated business action (see core `relations.ts`), not a free-form toggle.
-    // 5 Whys / Metric for truth / Gaps are gone (OPS-1305); readiness is the
+    // 5 Whys / Metric for truth / Gaps are gone (the evidence-remodel slice); readiness is the
     // derived Completeness %, and the why-trace lives in Depends on / Enables.
   ],
   experiments: [
@@ -95,7 +95,7 @@ const EDITORS: Record<Collection, FieldEditor[]> = {
       true,
     ),
     // Deadline + Outcome: the commitment-grade fields folded in from the
-    // retired Goal record (OPS-1305). Outcome is null until Closed.
+    // retired Goal record (the evidence-remodel slice). Outcome is null until Closed.
     t("Deadline", "Deadline"),
     sel("Outcome", "Outcome", ["Achieved", "Missed", "Dropped"], true),
     t("Date", "Date"),
@@ -107,7 +107,7 @@ const EDITORS: Record<Collection, FieldEditor[]> = {
     t("Title", "Reading"),
     t("Source", "Source"),
     // Rung / Result / Magnitude band / Grading justification are PER BELIEF now
-    // (OPS-1305) — they live in each entry of `beliefs[]`, not on the row, so
+    // (the evidence-remodel slice) — they live in each entry of `beliefs[]`, not on the row, so
     // they are deliberately absent here rather than writing dead row-level
     // fields. Editing a reading's per-belief scores is a deferred follow-up (a
     // `beliefs[]` editor); this form edits only the row-level fields that remain.

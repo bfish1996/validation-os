@@ -1,5 +1,5 @@
 /**
- * The per-belief cycles view-model (OPS-1347) — the validation loop's rounds,
+ * The per-belief cycles view-model (the round-by-round cycles) — the validation loop's rounds,
  * not just the belief's flat dated event log (`journey.ts`) or the
  * strongest-push-first attribution list (`understanding.ts`). Grounded
  * directly in the registry model (`registry-schema.md`):
@@ -26,7 +26,7 @@
  * `confidenceAttribution`'s per-experiment mover — the same decomposition
  * `understanding.ts` shows, just regrouped by time instead of by size, so a
  * cycle's push and the drawer's push always agree. Computed fresh on read,
- * out of the OPS-1251 on-write recompute.
+ * out of the the derive-on-write invariant on-write recompute.
  */
 import {
   readingBeliefInputs,
@@ -119,7 +119,7 @@ export function buildCycles(
   assumptionsById?: ReadonlyMap<string, AnyRecord>,
 ): CycleView[] {
   const mine = readings.filter((r) => readingGrades(r, assumptionId));
-  // DEV-5890: thread the assumption's Question Type into each input via the
+  // the question-type-aware evidence ladder: thread the assumption's Question Type into each input via the
   // optional assumptionsById map; defaults to Existence when absent.
   const inputs = readings
     .flatMap((r) => readingBeliefInputs(r, assumptionsById))
@@ -144,7 +144,7 @@ export function buildCycles(
   // Every LIVE experiment testing this belief (a bar line naming it) plus any
   // experiment a reading points at that isn't linked via bar lines — the same
   // union `understanding.ts` builds, so no round is silently dropped. Archived
-  // plans never form a round (OPS-1305); an absent (missing) plan still does.
+  // plans never form a round (the evidence-remodel slice); an absent (missing) plan still does.
   const experimentIds = new Set<string>([
     ...liveExperiments(experiments)
       .filter((e) => testsAssumption(e, assumptionId))

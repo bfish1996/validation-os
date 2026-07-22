@@ -41,9 +41,9 @@ memory with no source, ask for one — `Source` is required
    - **Unanimity score** — band it per `decision-guardrails.md §2`, one band
      down if attribution is uncertain. Write the one-line justification into
      `Unanimity justification` (promoted from the old `## Rationale` body
-     prose, `OPS-1305`).
+     prose, `the evidence-remodel slice`).
    - **Area** — topic tag from the config's `vocabulary.area`. There is no
-     `Kind` field (`OPS-1305`) — `Area` + `Reversibility` carry the
+     `Kind` field (`the evidence-remodel slice`) — `Area` + `Reversibility` carry the
      classification that used to also live on `Kind`.
    - **Decided date**, **Source** (link or dated reference).
    - **Reversibility** — ask: *"if this turns out wrong, can we get back to
@@ -52,7 +52,7 @@ memory with no source, ask for one — `Source` is required
    - **Status** — default `Active` unless the decision is explicitly
      tentative (`Provisional`).
 4. **Draft the record.** `Statement` field — the one-line what-was-decided
-   (promoted from the old `## Decision` body heading, `OPS-1305`). Body:
+   (promoted from the old `## Decision` body heading, `the evidence-remodel slice`). Body:
    `## Rationale` (why; cites `Based on assumption` rows; carries any
    risk-acceptance lines) and `## Alternatives considered` — the two
    headings that survive; `## Source` is cut, it only mirrored the `Source`

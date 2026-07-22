@@ -30,7 +30,7 @@ Rules come from `../../_shared/assumption-guardrails.md`; this file is the
 
 Fetch the record via the connector: Description, Lens, Impact, Derived
 Impact, Confidence, `Completeness %`, Status, Depends on / Enables,
-Contradicts. Assumptions carry no body (`OPS-1305`) — there is no stored
+Contradicts. Assumptions carry no body (`the evidence-remodel slice`) — there is no stored
 agenda to read. **This means the full gauntlet below runs every session**,
 not just whichever gap a stored tag names: a slot that's already filled
 gets a fast confirm rather than a fresh ask, but every check (hyperbole,
@@ -40,7 +40,7 @@ the field values and the relation graph persist between sessions —
 `Completeness %` tells you which of the six structural slots (Description,
 Lens, Impact, Scoring justification, dependencies traced, **Question Type**)
 are still empty, but it says nothing about which semantic checks were already
-run. The `Question Type` slot (DEV-5890) is the Live gate added by the
+run. The `Question Type` slot (the question-type-aware evidence ladder) is the Live gate added by the
 question-type-aware evidence ladder — see `docs/question-types.md`.
 
 ## How to grill (discipline)
@@ -68,12 +68,12 @@ question-type-aware evidence ladder — see `docs/question-types.md`.
    wire `Depends on`.
 3. **Unfalsifiable** → "what observable evidence would prove this wrong?"
    If none exists it's a belief — reframe to a measurable claim or retire
-   it. **This is a grill check, not a stored field** (`OPS-1305`) — the
+   it. **This is a grill check, not a stored field** (`the evidence-remodel slice`) — the
    concrete number surfaces here, out loud, and is re-authored as the bar's
    `We're right if` when `/experiment-design` later pre-registers a test;
    nothing is written to the assumption itself
    (`assumption-guardrails.md §1`).
-   **The falsification test drives the Question Type** (DEV-5890). Once you
+   **The falsification test drives the Question Type** (the question-type-aware evidence ladder). Once you
    have a concrete "we're wrong if…", infer the question type from it:
    - "no one reports this pain / no one describes this mechanism" → **Existence**
    - "the rate is below X% / fewer than N of N" → **Prevalence**
@@ -100,7 +100,7 @@ question-type-aware evidence ladder — see `docs/question-types.md`.
    semantic search over the register; show the nearest cluster + a
    recommended-keep. Classify each near-match into one of four outcomes
    (recommend one, one-line why) — **transient grill checks, not stored
-   tags** (`OPS-1305`; assumptions carry no body to note them in):
+   tags** (`the evidence-remodel slice`; assumptions carry no body to note them in):
    - **duplicate** → **merge** (one experiment resolves both →
      redirect/retire this record); say out loud, in the grill session,
      which specific dimension made the loser redundant (not just "merged X
@@ -242,7 +242,7 @@ rung ≥ the strongest validating rung), is a separate gated `Live` →
   touched but left `Draft` at `Completeness % = 100` is exactly the
   hand-off signal — walk it here, past the record's `Owner`, before the
   `Draft → Live` flip; there is no stored review tag to clear
-  (`OPS-1305`), the queue is just "Draft at 100."
+  (`the evidence-remodel slice`), the queue is just "Draft at 100."
 - **Terminology** — confirm zero outstanding must-fix before the record
   write; if the wording changed after phase 8, re-run the check once more.
 - **Gate the write:** show final title / Description / scores / relations

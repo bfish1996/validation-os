@@ -6,7 +6,7 @@ wants its draft checked before it ships. Build and enforcement judge by the
 same glossary, so what the glossary says is what every output is held to.
 When this changes, all paths change.
 
-The glossary lives in its own **Glossary register** (`OPS-1305`) — query it
+The glossary lives in its own **Glossary register** (`the evidence-remodel slice`) — query it
 via the active connector. Field map: `registry-schema.md §Field map —
 Glossary`.
 
@@ -16,7 +16,7 @@ Glossary`.
 ## Model: one record per word, all properties, no body
 
 A word is **one concept = one record.** Audience-specific meaning and bans
-are **structured properties**, not body prose (`OPS-1305` — the glossary
+are **structured properties**, not body prose (`the evidence-remodel slice` — the glossary
 carries no body at all, so the check parses fields directly):
 
 - **`Definition`** (text) — the definition, one sentence per applicable

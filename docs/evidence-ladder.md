@@ -1,7 +1,7 @@
 # The evidence ladder — seven sub-ladders, one signed scale
 
 The evidence ladder fixes reading strength by **instrument × question-fit**
-(DEV-5890). The rung names an evidence TYPE; the question type (what kind of
+(the question-type-aware evidence ladder). The rung names an evidence TYPE; the question type (what kind of
 claim the linked assumption raises) sets which rungs are probative, what the
 ceiling is, and which rungs are **non-evidence** for that question type. The
 3D anchor table `RUNG_ANCHOR[questionType][rung][band]` is the single source

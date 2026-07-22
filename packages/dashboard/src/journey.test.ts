@@ -25,7 +25,7 @@ function assumption(over: Partial<AnyRecord> & { id: string }): AnyRecord {
     Status: "Live",
     Impact: 50,
     moot: false,
-    // All six completeness slots filled → fully framed (OPS-1305 + DEV-5890).
+    // All six completeness slots filled → fully framed (the evidence-remodel slice + the question-type-aware evidence ladder).
     Description: "The market wants this.",
     Lens: "Desirability",
     "Scoring justification": "z",

@@ -17,7 +17,7 @@ const filled = () => ({
 });
 
 describe("assumption presence (completeness slots)", () => {
-  it("names the six completeness slots (OPS-1305 + OPS-1406), not the retired fields", () => {
+  it("names the six completeness slots (the evidence-remodel slice + the confidence-scoring simplification), not the retired fields", () => {
     expect([...ASSUMPTION_PRESENCE_SLOTS]).toEqual([
       "Description",
       "Lens",
@@ -42,7 +42,7 @@ describe("assumption presence (completeness slots)", () => {
     expect(assumptionPresenceComplete(rec)).toBe(false);
   });
 
-  it("treats a missing Assumption Type as missing (the Live gate, OPS-1406)", () => {
+  it("treats a missing Assumption Type as missing (the Live gate, the confidence-scoring simplification)", () => {
     const rec = { ...filled() } as Record<string, unknown>;
     delete rec["Assumption Type"];
     expect(missingPresenceSlots(rec)).toEqual(["Assumption Type"]);

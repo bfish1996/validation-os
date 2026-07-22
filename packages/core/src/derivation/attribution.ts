@@ -1,6 +1,6 @@
 /**
  * Confidence attribution — the "what's moving the number" half of the
- * understanding layer (OPS-1276). Decomposes an assumption's Confidence into
+ * understanding layer (the understanding layer). Decomposes an assumption's Confidence into
  * the experiments (and direct readings) contributing to it, ranked by how hard
  * each pushes the number up or down.
  *
@@ -12,7 +12,7 @@
  * grouped by the reading's experiment (experiment-less readings — bare/found —
  * fall into a "direct" bucket), then ranked by |contribution|. A reading's
  * origin is an experiment or nothing; the retired Goal container is gone
- * (OPS-1305).
+ * (the evidence-remodel slice).
  */
 import { w0ForRung, scoreAndDedupe, type ConfidenceReadingInput } from "./confidence.js";
 import { round2 } from "./round.js";

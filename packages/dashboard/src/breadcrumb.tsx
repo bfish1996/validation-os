@@ -1,7 +1,7 @@
 import type { Route } from "./route.js";
 
 /**
- * A breadcrumb trail (DEV-5881). Each segment is a button that navigates to
+ * A breadcrumb trail (the nav-surface redesign). Each segment is a button that navigates to
  * its route; the last segment is rendered as plain text (the current page).
  */
 export interface BreadcrumbProps {

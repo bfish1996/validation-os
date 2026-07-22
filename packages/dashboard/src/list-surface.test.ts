@@ -32,7 +32,7 @@ function assumption(id: string, o: Partial<AnyRecord> = {}): AnyRecord {
     ...o,
   };
 }
-// A reading scores per belief now (OPS-1305). The fixture keeps the terse
+// A reading scores per belief now (the evidence-remodel slice). The fixture keeps the terse
 // call-sites (assumptionId / Result / a row-level `derived.strength` via `d()`)
 // and folds them into one `beliefs[]` entry; strength/quality land where the
 // new model keeps them (per belief / row-level `sourceQuality`).
@@ -359,7 +359,7 @@ describe("filter", () => {
     ]);
   });
 
-  it("also matches a reading's Source (OPS-1305)", () => {
+  it("also matches a reading's Source (the evidence-remodel slice)", () => {
     const records = [
       reading("r1", { Source: "Acme cohort" }),
       reading("r2", { Source: "Beta list" }),

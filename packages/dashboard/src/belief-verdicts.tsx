@@ -1,5 +1,5 @@
 /**
- * The reading detail's per-belief verdict list (OPS-1305) — one artifact row
+ * The reading detail's per-belief verdict list (the evidence-remodel slice) — one artifact row
  * scores several beliefs, so this renders each belief's own take: the
  * assumption (title + link), its Result, derived Strength and the grading
  * justification. Rung AND magnitude band are NOT per belief — they are

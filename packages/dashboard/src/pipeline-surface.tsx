@@ -8,7 +8,7 @@ import { stageMeters } from "./stage-meters.js";
 import { useList } from "./use-records.js";
 
 /**
- * The step-back portfolio pipeline (OPS-1300) — the middle altitude of the
+ * The step-back portfolio pipeline (the portfolio pipeline overview) — the middle altitude of the
  * workflow dashboard. One row per live belief, sorted riskiest first, each
  * carrying the four loop meters (Framed → Planned → Tested → Known) as a
  * connected track, with a stage-aware next move on hover. Above them, the
@@ -18,7 +18,7 @@ import { useList } from "./use-records.js";
  * It lazy-loads the assumption, experiment and reading registers and derives
  * everything through the pure `pipeline` view-model — no number is computed
  * here (spec: explain from inputs). Clicking a belief, its next move, or its
- * Journey link routes to that belief's record page (OPS-1298), the review
+ * Journey link routes to that belief's record page (the nav/IA shell), the review
  * surface where step-in happens.
  */
 export function PipelineSurface({

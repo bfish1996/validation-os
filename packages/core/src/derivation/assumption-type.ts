@@ -1,5 +1,5 @@
 /**
- * Assumption-type inference — the falsification-test rule (OPS-1406).
+ * Assumption-type inference — the falsification-test rule (the confidence-scoring simplification).
  *
  * The assumption type is set by what would prove the assumption WRONG, not by
  * what evidence is cheap to gather. "Users will pay $50/mo" is falsified by

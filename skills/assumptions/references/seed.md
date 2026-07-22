@@ -42,7 +42,7 @@ and stub them; the actual build runs through **single mode**
 2. **Create the stub record(s)** (field map:
    `../../_shared/registry-schema.md`): title + whatever Description is
    stated, `Owner` = who voiced/champions the belief. Assumptions carry no
-   body (`OPS-1305`) — there is no provenance line to write; the source
+   body (`the evidence-remodel slice`) — there is no provenance line to write; the source
    context stays in conversation. Every new stub runs the `Duplicate` check
    in single mode's Phase 5 regardless of suspicion — a record never
    suspected of overlapping is exactly the record that silently drifts into
@@ -72,7 +72,7 @@ that's **loop mode** — seeding included, no gates.
   all at once — the low-Risk tail sits as clean scaffold until it's
   actually due to be tested.
 - **No SWOT in assumption bodies.** An assumption is one falsifiable bet, and
-  it carries no body at all (`OPS-1305`); if-false / what-would-prove-it /
+  it carries no body at all (`the evidence-remodel slice`); if-false / what-would-prove-it /
   threats are already covered by Impact + the falsifiability check + the
   Depends-on graph. If strategic SWOT is wanted, do it one level up
   (thesis-wide, or per Lens/Theme), referencing assumptions.

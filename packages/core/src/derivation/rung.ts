@@ -1,5 +1,5 @@
 /**
- * The assumption-type-aware evidence ladder (OPS-1406).
+ * The assumption-type-aware evidence ladder (the confidence-scoring simplification).
  *
  * Source of truth: `skills/_shared/ontology.yaml` → `vocabularies.rung` +
  * `vocabularies.assumption_type`. A rung is an evidence TYPE on the say→do
@@ -18,10 +18,10 @@
  * `Rung` type and all reading-row machinery.
  *
  * Every type's ceiling rung reaches ~99 — the effective cap emerges from the
- * anchors + weighted average, not a separate ceiling constant (OPS-1406
+ * anchors + weighted average, not a separate ceiling constant (the confidence-scoring simplification
  * retired the per-question-type ceiling).
  *
- * Provisional v1 anchors (OPS-1406): the *shape* is the decision, the exact
+ * Provisional v1 anchors (the confidence-scoring simplification): the *shape* is the decision, the exact
  * numbers are tunable. Key invariants encoded:
  *  - Talk-only fully proves "problem exists" (saturated interviews → ~99).
  *  - Payment is the ceiling for "they'll pay" — talk/survey are non-evidence.
@@ -218,7 +218,7 @@ export function isNonEvidence(
 /**
  * The applicable rungs for an assumption type — rungs with a non-zero anchor.
  * The evidence composition UI renders only these; non-applicable rungs are
- * hidden (OPS-1406 user story 10).
+ * hidden (the confidence-scoring simplification user story 10).
  */
 export function applicableRungs(type: AssumptionType): Rung[] {
   const ladder = RUNG_ANCHOR[type];
@@ -240,7 +240,7 @@ export function ceilingAnchor(
 
 /**
  * The max ceiling for an assumption type — the highest High-band anchor across
- * all rungs in the sub-ladder. Every type reaches ~99 (OPS-1406 user story 12).
+ * all rungs in the sub-ladder. Every type reaches ~99 (the confidence-scoring simplification user story 12).
  */
 export function typeCeiling(type: AssumptionType): number {
   const ladder = RUNG_ANCHOR[type];
@@ -250,7 +250,7 @@ export function typeCeiling(type: AssumptionType): number {
 
 /**
  * Derive the cost-to-test tier from the assumption type's ceiling-rung nature
- * (OPS-1406). Talk/desk → cheap; prototype/usability → moderate; sustained
+ * (the confidence-scoring simplification). Talk/desk → cheap; prototype/usability → moderate; sustained
  * behaviour / money / operational → expensive. Overridable per assumption,
  * since context can bend it (a spike can be trivial or brutal).
  */

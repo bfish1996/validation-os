@@ -198,6 +198,6 @@ here via `/find-evidence`.
 
 ---
 
-*Origin: the seam decisions on OPS-1144 (DEC-004 in the register),
-building on DEV-5802 and the Prototypes epic (OPS-1112). Judge-rule and
+*Origin: the seam decisions on the seam-decisions review (DEC-004 in the register),
+building on the seam-decisions groundwork and the Prototypes epic (the prototypes epic). Judge-rule and
 altitude framing: `domains.md`. Evidence rungs: `evidence-ladder.md`.*

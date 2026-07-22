@@ -26,7 +26,7 @@ import {
  *  - the row's `derived.sourceQuality` (Representativeness × Credibility), a
  *    property of the artifact, shared by every belief it scores;
  *  - each belief's `derived.strength` = `RUNG_ANCHOR[questionType][rung][band] ×
- *    sign(the belief's Result)` (DEV-5890) — the question type is looked up
+ *    sign(the belief's Result)` (the question-type-aware evidence ladder) — the question type is looked up
  *    from the linked assumption via the optional `assumptionsById` map
  *    (defaults to `Existence` when the map or the assumption is absent — the
  *    recompute pass always supplies the map, so the stored Strength is

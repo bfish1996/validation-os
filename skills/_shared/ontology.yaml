@@ -21,7 +21,7 @@
 # Five registers: assumptions, experiments (the unified evidence plan, with
 # composed bar lines — Testing and Market-grade both live here), readings (the
 # Confidence atom), decisions, glossary. The Goal record was unified into the
-# Experiment and the `people` collection retired (OPS-1305).
+# Experiment and the `people` collection retired (the evidence-remodel slice).
 #
 # Changing this file is a schema change: update `registry-schema.md` prose and
 # every connector schema guide in the same commit — they must never disagree.
@@ -37,7 +37,7 @@ vocabularies:
   lens: { source: config, key: vocabulary.lens }
   area: { source: config, key: vocabulary.area }
   audiences: { source: config, key: vocabulary.audiences }
-  # The auth-sourced team list Owner / Agreed by reference (OPS-1305). A
+  # The auth-sourced team list Owner / Agreed by reference (the evidence-remodel slice). A
   # dashboard user, not a register row — the `people` collection was retired.
   # Sourced from config now (connector auth later); never enumerated here.
   dashboard_user: { source: config, key: vocabulary.dashboard_users }
@@ -49,7 +49,7 @@ vocabularies:
   # Testing, and mootness are derived views (derived_views:), never stored
   # values (docs/validated.md).
   assumption_status: [Draft, Live, Invalidated]
-  # There is no stored `Gaps` field (OPS-1305): the audit check-types
+  # There is no stored `Gaps` field (the evidence-remodel slice): the audit check-types
   # (Non-atomic, Unfalsifiable, Hyperbole, Lens check, Duplicate, Contradiction)
   # are transient grill stages, not durable tags. Readiness is the derived
   # `Completeness %` (derivations.completeness), computed from structural slot
@@ -94,7 +94,7 @@ vocabularies:
   glossary_status: [Active, Provisional, Superseded]
   reversibility: [Two-way door, One-way door]
 
-  # The evidence rung vocabulary (OPS-1406). A rung is an evidence TYPE on the
+  # The evidence rung vocabulary (the confidence-scoring simplification). A rung is an evidence TYPE on the
   # say→do axis plus operational rungs. Each assumption TYPE defines which rungs
   # are applicable; non-applicable rungs carry anchor 0 (allowed to attach,
   # flagged, never move the bar) and are hidden from the evidence composition
@@ -122,12 +122,12 @@ vocabularies:
       [Go-to-market, Product, UX, Business model, Technology, Regulatory,
        Market & competition, Trust & data]
 
-  # Risk Group (OPS-1406) — the foreground headline axis. Every assumption
+  # Risk Group (the confidence-scoring simplification) — the foreground headline axis. Every assumption
   # belongs to exactly one of Desirability · Usability · Feasibility ·
   # Viability. Derived from the Assumption Type, not separately hand-set.
   risk_group: [Desirability, Usability, Feasibility, Viability]
 
-  # Assumption Type (OPS-1406) — the evidence key that replaces the retired
+  # Assumption Type (the confidence-scoring simplification) — the evidence key that replaces the retired
   # Question Type. A finer type that decides what evidence graduates this
   # assumption. Set by what would prove the claim false (the gaming guard),
   # inferred at authoring/grilling, surfaced only as a secondary
@@ -137,28 +137,28 @@ vocabularies:
      CanCompleteTask, CanBuildIt, LegalCompliant, TheyllPay,
      TheyKeepUsingIt, ReachProfitably, EconomicsWork]
 
-  # Cost-to-test tier (OPS-1406) — derived from the type's ceiling-rung nature.
+  # Cost-to-test tier (the confidence-scoring simplification) — derived from the type's ceiling-rung nature.
   # Overridable per assumption, since context can bend it.
   cost_tier: [cheap, moderate, expensive]
 
-  # Graduation state (OPS-1406) — the progression: Untested → Signal →
+  # Graduation state (the confidence-scoring simplification) — the progression: Untested → Signal →
   # Graduated. Recomputed on every write; a disconfirming reading can move it
   # backwards.
   graduation_state: [Untested, Signal, Graduated]
 
-  # @deprecated Stage was retired (OPS-1406). Its IDEO-triangle meaning is
+  # @deprecated Stage was retired (the confidence-scoring simplification). Its IDEO-triangle meaning is
   # absorbed by Risk Group; its reversibility meaning is dropped. Retained
   # only for migration reading of legacy records.
   stage: [Discovery, Validation, Scale, Maturity]
 
-  # @deprecated Question Type was retired (OPS-1406), replaced by
+  # @deprecated Question Type was retired (the confidence-scoring simplification), replaced by
   # Assumption Type. Retained only for migration reading of legacy records.
   question_type:
     [Existence, Prevalence, CausalEffect, WillingnessToPay,
      ValueUtility, Regulatory, Feasibility]
 
 # ─────────────────────────────────────────────────────────────────────────────
-# @deprecated Stage-keyed Risk threshold (OPS-1406 retired). Stage and Risk
+# @deprecated Stage-keyed Risk threshold (the confidence-scoring simplification retired). Stage and Risk
 # are retired; the graduation bar replaces the stopping rule. Kept for
 # migration back-compat only.
 # ─────────────────────────────────────────────────────────────────────────────
@@ -174,7 +174,7 @@ vocabularies:
 #   Maturity: 60
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Graduation bar (OPS-1406) — the impact-scaled bar an assumption's
+# Graduation bar (the confidence-scoring simplification) — the impact-scaled bar an assumption's
 # Confidence must reach to graduate. Replaces the stage-keyed Risk threshold.
 # bar = base + k × derivedImpact, capped at max. Provisional v1.
 # ─────────────────────────────────────────────────────────────────────────────
@@ -193,18 +193,18 @@ derivations:
     field: assumptions.Derived Impact
     formula: >-
       seed + (100 - seed) × S / (S + 100), where seed = the hand-scored
-      Impact (capped at IMPACT_SEED_CAP, OPS-1406) and S = Σ Derived Impact of
+      Impact (capped at IMPACT_SEED_CAP, the confidence-scoring simplification) and S = Σ Derived Impact of
       assumptions whose Depends on names this row, + 100 per standing decision
       (Provisional/Active) naming it via Based on assumption. A reading's
       container origin (its Experiment) never contributes — only dependent
       assumptions and standing decisions feed S. One reverse-topological pass
       (dependents first); moot rows pin to 0 and contribute nothing.
       Recomputed on every touching write together with Confidence and
-      graduation (OPS-1251) — no deliberate staleness; the batch pass is only
+      graduation (the derive-on-write invariant) — no deliberate staleness; the batch pass is only
       a backstop for writes that bypass the dashboard
       (assumption-guardrails.md §3).
     range: [0, 100]
-  # @deprecated Risk (OPS-1406). Retired as a surfaced number/field. Kept for
+  # @deprecated Risk (the confidence-scoring simplification). Retired as a surfaced number/field. Kept for
   # migration back-compat only.
   risk:
     field: assumptions.Risk
@@ -242,7 +242,7 @@ derivations:
       Result — hence the sign — is per belief.
     rung_anchor: "RUNG_ANCHOR[assumptionType][rung][band] — 3D per (assumption type × rung × band); see docs/evidence-ladder.md"
     range: [-99, 99]
-  # OPS-1406 — graduation, risk group, cost tier
+  # the confidence-scoring simplification — graduation, risk group, cost tier
   risk_group:
     field: assumptions.Risk Group
     formula: >-
@@ -286,7 +286,7 @@ derivations:
 # parent record backend-natively, not a register of its own. Owner / Agreed by
 # are `dashboard_user` references (the auth team list), not free text and not a
 # register. Every record carries backend-native `Created at` / `Last edited at`
-# timestamps (OPS-1305) so the dashboard history has real times to show; they
+# timestamps (the evidence-remodel slice) so the dashboard history has real times to show; they
 # are not re-listed per entity.
 # ─────────────────────────────────────────────────────────────────────────────
 entities:
@@ -296,25 +296,25 @@ entities:
       - { name: Title, type: title, required: true }
       - { name: Description, type: text, required: true }
       - { name: Lens, type: select, options: vocabularies.lens, required: true }
-      # @deprecated Stage (OPS-1406) — retired. Kept for migration back-compat.
+      # @deprecated Stage (the confidence-scoring simplification) — retired. Kept for migration back-compat.
       - { name: Stage, type: select, options: vocabularies.stage }
-      # Assumption Type (OPS-1406) — the evidence key. Required: determines
+      # Assumption Type (the confidence-scoring simplification) — the evidence key. Required: determines
       # which rungs are probative, the risk group, cost tier, and graduation.
       - { name: Assumption Type, type: select, options: vocabularies.assumption_type, required: true }
-      # @deprecated Question Type (OPS-1406) — retired, replaced by Assumption
+      # @deprecated Question Type (the confidence-scoring simplification) — retired, replaced by Assumption
       # Type. Kept for migration back-compat.
       - { name: Question Type, type: select, options: vocabularies.question_type }
       - { name: Theme, type: multi_select, options: vocabularies.theme }
-      # The hand-scored seed (0–IMPACT_SEED_CAP, OPS-1406). Capped so
+      # The hand-scored seed (0–IMPACT_SEED_CAP, the confidence-scoring simplification). Capped so
       # structure supplies the rest via Derived Impact.
       - { name: Impact, type: number, range: [0, 60], hand_scored: true }
       - { name: Derived Impact, type: number, derived: derivations.derived_impact }
-      # @deprecated Risk (OPS-1406) — retired as a surfaced number. Kept for
+      # @deprecated Risk (the confidence-scoring simplification) — retired as a surfaced number. Kept for
       # migration back-compat.
       - { name: Risk, type: number, derived: derivations.risk }
       - { name: Confidence, type: number, derived: derivations.confidence }
       - { name: Completeness %, type: number, derived: derivations.completeness }
-      # OPS-1406 — new derived fields
+      # the confidence-scoring simplification — new derived fields
       - { name: Risk Group, type: select, options: vocabularies.risk_group, derived: derivations.risk_group }
       - { name: Cost to test, type: select, options: vocabularies.cost_tier, derived: derivations.cost_tier }
       - { name: Graduation, type: select, options: vocabularies.graduation_state, derived: derivations.graduation_state }
@@ -322,7 +322,7 @@ entities:
           machine: status_machines.assumption_status }
       - { name: Owner, type: dashboard_user }
       # The one hand-typed rationale left on an assumption — narrowed to the
-      # Impact-seed reason only (OPS-1305). The `5 Whys`, `Metric for truth`,
+      # Impact-seed reason only (the evidence-remodel slice). The `5 Whys`, `Metric for truth`,
       # and `Gaps` fields were cut: the why-trace lives in Depends on / Enables,
       # falsifiability is enforced by the grill and the concrete threshold lives
       # on the experiment bar, and audit check-types are transient grill stages.
@@ -330,7 +330,7 @@ entities:
     body_headings: []   # no body — the audit trail lives in dashboard history
 
   experiments:
-    description: The unified evidence PLAN (OPS-1305 — Testing and Market-grade both live here; the Goal record is gone). One row per designed test. Carries no rung and no strength — those live on the Readings the run produces. Bundles one-or-more beliefs through composed bar lines. A committed plan carries an optional Deadline and a closure Outcome (the commitment-grade behaviour a Goal used to give).
+    description: The unified evidence PLAN (the evidence-remodel slice — Testing and Market-grade both live here; the Goal record is gone). One row per designed test. Carries no rung and no strength — those live on the Readings the run produces. Bundles one-or-more beliefs through composed bar lines. A committed plan carries an optional Deadline and a closure Outcome (the commitment-grade behaviour a Goal used to give).
     properties:
       - { name: Title, type: title, required: true }
       - { name: Instrument, type: link, required: true }   # interview / dataset / analytics cohort / payment event
@@ -369,7 +369,7 @@ entities:
       - { name: Bar verdict, type: select, options: vocabularies.bar_verdict, required: false }
 
   readings:
-    description: One artifact scored per belief — the atomic unit Confidence reads. One artifact row carrying source identity + quality + RUNG once (rung is per-artifact, not per-belief — 0.10), a `body` on the canonical ## Quote / ## Source template (verbatim source text; analysis lives in beliefs[].Grading justification), plus an embedded beliefs[] array (entities.reading_belief) with one entry per assumption it bears on. One rung per artifact — a mixed-rung artifact is split into separate readings, one per rung (experiment-guardrails.md §0). Exists only once observed (no draft/running state). Origin (Experiment | none) lives on the row, never on the assumption; the Goal origin is gone (OPS-1305). EVIDENCE IS EXTERNAL — Source must be outside the team (customer/user/prospect/partner/third-party dataset/published source/observed market behaviour); internal meetings and team opinion are hypothesis/framing (→ assumption Scoring justification), never a reading, never a Confidence input (integrity internal-sourced-reading). An internal meeting that reports a verifiable external fact is second-hand evidence — attribute Source to the external event, set Rung to its rung, lower Credibility (experiment-guardrails.md §0).
+    description: One artifact scored per belief — the atomic unit Confidence reads. One artifact row carrying source identity + quality + RUNG once (rung is per-artifact, not per-belief — 0.10), a `body` on the canonical ## Quote / ## Source template (verbatim source text; analysis lives in beliefs[].Grading justification), plus an embedded beliefs[] array (entities.reading_belief) with one entry per assumption it bears on. One rung per artifact — a mixed-rung artifact is split into separate readings, one per rung (experiment-guardrails.md §0). Exists only once observed (no draft/running state). Origin (Experiment | none) lives on the row, never on the assumption; the Goal origin is gone (the evidence-remodel slice). EVIDENCE IS EXTERNAL — Source must be outside the team (customer/user/prospect/partner/third-party dataset/published source/observed market behaviour); internal meetings and team opinion are hypothesis/framing (→ assumption Scoring justification), never a reading, never a Confidence input (integrity internal-sourced-reading). An internal meeting that reports a verifiable external fact is second-hand evidence — attribute Source to the external event, set Rung to its rung, lower Credibility (experiment-guardrails.md §0).
     properties:
       - { name: Title, type: title, required: true }
       - { name: Source, type: link, required: true }   # the independence/dedupe key — the generator (person / dataset / cohort)
@@ -381,7 +381,7 @@ entities:
       - { name: Magnitude band, type: select, options: vocabularies.magnitude_band, required: false }   # ROW-LEVEL; Market rungs only; null on Testing rungs
       - { name: Date, type: date }
       - { name: Owner, type: dashboard_user, required: false }
-    body_headings: [Quote, Source]   # canonical reading body template: ## Quote (verbatim what the source said/did) + ## Source (who/when/link). Reintroduced as a deliberate reversal of the OPS-1305 no-body slice. Analysis/reasoning does NOT go here — it lives in beliefs[].Grading justification.
+    body_headings: [Quote, Source]   # canonical reading body template: ## Quote (verbatim what the source said/did) + ## Source (who/when/link). Reintroduced as a deliberate reversal of the the evidence-remodel slice no-body slice. Analysis/reasoning does NOT go here — it lives in beliefs[].Grading justification.
 
   reading_belief:
     description: >-
@@ -393,7 +393,7 @@ entities:
       Grading justification are PER belief; the artifact's Rung + Magnitude band
       are per-ARTIFACT (on the reading row), read by each entry's Strength. A
       rich artifact bearing on N beliefs is one Reading with N of these entries,
-      never N Readings (OPS-1305 evidence remodel). The row's assumptionIds is
+      never N Readings (the evidence-remodel slice evidence remodel). The row's assumptionIds is
       the projection of these entries' assumption references.
     composed_into: readings
     references: assumptions   # one assumption per beliefs[] entry
@@ -421,7 +421,7 @@ entities:
     body_headings: [Rationale, Alternatives considered]   # kept, terse; ## Decision and ## Source were promoted to fields / cut
 
   glossary:
-    description: The shared glossary (the ubiquitous-language discipline; only the register is "Glossary"). No Type field; Status has no Reversed. All properties, no body (OPS-1305) — the terminology check parses structure directly.
+    description: The shared glossary (the ubiquitous-language discipline; only the register is "Glossary"). No Type field; Status has no Reversed. All properties, no body (the evidence-remodel slice) — the terminology check parses structure directly.
     properties:
       - { name: Title, type: title, required: true }
       - { name: Status, type: select, options: vocabularies.glossary_status,
@@ -438,7 +438,7 @@ entities:
 # inverse. On backends that don't auto-sync, both ends are written explicitly
 # (integrity rule `two-way-relation-one-ended`). A Reading's `Source` is a
 # link PROPERTY to an artifact home, not a register relation — the artifact is
-# never a record (OPS-1183: reference, never mirror).
+# never a record (the reference-not-mirror rule: reference, never mirror).
 # ─────────────────────────────────────────────────────────────────────────────
 relations:
   - name: Depends on / Enables
@@ -480,7 +480,7 @@ relations:
     target: experiments
     cardinality: many-to-one
     nullable: true
-    meaning: The originating plan, as provenance. Null for bare/found readings. A reading has one origin type now — an Experiment or none; the Goal origin is gone (OPS-1305).
+    meaning: The originating plan, as provenance. Null for bare/found readings. A reading has one origin type now — an Experiment or none; the Goal origin is gone (the evidence-remodel slice).
 
 # The Experiment↔belief link is NOT a top-level relation: it is the composed
 # `bar_line` sub-structure (entities.bar_line, references: assumptions), realized
@@ -628,7 +628,7 @@ derived_views:
     Per experiment: readings-in vs the planned N across its bar lines — a
     derived progress meter, never stored, never auto-concluding. Surfaced as
     "planned N met — ready to conclude?" but always waits for a human act
-    (OPS-1305).
+    (the evidence-remodel slice).
   cycle_membership: >-
     The validation cycle(s) a belief is being tested in — the set of `Cycle`
     values of the (non-archived) Experiments whose bar lines name it. Derived
@@ -648,7 +648,7 @@ derived_views:
     Status = Live AND Confidence ≤ -50 — surfaced for a human kill verdict
     (integrity rule kill-zone-unreviewed), out of the test-next surface.
   next_move: >-
-    The dashboard front door's "what's my next move" ranking (OPS-1291 Model A;
+    The dashboard front door's "what's my next move" ranking (the next-move action vocabulary Model A;
     implemented once in packages/core derivation.rankNextMoves, computed fresh on
     read — a whole-set ordering, never stored, so it stays out of the on-write
     recompute). Ranks BELIEFS (not experiments — this is the belief-facing
@@ -666,7 +666,7 @@ derived_views:
     it → decide; kill lane → re-test / kill. A belief with evidence and a
     standing (Active/Provisional) decision on it is resolved and drops out. The
     front door names all acts but only score-impact / decide / re-test are human
-    step-in forms (OPS-1294); the rest are agent-run / visualised.
+    step-in forms (the step-in human action set); the rest are agent-run / visualised.
   proven_set: >-
     Status = Live AND the strongest (largest |Strength|) concluded linked
     Reading is Validated — "what we currently know"; provisional, always
@@ -675,10 +675,10 @@ derived_views:
     Seed Impact = 0 via a standing decision's Resolves assumption action —
     Derived Impact pins to 0, drops out of every ranking; reversal restores
     the prior Impact.
-  # Derived facets (OPS-1305) — display-only, NEVER stored. No field carries
+  # Derived facets (the evidence-remodel slice) — display-only, NEVER stored. No field carries
   # them and no rule forks on them; they exist so the dashboard can label a
   # reading/experiment without the operator setting the same fact twice. The
-  # display computation itself is the dashboard layer's (Spec B / OPS-1308).
+  # display computation itself is the dashboard layer's (Spec B / the redesigned-surfaces wiring).
   quant_qual: >-
     A reading entry's quant-vs-qual character, inferred from its beliefs[]
     entry's Rung + instrument (a system-number instrument at any rung reads
@@ -708,7 +708,7 @@ integrity_rules:
   - id: body-template-missing-heading
     severity: warn
     surfaced_by: ["/assumptions audit", "/decisions audit"]
-    check: A record is missing one of its type's verbatim body_headings. Experiments (## Method protocol / ## Closure rollup), Decisions (## Rationale / ## Alternatives considered), and Readings (## Quote / ## Source — the canonical reading body template, verbatim source text; reintroduced as a deliberate reversal of the OPS-1305 no-body slice) carry heading-structured bodies; assumptions and glossary have no body (OPS-1305). A Decision missing "## Rationale", or a Reading missing "## Quote"/"## Source", silently escapes checks — always flag it. Reading analysis/reasoning belongs in beliefs[].Grading justification, never the body.
+    check: A record is missing one of its type's verbatim body_headings. Experiments (## Method protocol / ## Closure rollup), Decisions (## Rationale / ## Alternatives considered), and Readings (## Quote / ## Source — the canonical reading body template, verbatim source text; reintroduced as a deliberate reversal of the the evidence-remodel slice no-body slice) carry heading-structured bodies; assumptions and glossary have no body (the evidence-remodel slice). A Decision missing "## Rationale", or a Reading missing "## Quote"/"## Source", silently escapes checks — always flag it. Reading analysis/reasoning belongs in beliefs[].Grading justification, never the body.
   - id: two-way-relation-one-ended
     severity: error
     surfaced_by: ["/assumptions audit", "/decisions audit"]
@@ -723,7 +723,7 @@ integrity_rules:
       quality (readings — Strength per beliefs[] entry, Source quality on the
       row) differs from recomputing its derivation (formula-less backends). All
       four assumption derivations are recomputed on every touching write
-      (OPS-1251), so a mismatch is a real defect — no field is stale by design.
+      (the derive-on-write invariant), so a mismatch is a real defect — no field is stale by design.
       A Derived Impact below its seed or > 100 is always a finding.
   - id: strength-not-gated
     severity: error
@@ -819,7 +819,7 @@ integrity_rules:
     check: >-
       Status = Live with Completeness % < 100, or Status = Draft at Completeness
       % = 100 with no open grill finding — the Draft ⇔ open-work invariant is
-      broken (OPS-1305, replacing the retired Gaps invariant). A Live row is
+      broken (the evidence-remodel slice, replacing the retired Gaps invariant). A Live row is
       structurally complete; a Draft has open work (an incomplete slot or an
       unresolved grill finding). Fix in a gated session.
   - id: incomplete-live
@@ -829,7 +829,7 @@ integrity_rules:
       A Live assumption at Completeness % < 100 — a missing structural slot
       (Description, Lens, Impact, Scoring justification, dependencies traced,
       Question Type). The write model blocks a Draft→Live promotion below 100
-      (write-time enforcement lands with the CRUD write slice, OPS-1256); the
+      (write-time enforcement lands with the CRUD write slice, the CRUD write slice); the
       audit confirms it meanwhile. A Draft may legally sit below 100.
   - id: unrolled-verdict
     severity: warn
@@ -871,7 +871,7 @@ integrity_rules:
     check: The same counterpart wired in both Related tension and Supersedes — once Supersedes is set, the tension is resolved (decision-guardrails.md §5).
 
   # Committed (Market-grade) experiments — the commitment discipline the Goal
-  # record used to carry, re-homed onto the unified Experiment (OPS-1305). These
+  # record used to carry, re-homed onto the unified Experiment (the evidence-remodel slice). These
   # surface or chase; none blocks a human from committing.
   - id: overdue-risk-acceptance
     severity: error

@@ -25,10 +25,10 @@ registers:
       - {canonical: Question Type, backend: question_type, type: TEXT, derived: false, options_source: registry-schema}
       - {canonical: Theme, backend: themes, type: JSON, derived: false, options_source: registry-schema}
       - {canonical: Impact, backend: impact, type: INTEGER, derived: false}
-      - {canonical: Derived Impact, backend: derived_impact, type: NUMERIC, derived: true, formula: "seed + (100 - seed) × S/(S + 100) over the dependency DAG, S = dependents' Derived Impact + 100 per standing decision Based on; experiments never contribute (assumption-guardrails.md §3); recomputed on every touching write (OPS-1251)"}
+      - {canonical: Derived Impact, backend: derived_impact, type: NUMERIC, derived: true, formula: "seed + (100 - seed) × S/(S + 100) over the dependency DAG, S = dependents' Derived Impact + 100 per standing decision Based on; experiments never contribute (assumption-guardrails.md §3); recomputed on every touching write (the derive-on-write invariant)"}
       - {canonical: Risk, backend: risk, type: NUMERIC, derived: true, formula: "derived_impact * (1 - max(0, confidence) / 100); skill-computed"}
       - {canonical: Confidence, backend: confidence, type: NUMERIC, derived: true, formula: "signed weighted average of concluded reading_beliefs entries scored against this row, wi=|si|×source_quality×commitmentFactor (1.0 if the entry's reading has experiment_id else 0.85; never reorders rungs), neutral prior w0=100, deduped per (belief, source) (experiment-guardrails.md §2); skill-computed"}
-      - {canonical: Completeness %, backend: completeness, type: NUMERIC, derived: true, formula: "filled slots / all slots × 100 over six structural slots: description, lens, impact, scoring_justification, dependencies traced (≥1 assumption_dependencies row), question_type; replaces the retired gaps/presence-field machinery (OPS-1305); skill-computed"}
+      - {canonical: Completeness %, backend: completeness, type: NUMERIC, derived: true, formula: "filled slots / all slots × 100 over six structural slots: description, lens, impact, scoring_justification, dependencies traced (≥1 assumption_dependencies row), question_type; replaces the retired gaps/presence-field machinery (the evidence-remodel slice); skill-computed"}
       - {canonical: Status, backend: status, type: TEXT, derived: false, options_source: registry-schema}
       - {canonical: Owner, backend: owner, type: TEXT, derived: false, options_source: vocabulary.dashboard_users}
       - {canonical: Scoring justification, backend: scoring_justification, type: TEXT, derived: false}
@@ -167,10 +167,10 @@ sql:
   `experiments` and `decisions` carry a `body` with their canonical `##`
   section headings; `readings` carry a `body` on the canonical **`## Quote`
   (verbatim what the source said/did) + `## Source` (who/when/link)** template —
-  one per reading, reintroduced as a deliberate reversal of the OPS-1305
+  one per reading, reintroduced as a deliberate reversal of the the evidence-remodel slice
   no-body slice, backfilled from Notion and shown in the dashboard; analysis
   stays out of the body (it lives in `reading_beliefs.grading_justification`).
-  `assumptions` and `glossary` have no body column at all (`OPS-1305`).
+  `assumptions` and `glossary` have no body column at all (`the evidence-remodel slice`).
 - Multi-value scalar fields (themes, agreed_by, context_links, avoid) are JSON
   arrays in a `JSON` column (`TEXT` holding JSON where the engine has no JSON
   type).
@@ -202,7 +202,7 @@ sql:
 - `owner` and `agreed_by` are `dashboard_user` references (the auth-sourced
   team list from `vocabulary.dashboard_users`), not free text and not a
   foreign key to their own table — the retired `people` table had no
-  replacement table (`OPS-1305`).
+  replacement table (`the evidence-remodel slice`).
 - Derived columns should have a `COMMENT` (or inline docs) indicating they are
   computed.
 
@@ -231,7 +231,7 @@ sql:
 There is no stored `Experiments` relation on this table. "Which experiments
 test this belief" is a query over `experiment_bar_lines.assumption_id`
 joined back to `experiments` — never a stored column here. There is no
-`body` column on this table (`OPS-1305`) — the retired `five_whys`,
+`body` column on this table (`the evidence-remodel slice`) — the retired `five_whys`,
 `metric_for_truth`, and `gaps` columns, and the `## Provenance & notes` body,
 are gone.
 
@@ -241,7 +241,7 @@ are gone.
 dependents' Derived Impact plus 100 per standing decision naming the row via
 `Based on assumption`; experiments never contribute. Recomputed on every
 touching write alongside `risk`/`confidence`/`completeness` — no deliberate
-staleness (`OPS-1251`; `assumption-guardrails.md §3`).
+staleness (`the derive-on-write invariant`; `assumption-guardrails.md §3`).
 - `risk` = `derived_impact * (1 - max(0, confidence) / 100)`.
 - `confidence` is the signed weighted average of concluded `reading_beliefs`
 entries scored against this row (deduped per (belief, source); each entry's
@@ -252,7 +252,7 @@ term that never reorders rungs), with neutral prior `w0 = 100`
 - `completeness` = filled slots / all slots × 100, over five structural
 slots: `description`, `lens`, `impact`, `scoring_justification`, dependencies
 traced (≥1 `assumption_dependencies` row). Replaces the retired
-`gaps`/presence-field machinery (`OPS-1305`).
+`gaps`/presence-field machinery (`the evidence-remodel slice`).
 - Skills recompute and rewrite `risk`, `confidence`, and `completeness` on
 every touching write; never hand-edit.
 
@@ -278,7 +278,7 @@ Readings a run produces. It bundles one-or-more beliefs through bar lines
 | Body | `body` | TEXT (Markdown; `## Method protocol`, `## Closure rollup`) | no |
 
 `Instrument` is a reference to an interview, a dataset, an analytics cohort,
-or a payment event (broadened with the unification, `OPS-1305`, to cover the
+or a payment event (broadened with the unification, `the evidence-remodel slice`, to cover the
 instruments a Goal used to carry). `Closure reason` is null while
 `Status IN ('Draft', 'Running', 'Archived')` — only a `Closed` run has one.
 `Archived` is a Draft/Running plan retired without concluding (shelved out of
@@ -341,7 +341,7 @@ output of concluding a committed experiment (and it must reference a
 live/non-archived experiment — `reading-orphaned-experiment`)**, unset means a
 bare/found Reading — the `goal_id` column is gone. The table **carries a `body`**
 on the canonical **`## Quote` + `## Source`** template (verbatim source text) —
-a deliberate reversal of the OPS-1305 no-body slice (backfilled from Notion,
+a deliberate reversal of the the evidence-remodel slice no-body slice (backfilled from Notion,
 shown in the dashboard); analysis stays out of the body — the per-belief
 `grading_justification` (scoring rationale) lives on `reading_beliefs`, and
 `## Notes` is cut.
@@ -410,7 +410,7 @@ first-class columns; `## Source` is cut outright — it only mirrored the
 
 Its own table (renamed from Terminology). **No `type` column.** `status` has
 no `Reversed` — a term is superseded by a better one, never reversed. All
-columns, no body (`OPS-1305`).
+columns, no body (`the evidence-remodel slice`).
 
 | Canonical field | SQL column | Type | Derived |
 |---|---|---|---|
@@ -545,7 +545,7 @@ from `readings`; **keep `rung` and `magnitude_band` as row-level columns on
 `source`/`representativeness`/`credibility`/`source_quality`/`experiment_id`.
 **Add a `body` column to `readings` and backfill it** on the `## Quote` +
 `## Source` template from the Notion verbatim quote/excerpt (the reintroduced
-reading body, reversing the OPS-1305 cut for readings). Promote each decision's `## Decision` body to `statement`
+reading body, reversing the the evidence-remodel slice cut for readings). Promote each decision's `## Decision` body to `statement`
 and its unanimity rationale to `unanimity_justification`, dropping the
 `## Source` section from `body`; move each glossary row's body headings into
 `definition`/`avoid`/`how_it_differs`, dropping the `body` column.

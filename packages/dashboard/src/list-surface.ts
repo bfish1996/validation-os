@@ -1,5 +1,5 @@
 /**
- * The list-surface view-model (OPS-1287) — the pure shaped-query layer above the
+ * The list-surface view-model (the list-surface saved views) — the pure shaped-query layer above the
  * flat `RegisterTable`. Given a register's records (plus, for the cross-register
  * views, the other registers), it computes the canonical derived-view tabs, the
  * group-by boards, the filtered/sorted rows, the readings-under-plan nesting, and
@@ -105,7 +105,7 @@ interface InternalTab extends TabDef {
 
 /** Proven (ontology derived view): a Live belief whose strongest concluded
  * belief-score across its readings is Validated. A reading scores per belief
- * now (OPS-1305), so both the strength and the verdict are read off this
+ * now (the evidence-remodel slice), so both the strength and the verdict are read off this
  * belief's own entry in each reading's `beliefs[]`, not the retired row scalars. */
 function isProven(a: AnyRecord, ctx: RegisterContext): boolean {
   if (str(a.Status) !== "Live") return false;
@@ -237,7 +237,7 @@ const TAB_CATALOGUE: Record<Collection, InternalTab[]> = {
   ],
   glossary: [
     // The migrated glossary carries no area/theme axis, so the prototype's
-    // "By-area" tab folds into A–Z plus the status views (OPS-1305 schema).
+    // "By-area" tab folds into A–Z plus the status views (the evidence-remodel slice schema).
     {
       id: "a-z",
       label: "A–Z",

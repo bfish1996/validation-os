@@ -10,7 +10,7 @@ signup, signature, or payment-intent — not stated enthusiasm.
 > plan**: its two bars, `Deadline`, and instrument named in advance are set
 > through `references/commitment-discipline.md`
 > (`../../../docs/goals.md`), the same skill's own commitment discipline —
-> there is no separate Goal record to hand off to (`OPS-1305`). **This
+> there is no separate Goal record to hand off to (`the evidence-remodel slice`). **This
 > playbook specs the instrument** — the stimulus, the costly ask, and the
 > instrumentation — that the plan's instrument line points at.
 

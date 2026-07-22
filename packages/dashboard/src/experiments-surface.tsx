@@ -8,7 +8,7 @@ import { Breadcrumb } from "./breadcrumb.js";
 import { ConfidenceDonut } from "./confidence-donut.js";
 
 /**
- * The Experiments nav surface (DEV-5881): the live evidence plans list, with
+ * The Experiments nav surface (the nav-surface redesign): the live evidence plans list, with
  * bigger rows carrying a donut gauge + bar-line stats. Each row is a button;
  * clicking opens the evidence-first ExperimentDetail. When the workspace runs
  * cycles, the list defaults to the current round (`currentCycle`) with a

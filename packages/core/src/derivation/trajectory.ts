@@ -1,6 +1,6 @@
 /**
  * Confidence over time — the story of how the number got where it is
- * (OPS-1276). At each date a concluded reading was dated, we recompute
+ * (the understanding layer). At each date a concluded reading was dated, we recompute
  * Confidence over every concluded reading up to and including that date, using
  * the very same `confidence()` the derived box uses (so the last point equals
  * the hero number). Undated concluded readings have no place on the timeline

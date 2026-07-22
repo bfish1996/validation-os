@@ -1,5 +1,5 @@
 /**
- * Confidence explainer (DEV-5879) — a user-facing breakdown of how an
+ * Confidence explainer (the dashboard frontend redesign) — a user-facing breakdown of how an
  * assumption's Confidence is calculated, showing the formula, the per-rung
  * W0 priors, the assumption-type-aware rung ladder with anchors, and what
  * each piece of evidence contributes. The numbers come from the same
@@ -105,7 +105,7 @@ export function buildConfidenceExplainer(
   const comp = buildEvidenceComposition(assumption, readings);
   const lens = str(assumption.Lens) ?? "";
   const lensRungs = new Set(comp.rungs.map((r) => r.rung));
-  // OPS-1406: read the assumption's Assumption Type so anchors come from the
+  // the confidence-scoring simplification: read the assumption's Assumption Type so anchors come from the
   // right sub-ladder.
   const rawType = str(assumption["Assumption Type"]);
   const assumptionType: AssumptionType =

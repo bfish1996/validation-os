@@ -14,7 +14,7 @@ import {
   type Rung,
 } from "../types.js";
 
-// The rung vocabulary locked by DEV-5879 (carried into DEV-5890 / OPS-1406). The rung
+// The rung vocabulary locked by the dashboard frontend redesign (carried into the question-type-aware evidence ladder / the confidence-scoring simplification). The rung
 // vocabulary is fixed across all sub-ladders; only the anchors vary by
 // assumption type.
 const ALL_RUNGS: Rung[] = [...RUNGS] as Rung[];
@@ -22,7 +22,7 @@ const ALL_RUNGS: Rung[] = [...RUNGS] as Rung[];
 // Every band the anchor table addresses.
 const BANDS = ["Low", "Typical", "High"] as const;
 
-describe("OPS-1406 assumption-type-aware ladder — vocabulary", () => {
+describe("the confidence-scoring simplification assumption-type-aware ladder — vocabulary", () => {
   it("exposes exactly the 11 assumption types", () => {
     expect([...ASSUMPTION_TYPES].sort()).toEqual(
       [
@@ -60,7 +60,7 @@ describe("OPS-1406 assumption-type-aware ladder — vocabulary", () => {
   });
 });
 
-describe("OPS-1406 — 3D anchor table shape", () => {
+describe("the confidence-scoring simplification — 3D anchor table shape", () => {
   it("RUNG_ANCHOR carries one sub-ladder per assumption type", () => {
     for (const t of ASSUMPTION_TYPES) {
       expect(RUNG_ANCHOR[t]).toBeDefined();
@@ -193,7 +193,7 @@ describe("OPS-1406 — 3D anchor table shape", () => {
   });
 });
 
-describe("OPS-1406 — per-rung W0 is retained (within-sub-ladder learning rate)", () => {
+describe("the confidence-scoring simplification — per-rung W0 is retained (within-sub-ladder learning rate)", () => {
   it("Talk W0 = 6.5 (10 readings → ~90% of cap)", () => {
     expect(w0ForRung("Talk")).toBe(6.5);
     expect(W0_BY_RUNG["Talk"]).toBe(6.5);

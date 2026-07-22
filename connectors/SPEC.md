@@ -67,7 +67,7 @@ in `connectors/<name>-schema.md`.
 A workspace whose register is served by a deployed dashboard may set
 `dashboard_url` at the top level of `validation-os.config.yaml` — the deployed
 dashboard's origin (scheme + host, no path, no trailing slash), e.g.
-`https://registry.doshi.ai`. Skills read it to build **deep links** to records
+`https://dashboard.example.invalid`. Skills read it to build **deep links** to records
 by appending the dashboard's hash route: `DASHBOARD_URL#assumption/<id>`,
 `DASHBOARD_URL#experiment/<id>`, `DASHBOARD_URL#reading/<id>`, where
 `DASHBOARD_URL` is the configured `dashboard_url` value. The hash routes are

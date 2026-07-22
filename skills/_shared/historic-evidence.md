@@ -15,7 +15,7 @@ artifact becomes **one Reading carrying a `beliefs[]` entry per belief it
 addresses** — **bare** by default (`experimentId` null, no Experiment
 origin) — with each entry's `Result` set once at logging to the outcome the
 evidence already produced (Validated / Invalidated / Inconclusive; a Reading
-has no other state, `OPS-1305`). The linked assumptions' `Confidence` then
+has no other state, `the evidence-remodel slice`). The linked assumptions' `Confidence` then
 rolls up on its own.
 
 This is the **retrospective sibling of `/experiment-design`**. That skill
@@ -46,7 +46,7 @@ assumption:                     # the record the evidence attaches to
   id:               <record id>
   description:      <string>    # the atomic, falsifiable claim — evidence is
                                  # judged against THIS directly (no stored
-                                 # `Metric for truth` field, `OPS-1305`)
+                                 # `Metric for truth` field, `the evidence-remodel slice`)
   lens:             <from config vocabulary.lens>  # who the evidence must come from
   confidence:       <current>   # so the caller can report before/after
 gate_mode:  interactive | autonomous  # confirm each record, or run-log instead

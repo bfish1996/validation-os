@@ -4,7 +4,7 @@ import { useList } from "./use-records.js";
 import { Breadcrumb } from "./breadcrumb.js";
 
 /**
- * The Readings nav surface (DEV-5881): the evidence log list, sorted by date
+ * The Readings nav surface (the nav-surface redesign): the evidence log list, sorted by date
  * desc. Each row is a button with the reading's date + title + a "exp"/"found"
  * tag + the belief count; clicking opens the per-belief ReadingDetail.
  */

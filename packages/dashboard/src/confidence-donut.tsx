@@ -1,5 +1,5 @@
 /**
- * A confidence donut gauge (DEV-5882 redesign) — a minimal ring gauge that
+ * A confidence donut gauge (the recommended-experiments + donut redesign redesign) — a minimal ring gauge that
  * fills from 12 o'clock clockwise, proportional to the value (0–100, 50 = neutral).
  * The stroke is deliberately thin so the gauge reads as a subtle status
  * accent, not a pie chart. A larger centered number dominates the interior.

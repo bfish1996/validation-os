@@ -1,7 +1,7 @@
 /*
  * @validation-os/dashboard — the dashboard's own styling.
  *
- * The styling seam (OPS-1280): the package ships this token sheet + the
+ * The styling seam (the mountable dashboard app): the package ships this token sheet + the
  * semantic classes its components render, so the whole dashboard is
  * self-contained. A thin instance imports it once
  * (`import "@validation-os/dashboard/styles.css"`) and provides no Tailwind, no
@@ -412,7 +412,7 @@
   font-size: 12.5px;
 }
 
-/* A ready-to-copy command block (Connect Claude Code, OPS-1349). */
+/* A ready-to-copy command block (Connect Claude Code, the Connect Claude Code page). */
 .vos-code {
   font-family: var(--vos-mono);
   font-size: 12.5px;
@@ -1057,7 +1057,7 @@ textarea.vos-input {
   opacity: 0.8;
 }
 
-/* ── portfolio pipeline (OPS-1300) ─────────────────────────────────────── */
+/* ── portfolio pipeline (the portfolio pipeline overview) ─────────────────────────────────────── */
 
 /* headline: the one burn-up reading, a single meter (not a chart) */
 .vos-pipe-hero {
@@ -1474,7 +1474,7 @@ textarea.vos-input {
   }
 }
 
-/* ── front door: "next move" (OPS-1304) ────────────────────────────────── */
+/* ── front door: "next move" (the front-door build) ────────────────────────────────── */
 .vos-next {
   display: flex;
   flex-direction: column;
@@ -1576,7 +1576,7 @@ textarea.vos-input {
   flex-direction: column;
   gap: 4px;
 }
-/* ── Record page (OPS-1286) ──────────────────────────────────────────────── */
+/* ── Record page (the canonical record page) ──────────────────────────────────────────────── */
 .vos-record-head {
   align-items: flex-start;
 }
@@ -1873,7 +1873,7 @@ textarea.vos-input {
   border-radius: var(--vos-radius);
 }
 
-/* ── List surface: tabs, controls, groups (OPS-1287) ─────────────────────── */
+/* ── List surface: tabs, controls, groups (the list-surface saved views) ─────────────────────── */
 .vos-tabs {
   display: flex;
   flex-wrap: wrap;
@@ -2011,7 +2011,7 @@ textarea.vos-input {
   color: var(--vos-muted);
 }
 
-/* ── Glossary auto-linking (OPS-1285) ─────────────────────────────────────── */
+/* ── Glossary auto-linking (the glossary auto-linking) ─────────────────────────────────────── */
 /* A dotted inline link; its definition-preview popover shows on hover/focus. */
 .vos-gloss {
   position: relative;
@@ -2092,7 +2092,7 @@ textarea.vos-input {
   border-color: var(--vos-accent);
   color: var(--vos-accent-text);
 }
-/* ── Per-belief journey: the rail + story (OPS-1330) ─────────────────────── */
+/* ── Per-belief journey: the rail + story (the journey rail + story UI) ─────────────────────── */
 .vos-jny {
   padding: 16px 18px;
   margin-bottom: 16px;
@@ -2320,7 +2320,7 @@ textarea.vos-input {
   color: var(--vos-text);
 }
 
-/* ── Cycles: the loop, round by round (OPS-1347) ─────────────────────────── */
+/* ── Cycles: the loop, round by round (the round-by-round cycles) ─────────────────────────── */
 .vos-cyc-list {
   display: flex;
   gap: 10px;
@@ -2391,7 +2391,7 @@ textarea.vos-input {
   height: 7px;
 }
 
-/* ── Cross-surface cold start (OPS-1331) ────────────────────────────────── */
+/* ── Cross-surface cold start (the cross-surface cold-start) ────────────────────────────────── */
 /* The shared first-run onboarding line — one tone across the two top-level
  * surfaces (next + pipeline). Neutral text on a faint accent wash, so it
  * reads as an invitation, not a status. */
@@ -2482,7 +2482,7 @@ textarea.vos-input {
   color: var(--vos-accent-text);
 }
 
-/* ── Evidence remodel (OPS-1305): body Markdown, per-belief verdicts, chips ── */
+/* ── Evidence remodel (the evidence-remodel slice): body Markdown, per-belief verdicts, chips ── */
 
 /* Markdown prose (a reading's quote / an experiment's narrative). */
 .vos-md {
@@ -2865,7 +2865,7 @@ button.vos-verdict-title {
   padding: 20px 22px;
 }
 
-/* ── DEV-5879 redesign: unified nav, pipeline board, evidence-first details ── */
+/* ── the dashboard frontend redesign redesign: unified nav, pipeline board, evidence-first details ── */
 
 /* Segmented toggle (Grid / View all) — compact, right-aligned in header */
 .vos-seg { display: inline-flex; gap: 0; border: 1px solid var(--vos-border); border-radius: 6px; overflow: hidden; align-self: center; }
@@ -3100,7 +3100,7 @@ button.vos-verdict-title {
 .vos-belief-card-coincidental { background: var(--vos-surface-2); border-style: dashed; }
 .vos-belief-bar-coincidental { border-left-style: dashed; }
 
-/* ── DEV-5879 polish pass: donut, evidence list, next-moves, grid, glossary ── */
+/* ── the dashboard frontend redesign polish pass: donut, evidence list, next-moves, grid, glossary ── */
 
 /* Confidence donut gauge — minimal thin ring, large centered number. */
 .vos-donut { position: relative; display: inline-grid; place-items: center; flex-shrink: 0; }
@@ -3434,7 +3434,7 @@ button.vos-verdict-title {
 /* Topbar: hide the backend + agent indicators (clean header) */
 .vos-backend, .vos-hint:has(.vos-live-dot) { display: none !important; }
 
-/* ── DEV-5890: Question Type filter tabs + heat legend ─────────────────── */
+/* ── the question-type-aware evidence ladder: Question Type filter tabs + heat legend ─────────────────── */
 .vos-qt-filter-bar {
   display: flex;
   gap: 4px;
@@ -3494,7 +3494,7 @@ button.vos-verdict-title {
 .vos-heat-swatch.vos-heat-3 { background: rgba(214, 69, 80, 0.6); }
 .vos-heat-swatch.vos-heat-4 { background: rgba(214, 69, 80, 0.85); }
 
-/* ── DEV-5890: Question Type + stage threshold tags ────────────────────── */
+/* ── the question-type-aware evidence ladder: Question Type + stage threshold tags ────────────────────── */
 .vos-pipe-tag {
   font-size: 9px;
   padding: 1px 5px;
@@ -3510,7 +3510,7 @@ button.vos-verdict-title {
 .vos-pipe-tag-needs { color: var(--vos-warn); border-color: var(--vos-warn); }
 .vos-detail-tag-qt { border-color: var(--vos-accent); color: var(--vos-accent); }
 
-/* Stage-keyed evidence bar (assumption detail, DEV-5890) — a single
+/* Stage-keyed evidence bar (assumption detail, the question-type-aware evidence ladder) — a single
    Confidence bar that fills UP toward the stage's floor marker. The target
    zone above the marker is tinted to show "this is where you need to be."
    Maturity's marker is at 60% (hard to reach); Discovery's is at 10% (easy). */
@@ -3707,7 +3707,7 @@ button.vos-verdict-title {
   white-space: nowrap;
 }
 
-/* ── Assumptions workspace surface (OPS-1407) ────────────────────────────── */
+/* ── Assumptions workspace surface (the experiment-first assumptions workspace) ────────────────────────────── */
 
 .vos-ws-groups { display: flex; flex-direction: column; gap: 12px; }
 .vos-ws-group { padding: 0; overflow: hidden; }

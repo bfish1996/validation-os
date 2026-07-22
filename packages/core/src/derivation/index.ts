@@ -106,7 +106,7 @@ export type {
   JourneyEventKind,
   JourneyExperimentInput,
 } from "./journey.js";
-// OPS-1406 — graduation + risk group + cost tier
+// the confidence-scoring simplification — graduation + risk group + cost tier
 export {
   graduationBar,
   graduationState,

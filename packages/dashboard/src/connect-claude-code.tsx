@@ -2,7 +2,7 @@ import { useState } from "react";
 import { composeConnectCommand } from "./connect.js";
 
 /**
- * The "Connect Claude Code" page (OPS-1349). A person already signed into the
+ * The "Connect Claude Code" page (the Connect Claude Code page). A person already signed into the
  * dashboard mints a personal token and gets one ready-to-paste command that
  * points their own Claude Code at this hosted register.
  *

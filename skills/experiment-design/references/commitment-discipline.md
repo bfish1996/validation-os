@@ -3,7 +3,7 @@
 Fires when step 2 of the main gauntlet lands on a **Market rung**
 (`Signed intent` / `Paying users`) for a bundled belief. A Market-rung design
 is not a different record — the Goal record was unified into the Experiment
-(`OPS-1305`) — it is the **same Experiment row**, carrying an optional
+(`the evidence-remodel slice`) — it is the **same Experiment row**, carrying an optional
 `Deadline` and closing with an `Outcome` (Achieved / Missed / Dropped). This
 file is the discipline that fires on that one trigger: **rung, not a
 separate record type.**

@@ -1,5 +1,5 @@
 /**
- * Renders prose with glossary terms auto-linked (OPS-1285). A thin wrapper over
+ * Renders prose with glossary terms auto-linked (the glossary auto-linking). A thin wrapper over
  * the pure `linkify` view-model: it turns the node list into text runs and
  * dotted inline links, each with a hover/focus definition-preview popover
  * (definition + status pill + "don't confuse with" neighbour chips, the chips

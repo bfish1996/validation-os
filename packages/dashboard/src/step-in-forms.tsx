@@ -8,10 +8,10 @@ import { useCreate, useLink } from "./use-mutations.js";
 import { useUpdate } from "./use-records.js";
 
 /**
- * The human step-in set (OPS-1294): score impact, write decision, and edit the
+ * The human step-in set (the step-in human action set): score impact, write decision, and edit the
  * belief — the small edits a founder makes on the review surface there and then,
  * not where validating happens. The reading form lives with the evidence, and
- * there is deliberately no experiment-design form here (OPS-1297).
+ * there is deliberately no experiment-design form here (the step-in-is-story-only rule).
  *
  * All three ride the shared `DrawerShell` chrome and write through the
  * Clerk-gated API, which recomputes the derived numbers on write — so the hero's
@@ -37,7 +37,7 @@ export interface ScoreImpactFormProps {
 
 /**
  * Score a belief's Impact — a real input (a slider tied to a number), not a bare
- * cell edit (OPS-1294). Impact is the one hand-scored number Risk propagates
+ * cell edit (the step-in human action set). Impact is the one hand-scored number Risk propagates
  * from, so scoring it is what lets an unweighted belief take its place in the
  * ranking. The optional justification records *why* that weight.
  */
@@ -160,7 +160,7 @@ export interface EditBeliefFormProps {
 }
 
 /**
- * Edit the bet itself — the assumption-edit half of the OPS-1294 step-in set,
+ * Edit the bet itself — the assumption-edit half of the the step-in human action set step-in set,
  * reached from the journey story's `bet` event. It renders the register's
  * editable fields from the same schema the drawer uses (`EditFields`), so the
  * two never drift, and writes only the fields actually changed: the patch is
@@ -245,7 +245,7 @@ export interface WriteDecisionFormProps {
 }
 
 /**
- * Write a decision against a belief (OPS-1294) — create the Decision record and
+ * Write a decision against a belief (the step-in human action set) — create the Decision record and
  * wire it to the belief in one step, honouring the method's `based on` vs
  * `resolves` split: a decision that *rests on* a belief keeps the question open
  * (rationale); one that *resolves* it retires the question without a test

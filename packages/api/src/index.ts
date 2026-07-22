@@ -41,7 +41,7 @@ export interface AuthResult {
 /**
  * One team member the register recognises — the `vocabulary.dashboard_users`
  * entry. `authSubject` is the IdP-neutral mapping a caller's token subject
- * resolves through; `name` is what lands in `Owner` / `Agreed by` (OPS-1343).
+ * resolves through; `name` is what lands in `Owner` / `Agreed by` (the membership gate).
  */
 export interface DashboardUser {
   name: string;
@@ -222,7 +222,7 @@ export function createApi(options: CreateApiOptions): ValidationOsApi {
   const memberNames = new Set(options.roster.map((u) => u.name));
 
   /**
-   * The membership gate (OPS-1343): a request with no/invalid token is a 401;
+   * The membership gate (the membership gate): a request with no/invalid token is a 401;
    * a valid token whose subject is on no roster entry is a 403. Returns the
    * resolved member — one lookup is both gate and identity source.
    */
@@ -242,7 +242,7 @@ export function createApi(options: CreateApiOptions): ValidationOsApi {
 
   /**
    * Fetch the assumptions register as an id → record map, for inline Strength
-   * derivation on reading writes (DEV-5890: Strength is keyed by the linked
+   * derivation on reading writes (the question-type-aware evidence ladder: Strength is keyed by the linked
    * assumption's Question Type).
    */
   async function assumptionsByIdFor(
@@ -304,7 +304,7 @@ export function createApi(options: CreateApiOptions): ValidationOsApi {
           data = { ...data, Owner: [name] };
         }
         if (register === "readings") {
-          // DEV-5890: Strength is keyed by the linked assumption's Question
+          // the question-type-aware evidence ladder: Strength is keyed by the linked assumption's Question
           // Type — look it up so the inline-stamped Strength is correct from
           // the first write (the recompute pass still backstops on every
           // touching write).
@@ -403,7 +403,7 @@ export function createApi(options: CreateApiOptions): ValidationOsApi {
 }
 
 class Unauthorized extends Error {}
-/** Authenticated, but the subject resolves to no roster member (OPS-1343). */
+/** Authenticated, but the subject resolves to no roster member (the membership gate). */
 class Forbidden extends Error {}
 
 function handle(e: unknown): Response {

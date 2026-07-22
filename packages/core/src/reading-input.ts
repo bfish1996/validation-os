@@ -12,7 +12,7 @@
  * derivation input per belief, stamping the row-level fields onto each and
  * pairing the row rung with that belief's own Result.
  *
- * OPS-1406: each belief input also carries the linked assumption's
+ * the confidence-scoring simplification: each belief input also carries the linked assumption's
  * `assumptionType`, looked up from the assumption register via the optional
  * `assumptionsById` map. The type sets the anchor sub-ladder
  * (`RUNG_ANCHOR[assumptionType][rung][band]`). When the map is absent or a

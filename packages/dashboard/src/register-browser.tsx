@@ -40,7 +40,7 @@ export interface RegisterBrowserProps {
 
 /**
  * Which context registers a register's derived-view tabs — and the record
- * drawer's relation-field/bar-line links (OPS-1345) — read. `assumptions` is
+ * drawer's relation-field/bar-line links (the record-page rendering fix) — read. `assumptions` is
  * also needed on `experiments` (a bar line's `assumptionId`) and `readings`
  * (its own `assumptionId`), not just `decisions` (`Based on`/`Resolves`).
  */
@@ -61,7 +61,7 @@ function contextNeeds(register: Collection): {
 
 /**
  * The browse-create-edit surface for one register. Above the flat table sits the
- * list-surface (OPS-1287): canonical derived-view tabs (a curated default first),
+ * list-surface (the list-surface saved views): canonical derived-view tabs (a curated default first),
  * a group-by board (assumptions by Lens / Theme / Risk band / Status / Owner),
  * free-text search and sort, readings nested under their evidence plan, and a
  * count badge on the states that need a human. Everything visible is computed by
@@ -145,7 +145,7 @@ export function RegisterBrowser({
     return n > 0 ? n : null;
   };
 
-  // The drawer's relation/bar-line links (OPS-1345) read the same context
+  // The drawer's relation/bar-line links (the record-page rendering fix) read the same context
   // registers the derived-view tabs already loaded above — one fetch, two
   // consumers, never the other end of a link is left unresolved.
   const related: RelatedSet = {
@@ -155,7 +155,7 @@ export function RegisterBrowser({
     decisions: ctx.decisions,
   };
 
-  // Assumption id → title, so a reading row's belief chips (OPS-1305) read as
+  // Assumption id → title, so a reading row's belief chips (the evidence-remodel slice) read as
   // titles. Loaded already for the readings register (see `contextNeeds`).
   const assumptionTitles = new Map(
     (ctx.assumptions ?? []).map((a) => [a.id, primaryLabel(a)]),

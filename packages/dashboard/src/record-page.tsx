@@ -45,7 +45,7 @@ export interface RecordPageProps {
 }
 
 /**
- * The record page's own edit affordance (OPS-1346) — genuine hand-input
+ * The record page's own edit affordance (the seed-Impact edit affordance) — genuine hand-input
  * fields only (seed Impact chief among them), wired through the same
  * `edit.ts`/`EditFields`/`useUpdate` seam the drawer uses. Bundled into one
  * prop so `RecordBody` doesn't grow a dozen individual callbacks.
@@ -81,7 +81,7 @@ const PILL_CLASS: Record<Tone, string> = {
 };
 
 /**
- * The canonical full record page (OPS-1286) — promoted from the enriched drawer
+ * The canonical full record page (the canonical record page) — promoted from the enriched drawer
  * to the one place a record lives, reachable identically from a table, a
  * backlink or a search (story 12). It loads the registers once (the related set
  * every panel reads), resolves which register the id belongs to, and renders the
@@ -89,7 +89,7 @@ const PILL_CLASS: Record<Tone, string> = {
  * scores as meters with a "Why?" attribution (reusing the understanding layer),
  * the genuine human-input free text (glossary auto-linked), backlink panels
  * grouped by relation with score chips, and a history/audit view. A belief's
- * page also hosts the per-belief journey (built by the OPS-1289 map).
+ * page also hosts the per-belief journey (built by the the per-belief journey map map).
  */
 export function RecordPage({
   recordId,
@@ -128,7 +128,7 @@ export function RecordPage({
     }
   }
 
-  // The per-belief journey (OPS-1330) — only a belief travels the loop, so this
+  // The per-belief journey (the journey rail + story UI) — only a belief travels the loop, so this
   // is null for any other register. "Now" is supplied here so the view-model
   // stays pure (it never reads a clock); the story's last event is today.
   const journey = useMemo(() => {
@@ -156,7 +156,7 @@ export function RecordPage({
   const terms = toGlossaryTerms(related.glossary ?? []);
   const openTerm = (id: string) => onNavigate({ name: "record", id });
 
-  // Editing (OPS-1346): the record page's own edit affordance for genuine
+  // Editing (the seed-Impact edit affordance): the record page's own edit affordance for genuine
   // hand-input fields — seed Impact on an assumption above all (the only
   // hand-scored number, `registry-schema.md`). Same edit/patch/save seam the
   // drawer uses (`edit.ts`, `EditFields`, `useUpdate`), so the two surfaces
@@ -514,7 +514,7 @@ function RecordBody({
           <h3 className="vos-section-title">Validation journey</h3>
           <p className="vos-hint">
             The per-belief journey (Framed → Planned → Tested → Known) mounts here
-            — built by the workflow-first map (OPS-1289). This page is its host.
+            — built by the workflow-first map (the per-belief journey map). This page is its host.
           </p>
         </section>
       ) : null}
@@ -713,7 +713,7 @@ function EvidenceTab({
   }
 
   // Experiments: bar lines + readings nested under this plan. Each bar line
-  // is resolved against the loaded assumptions (OPS-1345) so it links the
+  // is resolved against the loaded assumptions (the record-page rendering fix) so it links the
   // belief's title, never its bare `assumptionId`.
   const bars = resolveBarLines(
     (record.barLines as BarLine[] | undefined) ?? [],
@@ -769,7 +769,7 @@ function EvidenceTab({
                   onClick={() => onOpenRecord(r.id)}
                 >
                   <span className="vos-backlink-title">{formatValue(r.Title)}</span>
-                  {/* A reading grades per belief now (OPS-1305) — the verdict is
+                  {/* A reading grades per belief now (the evidence-remodel slice) — the verdict is
                       no longer a row scalar; open the reading for its verdicts.
                       The chip shows how many beliefs it scored. */}
                   <span className="vos-chip vos-pill vos-pill-neutral">

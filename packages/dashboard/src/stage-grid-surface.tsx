@@ -37,7 +37,7 @@ import { useList } from "./use-records.js";
  * Lazy-loads the assumption register and derives everything through the pure
  * `buildStageGrid` view-model — no number is computed here (spec: explain
  * from inputs). Clicking a belief in the drill-through routes to that
- * belief's record page (OPS-1298), the review surface where step-in happens.
+ * belief's record page (the nav/IA shell), the review surface where step-in happens.
  */
 export interface StageGridSurfaceProps {
   basePath?: string;

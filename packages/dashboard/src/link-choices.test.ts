@@ -18,7 +18,7 @@ describe("linkChoicesFrom", () => {
     const choices = linkChoicesFrom("readings");
     const experiment = choices.find((c) => c.relation === "reading-experiment");
     expect(experiment?.targetRegister).toBe("experiments");
-    // The reading-goal edge is gone (OPS-1305) — a reading's only origin is an
+    // The reading-goal edge is gone (the evidence-remodel slice) — a reading's only origin is an
     // experiment or none.
     expect(choices.some((c) => c.relation === ("reading-goal" as string))).toBe(
       false,

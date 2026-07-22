@@ -3,7 +3,7 @@ import type { Collection } from "@validation-os/core";
 import type { SavedView, ViewDescriptor } from "./list-surface.js";
 
 /**
- * Client hook for a register's user saved views (OPS-1287 story 17) — the same
+ * Client hook for a register's user saved views (the list-surface saved views story 17) — the same
  * shaped query (tab · group · filter · sort) under a user-chosen name, kept as a
  * **separate list** from the shipped canonical tabs so a working view never
  * clobbers them. Persisted per-register in `localStorage` (no backend, no schema

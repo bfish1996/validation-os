@@ -16,7 +16,7 @@
 
 ### Minor Changes
 
-- 1406681: OPS-1406: simplify confidence scoring — risk groups, evidence-keyed types, graduation
+- 1406681: the confidence-scoring simplification: simplify confidence scoring — risk groups, evidence-keyed types, graduation
 
   - **Assumption Type replaces Question Type.** The 7 academic Question Types
     (Existence, Prevalence, …) are retired in favour of 11 evidence-keyed
@@ -96,7 +96,7 @@
 
 ### Minor Changes
 
-- a34c1bb: Question-type-aware evidence ladder (DEV-5890):
+- a34c1bb: Question-type-aware evidence ladder (the question-type-aware evidence ladder):
 
   - **New axis: Question Type** (Existence, Prevalence, CausalEffect, WillingnessToPay, ValueUtility, Regulatory, Feasibility) — the kind of claim an assumption raises, set by the falsification-test rule. 6th Completeness slot; an assumption without a Question Type cannot go Live.
   - **3D anchor table**: `RUNG_ANCHOR[questionType][rung][band]` replaces the single-ladder anchors. Seven sub-ladders; non-evidence rungs carry anchor 0 (contribute s=0, flagged at the UI/skill layer — not a write blocker). W0_BY_RUNG retained unchanged (keyed by rung, within a sub-ladder).
@@ -108,7 +108,7 @@
   - **Docs**: new `docs/question-types.md` (with v2 section on rung splits + instrument axis), rewritten `docs/evidence-ladder.md` (seven sub-ladders), stage-keyed threshold in `docs/validated.md`, orthogonality statement in `docs/stage-policy.md`.
   - **Connectors**: Question Type property added to all three schema guides; Completeness formula updated to six slots.
 
-  Supersedes DEV-5880 (per-rung W0 + lens-aware rung ladder). The per-rung W0 work is retained; the lens-aware framing is replaced by the question-type-aware framing.
+  Supersedes the per-rung W0 + lens-aware ladder (per-rung W0 + lens-aware rung ladder). The per-rung W0 work is retained; the lens-aware framing is replaced by the question-type-aware framing.
 
 ### Patch Changes
 
@@ -127,7 +127,7 @@
 
 ### Patch Changes
 
-- d7c810b: DEV-5879 polish pass: thinner donut gauge, per-belief quote excerpts (new `excerpt` field on `BeliefScore`), "Readings" renamed to "Evidence" across the UI, evidence list now shows each piece's confidence contribution, next-moves are one-per-lens with colored lens tags and flat (non-dropdown) proposed-experiment cards, Lens × Stage grid cells are taller/bigger with subtler heat, evidence-composition bar capped at 100% with clearer `+N · cap M` labels, glossary popovers no longer clipped by card overflow.
+- d7c810b: the dashboard frontend redesign polish pass: thinner donut gauge, per-belief quote excerpts (new `excerpt` field on `BeliefScore`), "Readings" renamed to "Evidence" across the UI, evidence list now shows each piece's confidence contribution, next-moves are one-per-lens with colored lens tags and flat (non-dropdown) proposed-experiment cards, Lens × Stage grid cells are taller/bigger with subtler heat, evidence-composition bar capped at 100% with clearer `+N · cap M` labels, glossary popovers no longer clipped by card overflow.
 - Updated dependencies [d7c810b]
   - @validation-os/core@0.15.5
 
@@ -167,7 +167,7 @@
 
 ### Minor Changes
 
-- 537e001: Lens-aware ladder revision (DEV-5879): adds the `Signed up` consumer do-rung, equalizes all do-rung W0s at 327 (was 140/317.3/410.7), and flattens every do-rung's anchors to 30/50/70. Talk stays 3/6/10 (W0 6.5); Desk stays 15 (W0 2). The lens determines which do-rungs apply (consumer: Signed up + Observed usage; commercial: Signed intent + Paying users); Talk + Desk work for any lens. Confidence accumulation is now honest per-rung: 2 desk sources → ~90% of cap; 20 paying users → 75% of cap; 10 talk readings → ~90% of cap.
+- 537e001: Lens-aware ladder revision (the dashboard frontend redesign): adds the `Signed up` consumer do-rung, equalizes all do-rung W0s at 327 (was 140/317.3/410.7), and flattens every do-rung's anchors to 30/50/70. Talk stays 3/6/10 (W0 6.5); Desk stays 15 (W0 2). The lens determines which do-rungs apply (consumer: Signed up + Observed usage; commercial: Signed intent + Paying users); Talk + Desk work for any lens. Confidence accumulation is now honest per-rung: 2 desk sources → ~90% of cap; 20 paying users → 75% of cap; 10 talk readings → ~90% of cap.
 
 ### Patch Changes
 
@@ -278,7 +278,7 @@
 
 ### Minor Changes
 
-- 940c3f1: Server-side identity stamp + membership gate (OPS-1348). `authenticate` now
+- 940c3f1: Server-side identity stamp + membership gate (the server-side identity stamp). `authenticate` now
   returns the raw verified subject (`{ subject }`), and `createApi` takes a
   `roster` of `{ name, authSubject }` team members. A caller whose subject
   resolves to a member may write (any register); an unmapped subject is a 403.
@@ -334,7 +334,7 @@
 
 ### Minor Changes
 
-- 88751a2: Create & link records (OPS-1275): new records and two-way relations, end to end.
+- 88751a2: Create & link records (the create-and-link-records slice): new records and two-way relations, end to end.
 
   - `@validation-os/core`: each `RelationSpec` now carries a `targetRegister`, so
     the register a relation points at is known even when its inverse is a derived

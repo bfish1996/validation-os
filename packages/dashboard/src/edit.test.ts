@@ -101,7 +101,7 @@ describe("CONFLICT_MESSAGE", () => {
   });
 });
 
-describe("fieldError / draftErrors — seed Impact's 0–100 range (OPS-1346)", () => {
+describe("fieldError / draftErrors — seed Impact's 0–100 range (the seed-Impact edit affordance)", () => {
   const impact = editableFields("assumptions").find((f) => f.key === "Impact")!;
 
   it("accepts values inside 0–100, and the bounds themselves", () => {

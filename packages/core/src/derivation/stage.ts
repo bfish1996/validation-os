@@ -1,22 +1,22 @@
 /**
  * Per-belief stage — where one belief sits on the loop's four-stage spine
- * (Framed → Planned → Tested → Known) and its four meters (OPS-1329).
+ * (Framed → Planned → Tested → Known) and its four meters (the per-belief journey view-model).
  *
  * This is the *single-belief* analogue of the pipeline's cross-belief roll-up:
  * the pipeline row-builder used to derive framing / test-plan / test-progress
- * inline, and the front-door move ladder (OPS-1304) re-walked the same stages a
+ * inline, and the front-door move ladder (the front-door build) re-walked the same stages a
  * second way. The shared classification lives here now, so the pipeline board,
  * the front door, and the per-belief journey rail all read one rule rather than
  * three that can drift.
  *
  * Pure and computed fresh on read (like `portfolio.ts` / `next-move.ts`): it
- * only reads numbers already kept current, so it stays out of the OPS-1251
+ * only reads numbers already kept current, so it stays out of the the derive-on-write invariant
  * on-write recompute. The record → meter mapping (bar lines, presence fields)
  * lives in the dashboard, as elsewhere; this module takes the reduced inputs.
  */
 import { KILL_LANE_THRESHOLD } from "./next-move.js";
 
-/** The four loop stages a belief travels, in order (OPS-1293). */
+/** The four loop stages a belief travels, in order (the four-stage loop). */
 export type StageKey = "framed" | "planned" | "tested" | "known";
 
 /** Sign of a belief's Confidence — the Known meter's direction. */
@@ -110,7 +110,7 @@ export function beliefTestMeters(
  * Classify a belief on the spine from its meters. The kill-zone overlay is
  * *not* a stage — a belief whose evidence has turned is still structurally
  * wherever its framing/tests put it (a re-test moves it backward via the Known
- * meter, OPS-1300), so this stays pure status.
+ * meter, the portfolio pipeline overview), so this stays pure status.
  */
 export function classifyStage(framed: number, test: TestMeter): StageKey {
   if (framed < 100) return "framed";

@@ -1,13 +1,13 @@
 /**
- * Front-door presentation logic for the next-move ranking (build OPS-1304).
+ * Front-door presentation logic for the next-move ranking (build the front-door build).
  * Two pure seams, kept free of React/DOM so they're unit-tested like
  * `columns.ts` / `primitives.ts`:
  *
  *  - `toNextMoveInput` maps the fetched register records onto the shape
  *    `packages/core`'s `rankNextMoves` consumes (the ranking rule itself lives
- *    once in core — `ontology.yaml → derived_views.next_move`, OPS-1292);
+ *    once in core — `ontology.yaml → derived_views.next_move`, the next-move ranking model);
  *  - `movePresentation` maps each act to its front-door copy and whether it's a
- *    human step-in form or an agent-run act shown for review (OPS-1291/1294).
+ *    human step-in form or an agent-run act shown for review (the next-move action vocabulary/1294).
  */
 import type { AnyRecord, Feasibility } from "@validation-os/core";
 import {
@@ -41,13 +41,13 @@ export interface NextMoveRecords {
 /**
  * Fold the fetched records into `rankNextMoves`' input: the derived Risk /
  * Confidence come straight off each assumption (the server keeps them current,
- * OPS-1251 — never recomputed here), and concluded readings are counted per
+ * the derive-on-write invariant — never recomputed here), and concluded readings are counted per
  * belief so the stage logic can tell "no evidence yet" from "evidence in".
  */
 export function toNextMoveInput(records: NextMoveRecords): NextMoveInput {
   const concludedByAssumption = new Map<string, number>();
   for (const r of records.readings) {
-    // A reading row scores several beliefs at once (OPS-1305); each concluded
+    // A reading row scores several beliefs at once (the evidence-remodel slice); each concluded
     // belief-score counts toward its own assumption's "evidence is in" tally.
     for (const b of readingBeliefs(r)) {
       if (!b.assumptionId || !isConcluded(b.Result)) continue;
@@ -96,7 +96,7 @@ export interface MovePresentation {
   /** Short label for the "On deck" act pill. */
   pill: string;
   /**
-   * A human step-in form (the dashboard is a review surface, OPS-1294) vs an
+   * A human step-in form (the dashboard is a review surface, the step-in human action set) vs an
    * agent-run act the front door only visualises for review.
    */
   steppable: boolean;

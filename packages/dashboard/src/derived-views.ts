@@ -12,7 +12,7 @@ import type { AnyRecord, BarLine, BeliefScore } from "@validation-os/core";
  * or below this awaits a human kill verdict. */
 export const KILL_ZONE = -50;
 
-// ── Reading beliefs (OPS-1305) ───────────────────────────────────────────────
+// ── Reading beliefs (the evidence-remodel slice) ───────────────────────────────────────────────
 // A reading is one artifact ROW carrying a `beliefs[]` array — each entry scores
 // one assumption (its own Rung / Result / strength / justification). The scalar
 // r.assumptionId / r.Rung / r.Result are gone from the row; these helpers read a
@@ -37,7 +37,7 @@ export function readingGrades(r: AnyRecord, assumptionId: string): boolean {
   return readingBeliefFor(r, assumptionId) !== undefined;
 }
 
-// ── Archived experiments (OPS-1305) ──────────────────────────────────────────
+// ── Archived experiments (the evidence-remodel slice) ──────────────────────────────────────────
 // Archived plans are a final product decision: they NEVER render — not in a
 // register table, not as a relation on any record, not as a mover behind a
 // belief. There is no "show archived" control anywhere. A future Running plan

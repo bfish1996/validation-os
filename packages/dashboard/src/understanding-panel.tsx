@@ -11,7 +11,7 @@ import {
 } from "./understanding.js";
 
 /**
- * The understanding layer behind the Confidence "Why?" (OPS-1276): which
+ * The understanding layer behind the Confidence "Why?" (the understanding layer): which
  * experiments move the number (ranked by push) and how close each running
  * experiment is to concluding, the goal/direct evidence that also moves it, and
  * Confidence over time. It lazy-loads the readings + experiments registers (it

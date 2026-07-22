@@ -17,7 +17,7 @@ export interface RegisterTableProps {
   /** The id of the currently-open record, highlighted in the list. */
   selectedId?: string | null;
   /** Assumption id → title, so a reading row's belief chips read as titles
-   * rather than ids (OPS-1305). Omitted → chips fall back to the bare ids. */
+   * rather than ids (the evidence-remodel slice). Omitted → chips fall back to the bare ids. */
   assumptionTitles?: Map<string, string>;
 }
 

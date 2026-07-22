@@ -22,8 +22,8 @@ import {
 import { UnderstandingPanel } from "./understanding-panel.js";
 
 /**
- * The per-belief journey — the drill-in altitude (design OPS-1297, build
- * OPS-1330), mounted on the record page. An A+B hybrid:
+ * The per-belief journey — the drill-in altitude (design the step-in-is-story-only rule, build
+ * the journey rail + story UI), mounted on the record page. An A+B hybrid:
  *
  *  - at rest, a compact **read-only stage rail** — the same Framed → Planned →
  *    Tested → Known spine the pipeline board draws, zoomed to one belief. The
@@ -31,18 +31,18 @@ import { UnderstandingPanel } from "./understanding-panel.js";
  *  - it **expands into the chronological story** through the record page's
  *    existing "Why?" reveal idiom — the dated event log (bet → score →
  *    experiment → readings → confidence-cross → now), the same history
- *    regrouped into **rounds** (OPS-1347 — one card per Experiment run, plus
+ *    regrouped into **rounds** (the round-by-round cycles — one card per Experiment run, plus
  *    any bare/direct evidence, oldest first), and ending in the ranked
- *    next-move card (OPS-1292).
+ *    next-move card (the next-move ranking model).
  *
- * **Step-in is story-only** (OPS-1297): the next-move card and the per-event
- * edits carry the OPS-1294 human set (edit the bet · score impact · write
+ * **Step-in is story-only** (the step-in-is-story-only rule): the next-move card and the per-event
+ * edits carry the the step-in human action set human set (edit the bet · score impact · write
  * decision), and manual override lives at the foot of the story. There is
  * deliberately no experiment-design form here.
  *
  * The narrative is the *loop* story — why the number is what it is. It is not
  * the raw record history: that audit trail belongs to the record page itself
- * (OPS-1282) and this must not retell it. Every number arrives derived through
+ * (the record-page audit trail) and this must not retell it. Every number arrives derived through
  * `buildJourney`; nothing is computed here.
  */
 export interface BeliefJourneyProps {
@@ -154,7 +154,7 @@ export function BeliefJourney({
             </section>
           ) : null}
 
-          {/* OPS-1276's attribution + trajectory, reused whole — the story says
+          {/* the understanding layer's attribution + trajectory, reused whole — the story says
               what happened; this says what it did to the number. */}
           <section>
             <div className="vos-why-section-title">What moved the number</div>
@@ -213,7 +213,7 @@ const SPINE: StageKey[] = ["framed", "planned", "tested", "known"];
 
 /**
  * The resting rail: the four-stage spine with this belief's meters. Read-only —
- * every act lives in the story (OPS-1297), so nothing here is clickable.
+ * every act lives in the story (the step-in-is-story-only rule), so nothing here is clickable.
  */
 function StageRail({ stage }: { stage: BeliefStage }) {
   const meters = stageMeters(stage);
@@ -343,7 +343,7 @@ const BAR_VERDICT_PILL: Record<Result, string> = {
 };
 
 /**
- * The validation loop, round by round (OPS-1347): one card per cycle — an
+ * The validation loop, round by round (the round-by-round cycles): one card per cycle — an
  * Experiment's run against this belief, or (failing that) its bare/direct
  * evidence — each with its readings as a dot row, its bar verdict, and how
  * hard the round pushed Confidence. A horizontal strip, oldest round first,
@@ -429,8 +429,8 @@ function CycleCard({
 
 /**
  * Where the story ends: the same ranked move the front door would offer for
- * this belief (OPS-1292), or the note that its journey is over. Step-in adapts
- * to the act (OPS-1294) — a human act opens its form here; an agent-run act
+ * this belief (the next-move ranking model), or the note that its journey is over. Step-in adapts
+ * to the act (the step-in human action set) — a human act opens its form here; an agent-run act
  * says so plainly rather than offering a button that does nothing.
  */
 function NextMoveCard({

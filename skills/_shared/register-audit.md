@@ -52,7 +52,7 @@ one pass misses cross-wave restatements. Always call out ID collisions,
 **tensions** (distinct claims that can't both hold → recommend the
 `Contradicts` edge, `§4b`). This panel is what surfaces unwired tensions
 across the register; an inline grill only catches them one record at a
-time. Assumptions carry no body (`OPS-1305`), so there is no stored
+time. Assumptions carry no body (`the evidence-remodel slice`), so there is no stored
 boundary line to check for "distinct, keep" pairs — that confirmation is a
 transient grill check (`assumption-guardrails.md §4`), re-run live whenever
 a pair is re-examined, not a retrofit backlog to detect.
@@ -101,7 +101,7 @@ Two of these deserve their mechanics spelled out:
 
 The plan-side hygiene the assumption phases don't reach — implementing
 `experiment-guardrails.md §0/§6` — now lives in **`/find-evidence`'s own
-audit mode** (`../find-evidence/references/audit.md`, `OPS-1305`): kill
+audit mode** (`../find-evidence/references/audit.md`, `the evidence-remodel slice`): kill
 prompts (stale `Running`, belief mooted/merged, superseded, cost-ballooned),
 closure audits (N-met-not-closed, missing bar verdict/rollup), and the
 committed-plan-specific `overdue-risk-acceptance` /

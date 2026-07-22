@@ -23,7 +23,7 @@ export interface SidebarNavProps {
 }
 
 /**
- * The sidebar nav (DEV-5879 redesign): three top-level items — Assumptions
+ * The sidebar nav (the dashboard frontend redesign redesign): three top-level items — Assumptions
  * (the default landing, Lens × Stage grid with a "View all" toggle to the
  * pipeline board), Experiments (the live evidence plans), Readings (the
  * evidence log) — above a small "Registers" group for decisions + glossary,

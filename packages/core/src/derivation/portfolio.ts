@@ -1,5 +1,5 @@
 /**
- * Portfolio progress — the one *cross-belief* reading (OPS-1293 / OPS-1300).
+ * Portfolio progress — the one *cross-belief* reading (the four-stage loop / the portfolio pipeline overview).
  *
  * Every other derived number here is per-record (risk/confidence/impact of one
  * belief). This is the whole-set roll-up behind the pipeline's headline: a
@@ -7,12 +7,12 @@
  * identified across *all* beliefs, resolved ones included.
  *
  * Like `rankNextMoves`, it is a whole-set ordering computed **fresh on read**,
- * not stored — it stays out of the OPS-1251 on-write recompute (it only reads
+ * not stored — it stays out of the the derive-on-write invariant on-write recompute (it only reads
  * numbers already kept current). Pure and numeric: the dashboard maps records
  * to these inputs (as `understanding.ts` maps readings), so the rule lives
  * once, here.
  *
- * The model (matches the OPS-1296 prototype's self-consistent maths):
+ * The model (matches the the portfolio prototype maths prototype's self-consistent maths):
  *   - **ever-identified** for a belief = the risk it represented at Confidence
  *     ≤ 0, i.e. its Derived Impact. A moot row's Derived Impact is pinned to 0,
  *     which would erase it from *both* sides of the fraction, so we floor

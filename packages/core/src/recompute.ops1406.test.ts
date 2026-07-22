@@ -82,7 +82,7 @@ function reading(over: Partial<ReadingRecord> = {}): ReadingRecord {
 
 const NO_DECISIONS: DecisionRecord[] = [];
 
-describe("recomputeDerived — OPS-1406 graduation, risk group, cost tier", () => {
+describe("recomputeDerived — the confidence-scoring simplification graduation, risk group, cost tier", () => {
   it("talk-only readings graduate ProblemExists (saturated interviews → ~99)", () => {
     // ProblemExists × Talk × High = 99. Many distinct sources saturate toward
     // the anchor. With W0=6.5, 10 readings → ~90% of cap.

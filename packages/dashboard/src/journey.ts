@@ -1,5 +1,5 @@
 /**
- * The per-belief journey view-model (OPS-1329) — pure, no React, no I/O, so the
+ * The per-belief journey view-model (the per-belief journey view-model) — pure, no React, no I/O, so the
  * whole "story of one belief travelling the loop" mapping is unit-tested at this
  * seam (like `understanding.ts` / `pipeline.ts`). It composes, for one belief:
  *
@@ -7,17 +7,17 @@
  *    (the single-belief `deriveBeliefStage`, so board and rail agree);
  *  - the **story** — its life ordered into dated events (`assembleJourney`),
  *    each given front-door copy here (the assembler stays label-free);
- *  - the **next-move card** — the same OPS-1292 ranking the front door reads,
+ *  - the **next-move card** — the same the next-move ranking model ranking the front door reads,
  *    filtered to this belief;
- *  - the **cycles** (OPS-1347) — the same history regrouped into rounds
+ *  - the **cycles** (the round-by-round cycles) — the same history regrouped into rounds
  *    (`cycles.ts`): one per Experiment run against this belief, plus one
  *    closing bucket for bare/direct evidence. Where the story is a flat dated
  *    log and `understanding.ts` ranks by how hard each mover pushes, this is
  *    the round-by-round shape the operator asked for — "show each cycle".
  *
- * The `.tsx` rail + story UI (OPS-1330) mounts thinly over this. Every number is
+ * The `.tsx` rail + story UI (the journey rail + story UI) mounts thinly over this. Every number is
  * derived through `@validation-os/core`, computed fresh on read, out of the
- * OPS-1251 on-write recompute.
+ * the derive-on-write invariant on-write recompute.
  */
 import {
   assumptionCompleteness,
@@ -55,7 +55,7 @@ export interface JourneyView {
   stage: BeliefStage;
   /** The story: the belief's life, oldest first, `now` last. */
   events: JourneyEventView[];
-  /** The loop's rounds, oldest first (OPS-1347) — the same history the story
+  /** The loop's rounds, oldest first (the round-by-round cycles) — the same history the story
    * tells, regrouped by Experiment run instead of by dated event. */
   cycles: CycleView[];
   /** The ranked next move for this belief; null once it is resolved. */
@@ -103,10 +103,10 @@ export function eventTone(event: JourneyEvent): Tone {
 }
 
 /**
- * The step-in an event offers (OPS-1294's human set: assumption edit · score
+ * The step-in an event offers (the step-in human action set's human set: assumption edit · score
  * impact · write decision), or null for an event there is nothing to act on.
  *
- * The story is where step-in lives — the rail is pure status (OPS-1297). Two
+ * The story is where step-in lives — the rail is pure status (the step-in-is-story-only rule). Two
  * acts are deliberately absent: designing a test (no experiment-design form on
  * this surface) and recording a reading (its form lives with the evidence, not
  * the narrative). An unscored belief has no `score` event at all, so its
@@ -127,7 +127,7 @@ export function eventStepIn(
   }
 }
 
-/** The forms the story can open — the OPS-1294 set, minus experiment design. */
+/** The forms the story can open — the the step-in human action set set, minus experiment design. */
 export type StoryStepIn = "edit-belief" | "score-impact" | "write-decision";
 
 /**
@@ -150,7 +150,7 @@ export function buildJourney(
   const confidence =
     typeof derived.confidence === "number" ? derived.confidence : 0;
 
-  // The rail's test meters read only LIVE plans (OPS-1305): an archived plan is
+  // The rail's test meters read only LIVE plans (the evidence-remodel slice): an archived plan is
   // no longer a test in flight, so a belief whose only plan is archived reads as
   // Planned (design a test), never Tested — the "evidence ≠ tested" rule.
   const live = liveExperiments(records.experiments);
@@ -160,7 +160,7 @@ export function buildJourney(
   const framed = assumptionCompleteness(belief as Record<string, unknown>);
   const stage = deriveBeliefStage({ framed, confidence, test });
 
-  // DEV-5890: thread the linked assumption's Question Type into each belief
+  // the question-type-aware evidence ladder: thread the linked assumption's Question Type into each belief
   // input so Strength reads the right sub-ladder.
   const assumptionsById = new Map<string, AnyRecord>(
     records.assumptions.map((a) => [String(a.id), a]),

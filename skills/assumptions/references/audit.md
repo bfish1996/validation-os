@@ -34,7 +34,7 @@ time, gated, through single mode.
 Both diagnose with the **same** `register-audit.md` detection — audit stops
 at the report; loop carries the findings into autonomous fixes.
 
-## Stage-keyed Risk threshold (DEV-5890)
+## Stage-keyed Risk threshold (the question-type-aware evidence ladder)
 
 Flag each assumption against its **stage's threshold** — "cleared" requires
 BOTH Risk ≤ the stage's Risk threshold AND Confidence ≥ the stage's

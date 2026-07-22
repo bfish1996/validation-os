@@ -12,7 +12,7 @@ function assumption(over: Partial<AnyRecord> & { id: string }): AnyRecord {
     Status: "Live",
     Impact: 50,
     moot: false,
-    // The six structural completeness slots (OPS-1305 + DEV-5890) — a default
+    // The six structural completeness slots (the evidence-remodel slice + the question-type-aware evidence ladder) — a default
     // fixture is fully framed (100). Framing is Description + Lens + Impact +
     // Scoring justification + dependencies traced + Question Type.
     Description: "We assume adopters install because setup is one command.",
