@@ -44,6 +44,12 @@ describe("editableFields", () => {
     expect(impact?.min).toBe(0);
     expect(impact?.max).toBe(100);
   });
+
+  it("lets an existing experiment be linked to a Cycle (a min-1 number field)", () => {
+    const cycle = editableFields("experiments").find((f) => f.key === "Cycle");
+    expect(cycle?.kind).toBe("number");
+    expect(cycle?.min).toBe(1);
+  });
 });
 
 describe("draftFrom", () => {

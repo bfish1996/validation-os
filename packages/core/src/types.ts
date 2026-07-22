@@ -257,6 +257,15 @@ export interface ExperimentRecord extends BaseRecord {
   /** Reference to a dashboard user, not a `people` row. */
   Owner: string[];
   Date: string | null;
+  /**
+   * The validation cycle this run belongs to — a plain sequential round number
+   * (Cycle 1, 2, 3…), null for an unassigned plan. A scalar label, not a
+   * register: it groups experiments into rounds and lets both experiments and
+   * their tested assumptions be filtered by the cycle they're being tested in
+   * (an assumption's cycles are DERIVED from the experiments whose bar lines
+   * name it — never stored on the assumption).
+   */
+  Cycle: number | null;
   /** The embedded pre-registered bar lines; drives progress-to-conclusion. */
   barLines: BarLine[];
   /** Convenience projection: the assumptions the bar lines test. */

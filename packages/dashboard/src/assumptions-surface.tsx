@@ -20,6 +20,9 @@ import {
 import type { Route } from "./route.js";
 import { useList } from "./use-records.js";
 import { formatSigned, type Tone } from "./primitives.js";
+import { assumptionCycles } from "./derived-views.js";
+import { resolveCycleFilter, inCycle, type CycleChoice } from "./cycle-filter.js";
+import { CycleFilterBar } from "./cycle-filter-bar.js";
 
 /**
  * The Assumptions nav surface (DEV-5881 + DEV-5882): the Lens × Stage grid as
@@ -40,6 +43,8 @@ export interface AssumptionsSurfaceProps {
   /** When set, the pipeline board filters to this lens × stage. */
   lens?: string;
   stage?: string;
+  /** The active validation round, from `DashboardConfig.currentCycle`. */
+  currentCycle?: number;
 }
 
 export function AssumptionsSurface({
@@ -48,16 +53,32 @@ export function AssumptionsSurface({
   view,
   lens,
   stage,
+  currentCycle,
 }: AssumptionsSurfaceProps) {
   const assumptions = useList("assumptions", basePath);
   const experiments = useList("experiments", basePath);
   const readings = useList("readings", basePath);
+  const [cycleSel, setCycleSel] = useState<CycleChoice | null>(null);
 
   const loading =
     assumptions.loading || experiments.loading || readings.loading;
   const error = assumptions.error || experiments.error || readings.error;
 
   const showPipeline = view === "all" || (lens !== undefined && stage !== undefined);
+
+  // Active-cycle lens: a belief's cycles are derived from the experiments
+  // testing it. Default to the current round; "All cycles" stays available;
+  // fall back to all when the current cycle has nothing in it yet (bootstrap).
+  const allAssumptions = assumptions.records ?? [];
+  const expRecords = experiments.records ?? [];
+  const cycleView = resolveCycleFilter(
+    allAssumptions.flatMap((a) => assumptionCycles(a, expRecords)),
+    currentCycle ?? null,
+    cycleSel,
+  );
+  const cycleAssumptions = allAssumptions.filter((a) =>
+    inCycle(assumptionCycles(a, expRecords), cycleView.effective),
+  );
 
   return (
     <div>
@@ -71,6 +92,7 @@ export function AssumptionsSurface({
           </p>
         </div>
         <div className="vos-spacer" />
+        <CycleFilterBar view={cycleView} onSelect={setCycleSel} />
         <div className="vos-seg" role="tablist" aria-label="Assumptions view">
           <button
             type="button"
@@ -99,8 +121,8 @@ export function AssumptionsSurface({
         <p className="vos-error">{error}</p>
       ) : showPipeline ? (
         <PipelineBoard
-          assumptions={assumptions.records ?? []}
-          experiments={experiments.records ?? []}
+          assumptions={cycleAssumptions}
+          experiments={expRecords}
           readings={readings.records ?? []}
           onNavigate={onNavigate}
           filterLens={lens}
@@ -108,8 +130,8 @@ export function AssumptionsSurface({
         />
       ) : (
         <GridPane
-          assumptions={assumptions.records ?? []}
-          experiments={experiments.records ?? []}
+          assumptions={cycleAssumptions}
+          experiments={expRecords}
           readings={readings.records ?? []}
           onNavigate={onNavigate}
         />

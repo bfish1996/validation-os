@@ -17,6 +17,10 @@ export interface RecordFormProps {
   /** Called with the new record's id after a successful create. */
   onCreated: (id: string) => void;
   onCancel: () => void;
+  /** Seed values layered over the blank draft — e.g. prefilling a new
+   * experiment's `Cycle` with the current round. Keys are field keys, values
+   * are the form-string form; unknown keys are ignored by the field list. */
+  initial?: Record<string, string>;
 }
 
 /**
@@ -31,11 +35,13 @@ export function RecordForm({
   basePath,
   onCreated,
   onCancel,
+  initial,
 }: RecordFormProps) {
   const fields = useMemo(() => formFieldsFor(register), [register]);
-  const [draft, setDraft] = useState<Record<string, string>>(() =>
-    emptyDraft(register),
-  );
+  const [draft, setDraft] = useState<Record<string, string>>(() => ({
+    ...emptyDraft(register),
+    ...initial,
+  }));
   const { create, saving, error } = useCreate(register, basePath);
 
   const missing = missingRequired(register, draft);

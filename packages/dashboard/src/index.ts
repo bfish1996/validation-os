@@ -45,9 +45,11 @@ export {
   defaultTabId,
   filterRecords,
   groupByAxesFor,
+  groupByCycle,
   groupRecords,
   needsHumanCounts,
   nestReadingsByPlan,
+  NO_CYCLE_KEY,
   shapeRegister,
   sortRecords,
   tabsFor,
@@ -64,6 +66,18 @@ export type {
   TabDef,
   ViewDescriptor,
 } from "./list-surface.js";
+export { buildExperimentAssumptions } from "./experiment-assumptions.js";
+export type {
+  CoincidentalAssumption,
+  CoincidentalResult,
+  ExperimentAssumptions,
+  TargetedAssumption,
+  TargetedStatus,
+} from "./experiment-assumptions.js";
+export { assumptionCycles, experimentCycle, experimentCycles } from "./derived-views.js";
+export { resolveCycleFilter, inCycle } from "./cycle-filter.js";
+export type { CycleChoice, CycleFilterView } from "./cycle-filter.js";
+export { CycleFilterBar } from "./cycle-filter-bar.js";
 export { SidebarNav } from "./sidebar-nav.js";
 export type { SidebarNavProps } from "./sidebar-nav.js";
 export { parseRoute, formatRoute } from "./route.js";

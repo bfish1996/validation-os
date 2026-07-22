@@ -1,10 +1,21 @@
 import { describe, expect, it } from "vitest";
 import {
+  createSeed,
   emptyDraft,
   formFieldsFor,
   missingRequired,
   toCreatePayload,
 } from "./form-fields.js";
+
+describe("createSeed", () => {
+  it("prefills a new experiment's Cycle with the current round", () => {
+    expect(createSeed("experiments", { currentCycle: 2 })).toEqual({ Cycle: "2" });
+  });
+  it("seeds nothing without a current cycle, or for other registers", () => {
+    expect(createSeed("experiments", {})).toBeUndefined();
+    expect(createSeed("assumptions", { currentCycle: 2 })).toBeUndefined();
+  });
+});
 
 describe("formFieldsFor", () => {
   it("leads every register with a required headline field, and no derived/relation fields", () => {

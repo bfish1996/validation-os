@@ -1,5 +1,7 @@
-import type { AnyRecord } from "@validation-os/core";
-import { liveExperiments } from "./derived-views.js";
+import { useState } from "react";
+import { experimentCycle, experimentCycles, liveExperiments } from "./derived-views.js";
+import { resolveCycleFilter, inCycle, type CycleChoice } from "./cycle-filter.js";
+import { CycleFilterBar } from "./cycle-filter-bar.js";
 import type { Route } from "./route.js";
 import { useList } from "./use-records.js";
 import { Breadcrumb } from "./breadcrumb.js";
@@ -8,16 +10,22 @@ import { ConfidenceDonut } from "./confidence-donut.js";
 /**
  * The Experiments nav surface (DEV-5881): the live evidence plans list, with
  * bigger rows carrying a donut gauge + bar-line stats. Each row is a button;
- * clicking opens the evidence-first ExperimentDetail.
+ * clicking opens the evidence-first ExperimentDetail. When the workspace runs
+ * cycles, the list defaults to the current round (`currentCycle`) with a
+ * secondary "All cycles" control and a bootstrap fallback to all.
  */
 export function ExperimentsSurface({
   basePath,
   onNavigate,
+  currentCycle,
 }: {
   basePath?: string;
   onNavigate: (route: Route) => void;
+  /** The active validation round, from `DashboardConfig.currentCycle`. */
+  currentCycle?: number;
 }) {
   const experiments = useList("experiments", basePath);
+  const [cycleSel, setCycleSel] = useState<CycleChoice | null>(null);
 
   if (experiments.loading && !experiments.records) {
     return (
@@ -36,7 +44,15 @@ export function ExperimentsSurface({
     );
   }
 
-  const live = liveExperiments(experiments.records ?? []);
+  const allLive = liveExperiments(experiments.records ?? []);
+  const cycleView = resolveCycleFilter(
+    allLive.flatMap(experimentCycles),
+    currentCycle ?? null,
+    cycleSel,
+  );
+  const live = allLive.filter((e) =>
+    inCycle(experimentCycles(e), cycleView.effective),
+  );
 
   return (
     <div>
@@ -46,6 +62,8 @@ export function ExperimentsSurface({
           <h1>Experiments — the live evidence plans</h1>
           <p>{live.length} running {live.length === 1 ? "plan" : "plans"} · click to open the evidence-first view.</p>
         </div>
+        <div className="vos-spacer" />
+        <CycleFilterBar view={cycleView} onSelect={setCycleSel} />
       </div>
       {live.length === 0 ? (
         <div className="vos-card vos-empty">
@@ -63,6 +81,7 @@ export function ExperimentsSurface({
             const status = String(e.Status ?? "");
             const expConf = (e.derived as any)?.experimentConfidence ?? 50;
             const instrument = String(e.Instrument ?? "");
+            const cycle = experimentCycle(e);
             return (
               <button
                 key={id}
@@ -79,6 +98,9 @@ export function ExperimentsSurface({
                     {e.Deadline ? <span> · deadline {String(e.Deadline)}</span> : null}
                   </div>
                 </div>
+                {cycle !== null ? (
+                  <span className="vos-pill vos-pill-accent">Cycle {cycle}</span>
+                ) : null}
                 <span className={`vos-pill ${status === "Running" ? "vos-pill-good" : "vos-pill-neutral"}`}>
                   {status}
                 </span>

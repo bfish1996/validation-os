@@ -49,6 +49,7 @@ registers:
       - {canonical: Outcome, backend: outcome, type: TEXT, derived: false, options_source: registry-schema, required: false}
       - {canonical: Owner, backend: owner, type: TEXT, derived: false, options_source: vocabulary.dashboard_users}
       - {canonical: Date, backend: date, type: DATE, derived: false}
+      - {canonical: Cycle, backend: cycle, type: INTEGER, derived: false, required: false}
     relations:
       - {canonical: Readings, backend: "readings.experiment_id (inverse; queried, not stored)", target: readings, cardinality: many, inverse: Experiment}
     bar_lines:
@@ -272,6 +273,7 @@ Readings a run produces. It bundles one-or-more beliefs through bar lines
 | Outcome | `outcome` | TEXT (nullable, null until Closed) | no |
 | Owner | `owner` | TEXT (dashboard-user reference) | no |
 | Date | `date` | DATE | no |
+| Cycle | `cycle` | INTEGER (nullable; the validation round, e.g. 1) | no |
 | Readings | inverse of `readings.experiment_id` | — (queried, not stored) | no |
 | Body | `body` | TEXT (Markdown; `## Method protocol`, `## Closure rollup`) | no |
 

@@ -190,10 +190,21 @@ before opening the next; the write is gated at the end.
 4. **Design the protocol → body by the run's method** (`§3`). Pick the
    playbook by the **method** the run uses (interview ± stimulus, prototype
    session, survey, fake-door, desk, pitch), never by a rung — a bundle can
-   hold mixed rungs; the run is still one method. Write **per-belief signal
+   hold mixed rungs; the run is still one method. **Open `## Method protocol`
+   by naming the assumptions under test** — the bundled beliefs (id + one-line
+   statement), the pre-registered *targeted* set. State it plainly so the body
+   makes the experiment's aim legible without opening every bar line, and the
+   dashboard's Testing panel mirrors it. Then write **per-belief signal
    blocks**: one block per bundled belief saying what answer/behaviour pattern
    clears *that belief's* `We're right if`, with each protocol question tagged
    to the belief(s) it feeds.
+   - **Targeted vs coincidental.** The assumptions named here are the ones the
+     run *set out* to test. A run may later yield a Reading that also bears on a
+     belief **not** in the bundle — that's *coincidental* evidence: log it
+     against that belief like any Reading (`/find-evidence`), but it was never a
+     pre-registered target, so it takes no bar line here and the dashboard tags
+     it coincidental. Don't retro-fit a bar line to a belief the plan didn't
+     aim at; add it to the bundle only via a deliberate re-cut.
    - **Anti-patterns** (reject, applied per belief): leading/"would you"
      hypotheticals · vanity metrics · wrong-Lens or too-small sample ·
      confirmation bias · a bar vague enough to always pass · a desirability
@@ -209,7 +220,11 @@ before opening the next; the write is gated at the end.
 
 5. **Tag & relate.** Title = the experiment question. Set `Feasibility`,
    `Status = Running`, `Date` = start; for a committed (Market-grade) plan,
-   also set `Deadline`. Owner optional at design. The **instrument**
+   also set `Deadline`. Set `Cycle` to the current validation round (a plain
+   integer, e.g. `1`) when the workspace runs cycles — it batches the plan into
+   its round and lets both experiments and their tested beliefs be filtered by
+   cycle (`registry-schema.md §Field map — Experiments`). Owner optional at
+   design. The **instrument**
    (prototype / fake-door page / survey form) is referenced by its
    **canonical link**, never copied in (`§0`); a pure interview has no
    instrument. Each bundled belief carries its own composed **bar line**

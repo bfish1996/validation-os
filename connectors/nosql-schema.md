@@ -50,6 +50,7 @@ registers:
       - {canonical: Outcome, backend: Outcome, type: string, derived: false, options_source: registry-schema, required: false}
       - {canonical: Owner, backend: Owner, type: "object[]", derived: false, options_source: vocabulary.dashboard_users}
       - {canonical: Date, backend: Date, type: string, derived: false}
+      - {canonical: Cycle, backend: Cycle, type: number, derived: false, required: false}
     relations:
       - {canonical: Readings, backend: null, target: readings, cardinality: many, inverse: Experiment}
     embedded:
@@ -299,6 +300,7 @@ retired `fiveWhys`, `metricForTruth`, and `gaps` fields, and the
 | Outcome | `Outcome` | string (optional, null until Closed) | no |
 | Owner | `Owner` | object[] (`{id, name}`) | no |
 | Date | `Date` | string (ISO 8601) | no |
+| Cycle | `Cycle` | number (nullable; the validation round, e.g. 1) | no |
 | Body | `body` | string (Markdown) | no |
 
 No `type` field, no `strength` field — both are dead at plan level. Rung is

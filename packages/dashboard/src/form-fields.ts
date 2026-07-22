@@ -65,6 +65,7 @@ const FIELDS: Record<Collection, FormField[]> = {
     { key: "Deadline", label: "Deadline", kind: "text", placeholder: "YYYY-MM-DD" },
     { key: "Outcome", label: "Outcome", kind: "select", options: EXPERIMENT_OUTCOME },
     { key: "Date", label: "Date", kind: "text", placeholder: "YYYY-MM-DD" },
+    { key: "Cycle", label: "Cycle", kind: "number", placeholder: "e.g. 1" },
   ],
   readings: [
     { key: "Title", label: "Reading", kind: "text", required: true },
@@ -106,6 +107,20 @@ const FIELDS: Record<Collection, FormField[]> = {
 /** The editable fields for a register's create form, in display order. */
 export function formFieldsFor(register: Collection): FormField[] {
   return FIELDS[register];
+}
+
+/** Seed values for a new record's create draft (layered over `emptyDraft`).
+ * Keeps the field keys the create payload uses in this module rather than
+ * hard-coded at the call site. Only experiments seed a value today — the
+ * current validation `Cycle`; everything else seeds nothing. */
+export function createSeed(
+  register: Collection,
+  opts: { currentCycle?: number } = {},
+): Record<string, string> | undefined {
+  if (register === "experiments" && opts.currentCycle != null) {
+    return { Cycle: String(opts.currentCycle) };
+  }
+  return undefined;
 }
 
 /** A blank draft: every field keyed to an empty string (form-friendly). */

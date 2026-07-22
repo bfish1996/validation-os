@@ -161,6 +161,12 @@ commitment-grade behaviour a Goal used to give.
 | Outcome | select | `Achieved` / `Missed` / `Dropped` — null until `Closed`. Folded in from the retired Goal. |
 | Owner | dashboard user | Who runs the test. Optional at design time. |
 | Date | date | Designed date on creation; closed date at conclusion. |
+| Cycle | number (optional) | The validation **cycle** (round) this run belongs to — a plain sequential integer (Cycle 1, 2, 3…), null when unassigned. A scalar **label**, not a register and not a relation. Batches experiments into rounds so both experiments and their tested assumptions can be filtered by cycle. |
+
+*Which cycle(s) a belief is being tested in* is a **derived view over the
+Experiments' `Cycle`** (`ontology.yaml` `cycle_membership` — the set of `Cycle`
+values of the non-archived experiments whose bar lines name it), **never a
+stored field on the assumption** — exactly like *Experiments testing me*.
 
 **No `Type`, no `Strength`** — both are dead at plan level. Rung is per-belief
 (on the bar line / Reading); Strength lives only on Readings.

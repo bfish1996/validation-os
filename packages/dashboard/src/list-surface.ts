@@ -15,7 +15,9 @@
 import type { AnyRecord, Collection } from "@validation-os/core";
 import { riskBand, type RiskBand } from "./primitives.js";
 import {
+  assumptionCycles,
   derivedNum,
+  experimentCycles,
   inKillLane,
   isTesting,
   readingBeliefFor,
@@ -32,8 +34,16 @@ function hasConcludedBelief(r: AnyRecord): boolean {
 
 // ── Shaped-query descriptor ──────────────────────────────────────────────────
 
-/** A group-by axis. Only assumptions expose the full set; see `groupByAxesFor`. */
-export type GroupByAxis = "Lens" | "Theme" | "Risk band" | "Status" | "Owner";
+/** A group-by axis. Only assumptions expose the full set; see `groupByAxesFor`.
+ * `Cycle` is the validation-round axis — a stored field on experiments, a
+ * derived set on assumptions (both grouped by `groupByCycle`). */
+export type GroupByAxis =
+  | "Lens"
+  | "Theme"
+  | "Risk band"
+  | "Status"
+  | "Owner"
+  | "Cycle";
 
 export interface SortSpec {
   /** A record field or a `derived.*` key (risk / confidence / strength …). */
@@ -267,7 +277,9 @@ function findTab(register: Collection, tabId: string | undefined): InternalTab {
  * the others expose Status, the one axis every register shares. */
 export function groupByAxesFor(register: Collection): GroupByAxis[] {
   if (register === "assumptions")
-    return ["Lens", "Theme", "Risk band", "Status", "Owner"];
+    return ["Lens", "Theme", "Risk band", "Status", "Owner", "Cycle"];
+  // Experiments carry their own `Cycle`; the round is a first-class filter here.
+  if (register === "experiments") return ["Status", "Cycle"];
   return ["Status"];
 }
 
@@ -326,6 +338,58 @@ export function groupRecords(
     }
   }
   return order.map((key) => ({ key, label: key, records: buckets.get(key)! }));
+}
+
+/** The stable bucket key/label the "No cycle" group carries. */
+export const NO_CYCLE_KEY = "none";
+
+/**
+ * Group records by validation cycle (the round). Unlike {@link groupRecords},
+ * this needs cross-register context: an experiment carries its own `Cycle`, but
+ * an assumption's cycles are DERIVED from the experiments testing it (ontology
+ * `cycle_membership`). A record can belong to several cycles (an assumption
+ * tested across rounds) → placed in each; a record in no cycle collects in a
+ * trailing "No cycle" bucket. Cycle buckets sort by number ascending, "No
+ * cycle" last. Registers without a cycle (readings/decisions/glossary) group
+ * everything under "No cycle".
+ */
+export function groupByCycle(
+  records: AnyRecord[],
+  register: Collection,
+  experiments: AnyRecord[],
+): GroupBucket[] {
+  const cyclesOf = (r: AnyRecord): number[] => {
+    if (register === "experiments") return experimentCycles(r);
+    if (register === "assumptions") return assumptionCycles(r, experiments);
+    return [];
+  };
+
+  const numbered = new Map<number, AnyRecord[]>();
+  const none: AnyRecord[] = [];
+  for (const r of records) {
+    const cs = cyclesOf(r);
+    if (cs.length === 0) {
+      none.push(r);
+      continue;
+    }
+    for (const c of cs) {
+      const bucket = numbered.get(c) ?? [];
+      if (!numbered.has(c)) numbered.set(c, bucket);
+      bucket.push(r);
+    }
+  }
+
+  const buckets: GroupBucket[] = [...numbered.keys()]
+    .sort((a, b) => a - b)
+    .map((c) => ({
+      key: String(c),
+      label: `Cycle ${c}`,
+      records: numbered.get(c)!,
+    }));
+  if (none.length > 0) {
+    buckets.push({ key: NO_CYCLE_KEY, label: "No cycle", records: none });
+  }
+  return buckets;
 }
 
 // ── Filter & sort ─────────────────────────────────────────────────────────────
@@ -451,7 +515,15 @@ export function shapeRegister(
     descriptor.groupBy && axes.includes(descriptor.groupBy)
       ? descriptor.groupBy
       : null;
-  const groups = activeGroupBy ? groupRecords(rows, activeGroupBy) : null;
+  const groups = activeGroupBy
+    ? activeGroupBy === "Cycle"
+      ? groupByCycle(
+          rows,
+          register,
+          register === "experiments" ? rows : ctx.experiments ?? [],
+        )
+      : groupRecords(rows, activeGroupBy)
+    : null;
 
   const nested =
     tab.nested && register === "readings"

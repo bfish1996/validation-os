@@ -2874,6 +2874,19 @@ button.vos-verdict-title {
 .vos-seg-btn:hover { background: var(--vos-surface-2); }
 .vos-seg-btn.is-active { background: var(--vos-accent-weak); color: var(--vos-accent-text); }
 
+/* Cycle lens — a compact, secondary round selector in a surface head (right-
+   aligned after the spacer; on Assumptions it sits just left of the Grid/
+   View-all seg). Deliberately understated so "view all" is available without
+   competing with the primary controls. */
+.vos-cycle-filter { display: inline-flex; align-items: center; gap: 6px; align-self: center; }
+.vos-cycle-filter-label { font-size: 11px; color: var(--vos-muted); text-transform: uppercase; letter-spacing: 0.4px; }
+.vos-cycle-filter-select {
+  padding: 4px 8px; font-size: 12px; font-family: inherit;
+  color: var(--vos-text); background: var(--vos-surface);
+  border: 1px solid var(--vos-border); border-radius: 6px; cursor: pointer;
+}
+.vos-cycle-filter-note { font-size: 11px; color: var(--vos-muted); font-style: italic; }
+
 /* Stage grid cell button (clean count, 1 for single) */
 .vos-stage-grid-cell { padding: 0; }
 .vos-stage-grid-btn { width: 100%; min-height: 56px; border: 1px solid var(--vos-border); border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; color: var(--vos-text); transition: filter 0.15s, border-color 0.15s; }
@@ -3009,6 +3022,7 @@ button.vos-verdict-title {
 .vos-reading-excerpt { padding: 4px 8px; border-left: 3px solid var(--vos-border); background: var(--vos-surface); border-radius: 0 4px 4px 0; font-style: italic; font-size: 11px; color: var(--vos-text); margin: 4px 0; }
 .vos-verdict-border-good { border-left-color: var(--vos-good); }
 .vos-verdict-border-crit { border-left-color: var(--vos-crit); }
+.vos-verdict-border-warn { border-left-color: var(--vos-warn); }
 .vos-verdict-border-neutral { border-left-color: var(--vos-border); }
 .vos-rung-tag { font-size: 8px; color: var(--vos-muted); padding: 1px 5px; background: var(--vos-surface-2); border-radius: 3px; }
 .vos-link { color: var(--vos-accent-text); cursor: pointer; background: none; border: none; font: inherit; padding: 0; }
@@ -3054,6 +3068,37 @@ button.vos-verdict-title {
 /* Unstarted bars section. 14px padding, 8px gap. */
 .vos-unstarted { border-style: dashed; }
 .vos-unstarted-bar { padding: 14px; margin-bottom: 8px; background: var(--vos-surface-2); border-radius: 6px; border: 1px dashed var(--vos-border); }
+
+/* Testing panel — the pre-registered target set (the beliefs an experiment set
+   out to test) + the coincidental "also found" panel below it. */
+.vos-target-list { display: flex; flex-direction: column; gap: 8px; }
+.vos-target-row {
+  padding: 12px 14px;
+  background: var(--vos-surface);
+  border: 1px solid var(--vos-border);
+  border-left: 3px solid var(--vos-border);
+  border-radius: 6px;
+}
+.vos-target-head { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+/* Targeted vs coincidental tags — the whole point of the split: targeted is a
+   pre-registered aim, coincidental is bonus evidence that happened to land. */
+.vos-tag-target {
+  font-size: 8px; text-transform: uppercase; letter-spacing: 0.4px;
+  padding: 1px 6px; border-radius: 3px;
+  color: var(--vos-accent-text); background: var(--vos-accent-weak, var(--vos-surface-2));
+  border: 1px solid var(--vos-border);
+}
+.vos-tag-coincidental {
+  font-size: 8px; text-transform: uppercase; letter-spacing: 0.4px;
+  padding: 1px 6px; border-radius: 3px;
+  color: var(--vos-muted); background: var(--vos-surface-2);
+  border: 1px dashed var(--vos-border);
+}
+/* The coincidental section + rows read as secondary (dashed, muted surface). */
+.vos-coincidental { border-style: dashed; }
+.vos-coincidental-row { background: var(--vos-surface-2); border-style: dashed; }
+.vos-belief-card-coincidental { background: var(--vos-surface-2); border-style: dashed; }
+.vos-belief-bar-coincidental { border-left-style: dashed; }
 
 /* ── DEV-5879 polish pass: donut, evidence list, next-moves, grid, glossary ── */
 

@@ -112,6 +112,43 @@ export function testsAssumption(exp: AnyRecord, assumptionId: string): boolean {
   return strList(exp.barLineAssumptionIds).includes(assumptionId);
 }
 
+// ── Cycles (the validation round) ────────────────────────────────────────────
+// A Cycle is a plain sequential integer on the experiment (Cycle 1, 2, 3…),
+// a scalar label — not a register. An experiment carries its own `Cycle`; an
+// assumption's cycle membership is DERIVED from the experiments testing it
+// (ontology `cycle_membership`), never stored, mirroring `experiments_testing_me`.
+
+/** The validation cycle this experiment belongs to — a positive integer
+ * (ontology `Cycle`, range [1, null]), or null when unassigned or out of range
+ * (0, negative, or non-integer read as "no cycle" rather than a bad bucket). */
+export function experimentCycle(exp: AnyRecord): number | null {
+  const v = exp.Cycle;
+  return typeof v === "number" && Number.isInteger(v) && v >= 1 ? v : null;
+}
+
+/** An experiment's cycle membership as a list — 0 or 1 entries — so it composes
+ * with the cycle filter the same way an assumption's (multi-valued) list does. */
+export function experimentCycles(exp: AnyRecord): number[] {
+  const c = experimentCycle(exp);
+  return c === null ? [] : [c];
+}
+
+/** The validation cycles a belief is being tested in — the distinct `Cycle`
+ * values of the non-archived experiments whose bar lines name it, ascending.
+ * Derived, never stored (ontology `cycle_membership`). */
+export function assumptionCycles(
+  assumption: AnyRecord,
+  experiments: AnyRecord[],
+): number[] {
+  const cycles = new Set<number>();
+  for (const e of liveExperiments(experiments)) {
+    if (!testsAssumption(e, assumption.id)) continue;
+    const c = experimentCycle(e);
+    if (c !== null) cycles.add(c);
+  }
+  return [...cycles].sort((a, b) => a - b);
+}
+
 /** Does this experiment hold a still-open bar line on the belief (no verdict)? */
 export function hasOpenBarOn(exp: AnyRecord, assumptionId: string): boolean {
   const bars = exp.barLines as BarLine[] | undefined;
