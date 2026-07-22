@@ -1,5 +1,12 @@
 # @validation-os/dashboard
 
+## 0.20.1
+
+### Patch Changes
+
+- 8e7a01a: Records browser row click now routes to the right detail page by register (assumptions → assumption/<id>, experiments → experiment/<id>, readings → reading/<id>) instead of always falling through to the legacy record/<id> page.
+  - @validation-os/core@0.20.1
+
 ## 0.20.0
 
 ### Minor Changes
