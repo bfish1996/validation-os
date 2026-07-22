@@ -1,5 +1,11 @@
 # @validation-os/api
 
+## 0.22.0
+
+### Patch Changes
+
+- @validation-os/core@0.22.0
+
 ## 0.21.0
 
 ### Minor Changes
