@@ -65,6 +65,7 @@ const FIELDS: Record<Collection, FormField[]> = {
     { key: "Deadline", label: "Deadline", kind: "text", placeholder: "YYYY-MM-DD" },
     { key: "Outcome", label: "Outcome", kind: "select", options: EXPERIMENT_OUTCOME },
     { key: "Date", label: "Date", kind: "text", placeholder: "YYYY-MM-DD" },
+    { key: "Cycle", label: "Cycle", kind: "number", placeholder: "e.g. 1" },
   ],
   readings: [
     { key: "Title", label: "Reading", kind: "text", required: true },

@@ -307,6 +307,14 @@ entities:
       - { name: Outcome, type: select, options: vocabularies.experiment_outcome, required: false }  # null until Closed
       - { name: Owner, type: dashboard_user }
       - { name: Date, type: date }
+      # The validation cycle (round) this run belongs to — a plain sequential
+      # integer (Cycle 1, 2, 3…), null when unassigned. A scalar LABEL, not a
+      # register and not a relation: it batches experiments into rounds so both
+      # experiments and their tested assumptions filter by cycle. An
+      # assumption's cycle membership is DERIVED (derived_views.cycle_membership)
+      # from the experiments whose bar lines name it — never stored on the
+      # assumption.
+      - { name: Cycle, type: number, range: [1, null], required: false }
     body_headings: [Method protocol, Closure rollup]
 
   bar_line:
@@ -586,6 +594,13 @@ derived_views:
     derived progress meter, never stored, never auto-concluding. Surfaced as
     "planned N met — ready to conclude?" but always waits for a human act
     (OPS-1305).
+  cycle_membership: >-
+    The validation cycle(s) a belief is being tested in — the set of `Cycle`
+    values of the (non-archived) Experiments whose bar lines name it. Derived
+    from the experiments, never stored on the assumption (mirrors
+    experiments_testing_me). A belief tested by no cycle-tagged experiment has
+    no cycle. Lets the dashboard filter/group both experiments (by their own
+    `Cycle`) and assumptions (by this derived set) by round.
   testing: "Status = Live AND a linked Experiment (plan) has Status = Running with an open bar line on this belief."
   test_next_surface: >-
     Experiments, not assumptions — there is no Risk-ranked belief queue.

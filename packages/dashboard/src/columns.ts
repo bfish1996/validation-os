@@ -71,6 +71,15 @@ const COLUMNS: Record<Collection, ColumnDef[]> = {
     { key: "Title", header: "Evidence plan" },
     { key: "Status", header: "Status", kind: "status" },
     { key: "Feasibility", header: "Feasibility" },
+    {
+      key: "Cycle",
+      header: "Cycle",
+      align: "right",
+      accessor: (r) =>
+        typeof r.Cycle === "number" && Number.isFinite(r.Cycle)
+          ? `Cycle ${r.Cycle}`
+          : null,
+    },
   ],
   readings: [
     { key: "Title", header: "Reading" },

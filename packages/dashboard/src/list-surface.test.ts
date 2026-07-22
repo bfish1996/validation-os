@@ -4,6 +4,7 @@ import {
   defaultTabId,
   filterRecords,
   groupByAxesFor,
+  groupByCycle,
   groupRecords,
   needsHumanCounts,
   nestReadingsByPlan,
@@ -196,14 +197,16 @@ describe("assumption tab membership", () => {
 });
 
 describe("group-by", () => {
-  it("offers the five assumption axes and Status elsewhere", () => {
+  it("offers the assumption axes (incl. Cycle), Status+Cycle for experiments, Status elsewhere", () => {
     expect(groupByAxesFor("assumptions")).toEqual([
       "Lens",
       "Theme",
       "Risk band",
       "Status",
       "Owner",
+      "Cycle",
     ]);
+    expect(groupByAxesFor("experiments")).toEqual(["Status", "Cycle"]);
     expect(groupByAxesFor("readings")).toEqual(["Status"]);
   });
 
@@ -254,6 +257,57 @@ describe("group-by", () => {
     expect(shaped.groups!.map((g) => g.label)).toEqual(["Critical", "High"]);
     // … while the Critical bucket keeps the continuous descending order.
     expect(shaped.groups![0]!.records.map((r) => r.id)).toEqual(["b", "a"]);
+  });
+});
+
+describe("group-by cycle", () => {
+  it("buckets experiments by their own Cycle, ascending, No cycle last", () => {
+    const experiments = [
+      experiment("e2", { Cycle: 2 }),
+      experiment("e1", { Cycle: 1 }),
+      experiment("eN"), // no cycle
+      experiment("e1b", { Cycle: 1 }),
+    ];
+    const buckets = groupByCycle(experiments, "experiments", experiments);
+    expect(buckets.map((b) => b.label)).toEqual(["Cycle 1", "Cycle 2", "No cycle"]);
+    expect(buckets[0]!.records.map((r) => r.id)).toEqual(["e1", "e1b"]);
+    expect(buckets[2]!.records.map((r) => r.id)).toEqual(["eN"]);
+  });
+
+  it("buckets assumptions by the cycles of the experiments testing them (derived)", () => {
+    const experiments = [
+      experiment("e1", { Cycle: 1, barLineAssumptionIds: ["a1", "a2"] }),
+      experiment("e2", { Cycle: 2, barLineAssumptionIds: ["a2"] }),
+    ];
+    const assumptions = [assumption("a1"), assumption("a2"), assumption("a3")];
+    const buckets = groupByCycle(assumptions, "assumptions", experiments);
+    const byLabel = Object.fromEntries(
+      buckets.map((b) => [b.label, b.records.map((r) => r.id)]),
+    );
+    // a2 is tested in both cycles → appears in both buckets; a3 in none.
+    expect(byLabel["Cycle 1"]).toEqual(["a1", "a2"]);
+    expect(byLabel["Cycle 2"]).toEqual(["a2"]);
+    expect(byLabel["No cycle"]).toEqual(["a3"]);
+  });
+
+  it("never counts an Archived experiment's cycle for an assumption", () => {
+    const experiments = [
+      experiment("e1", { Cycle: 1, Status: "Archived", barLineAssumptionIds: ["a1"] }),
+    ];
+    const buckets = groupByCycle([assumption("a1")], "assumptions", experiments);
+    expect(buckets.map((b) => b.label)).toEqual(["No cycle"]);
+  });
+
+  it("shapes an experiments register grouped by Cycle from the rows themselves", () => {
+    const experiments = [
+      experiment("e1", { Cycle: 1, Status: "Running" }),
+      experiment("e2", { Cycle: 2, Status: "Running" }),
+    ];
+    const shaped = shapeRegister("experiments", experiments, {
+      tabId: "running",
+      groupBy: "Cycle",
+    });
+    expect(shaped.groups!.map((g) => g.label)).toEqual(["Cycle 1", "Cycle 2"]);
   });
 });
 

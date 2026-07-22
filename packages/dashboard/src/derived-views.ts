@@ -112,6 +112,35 @@ export function testsAssumption(exp: AnyRecord, assumptionId: string): boolean {
   return strList(exp.barLineAssumptionIds).includes(assumptionId);
 }
 
+// ── Cycles (the validation round) ────────────────────────────────────────────
+// A Cycle is a plain sequential integer on the experiment (Cycle 1, 2, 3…),
+// a scalar label — not a register. An experiment carries its own `Cycle`; an
+// assumption's cycle membership is DERIVED from the experiments testing it
+// (ontology `cycle_membership`), never stored, mirroring `experiments_testing_me`.
+
+/** The validation cycle this experiment belongs to — a positive integer, or
+ * null when unassigned or not a finite number. */
+export function experimentCycle(exp: AnyRecord): number | null {
+  const v = exp.Cycle;
+  return typeof v === "number" && Number.isFinite(v) ? v : null;
+}
+
+/** The validation cycles a belief is being tested in — the distinct `Cycle`
+ * values of the non-archived experiments whose bar lines name it, ascending.
+ * Derived, never stored (ontology `cycle_membership`). */
+export function assumptionCycles(
+  assumption: AnyRecord,
+  experiments: AnyRecord[],
+): number[] {
+  const cycles = new Set<number>();
+  for (const e of liveExperiments(experiments)) {
+    if (!testsAssumption(e, assumption.id)) continue;
+    const c = experimentCycle(e);
+    if (c !== null) cycles.add(c);
+  }
+  return [...cycles].sort((a, b) => a - b);
+}
+
 /** Does this experiment hold a still-open bar line on the belief (no verdict)? */
 export function hasOpenBarOn(exp: AnyRecord, assumptionId: string): boolean {
   const bars = exp.barLines as BarLine[] | undefined;

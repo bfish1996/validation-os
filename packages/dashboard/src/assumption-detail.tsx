@@ -10,7 +10,7 @@ import { confidenceFloorForStage, isNonEvidence, riskThresholdForStage } from "@
 import { Breadcrumb } from "./breadcrumb.js";
 import { buildEvidenceComposition, readingContributions, type ReadingContribution } from "./evidence-composition.js";
 import { buildConfidenceExplainer } from "./confidence-explainer.js";
-import { readingBeliefs, readingBeliefFor, liveExperiments } from "./derived-views.js";
+import { readingBeliefs, readingBeliefFor, liveExperiments, experimentCycle, assumptionCycles } from "./derived-views.js";
 import { EvidenceBody } from "./markdown.js";
 import { GlossaryText } from "./glossary-text.js";
 import { toGlossaryTerms } from "./glossary.js";
@@ -122,6 +122,10 @@ export function AssumptionDetail({
     return ids.includes(assumptionId);
   });
 
+  // The validation cycle(s) this belief is being tested in — derived from the
+  // experiments testing it (ontology `cycle_membership`), never stored.
+  const cycles = assumptionCycles(record, experiments.records ?? []);
+
   // Linked readings — evidence-first: each reading that scores this assumption,
   // with the per-belief excerpt.
   const linkedReadings = (readings.records ?? [])
@@ -155,6 +159,9 @@ export function AssumptionDetail({
         <span className="vos-detail-tag">{lens}</span>
         <span className="vos-detail-tag">{stage}</span>
         <span className="vos-detail-tag vos-detail-tag-qt">{questionType}</span>
+        {cycles.map((c) => (
+          <span key={c} className="vos-pill vos-pill-accent">Cycle {c}</span>
+        ))}
       </div>
       <div className="vos-detail-title">{statement}</div>
 
@@ -238,6 +245,7 @@ export function AssumptionDetail({
             const bars = Array.isArray(e.barLines) ? e.barLines : [];
             const myBar = bars.find((b: any) => b?.assumptionId === assumptionId);
             const expConf = (e.derived as any)?.experimentConfidence ?? 50;
+            const expCycle = experimentCycle(e);
             return (
               <button
                 key={id}
@@ -247,6 +255,9 @@ export function AssumptionDetail({
               >
                 <span className="vos-linked-gauge vos-num">{Math.round(expConf)}</span>
                 <span className="vos-linked-title">{String(e.Title ?? id)}</span>
+                {expCycle !== null ? (
+                  <span className="vos-pill vos-pill-accent">Cycle {expCycle}</span>
+                ) : null}
                 {myBar ? (
                   <span className="vos-linked-bar">
                     <strong>Right if:</strong> {String(myBar.rightIf ?? "")}

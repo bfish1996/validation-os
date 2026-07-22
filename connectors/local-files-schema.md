@@ -49,6 +49,7 @@ registers:
       - {canonical: Outcome, backend: Outcome, type: text, derived: false, options_source: registry-schema, required: false}
       - {canonical: Owner, backend: Owner, type: text, derived: false, options_source: vocabulary.dashboard_users}
       - {canonical: Date, backend: Date, type: text, derived: false}
+      - {canonical: Cycle, backend: Cycle, type: number, derived: false, required: false}
     relations: []
     bar_lines:
       composed_into: experiments
@@ -225,6 +226,7 @@ with an `Outcome` — the commitment-grade behaviour a Goal used to give
 | Outcome | `- **Outcome**: ...` | text (optional, null until Closed) | no |
 | Owner | `- **Owner**: ...` | text (dashboard-user reference) | no |
 | Date | `- **Date**: ...` | text (date) | no |
+| Cycle | `- **Cycle**: ...` | number (nullable; the validation round, e.g. 1) | no |
 
 No `Type`, no `Strength`, no `Interviewee` — all three are dead at plan
 level. Rung is per-belief (bar line / Reading); Strength lives only on
