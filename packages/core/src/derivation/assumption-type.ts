@@ -42,11 +42,24 @@
  *     mechanism / no one reports caring" → ProblemExists
  *   - Otherwise (ambiguous) → ProblemExists (flagged for human review)
  */
-import type { AssumptionType } from "../types.js";
+import { ASSUMPTION_TYPES, type AssumptionType } from "../types.js";
 
-/** The default assumption type for an ambiguous falsification test — the most
- * permissive sub-ladder, and the migration's flagged-for-review default. */
+/**
+ * The default assumption type for an ambiguous falsification test — the most
+ * permissive sub-ladder. This is the single source of truth for the default
+ * across the packages; every call site that falls back to a default
+ * (recompute, derive-on-write, reading-input, the dashboard's confidence
+ * explainers) imports this constant rather than re-typing `"ProblemExists"` so
+ * the default can't silently diverge (). Living inference re-runs on
+ * every touching write, so an un-grilled belief gets the permissive default
+ * and self-corrects once a falsification bar exists.
+ */
 export const DEFAULT_ASSUMPTION_TYPE: AssumptionType = "ProblemExists";
+
+/** Validate a stored Assumption Type against the enum. */
+export function isValidAssumptionType(v: unknown): v is AssumptionType {
+  return typeof v === "string" && (ASSUMPTION_TYPES as readonly string[]).includes(v);
+}
 
 interface Rule {
   readonly type: AssumptionType;

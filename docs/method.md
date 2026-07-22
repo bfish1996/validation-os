@@ -28,13 +28,14 @@ derived **Completeness %** — every structural slot present (Description,
 Lens, Impact, Scoring justification, dependencies traced) — not a stored
 checklist.
 
-Every assumption is tagged with a **Stage** — the kind of external-actor
-response it tests (Discovery → Validation → Scale → Maturity). The
-membership test is the subject-verb rule: the claim's subject must be an
-external actor (user, buyer, competitor, regulator, partner, distributor,
-investor) or the market, never "we" — there is no stage for "we can build
-X." The Lens × Stage heatmap reads where your bets cluster; see
-[stage-policy.md](stage-policy.md).
+Every assumption is typed by its **Assumption Type** — the kind of claim it
+is, set by what would prove it false (the gaming guard). The eleven types
+(ProblemExists, TheyllPay, ItWorks, …) each map to one **Risk Group**
+(Desirability · Usability · Feasibility · Viability) and decide which
+evidence rungs can settle the claim. The type is **inferred on write** from
+the falsification bar of any experiment naming the belief, falling back to
+the description — no dropdown, no hand-picking. See
+[evidence-ladder.md](evidence-ladder.md).
 
 Skills: `/assumptions` (build, grill, audit). Rules:
 `skills/_shared/assumption-guardrails.md`.
@@ -47,12 +48,11 @@ protocol run, one Lens-matched population — that may honestly test
 right if` / `We're wrong if` pair and its own planned rung on a composed bar
 line, all fixed before running (`skills/_shared/experiment-guardrails.md
 §1b`). Each rung is bought at the lowest step of the **evidence ladder**
-that can honestly move that belief (see `evidence-ladder.md`: 6 rungs in two
-categories — **Testing**, recruited-sample instruments from `Talk` to
-`Observed usage`, and **Market**, market-closed targets from `Signed intent`
-up to `Paying users`). The anchor (ceiling `s`) is per **(question type ×
-rung × band)** — the same rung carries a different ceiling for an Existence
-claim vs a WillingnessToPay claim (the question-type-aware evidence ladder, `docs/question-types.md`). A
+that can honestly move that belief (see `evidence-ladder.md`: 11 rungs from
+`Talk` through `Cost data`, each carrying a different ceiling per
+**(assumption type × rung × band)** — the same rung carries a different
+ceiling for a ProblemExists claim vs a TheyllPay claim, set by what would
+prove the claim false). A
 plan carrying a `Deadline` is commitment-grade: it closes with an `Outcome`
 (`Achieved` / `Missed` / `Dropped`) as well as its bar verdicts — the
 discipline a standalone `Goal` record used to give, now just a mode of the

@@ -21,14 +21,13 @@ registers:
       - {canonical: Title, backend: Title, type: string, derived: false}
       - {canonical: Description, backend: Description, type: string, derived: false}
       - {canonical: Lens, backend: Lens, type: string, derived: false, options_source: vocabulary.lens}
-      - {canonical: Stage, backend: Stage, type: string, derived: false, options_source: registry-schema}
-      - {canonical: Question Type, backend: Question Type, type: string, derived: false, options_source: registry-schema}
+      - {canonical: Assumption Type, backend: "Assumption Type", type: string, derived: true, formula: "inferred on write from the falsification bar (wrongIf) of any experiment naming the belief, falling back to the description; re-inferred on every touching write (living inference). Not a required input — no dropdown. .", options_source: registry-schema}
       - {canonical: Theme, backend: Theme, type: "string[]", derived: false, options_source: registry-schema}
       - {canonical: Impact, backend: Impact, type: number, derived: false}
-      - {canonical: Derived Impact, backend: derived.derivedImpact, type: number, derived: true, formula: "seed + (100 - seed) × S/(S + 100), S = Σ dependents' Derived Impact + 100 per standing decision Based on assumption; experiments never contribute (assumption-guardrails.md §3); recomputed on every touching write (the derive-on-write invariant)"}
+      - {canonical: Derived Impact, backend: derived.derivedImpact, type: number, derived: true, formula: "seed + (100 - seed) × S/(S + 100), S = Σ dependents' Derived Impact + 100 per standing decision Based on assumption; experiments never contribute (assumption-guardrails.md §3); recomputed on every touching write ()"}
       - {canonical: Risk, backend: derived.risk, type: number, derived: true, formula: "derived.derivedImpact * (1 - max(0, derived.confidence) / 100); skill-computed"}
       - {canonical: Confidence, backend: derived.confidence, type: number, derived: true, formula: "(w0·0 + Σ wi·si) / (w0 + Σ wi), w0=100, wi=|si|×Source quality×commitmentFactor, si=a beliefs[] entry's signed Strength scored against this assumption; commitmentFactor=1.0 if the entry's reading has experimentId else 0.85 (never reorders rungs); concluded entries only, deduped per (belief, source) (experiment-guardrails.md §2); skill-computed"}
-      - {canonical: Completeness %, backend: derived.completeness, type: number, derived: true, formula: "filled slots / all slots × 100 over six structural slots: description, lens, impact, scoringJustification, dependencies traced (≥1 dependsOn/enables entry), questionType; replaces the retired gaps/presence-field machinery (the evidence-remodel slice); skill-computed"}
+      - {canonical: Completeness %, backend: derived.completeness, type: number, derived: true, formula: "filled slots / all slots × 100 over six structural slots: Description, Lens, Impact, Scoring justification, dependencies traced (≥1 Depends on/Enables link), Assumption Type; replaces the retired Gaps/presence-field machinery (); the Assumption Type slot is inferred on write (); skill-computed"}
       - {canonical: Status, backend: Status, type: string, derived: false, options_source: registry-schema}
       - {canonical: Owner, backend: Owner, type: "object[]", derived: false, options_source: vocabulary.dashboard_users}
       - {canonical: Scoring justification, backend: "Scoring justification", type: string, derived: false}
@@ -187,10 +186,10 @@ is no shared `type` field splitting one collection into two record kinds.
   `experiments` and `decisions` carry a `body` with their canonical `##`
   section headings; `readings` carry a `body` on the canonical **`## Quote`
   (verbatim what the source said/did) + `## Source` (who/when/link)** template —
-  one per reading, reintroduced as a deliberate reversal of the the evidence-remodel slice
+  one per reading, reintroduced as a deliberate reversal of the 
   no-body slice, backfilled from Notion and shown in the dashboard; analysis
   stays out of the body (it lives in `beliefs[].Grading justification`).
-  Assumptions and glossary have no body field at all (`the evidence-remodel slice`).
+  Assumptions and glossary have no body field at all (``).
 - Derived fields live in a `derived` sub-object (`derived.risk`,
   `derived.confidence`, `derived.derivedImpact`, `derived.completeness`,
   `derived.sourceQuality`) so humans know not to edit them directly. A
@@ -204,7 +203,7 @@ is no shared `type` field splitting one collection into two record kinds.
   `readingIds`, `basedOnIds`, `resolvesIds`), `barLineAssumptionIds` as the
   projection of `barLines[].assumptionId`, and `assumptionIds` as the
   projection of the Reading's `beliefs[].assumptionId`. The connector and the
-  adapter share one write path's naming — reconciled `the NoSQL schema reconciliation`.
+  adapter share one write path's naming — reconciled `OPS-1335`.
 - Reading references are: `beliefs[].assumptionId` (one per belief entry) with
   the row-level `assumptionIds` projection over them, and a single row-level
   `experimentId`. All are plain ID strings, not embedded copies of the target
@@ -234,7 +233,7 @@ is no shared `type` field splitting one collection into two record kinds.
 - `Owner` and `Agreed by` are arrays of dashboard-user objects
   (`{id, name}`), sourced from the auth team list
   (`vocabulary.dashboard_users`), not free text and not their own collection —
-  the retired `people` collection had no replacement collection (`the evidence-remodel slice`).
+  the retired `people` collection had no replacement collection (``).
 - `moot` (boolean) on assumptions: set `true` when a decision `Resolves
   assumption` moots the belief; `Impact` and `derived.derivedImpact` go to 0.
 - Legacy Notion migration fields (`notion_id`, `notion_url`) are carried
@@ -247,8 +246,7 @@ is no shared `type` field splitting one collection into two record kinds.
 | Title | `Title` | string | no |
 | Description | `Description` | string | no |
 | Lens | `Lens` | string | no |
-| Stage | `Stage` | string (`Discovery` \| `Validation` \| `Scale` \| `Maturity`) | no |
-| Question Type | `Question Type` | string (`Existence` \| `Prevalence` \| `CausalEffect` \| `WillingnessToPay` \| `ValueUtility` \| `Regulatory` \| `Feasibility`) | no |
+| Assumption Type | `Assumption Type` | string (`ProblemExists` \| `ProblemWidespread` \| `WantOurSolution` \| `ItWorks` \| `CanCompleteTask` \| `CanBuildIt` \| `LegalCompliant` \| `TheyllPay` \| `TheyKeepUsingIt` \| `ReachProfitably` \| `EconomicsWork`) | yes (inferred on write,  — not a required input) |
 | Theme | `Theme` | string[] | no |
 | Impact | `Impact` | number (0–100) | no |
 | Derived Impact | `derived.derivedImpact` | number | yes |
@@ -266,7 +264,7 @@ is no shared `type` field splitting one collection into two record kinds.
 There is **no `experiments` array** on the assumption document. "Which
 experiments test this belief" is a derived view over the Experiments'
 `barLines` (matching `assumptionId`) — computed for the test-next surface,
-never stored. There is no `body` field on this document (`the evidence-remodel slice`) — the
+never stored. There is no `body` field on this document (``) — the
 retired `fiveWhys`, `metricForTruth`, and `gaps` fields, and the
 `## Provenance & notes` body, are gone.
 
@@ -276,7 +274,7 @@ retired `fiveWhys`, `metricForTruth`, and `gaps` fields, and the
   Derived Impact + 100 per standing decision naming the row via `Based on
   assumption`; experiments never contribute. Recomputed on every touching
   write alongside `derived.risk`/`derived.confidence`/`derived.completeness` —
-  no deliberate staleness (`the derive-on-write invariant`; `assumption-guardrails.md §3`).
+  no deliberate staleness (``; `assumption-guardrails.md §3`).
 - `derived.risk` = `derived.derivedImpact * (1 - max(0, derived.confidence) / 100)`.
 - `derived.confidence` = the signed weighted average of concluded linked
   Readings, neutral prior w₀ = 100, deduped by `Source`. Canonical formula:
@@ -284,7 +282,7 @@ retired `fiveWhys`, `metricForTruth`, and `gaps` fields, and the
 - `derived.completeness` = filled slots / all slots × 100, over five
   structural slots: `Description`, `Lens`, `Impact`, `Scoring justification`,
   dependencies traced (≥1 `dependsOnIds`/`enablesIds` entry). Replaces the
-  retired `gaps`/presence-field machinery (`the evidence-remodel slice`).
+  retired `gaps`/presence-field machinery (``).
 - Skills recompute and rewrite these on every touching write; never hand-edit.
 
 ## Field mapping — Experiments (the plan)
@@ -305,7 +303,7 @@ retired `fiveWhys`, `metricForTruth`, and `gaps` fields, and the
 
 No `type` field, no `strength` field — both are dead at plan level. Rung is
 per-belief on the bar line; Strength lives only on Readings. `Deadline` and
-`Outcome` are folded in from the retired Goal document (`the evidence-remodel slice`).
+`Outcome` are folded in from the retired Goal document (``).
 
 ### Bar lines (embedded)
 
@@ -440,7 +438,7 @@ reading is the direct output of concluding a committed Experiment, and must
 reference a **live (non-archived)** experiment (`reading-orphaned-experiment`,
 `skills/_shared/ontology.yaml`). The reading document **carries a `body`** on
 the canonical **`## Quote` + `## Source`** template — verbatim source text —
-a deliberate reversal of the the evidence-remodel slice no-body slice (backfilled from Notion,
+a deliberate reversal of the  no-body slice (backfilled from Notion,
 shown in the dashboard). Analysis/reasoning stays out of the body: it lives in
 the per-entry `Grading justification`. `## Notes` is cut.
 
@@ -500,7 +498,7 @@ and directed self-relations respectively, stored as ID arrays on both ends.
 
 No `type` field (the collection is the discriminator). `Status` has no
 `Reversed` value — a term is superseded by a better one, never reversed.
-There is no `body` field on this document (`the evidence-remodel slice`) — `Definition`,
+There is no `body` field on this document (``) — `Definition`,
 `Avoid`, and `How it differs` replace the old `## Definition` / `## Avoid /
 don't say` / `## How it differs` body headings. `Related tension` is a
 symmetric Glossary↔Glossary confusable-neighbour pairing, stored as an ID
@@ -519,12 +517,12 @@ The following fields should only contain values from
 
 Every other select field (`Status`, `Feasibility`, `closureReason`, `Outcome`,
 `Rung`, `plannedRung`, `barVerdict`, `Result`, `Representativeness`,
-`Credibility`, `Stage`) draws its legal values from the fixed lists in
+`Credibility`, `Assumption Type`) draws its legal values from the fixed lists in
 `skills/_shared/ontology.yaml §vocabularies` — never restated here, to avoid
-forking the semantics. The stored `Stage` value is the **name**
-(`Discovery` | `Validation` | `Scale` | `Maturity`), not the ordinal 1–4 —
-the ordinal is for sorting only. See `docs/stage-policy.md` for the
-membership test (the subject-verb rule) and the Lens × Stage orthogonality.
+forking the semantics. The stored `Assumption Type` value is the **name**
+(e.g. `ProblemExists`, `TheyllPay`), inferred on write from the falsification
+bar of any experiment naming the belief () — not a required input.
+See `docs/evidence-ladder.md` for the eleven sub-ladders and the inference rule.
 
 `/setup-validation-os` reads the config and proposes validation rules or
 lookup documents for the config-driven fields. If the config is missing the
@@ -586,8 +584,8 @@ write.
    scores), `experimentId` (readings), `barLines.assumptionId` (experiments),
    every top-level relation array (`dependsOnIds`, `enablesIds`,
    `contradictsIds`, `readingIds`, `basedOnIds`, `resolvesIds`), and
-   `assumptions.Stage` (the dashboard's Lens × Stage heatmap filters by
-   Stage on every drill-through).
+   `assumptions.Assumption Type` (the dashboard's workspace filters by the
+   inferred type).
 4. Optionally create a `validationRules` or `_schema` document recording the
    current vocabulary values from `validation-os.config.yaml`, including the
    Reading, bar-line, and Glossary vocabularies, and the `dashboard_users`
@@ -627,7 +625,7 @@ legal `Status` value for experiments; drop the `people` collection and rewrite
 `experimentId`; drop the old row-level `assumptionId`/`Result`/
 `derived.strength`/`Grading justification` fields. **Backfill the row-level
 `body`** on the `## Quote` + `## Source` template from the Notion verbatim
-quote/excerpt (the reintroduced reading body, reversing the the evidence-remodel slice cut for
+quote/excerpt (the reintroduced reading body, reversing the  cut for
 readings). Two migrated readings that
 share one artifact (same `Source`, `experimentId`, and `Date`) scoring
 different beliefs may be merged into one document with two `beliefs[]` entries,

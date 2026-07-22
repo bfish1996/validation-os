@@ -92,7 +92,6 @@ export { RecordPage } from "./record-page.js";
 export type { RecordPageProps } from "./record-page.js";
 export { SurfacePlaceholder } from "./surface-placeholder.js";
 export type { SurfacePlaceholderProps } from "./surface-placeholder.js";
-export { PipelineSurface } from "./pipeline-surface.js";
 export {
   buildPipeline,
   toStageExperimentInput,
@@ -151,36 +150,6 @@ export type {
 } from "./understanding.js";
 export { RegisterBrowser } from "./register-browser.js";
 export type { RegisterBrowserProps } from "./register-browser.js";
-export { NextMoveSurface } from "./next-move-surface.js";
-export type { NextMoveSurfaceProps } from "./next-move-surface.js";
-export { StageGridSurface } from "./stage-grid-surface.js";
-export type { StageGridSurfaceProps } from "./stage-grid-surface.js";
-export {
-  buildStageGrid,
-  cellAt,
-  NO_LENS,
-  NO_STAGE,
-  rankByRisk,
-  STAGE_GLOSS,
-  STAGE_ORDER,
-  stageOf,
-} from "./stage-grid-model.js";
-export type {
-  StageGridCell,
-  StageGridView,
-  StageValue,
-} from "./stage-grid-model.js";
-export {
-  buildHeatGrid,
-  heatCellAt,
-  heatLevel,
-  QUESTION_TYPE_FILTERS,
-} from "./heat-grid-model.js";
-export type {
-  HeatCell,
-  HeatGridView,
-  QuestionTypeFilter,
-} from "./heat-grid-model.js";
 export { movePresentation, toNextMoveInput } from "./next-move.js";
 export type {
   MovePresentation,

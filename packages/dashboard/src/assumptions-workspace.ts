@@ -17,6 +17,7 @@
  */
 import {
   readingBeliefInputs,
+  DEFAULT_ASSUMPTION_TYPE,
   type AnyRecord,
   type BarLine,
   type Result,
@@ -37,10 +38,12 @@ import {
   derivedNum,
   experimentCycle,
   isArchivedExperiment,
+  isLiveBelief,
   liveExperiments,
   readingBeliefFor,
   readingBeliefs,
   str,
+  testedByLiveExperiments,
   testsAssumption,
 } from "./derived-views.js";
 import { buildEvidenceComposition } from "./evidence-composition.js";
@@ -289,13 +292,6 @@ export function collectCycles(experiments: AnyRecord[]): number[] {
   return [...cycles].sort((a, b) => b - a);
 }
 
-/** Is a belief live (not Invalidated, not moot)? */
-function isLive(a: AnyRecord): boolean {
-  const status = str(a.Status);
-  const moot = a.moot === true;
-  return !moot && (status === "Live" || status === "Draft");
-}
-
 /** Has a belief graduated (confidence ≥ graduation bar)? */
 function isSettled(a: AnyRecord): boolean {
   const d = derivedOf(a);
@@ -368,14 +364,12 @@ function sortRiskiest(rows: BeliefRow[]): BeliefRow[] {
   );
 }
 
-/** The set of assumption ids tested by a live experiment. */
+/** The set of assumption ids tested by a live experiment — the unified helper
+ * in `derived-views.ts` (reads both barLineAssumptionIds and
+ * barLines[].assumptionId so bar-lined-but-unprojected beliefs aren't
+ * dropped). */
 function testedByLive(experiments: AnyRecord[]): Set<string> {
-  const ids = new Set<string>();
-  for (const e of liveExperiments(experiments)) {
-    for (const id of (e.barLineAssumptionIds as string[]) ?? []) ids.add(id);
-    for (const b of (e.barLines as BarLine[]) ?? []) ids.add(b.assumptionId);
-  }
-  return ids;
+  return testedByLiveExperiments(experiments);
 }
 
 /** Does a reading have a concluded result for an assumption? */
@@ -483,7 +477,7 @@ function buildExperimentGroups(
         : (exp.barLineAssumptionIds as string[]) ?? [],
     );
     const targetAssumptions = assumptions.filter(
-      (a) => targetIds.has(a.id) && isLive(a),
+      (a) => targetIds.has(a.id) && isLiveBelief(a),
     );
     const cycle = cycleOf(exp);
     const beliefs = targetAssumptions.map((a) =>
@@ -524,7 +518,7 @@ function buildRecommendedGroups(
 ): RecommendedGroup[] {
   const testedLive = testedByLive(experiments);
   const eligible = assumptions.filter(
-    (a) => isLive(a) && !isSettled(a) && !testedLive.has(a.id),
+    (a) => isLiveBelief(a) && !isSettled(a) && !testedLive.has(a.id),
   );
 
   const recs = buildRecommendedExperiments(eligible, experiments);
@@ -556,7 +550,7 @@ function buildAllRegister(
   search: string | undefined,
   assumptionsById: Map<string, AnyRecord>,
 ): BeliefRow[] {
-  const live = assumptions.filter(isLive);
+  const live = assumptions.filter(isLiveBelief);
   const testedMap = beliefToCycleMap(experiments);
 
   let rows = live.map((a) => {
@@ -622,7 +616,7 @@ function computeExperimentConfidence(
       const assumption = assumptionsById.get(b.assumptionId);
       const assumptionType =
         (str(assumption?.["Assumption Type"]) as ExperimentConfidenceReadingInput["assumptionType"]) ??
-        "ProblemExists";
+        DEFAULT_ASSUMPTION_TYPE;
       const rung = str(r.Rung) as ExperimentConfidenceReadingInput["rung"];
       readingInputs.push({
         id: r.id,

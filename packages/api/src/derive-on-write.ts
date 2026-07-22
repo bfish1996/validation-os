@@ -6,10 +6,15 @@
  *  - `deriveReadingFields`: a reading's own Source quality + Strength are pure
  *    functions of the record itself — stamped inline on every reading write.
  *  - `recomputeAllDerived`: the cross-record pass (Confidence, Derived Impact,
- *    Risk over the whole assumptions register) — the backstop the spec keeps
- *    for non-dashboard writes, run after any assumption/reading/decision write.
+ *    Risk over the whole assumptions register, plus inferred Assumption Type)
+ *    — the backstop the spec keeps for non-dashboard writes, run after any
+ *    assumption/reading/decision/experiment write. : the pass now
+ *    infers a null Assumption Type from the falsification bar (`wrongIf`) of
+ *    any experiment that names the assumption, falling back to the
+ *    description — a living inference that sharpens once a bar exists.
  */
 import {
+  DEFAULT_ASSUMPTION_TYPE,
   recomputeDerived,
   recomputeSourceQuality,
   recomputeStrength,
@@ -18,6 +23,7 @@ import {
   type BeliefScore,
   type DataProvider,
   type DecisionRecord,
+  type ExperimentRecord,
   type ReadingRecord,
 } from "@validation-os/core";
 
@@ -25,11 +31,11 @@ import {
  * Stamp the derived values a reading owns:
  *  - the row's `derived.sourceQuality` (Representativeness × Credibility), a
  *    property of the artifact, shared by every belief it scores;
- *  - each belief's `derived.strength` = `RUNG_ANCHOR[questionType][rung][band] ×
- *    sign(the belief's Result)` (the question-type-aware evidence ladder) — the question type is looked up
+ *  - each belief's `derived.strength` = `RUNG_ANCHOR[assumptionType][rung][band] ×
+ *    sign(the belief's Result)` () — the Assumption Type is looked up
  *    from the linked assumption via the optional `assumptionsById` map
- *    (defaults to `Existence` when the map or the assumption is absent — the
- *    recompute pass always supplies the map, so the stored Strength is
+ *    (defaults to `ProblemExists` when the map or the assumption is absent —
+ *    the recompute pass always supplies the map, so the stored Strength is
  *    authoritative after the next touching write);
  *  - `assumptionIds`, the projection of `beliefs[].assumptionId`, kept in sync
  *    whenever beliefs[] is written (mirrors barLineAssumptionIds).
@@ -55,8 +61,8 @@ export function deriveReadingFields(
     const beliefs = r.beliefs.map((b) => {
       const assumptionType = assumptionsById
         ? (assumptionsById.get(b.assumptionId)?.["Assumption Type"] ??
-          "ProblemExists")
-        : "ProblemExists";
+          DEFAULT_ASSUMPTION_TYPE)
+        : DEFAULT_ASSUMPTION_TYPE;
       return {
         ...b,
         derived: {
@@ -88,16 +94,18 @@ export function deriveReadingFields(
 export async function recomputeAllDerived(
   provider: DataProvider,
 ): Promise<number> {
-  const [assumptions, readings, decisions] = await Promise.all([
+  const [assumptions, readings, decisions, experiments] = await Promise.all([
     provider.list("assumptions"),
     provider.list("readings"),
     provider.list("decisions"),
+    provider.list("experiments"),
   ]);
 
   const derived = recomputeDerived({
     assumptions: assumptions as unknown as AssumptionRecord[],
     readings: readings as unknown as ReadingRecord[],
     decisions: decisions as unknown as DecisionRecord[],
+    experiments: experiments as unknown as ExperimentRecord[],
   });
 
   let updated = 0;

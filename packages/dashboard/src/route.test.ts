@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Collection } from "@validation-os/core";
-import { formatRoute, parseRoute, type Route } from "./route.js";
+import { formatRoute, parseRoute, type Route, type WorkspaceMode } from "./route.js";
 
 const REGISTERS: Collection[] = [
   "assumptions",
@@ -11,24 +11,24 @@ const REGISTERS: Collection[] = [
 ];
 
 describe("parseRoute", () => {
-  it("lands on the Assumptions grid for an empty hash (the default landing)", () => {
+  it("lands on the Assumptions workspace for an empty hash (the default landing)", () => {
     expect(parseRoute("", REGISTERS)).toEqual({ name: "assumptions" });
     expect(parseRoute("#", REGISTERS)).toEqual({ name: "assumptions" });
     expect(parseRoute("#/", REGISTERS)).toEqual({ name: "assumptions" });
   });
 
-  it("maps the legacy #next route onto the Assumptions grid", () => {
+  it("maps the legacy #next route onto the Assumptions workspace", () => {
     expect(parseRoute("#next", REGISTERS)).toEqual({ name: "assumptions" });
   });
 
-  it("maps the legacy #pipeline route onto Assumptions with view=all (the pipeline board)", () => {
+  it("maps the legacy #pipeline route onto Assumptions with view=all (the flat register)", () => {
     expect(parseRoute("#pipeline", REGISTERS)).toEqual({
       name: "assumptions",
       view: "all",
     });
   });
 
-  it("maps the legacy #stage-grid route onto the Assumptions grid", () => {
+  it("maps the legacy #stage-grid route onto the Assumptions workspace", () => {
     expect(parseRoute("#stage-grid", REGISTERS)).toEqual({ name: "assumptions" });
   });
 
@@ -38,25 +38,29 @@ describe("parseRoute", () => {
     expect(parseRoute("#readings", REGISTERS)).toEqual({ name: "readings" });
   });
 
-  it("reads the Assumptions grid with a view=all toggle (the pipeline board)", () => {
+  it("reads the workspace mode off the view query param ()", () => {
+    expect(parseRoute("#assumptions?view=experiments", REGISTERS)).toEqual({
+      name: "assumptions",
+      view: "experiments",
+    });
+    expect(parseRoute("#assumptions?view=recommended", REGISTERS)).toEqual({
+      name: "assumptions",
+      view: "recommended",
+    });
     expect(parseRoute("#assumptions?view=all", REGISTERS)).toEqual({
       name: "assumptions",
       view: "all",
     });
   });
 
-  it("reads Lens × Stage filter query params on the assumptions route", () => {
+  it("drops an unknown view value (falls back to the default experiments mode)", () => {
+    expect(parseRoute("#assumptions?view=garbage", REGISTERS)).toEqual({
+      name: "assumptions",
+    });
+  });
+
+  it("ignores legacy lens/stage cell-drill params (the grid was retired, )", () => {
     expect(parseRoute("#assumptions?lens=Consumer&stage=Discovery", REGISTERS)).toEqual({
-      name: "assumptions",
-      lens: "Consumer",
-      stage: "Discovery",
-    });
-    expect(parseRoute("#assumptions?lens=Commercial", REGISTERS)).toEqual({
-      name: "assumptions",
-      lens: "Commercial",
-    });
-    // unknown query keys are dropped; bare assumptions still parses clean
-    expect(parseRoute("#assumptions?foo=bar", REGISTERS)).toEqual({
       name: "assumptions",
     });
   });
@@ -97,7 +101,7 @@ describe("parseRoute", () => {
     expect(parseRoute("#assumptions", REGISTERS)).toEqual({ name: "assumptions" });
   });
 
-  it("falls back to the Assumptions grid for unknown or disallowed hashes", () => {
+  it("falls back to the Assumptions workspace for unknown or disallowed hashes", () => {
     expect(parseRoute("#nonsense", REGISTERS)).toEqual({ name: "assumptions" });
     expect(parseRoute("#record/", REGISTERS)).toEqual({ name: "assumptions" });
     expect(parseRoute("#assumption/", REGISTERS)).toEqual({ name: "assumptions" });
@@ -105,25 +109,27 @@ describe("parseRoute", () => {
     expect(parseRoute("#people", REGISTERS)).toEqual({ name: "assumptions" });
   });
 
-  it("reads Lens × Stage filter query params on a records route (legacy)", () => {
-    expect(parseRoute("#decisions?lens=Consumer&stage=Discovery", REGISTERS)).toEqual({
+  it("reads the view=all toggle on a records route (legacy)", () => {
+    expect(parseRoute("#decisions?view=all", REGISTERS)).toEqual({
       name: "records",
       register: "decisions",
-      lens: "Consumer",
-      stage: "Discovery",
+      view: "all",
     });
   });
 });
 
 describe("formatRoute", () => {
-  it("serialises the assumptions grid and its view/lens/stage filters", () => {
+  it("serialises the assumptions workspace and its view mode", () => {
     expect(formatRoute({ name: "assumptions" })).toBe("assumptions");
+    expect(formatRoute({ name: "assumptions", view: "experiments" })).toBe(
+      "assumptions?view=experiments",
+    );
+    expect(formatRoute({ name: "assumptions", view: "recommended" })).toBe(
+      "assumptions?view=recommended",
+    );
     expect(formatRoute({ name: "assumptions", view: "all" })).toBe(
       "assumptions?view=all",
     );
-    expect(
-      formatRoute({ name: "assumptions", lens: "Consumer", stage: "Discovery" }),
-    ).toBe("assumptions?lens=Consumer&stage=Discovery");
   });
 
   it("serialises the three detail routes", () => {
@@ -147,9 +153,9 @@ describe("formatRoute", () => {
     expect(formatRoute({ name: "records", register: "decisions" })).toBe(
       "decisions",
     );
-    expect(
-      formatRoute({ name: "records", register: "decisions", lens: "Consumer" }),
-    ).toBe("decisions?lens=Consumer");
+    expect(formatRoute({ name: "records", register: "decisions", view: "all" })).toBe(
+      "decisions?view=all",
+    );
   });
 
   it("serialises the legacy record drill-in", () => {
@@ -157,10 +163,10 @@ describe("formatRoute", () => {
   });
 
   it("round-trips every route through a `#`-prefixed hash", () => {
+    const modes: WorkspaceMode[] = ["experiments", "recommended", "all"];
     const routes: Route[] = [
       { name: "assumptions" },
-      { name: "assumptions", view: "all" },
-      { name: "assumptions", lens: "Consumer", stage: "Discovery" },
+      ...modes.map((m) => ({ name: "assumptions", view: m }) as Route),
       { name: "experiments" },
       { name: "readings" },
       { name: "assumption", id: "ASM-007" },
@@ -169,8 +175,8 @@ describe("formatRoute", () => {
       // records routes round-trip only for registers NOT owned by the nav
       // (decisions, glossary) — "assumptions"/"experiments"/"readings" as
       // bare hashes resolve to the nav routes, not records.
-      { name: "records", register: "decisions", lens: "Consumer", stage: "Discovery" },
-      { name: "records", register: "glossary", view: "all" },
+      { name: "records", register: "decisions", view: "all" },
+      { name: "records", register: "glossary" },
       { name: "record", id: "A-007" },
     ];
     for (const route of routes) {

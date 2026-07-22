@@ -216,7 +216,7 @@ export function ValidationOSDashboard({ config = {} }: ValidationOSDashboardProp
           />
         ) : route.name === "records" ? (
           <RegisterBrowser
-            key={route.register + (route.lens ?? "") + (route.stage ?? "") + (route.view ?? "")}
+            key={route.register + (route.view ?? "")}
             register={route.register}
             basePath={basePath}
             subtitle={REGISTER_SUBTITLE[route.register]}
@@ -227,8 +227,6 @@ export function ValidationOSDashboard({ config = {} }: ValidationOSDashboardProp
               else if (r === "readings") navigate({ name: "reading", id });
               else navigate({ name: "record", id });
             }}
-            lens={route.lens}
-            stage={route.stage}
             currentCycle={currentCycle}
           />
         ) : route.name === "record" ? (

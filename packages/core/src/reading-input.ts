@@ -25,6 +25,7 @@ import {
   type AssumptionType,
 } from "./types.js";
 import type { AttributionReadingInput } from "./derivation/index.js";
+import { DEFAULT_ASSUMPTION_TYPE } from "./derivation/assumption-type.js";
 
 function str(v: unknown): string | null {
   return typeof v === "string" && v !== "" ? v : null;
@@ -52,8 +53,6 @@ export type BeliefReadingInput = AttributionReadingInput & {
 /** A minimal assumption record shape — only what we need to read the type. */
 export interface AssumptionLike {
   "Assumption Type"?: unknown;
-  /** @deprecated — legacy, read during migration only. */
-  "Question Type"?: unknown;
 }
 
 /** Coerce a stored record (unknown) into the AssumptionLike shape. */
@@ -63,8 +62,9 @@ function asAssumptionLike(v: unknown): AssumptionLike {
 
 /** The default assumption type when an assumption's type is missing — the most
  * permissive sub-ladder, and the migration default for ambiguous
- * falsification tests. */
-const DEFAULT_ASSUMPTION_TYPE: AssumptionType = "ProblemExists";
+ * falsification tests. Re-exported from the assumption-type inference module
+ * (: single source of truth). */
+export { DEFAULT_ASSUMPTION_TYPE };
 
 function assumptionTypeOf(
   assumptionsById: ReadonlyMap<string, unknown> | undefined,

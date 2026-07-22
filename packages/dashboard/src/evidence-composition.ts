@@ -7,7 +7,7 @@
  * reading at that rung). Empty rungs (no evidence) are kept in the lens-aware
  * ladder order so the composition shows the gaps honestly.
  */
-import { ASSUMPTION_TYPES, RUNGS, type AssumptionType, type AnyRecord } from "@validation-os/core";
+import { ASSUMPTION_TYPES, DEFAULT_ASSUMPTION_TYPE, RUNGS, type AssumptionType, type AnyRecord } from "@validation-os/core";
 import {
   RUNG_ANCHOR,
   applicableRungs,
@@ -66,7 +66,7 @@ export function buildEvidenceComposition(
   // attribution math use the right sub-ladder. Default to ProblemExists.
   const rawType = str(assumption["Assumption Type"]);
   const assumptionType: AssumptionType =
-    rawType && isAssumptionType(rawType) ? rawType : "ProblemExists";
+    rawType && isAssumptionType(rawType) ? rawType : DEFAULT_ASSUMPTION_TYPE;
   // The rungs that are evidence for this assumption type (non-zero anchors),
   // in canonical order — empty rungs kept so gaps are honest.
   const ladder = applicableRungs(assumptionType);
@@ -144,7 +144,7 @@ export function readingContributions(
   // the confidence-scoring simplification: read the assumption's Assumption Type for the sub-ladder lookup.
   const rawType = str(assumption["Assumption Type"]);
   const assumptionType: AssumptionType =
-    rawType && isAssumptionType(rawType) ? rawType : "ProblemExists";
+    rawType && isAssumptionType(rawType) ? rawType : DEFAULT_ASSUMPTION_TYPE;
   const inputs: AttributionReadingInput[] = [];
   for (const r of readings) {
     const belief = readingBeliefFor(r, id);

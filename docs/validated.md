@@ -64,42 +64,41 @@ Risk = Impact × (1 − max(0, Confidence)/100)
 at full Risk for its Impact — the negative zone routes to the kill review,
 not to more testing budget.)
 
-You stop testing a belief when its Risk falls below the **stage's Risk
-threshold** (`RISK_THRESHOLD_BY_STAGE`, the question-type-aware evidence ladder) — not when Confidence crosses
-a magic number. Because Impact varies, the same evidence can be plenty for a
-minor belief and dangerously thin for one a one-way-door decision rests on.
-Attention is governed by the Risk ranking, not by status: the register's job
-is to keep every belief's score current and keep you working above the
-threshold, not to march every row to a finish line. The threshold is a
+You stop testing a belief when its Confidence crosses its **graduation bar**
+(`graduationBar(derivedImpact)`, ) — a function of Derived Impact,
+not a magic number. Because Impact varies, the same evidence can be plenty
+for a minor belief and dangerously thin for one a one-way-door decision
+rests on. Attention is governed by the Risk ranking, not by status: the
+register's job is to keep every belief's score current and keep you working
+above the bar, not to march every row to a finish line. The bar is a
 prioritisation rule, not a property of the record.
 
-The threshold **tightens with stage** (the reversibility proxy — Bezos two-way
-vs one-way doors, already in the repo on decisions). The threshold is the
-**max Risk** you can have and still stop testing. A **lower** threshold means
-a **higher** standard — you have to drive Risk down further (more evidence)
-before acting. Like a high-jump bar: a lower number means you have to clear
-more.
+The graduation bar **rises with Derived Impact** (the reversibility proxy —
+Bezos two-way vs one-way doors, already in the repo on decisions). The bar is
+the **min Confidence** you need to graduate. A **higher** impact means a
+**higher** standard — you have to drive Confidence up further (more evidence)
+before the belief graduates. Like a high-jump bar: a higher number means you
+have to clear more.
 
-| Stage | Risk threshold | Confidence floor | Why |
-|---|---|---|---|
-| Discovery | 30 | 10 | Two-way door — act on weak evidence, but need at least a signal |
-| Validation | 15 | 25 | Becoming one-way — need a real reading, not just vibes |
-| Scale | 10 | 40 | One-way door — solid evidence before scaling |
-| Maturity | 5 | 60 | Defensive, often regulatory — strongest evidence |
+| Derived Impact | Graduation bar | Why |
+|---|---|---|
+| 10 | 45 | Low impact — two-way door, act on a signal |
+| 30 | 55 | Becoming one-way — need real evidence |
+| 50 | 65 | Material — solid evidence before resting on it |
+| 80 | 80 | High impact — strongest evidence |
 
-**The Confidence floor** (the zero-evidence guard): Risk = Impact × (1 −
-Confidence/100), so a belief with Impact below the Risk threshold could read
-Risk ≤ threshold with **zero evidence** (Risk = Impact × (1 − 0/100) =
-Impact). The floor requires Confidence ≥ the stage's minimum before "cleared"
-is honest. "Cleared" requires **both** Risk ≤ threshold **and** Confidence ≥
-floor.
+**The zero-evidence guard**: a belief with no concluded readings reads
+Confidence 0, so it can never clear any non-zero bar — an untested belief
+cannot graduate by default. Graduation requires **both** Confidence ≥ the
+graduation bar **and** at least one concluded reading with non-zero strength
+(graduation state `Graduated`, not `Untested`/`Signal`).
 
-A prevalence assumption at Discovery stops testing on a small survey (Risk
-drops below 30 AND Confidence rises above 10); the same prevalence assumption
-at Maturity needs a bigger, replicated survey to clear the tighter threshold
-(Risk below 5 AND Confidence above 60). The question type fixes what counts
-as evidence; the stage fixes how much is enough to act on (see
-`docs/question-types.md`, `docs/stage-policy.md`).
+A ProblemWidespread assumption at low impact graduates on a small survey
+(Confidence rises above 45 with a few distinct sources); the same assumption
+at high impact needs a bigger, replicated survey to clear the tighter bar
+(Confidence above 80). The Assumption Type fixes what counts as evidence;
+the Derived Impact fixes how much is enough to graduate (see
+`docs/evidence-ladder.md`).
 
 ## What puts a supported belief back in the queue
 
