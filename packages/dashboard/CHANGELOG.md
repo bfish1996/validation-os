@@ -1,5 +1,15 @@
 # @validation-os/dashboard
 
+## 0.18.0
+
+### Minor Changes
+
+- e1e0590: Assumptions workspace view-model builder (OPS-1407): experiment-first workspace with three grouping modes (experiments / recommended / all), consistent belief row, belief body with trajectory + grilling + evidence rungs + lineage, and experiment body with acceptance criteria + spillover readings.
+
+### Patch Changes
+
+- @validation-os/core@0.18.0
+
 ## 0.17.0
 
 ### Minor Changes
