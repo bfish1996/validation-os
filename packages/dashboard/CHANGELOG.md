@@ -1,5 +1,15 @@
 # @validation-os/dashboard
 
+## 0.20.0
+
+### Minor Changes
+
+- c79d11e: Assumptions workspace surface — React UI mounting buildAssumptionsWorkspace with three grouping modes, cycle switcher, search, belief body drawer, and experiment body drawer.
+
+### Patch Changes
+
+- @validation-os/core@0.20.0
+
 ## 0.19.0
 
 ### Minor Changes
