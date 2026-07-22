@@ -30,7 +30,7 @@ function assumption(over: Partial<AnyRecord> & { id: string }): AnyRecord {
     Lens: "Desirability",
     "Scoring justification": "z",
     dependsOnIds: ["b0"],
-    "Question Type": "Existence",
+    "Assumption Type": "ProblemExists",
     derived: { derivedImpact: 50, risk: 50, confidence: 0, completeness: 100 },
     ...over,
   } as AnyRecord;
