@@ -17,7 +17,7 @@ import { riskBand, type RiskBand } from "./primitives.js";
 import {
   assumptionCycles,
   derivedNum,
-  experimentCycle,
+  experimentCycles,
   inKillLane,
   isTesting,
   readingBeliefFor,
@@ -359,10 +359,7 @@ export function groupByCycle(
   experiments: AnyRecord[],
 ): GroupBucket[] {
   const cyclesOf = (r: AnyRecord): number[] => {
-    if (register === "experiments") {
-      const c = experimentCycle(r);
-      return c === null ? [] : [c];
-    }
+    if (register === "experiments") return experimentCycles(r);
     if (register === "assumptions") return assumptionCycles(r, experiments);
     return [];
   };

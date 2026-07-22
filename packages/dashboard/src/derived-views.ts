@@ -126,6 +126,13 @@ export function experimentCycle(exp: AnyRecord): number | null {
   return typeof v === "number" && Number.isInteger(v) && v >= 1 ? v : null;
 }
 
+/** An experiment's cycle membership as a list — 0 or 1 entries — so it composes
+ * with the cycle filter the same way an assumption's (multi-valued) list does. */
+export function experimentCycles(exp: AnyRecord): number[] {
+  const c = experimentCycle(exp);
+  return c === null ? [] : [c];
+}
+
 /** The validation cycles a belief is being tested in — the distinct `Cycle`
  * values of the non-archived experiments whose bar lines name it, ascending.
  * Derived, never stored (ontology `cycle_membership`). */

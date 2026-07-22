@@ -74,7 +74,7 @@ export type {
   TargetedAssumption,
   TargetedStatus,
 } from "./experiment-assumptions.js";
-export { assumptionCycles, experimentCycle } from "./derived-views.js";
+export { assumptionCycles, experimentCycle, experimentCycles } from "./derived-views.js";
 export { resolveCycleFilter, inCycle } from "./cycle-filter.js";
 export type { CycleChoice, CycleFilterView } from "./cycle-filter.js";
 export { CycleFilterBar } from "./cycle-filter-bar.js";

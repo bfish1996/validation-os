@@ -109,6 +109,20 @@ export function formFieldsFor(register: Collection): FormField[] {
   return FIELDS[register];
 }
 
+/** Seed values for a new record's create draft (layered over `emptyDraft`).
+ * Keeps the field keys the create payload uses in this module rather than
+ * hard-coded at the call site. Only experiments seed a value today — the
+ * current validation `Cycle`; everything else seeds nothing. */
+export function createSeed(
+  register: Collection,
+  opts: { currentCycle?: number } = {},
+): Record<string, string> | undefined {
+  if (register === "experiments" && opts.currentCycle != null) {
+    return { Cycle: String(opts.currentCycle) };
+  }
+  return undefined;
+}
+
 /** A blank draft: every field keyed to an empty string (form-friendly). */
 export function emptyDraft(register: Collection): Record<string, string> {
   const draft: Record<string, string> = {};

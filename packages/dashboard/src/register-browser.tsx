@@ -16,6 +16,7 @@ import {
 import { RegisterTable } from "./register-table.js";
 import { RecordDrawer } from "./record-drawer.js";
 import { RecordForm } from "./record-form.js";
+import { createSeed } from "./form-fields.js";
 import type { RelatedSet } from "./record-view.js";
 import { RelationEditor } from "./relation-editor.js";
 import { useList, useRecord } from "./use-records.js";
@@ -327,11 +328,7 @@ export function RegisterBrowser({
         <RecordForm
           register={register}
           basePath={basePath}
-          initial={
-            register === "experiments" && currentCycle != null
-              ? { Cycle: String(currentCycle) }
-              : undefined
-          }
+          initial={createSeed(register, { currentCycle })}
           onCreated={(id) => {
             setCreating(false);
             refreshList();

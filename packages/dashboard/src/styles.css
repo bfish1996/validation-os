@@ -2874,9 +2874,10 @@ button.vos-verdict-title {
 .vos-seg-btn:hover { background: var(--vos-surface-2); }
 .vos-seg-btn.is-active { background: var(--vos-accent-weak); color: var(--vos-accent-text); }
 
-/* Cycle lens — a compact, secondary round selector in a surface head. Sits to
-   the left of the Grid/View-all seg; deliberately understated so "view all" is
-   available without competing with the primary controls. */
+/* Cycle lens — a compact, secondary round selector in a surface head (right-
+   aligned after the spacer; on Assumptions it sits just left of the Grid/
+   View-all seg). Deliberately understated so "view all" is available without
+   competing with the primary controls. */
 .vos-cycle-filter { display: inline-flex; align-items: center; gap: 6px; align-self: center; }
 .vos-cycle-filter-label { font-size: 11px; color: var(--vos-muted); text-transform: uppercase; letter-spacing: 0.4px; }
 .vos-cycle-filter-select {

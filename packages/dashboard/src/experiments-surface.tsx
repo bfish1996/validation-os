@@ -1,18 +1,11 @@
 import { useState } from "react";
-import type { AnyRecord } from "@validation-os/core";
-import { experimentCycle, liveExperiments } from "./derived-views.js";
+import { experimentCycle, experimentCycles, liveExperiments } from "./derived-views.js";
 import { resolveCycleFilter, inCycle, type CycleChoice } from "./cycle-filter.js";
 import { CycleFilterBar } from "./cycle-filter-bar.js";
 import type { Route } from "./route.js";
 import { useList } from "./use-records.js";
 import { Breadcrumb } from "./breadcrumb.js";
 import { ConfidenceDonut } from "./confidence-donut.js";
-
-/** A record's cycle memberships as a list — an experiment has 0 or 1. */
-function cyclesOfExperiment(e: AnyRecord): number[] {
-  const c = experimentCycle(e);
-  return c === null ? [] : [c];
-}
 
 /**
  * The Experiments nav surface (DEV-5881): the live evidence plans list, with
@@ -53,12 +46,12 @@ export function ExperimentsSurface({
 
   const allLive = liveExperiments(experiments.records ?? []);
   const cycleView = resolveCycleFilter(
-    allLive.flatMap(cyclesOfExperiment),
+    allLive.flatMap(experimentCycles),
     currentCycle ?? null,
     cycleSel,
   );
   const live = allLive.filter((e) =>
-    inCycle(cyclesOfExperiment(e), cycleView.effective),
+    inCycle(experimentCycles(e), cycleView.effective),
   );
 
   return (
