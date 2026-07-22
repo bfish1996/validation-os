@@ -1,5 +1,5 @@
 ---
-"@validation-os/dashboard": major
+"@validation-os/dashboard": minor
 ---
 
 Fix record-body navigation and collapse the four body renderers into one.
