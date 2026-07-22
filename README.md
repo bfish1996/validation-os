@@ -48,10 +48,12 @@ Assumption → grill & score → Experiment (pre-registered pass/kill bars)
      → Evidence → Confidence moves → Risk follows → next test surfaces
 ```
 
-**Stage policy:** every assumption is a falsifiable claim about an external
-actor's response, tagged with one of four discovery stages (Discovery →
-Validation → Scale → Maturity). The Lens × Stage heatmap reads where your
-bets cluster — see [docs/stage-policy.md](docs/stage-policy.md).
+**Assumption types:** every assumption is a falsifiable claim, typed by what
+would prove it wrong (the gaming guard). The eleven types (ProblemExists,
+TheyllPay, ItWorks, …) each map to a risk group and decide which evidence
+rungs can settle the claim. The type is inferred on write from the
+falsification bar — no dropdown. See
+[docs/evidence-ladder.md](docs/evidence-ladder.md).
 
 Theory, ladder, cadence, and goals: [docs/method.md](docs/method.md) ·
 [docs/evidence-ladder.md](docs/evidence-ladder.md) ·

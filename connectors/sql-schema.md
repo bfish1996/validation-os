@@ -21,7 +21,12 @@ registers:
       - {canonical: Title, backend: title, type: TEXT, derived: false}
       - {canonical: Description, backend: description, type: TEXT, derived: false}
       - {canonical: Lens, backend: lens, type: TEXT, derived: false, options_source: vocabulary.lens}
-      - {canonical: Assumption Type, backend: assumption_type, type: TEXT, derived: true, formula: "inferred on write from the falsification bar (wrongIf) of any experiment naming the belief, falling back to the description; re-inferred on every touching write (living inference). Not a required input — no dropdown. .", options_source: registry-schema}
+      - {canonical: Assumption Type, backend: assumption_type, type: TEXT, derived: true, formula: "inferred on write from the falsification bar (wrongIf) of any experiment naming the belief, falling back to the description; re-inferred on every touching write (living inference). Not a required input — no dropdown.", options_source: registry-schema}
+      - {canonical: Risk Group, backend: risk_group, type: TEXT, derived: true, formula: "derived from Assumption Type via TYPE_TO_GROUP; skill-computed", options_source: registry-schema}
+      - {canonical: Cost to test, backend: cost_tier, type: TEXT, derived: true, formula: "derived from the Assumption Type's ceiling-rung nature; skill-computed", options_source: registry-schema}
+      - {canonical: Graduation, backend: graduation_state, type: TEXT, derived: true, formula: "Untested/Signal/Graduated based on Confidence vs the graduation bar; skill-computed", options_source: registry-schema}
+      - {canonical: Stage, backend: stage, type: TEXT, derived: false, options_source: registry-schema}
+      - {canonical: Question Type, backend: question_type, type: TEXT, derived: false, options_source: registry-schema}
       - {canonical: Theme, backend: themes, type: JSON, derived: false, options_source: registry-schema}
       - {canonical: Impact, backend: impact, type: INTEGER, derived: false}
       - {canonical: Derived Impact, backend: derived_impact, type: NUMERIC, derived: true, formula: "seed + (100 - seed) × S/(S + 100) over the dependency DAG, S = dependents' Derived Impact + 100 per standing decision Based on; experiments never contribute (assumption-guardrails.md §3); recomputed on every touching write ()"}
@@ -212,7 +217,12 @@ sql:
 | Title | `title` | TEXT | no |
 | Description | `description` | TEXT | no |
 | Lens | `lens` | TEXT | no |
-| Assumption Type | `assumption_type` | TEXT (`ProblemExists` \| `ProblemWidespread` \| `WantOurSolution` \| `ItWorks` \| `CanCompleteTask` \| `CanBuildIt` \| `LegalCompliant` \| `TheyllPay` \| `TheyKeepUsingIt` \| `ReachProfitably` \| `EconomicsWork`) | yes (inferred on write,  — not a required input) |
+| Assumption Type | `assumption_type` | TEXT (`ProblemExists` \| `ProblemWidespread` \| `WantOurSolution` \| `ItWorks` \| `CanCompleteTask` \| `CanBuildIt` \| `LegalCompliant` \| `TheyllPay` \| `TheyKeepUsingIt` \| `ReachProfitably` \| `EconomicsWork`) | yes (inferred on write — not a required input) |
+| Risk Group | `risk_group` | TEXT (`Desirability` \| `Usability` \| `Feasibility` \| `Viability`) | yes |
+| Cost to test | `cost_tier` | TEXT (`cheap` \| `moderate` \| `expensive`) | yes |
+| Graduation | `graduation_state` | TEXT (`Untested` \| `Signal` \| `Graduated`) | yes |
+| Stage | `stage` | TEXT (`Discovery` \| `Validation` \| `Scale` \| `Maturity`) | no (retired — retained for migration reading) |
+| Question Type | `question_type` | TEXT (`Existence` \| `Prevalence` \| `CausalEffect` \| `WillingnessToPay` \| `ValueUtility` \| `Regulatory` \| `Feasibility`) | no (retired — retained for migration reading) |
 | Theme | `themes` | JSON (array of strings) | no |
 | Impact | `impact` | INTEGER (0–100) | no |
 | Derived Impact | `derived_impact` | NUMERIC | yes |

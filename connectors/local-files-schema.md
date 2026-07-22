@@ -28,7 +28,12 @@ registers:
       - {canonical: Confidence, backend: Confidence, type: number, derived: true, formula: "signed weighted average of concluded Validated/Invalidated belief entries scored against this row, weight = |Strength| × Source quality × commitmentFactor (1.0 if the entry's reading has an Experiment else 0.85; never reorders rungs), neutral prior w0=100 (hard floor ≥98), deduped per (belief, source) to the strongest/most-recent (experiment-guardrails.md §2); skill-computed, bullet marked <!-- derived -->"}
       - {canonical: Completeness %, backend: Completeness %, type: number, derived: true, formula: "filled slots / all slots × 100 over six structural slots: Description, Lens, Impact, Scoring justification, dependencies traced (≥1 Depends on/Enables link), Assumption Type; the Assumption Type slot is inferred on write (); replaces the retired Gaps/presence-field machinery (); skill-computed, bullet marked <!-- derived -->"}
       - {canonical: Status, backend: Status, type: text, derived: false, options_source: registry-schema}
-      - {canonical: Assumption Type, backend: "Assumption Type", type: text, derived: true, formula: "inferred on write from the falsification bar (wrongIf) of any experiment naming the belief, falling back to the description; re-inferred on every touching write (living inference). Not a required input — no dropdown. .", options_source: registry-schema}
+      - {canonical: Assumption Type, backend: "Assumption Type", type: text, derived: true, formula: "inferred on write from the falsification bar (wrongIf) of any experiment naming the belief, falling back to the description; re-inferred on every touching write (living inference). Not a required input — no dropdown.", options_source: registry-schema}
+      - {canonical: Risk Group, backend: "Risk Group", type: text, derived: true, formula: "derived from Assumption Type via TYPE_TO_GROUP; skill-computed", options_source: registry-schema}
+      - {canonical: Cost to test, backend: "Cost to test", type: text, derived: true, formula: "derived from the Assumption Type's ceiling-rung nature; skill-computed", options_source: registry-schema}
+      - {canonical: Graduation, backend: "Graduation", type: text, derived: true, formula: "Untested/Signal/Graduated based on Confidence vs the graduation bar; skill-computed", options_source: registry-schema}
+      - {canonical: Stage, backend: Stage, type: text, derived: false, options_source: registry-schema}
+      - {canonical: Question Type, backend: "Question Type", type: text, derived: false, options_source: registry-schema}
       - {canonical: Owner, backend: Owner, type: text, derived: false, options_source: vocabulary.dashboard_users}
       - {canonical: Scoring justification, backend: "### Scoring justification section", type: text, derived: false}
     relations:
@@ -163,7 +168,12 @@ per record named by ID (`<ID>.md`):
 | Confidence | `- **Confidence**: ...` | number | yes |
 | Completeness % | `- **Completeness %**: ...` | number | yes |
 | Status | `- **Status**: ...` | text | no |
-| Assumption Type | `- **Assumption Type**: ...` | text (`ProblemExists`/`ProblemWidespread`/`WantOurSolution`/`ItWorks`/`CanCompleteTask`/`CanBuildIt`/`LegalCompliant`/`TheyllPay`/`TheyKeepUsingIt`/`ReachProfitably`/`EconomicsWork`) | yes (inferred on write,  — not a required input) |
+| Assumption Type | `- **Assumption Type**: ...` | text (`ProblemExists`/`ProblemWidespread`/`WantOurSolution`/`ItWorks`/`CanCompleteTask`/`CanBuildIt`/`LegalCompliant`/`TheyllPay`/`TheyKeepUsingIt`/`ReachProfitably`/`EconomicsWork`) | yes (inferred on write — not a required input) |
+| Risk Group | `- **Risk Group**: ...` | text (`Desirability`/`Usability`/`Feasibility`/`Viability`) | yes |
+| Cost to test | `- **Cost to test**: ...` | text (`cheap`/`moderate`/`expensive`) | yes |
+| Graduation | `- **Graduation**: ...` | text (`Untested`/`Signal`/`Graduated`) | yes |
+| Stage | `- **Stage**: ...` | text (`Discovery`/`Validation`/`Scale`/`Maturity`) | no (retired — retained for migration reading) |
+| Question Type | `- **Question Type**: ...` | text (`Existence`/`Prevalence`/`CausalEffect`/`WillingnessToPay`/`ValueUtility`/`Regulatory`/`Feasibility`) | no (retired — retained for migration reading) |
 | Owner | `- **Owner**: ...` | text (dashboard-user reference) | no |
 | Scoring justification | `- **Scoring justification**: ...` | text | no |
 | Depends on / Enables | `- **Depends on**: ...` / `- **Enables**: ...` | text (IDs) | no |

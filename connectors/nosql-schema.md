@@ -21,7 +21,12 @@ registers:
       - {canonical: Title, backend: Title, type: string, derived: false}
       - {canonical: Description, backend: Description, type: string, derived: false}
       - {canonical: Lens, backend: Lens, type: string, derived: false, options_source: vocabulary.lens}
-      - {canonical: Assumption Type, backend: "Assumption Type", type: string, derived: true, formula: "inferred on write from the falsification bar (wrongIf) of any experiment naming the belief, falling back to the description; re-inferred on every touching write (living inference). Not a required input — no dropdown. .", options_source: registry-schema}
+      - {canonical: Assumption Type, backend: "Assumption Type", type: string, derived: true, formula: "inferred on write from the falsification bar (wrongIf) of any experiment naming the belief, falling back to the description; re-inferred on every touching write (living inference). Not a required input — no dropdown.", options_source: registry-schema}
+      - {canonical: Risk Group, backend: derived.riskGroup, type: string, derived: true, formula: "derived from Assumption Type via TYPE_TO_GROUP (Desirability/Usability/Feasibility/Viability); skill-computed", options_source: registry-schema}
+      - {canonical: Cost to test, backend: derived.costTier, type: string, derived: true, formula: "derived from the Assumption Type's ceiling-rung nature (cheap/moderate/expensive); skill-computed", options_source: registry-schema}
+      - {canonical: Graduation, backend: derived.graduationState, type: string, derived: true, formula: "Untested/Signal/Graduated based on Confidence vs the graduation bar (a function of Derived Impact); skill-computed", options_source: registry-schema}
+      - {canonical: Stage, backend: Stage, type: string, derived: false, options_source: registry-schema}
+      - {canonical: Question Type, backend: "Question Type", type: string, derived: false, options_source: registry-schema}
       - {canonical: Theme, backend: Theme, type: "string[]", derived: false, options_source: registry-schema}
       - {canonical: Impact, backend: Impact, type: number, derived: false}
       - {canonical: Derived Impact, backend: derived.derivedImpact, type: number, derived: true, formula: "seed + (100 - seed) × S/(S + 100), S = Σ dependents' Derived Impact + 100 per standing decision Based on assumption; experiments never contribute (assumption-guardrails.md §3); recomputed on every touching write ()"}
@@ -246,7 +251,12 @@ is no shared `type` field splitting one collection into two record kinds.
 | Title | `Title` | string | no |
 | Description | `Description` | string | no |
 | Lens | `Lens` | string | no |
-| Assumption Type | `Assumption Type` | string (`ProblemExists` \| `ProblemWidespread` \| `WantOurSolution` \| `ItWorks` \| `CanCompleteTask` \| `CanBuildIt` \| `LegalCompliant` \| `TheyllPay` \| `TheyKeepUsingIt` \| `ReachProfitably` \| `EconomicsWork`) | yes (inferred on write,  — not a required input) |
+| Assumption Type | `Assumption Type` | string (`ProblemExists` \| `ProblemWidespread` \| `WantOurSolution` \| `ItWorks` \| `CanCompleteTask` \| `CanBuildIt` \| `LegalCompliant` \| `TheyllPay` \| `TheyKeepUsingIt` \| `ReachProfitably` \| `EconomicsWork`) | yes (inferred on write — not a required input) |
+| Risk Group | `derived.riskGroup` | string (`Desirability` \| `Usability` \| `Feasibility` \| `Viability`) | yes |
+| Cost to test | `derived.costTier` | string (`cheap` \| `moderate` \| `expensive`) | yes |
+| Graduation | `derived.graduationState` | string (`Untested` \| `Signal` \| `Graduated`) | yes |
+| Stage | `Stage` | string (`Discovery` \| `Validation` \| `Scale` \| `Maturity`) | no (retired — retained for migration reading of legacy records) |
+| Question Type | `Question Type` | string (`Existence` \| `Prevalence` \| `CausalEffect` \| `WillingnessToPay` \| `ValueUtility` \| `Regulatory` \| `Feasibility`) | no (retired — retained for migration reading of legacy records) |
 | Theme | `Theme` | string[] | no |
 | Impact | `Impact` | number (0–100) | no |
 | Derived Impact | `derived.derivedImpact` | number | yes |
