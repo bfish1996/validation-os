@@ -247,6 +247,12 @@ rung ≥ the strongest validating rung), is a separate gated `Live` →
   write; if the wording changed after phase 8, re-run the check once more.
 - **Gate the write:** show final title / Description / scores / relations
   and confirm before writing. One record at a time.
+- **Deep link to the record.** After the close-out write, if
+  `validation-os.config.yaml` sets `dashboard_url`, emit a one-line markdown
+  link to the record's page — `[ASM-014](<DASHBOARD_URL>#assumption/ASM-014)`
+  where `DASHBOARD_URL` is the configured `dashboard_url` value — so the user
+  can open it in the dashboard. If `dashboard_url` is unset (local-files, no
+  deployed dashboard), skip the link; never guess a host.
 - Offer the next record in the Draft queue (next-highest Risk).
 
 ## Never

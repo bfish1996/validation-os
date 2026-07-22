@@ -86,6 +86,11 @@ norm.
 4. **Honour the gate.** Gated modes (single, seed, audit-fixes, triage)
    confirm each write per `../_shared/gated-writes.md`. Loop writes
    autonomously but logs every mutation to a run-log for rollback.
+5. **Deep link on close-out.** When a record is written or closed out, if
+   `validation-os.config.yaml` sets `dashboard_url`, emit a markdown deep
+   link to the record's dashboard page
+   (`DASHBOARD_URL#assumption/<id>`). Skip silently when `dashboard_url` is
+   unset. See `connectors/SPEC.md §Deep links`.
 
 ## Guardrail summary
 

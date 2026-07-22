@@ -235,7 +235,12 @@ deliverable. Deliver
 the brief in chat and link the record. Do **not** substitute a document for
 the record. Optionally (gated), also save a human-readable copy wherever
 your team keeps meeting docs (a CRM note, a doc next to the calendar
-invite) — a convenience, not the source of truth.
+invite) — a convenience, not the source of truth. **The record link is a
+deep link** to the dashboard: if `validation-os.config.yaml` sets
+`dashboard_url`, link the Experiment record as
+`[<id>](<DASHBOARD_URL>#experiment/<id>)` and each target assumption as
+`[<id>](<DASHBOARD_URL>#assumption/<id>)` (see `connectors/SPEC.md §Deep
+links`); skip the link when `dashboard_url` is unset.
 
 ALWAYS use this structure:
 

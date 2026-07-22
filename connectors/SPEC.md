@@ -62,6 +62,22 @@ in `connectors/<name>-schema.md`.
   user with what to fix — never silently skipped, never worked around by
   creating parallel structure.
 
+## Deep links (optional `dashboard_url`)
+
+A workspace whose register is served by a deployed dashboard may set
+`dashboard_url` at the top level of `validation-os.config.yaml` — the deployed
+dashboard's origin (scheme + host, no path, no trailing slash), e.g.
+`https://registry.doshi.ai`. Skills read it to build **deep links** to records
+by appending the dashboard's hash route: `DASHBOARD_URL#assumption/<id>`,
+`DASHBOARD_URL#experiment/<id>`, `DASHBOARD_URL#reading/<id>`, where
+`DASHBOARD_URL` is the configured `dashboard_url` value. The hash routes are
+the dashboard's contract (`packages/dashboard/src/route.ts`) and stay stable
+across releases.
+
+When `dashboard_url` is absent (local-files connector, no deployed dashboard),
+skills skip the deep link — they never guess a host and never emit a bare id
+as a link.
+
 ## Writing a new runtime connector
 
 Copy the structure of `local-files.md`: a **Config** section (keys the connector

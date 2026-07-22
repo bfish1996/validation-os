@@ -220,7 +220,13 @@ export function ValidationOSDashboard({ config = {} }: ValidationOSDashboardProp
             register={route.register}
             basePath={basePath}
             subtitle={REGISTER_SUBTITLE[route.register]}
-            onOpenRecord={(id) => navigate({ name: "record", id })}
+            onOpenRecord={(id) => {
+              const r = route.register;
+              if (r === "assumptions") navigate({ name: "assumption", id });
+              else if (r === "experiments") navigate({ name: "experiment", id });
+              else if (r === "readings") navigate({ name: "reading", id });
+              else navigate({ name: "record", id });
+            }}
             lens={route.lens}
             stage={route.stage}
             currentCycle={currentCycle}
