@@ -78,6 +78,8 @@ export { assumptionCycles, experimentCycle, experimentCycles } from "./derived-v
 export { resolveCycleFilter, inCycle } from "./cycle-filter.js";
 export type { CycleChoice, CycleFilterView } from "./cycle-filter.js";
 export { CycleFilterBar } from "./cycle-filter-bar.js";
+export { AssumptionsWorkspaceSurface } from "./assumptions-workspace-surface.js";
+export type { AssumptionsWorkspaceSurfaceProps } from "./assumptions-workspace-surface.js";
 export { SidebarNav } from "./sidebar-nav.js";
 export type { SidebarNavProps } from "./sidebar-nav.js";
 export { parseRoute, formatRoute } from "./route.js";
